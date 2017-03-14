@@ -1551,11 +1551,7 @@
 		$checkCount=0;
 		
 		checkString: {
-			if ($checkCount >= 3) {
-				break;
-			}
-			$checkCount++;
-			$winner = false;
+		$winner = false;
 			$results = fetchHubResults(strtolower($title));
 			if ($results) {
 				if ((count($results)>=2) && (count($matchup))) {
