@@ -1,0 +1,14 @@
+{
+  "repositories": [
+    {
+      "type": "pear",
+      "url": "pear.php.net"
+    }
+  ],
+  "require": {
+    "pear-pear.php.net/config_lite": "*"
+    
+	
+  },
+  "minimum-stability": "dev"
+}

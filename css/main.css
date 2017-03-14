@@ -1,0 +1,311 @@
+html, body {
+	height:100%;
+	width:100%;
+	background-color: ;
+}
+
+.login-box {
+	position: relative;
+	top: 50%;
+	max-width: 250px;
+	margin-left: auto;
+	margin-right: auto;
+	transform: translateY(-50%);
+	
+}
+
+.loginBox {
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+	background-color:black;
+	
+	
+}
+
+.btnAdd {
+	margin-bottom: 16px!important;
+} 
+
+#snackbar-container {
+	left: 50%;
+    width: auto;
+    -webkit-transform: translateX(-50%);
+    -moz-transform: translateX(-50%);
+    -ms-transform: translateX(-50%);
+    -o-transform: translateX(-50%);
+    transform: translateX(-50%);
+	text-align: center;
+}
+
+
+@media only screen and (max-width: 768px) {
+  select:focus,
+  textarea:focus,
+  input:focus {
+    font-size: 16px !important;
+  
+  }
+  
+   select,
+  textarea,
+  input {
+    font-size: 16px!important;
+  }
+  
+  .query {
+	  padding: 0px;
+	  width: 100%;
+	  min-width: 0px !important;
+  }
+  
+  .queryWrap {
+		margin-top: 0px !important;
+		padding: 0px;
+		
+	}
+}
+
+.dropdown-menu, .dropdown-header, #clientWrapper {
+	z-index: 1000;
+}
+
+#progressSlider {
+	position: absolute;
+	top: -9px;
+}
+
+.wrapper {
+	width: 100%;
+	height: 100%;
+	position: relative;
+}
+
+.statusWrapper {
+	height: 100%;
+	width: 100%;
+	display: flex;
+	
+}
+.statusArt {
+	object-fit: contain;
+}
+
+#statusImage {
+	height: 100%;
+	width: auto;
+	float: left;
+}
+
+.statusText {
+	display: inline-block;
+    float: left;
+	padding: 15px;
+	color: white;
+}
+
+.wrapperArt {
+	width: 100%;
+	height: 100%;
+	position: fixed;
+	background-position: center center;
+	background-size: cover;
+	opacity:0.3;
+	pointer-events: none;
+	z-index:-3;
+}
+
+.queryWrap {
+	margin-top: 20px;
+	width: 100%;
+	
+}
+
+.ombiGroup {
+	display: none;
+}
+
+.card {
+	z-index: 10;
+}
+
+.login-box label {
+	color: #306abd!important;
+}
+
+
+.form-group label {
+	color: #003792;
+}
+
+
+.card-image {
+	text-align: center;
+	
+}
+.resultimg {
+	
+	
+}
+
+.btn-70 {
+    width: 70px;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.btn-100 {
+	width: 100px;
+	padding-left: 0;
+    padding-right: 0;
+}
+
+.ddLabel {
+	position: relative;
+	font-size: 7px;
+	top: -3px;
+	text-align:center;
+}
+
+
+.clientMenu {
+	position: relative;
+	top: -14px;
+}
+
+.query {
+	float: none;
+    margin: 0 auto;
+	min-width: 700px;
+}
+
+#settingsButton {
+	position: absolute;
+	top: 20px;
+}
+
+#cmdDD {
+	padding: 5px 15px;
+}
+
+.text-center {
+	text-align:center;
+}
+
+#castDD {
+	padding: 5px 15px;
+	max-height: 44px;
+	
+}
+
+.queryGroup {
+	margin-top: 20px;
+	margin-left: 20px;
+}
+
+.queryBtnWrap {
+	text-align: center;
+}
+
+.queryBtnGrp {
+	margin-left: auto !important;
+	margin-right: auto !important;
+	float: none !important;
+	display: inline-block;
+}
+
+#linkAccount {
+	background-color: #4285f4;
+}
+
+.sendBtn {
+	margin-top: 10px;
+	padding-right: 10px;
+	height:100%;
+}
+
+.nowPlayingFooter {
+	z-index:10;
+	width: 100%;
+    height: 160px;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+	display: none;
+    background-color: rgba(71, 71, 71, 0.92);
+	
+}
+
+
+
+.clicked, .dd-selected {
+	color: #005ad9 !important;
+	
+}
+
+.barBtn {
+	margin-top: 8px;
+	height: 100%;
+}
+.searchPick {
+	position: absolute;
+	width: 100%;
+	top: 0;
+	left: 0;
+	margin: 5px !important;
+	height: 30px !important;
+}
+
+
+input[type=checkbox] {
+	float:right;
+}
+
+.appLabel {
+	width: 100%;
+}
+
+.toggle {
+	float: right;
+}
+
+
+
+#results {
+	/*height: calc(100% - 40px);*/
+	
+}
+
+#resultsInner {
+	margin: 0 auto;
+	float: none;
+}
+
+.loginput {
+	text-align: center;
+}
+
+.rehide {
+	display: none!important;
+}
+
+.resultDiv, .bootstrap-dialog-message {
+    white-space: pre-wrap; /* css-3 */    
+    white-space: -moz-pre-wrap; /* Mozilla, since 1999 */
+    white-space: -pre-wrap; /* Opera 4-6 */    
+    white-space: -o-pre-wrap; /* Opera 7 */    
+    word-wrap: break-word; /* Internet Explorer 5.5+ */
+}
+
+#results {
+	z-index:0;
+}
+
+.expandWrap {
+	display: inline-block !important;
+}
+
+.expand {
+	display:none;
+}
+
