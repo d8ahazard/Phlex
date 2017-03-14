@@ -1,0 +1,9 @@
+#################
+## Ignore user-generated files
+#################
+/commands*
+/config*
+/Phlex.log*
+/PhlexREQ.log*
+/composer.lock
+/img/cache/*
