@@ -75,6 +75,154 @@ On the next page, pick your Google account or log in if prompted.  Once logged i
 
 Boom.  You can now talk to Phlex by saying things like "Ask Flex TV to play batman begins" or "Ask Flex TV to play the lastest episode of THe Big Bang Theory".  I'll be adding a wiki page for voice commands as time allows.
 
+
+##Google Assistant Commands##
+OK Google, Ask Flex TV to play Batman Begins.
+OK Google, Tell Flex TV to play the latest episode of Game of Thrones.
+OK Google, Ask Flex TV to pause playback.
+OK Google, Ask Flex TV to stop playback.
+OK Google, Ask Flex TV to set the volume to 80%.
+OK Google, Ask Flex TV to turn on a Bill Murray movie.
+OK Google, Ask Flex TV to fire up a Comedy.
+OK Google, Ask Flex TV to play a movie.
+OK Google, Ask Flex TV to play season 4 episode 3 of The Simpsons.
+OK Google, Ask Flex TV to download the show Alf.
+OK Google, Ask Flex TV to fetch The Avengers Age of Ultron.
+OK Google, Ask Flex TV what's playing.
+OK Google, Ask Flex TV what the name of this movie is.
+OK Google, Tell Flex TV I want to watch Frozen From 1 Hour and 45 Minutes.
+
+Notes on OK Google Commands:
+
+**"Playback":**
+	"play",
+        "I want to watch",
+        "I feel like watching",
+        "do I have",
+        "can you fire up",
+        "can you play",
+        "start",
+        "turn on",
+        "put on",
+        "throw on",
+        "find",
+        "can you find"
+
+****'Control' commands (play, pause, stop, volume, etc.):****
+
+**"Resume":**
+        "Play",
+        "Resume",
+        "Start",
+        "Continue"
+ 
+**"Pause":**
+	"Pause"
+   
+**"Stop":**
+        "Stop Playback",
+        "Halt",
+        "End Playback",
+        "Cease",
+        "Desist"
+	
+**"Skip Forward":**
+        "Skip Forward",
+        "Skip Ahead",
+        "Jump Ahead",
+        "Next Chapter"
+
+**"Skip Backward":**
+        "Skip Backward",
+        "Skip Back",
+        "Jump Back",
+        "Previous Chapter"
+
+**"Seek Forward":**
+        "Seek Forward",
+        "Fast Forward",
+        "Step Forward",
+        "Seek Ahead"
+
+
+**"Seek Backward":**
+        "Seek Backward",
+        "Rewind",
+        "Step Backward",
+        "Step Back"
+
+**"Jump To":** // Not Implemented Yet
+        "Jump To",
+        "Seek To",
+        "Skip To",
+        "Fast Forward To",
+        "Rewind To",
+        "Go Back To"
+
+**"Stop":**
+        "stop"
+
+
+**"Volume":**
+        "set the volume",
+        "adjust the volume",
+        "turn the volume down",
+        "turn the volume up",
+        "turn it up", // Not Implemented Yet
+        "turn it down" // Not Implemented Yet
+
+
+**"Fetch*:**
+	"fetch",
+        "I want to download",
+        "can you download",
+        "download",
+        "grab",
+        "snatch",
+        "pirate",
+        "add",
+        "snag"
+
+**"Change Player"/"Change Server":*
+	"switch player",
+        "choose player",
+        "change player",
+        "select player",
+        "pick player",
+        "swap player"
+
+**"Currently playing":**
+	"What's playing?",
+        "What's on?",
+        "What is playing?",
+        "What is on?",
+        "What am I watching?",
+        "What is on TV?",
+        "What movie is on?",
+        "What show is on?",
+        "Am I watching something?",
+        "Can you tell me what this movie is called?",
+        "Can you tell me what this show is called?",
+        "What is this called?",
+        "what the name of this"
+
+**"New Media":** // Not sure if I implemented or not
+	"What new TYPE",
+        "have any new TYPE",
+        "What's new?",
+        "what is new",
+        "recent",
+        "recently added",
+        "just added"
+
+**"On Deck Items":** // Also forgot if I actually wrote this or not yet
+ 	"ondeck",
+        "What's on deck",
+        "What is on deck",
+        "up next"
+
+
+
 ##Setting up IFTTT With Phlex##
 
 (This needs better formatting) 
