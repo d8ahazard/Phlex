@@ -558,6 +558,7 @@
 		//Sanitize our string and try to rule out synonyms for commands
 		$queryOut[initialCommand] = $command;
 		$command = strtolower($command);
+		write_log("Initial command is ".$command);
 		$command = str_replace("resume","play",$command);
 		$command = str_replace("jump","skip",$command);
 		$command = str_replace("go","skip",$command);
@@ -572,6 +573,7 @@
 		$command = str_replace("seek back","stepBack",$command);
 		$command = str_replace("skip back","skipPrevious",$command);
 		$cmd = false;
+		write_log("Fixed command is ".$command);
 		$queryOut[parsedCommand] = "";
 		$serverToken = $_SESSION['plex_token'];
 		$client = $_SESSION['uri_plexclient'];
@@ -722,7 +724,7 @@
 		$queryOut['clientName'] = $_SESSION['name_plexclient'];
 		$queryOut['initialCommand'] = $rawspeech;
 		$queryOut['timestamp'] = timeStamp();
-		
+		$control = (string)strtolower($request["result"]['parameters']["Controls"]);
 		$command = false;
 		$year = false;
 		$command = strtolower($request["result"]["parameters"]["command"]);
@@ -754,7 +756,17 @@
 				}
 			}
 		}
-		
+		write_log("Control is ".$control);
+		if ($control == 'skip forward') {
+			write_log("Action should be changed now.");
+			$action ='control';
+			$command = 'skip forward';
+		}
+		if ($control == 'skip backward') {
+			write_log("Action should be changed now.");
+			$action ='control';
+			$command = 'skip backward';
+		}
 		write_log("Final params should be an action of ".$action." and a command of ".$command);
 		
 		// This value tells API.ai that we are done talking.  We set it to a positive value if we need to ask more questions/get more input.
@@ -861,7 +873,7 @@
 						$title = $showTitle.": ".$title;
 					}
 					if (($i == $count) && ($count >=2)) {
-						$speech .= "and ". $title;
+						$speech .= "and ". $title.".";
 					} else {
 						$speech .= $title.", ";
 					}
@@ -905,7 +917,8 @@
 					$year = $queryOut['mediaResult']['year'];
 					$type = $queryOut['mediaResult']['type'];
 					$queryOut['parsedCommand'] = 'Play the '.(($searchType == '') ? $type : $searchType). ' named '. $title.'.';
-					$affirmatives = array("Yes captain, ","Okay, ","Sure, ","No problem, ","Yes master, ","You got it, ","As you command, ");
+					unset($affirmatives);
+					$affirmatives = array("Yes captain, ","Okay, ","Sure, ","No problem, ","Yes master, ","You got it, ","As you command, ","Allrighty then, ");
 					$titlelower = strtolower($title);
 					switch($titlelower) {
 						case (strpos($titlelower, 'batman') !== false):
@@ -950,16 +963,24 @@
 						case (strpos($titlelower, 'star wars') !== false):
 							$affirmative = "These are not the droids you're looking for.  ";
 							break;
-						default:
-							$affirmative = $affirmatives[array_rand($affirmatives)];
-							break;
-						
 					}
+					// Put our easter egg affirmative in the array of other possible options, so it's only sometimes used.
+					
+					array_push($affirmatives,$affirmative);
+					
+					// Make sure we didn't just say whatever affirmative we decided on.
+					do {
+						$affirmative = $affirmatives[array_rand($affirmatives)];
+					} while ($affirmative == $_SESSION['affirmative']);
+					
+					// Store the last affirmative.
+					$_SESSION['affirmative'] = $affirmative;
+					
 					if ($type == 'episode') {
 						$seriesTitle = $queryOut['mediaResult']['grandparentTitle'];
-						$speech = $affirmative. "Playing the episode of ". $seriesTitle ." named ".$title;
+						$speech = $affirmative. "Playing the episode of ". $seriesTitle ." named ".$title.".";
 					} else {
-						$speech = $affirmative. "Playing ".$title . " (".$year.")";
+						$speech = $affirmative. "Playing ".$title . " (".$year.").";
 					}
 					if ($_SESSION['promptForTitle'] == true) {
 						$contextOut = 'promptForTitle';
@@ -1030,6 +1051,9 @@
 			$speech = "Okay, sending a command to ".$command;
 			$queryOut['speech'] = $speech;
 			returnSpeech($speech,$contextName,$waitForResponse);
+			if ($command == 'jump to') {
+				write_log("This is a jump command, raw speech was ".$rawspeech);
+			}
 			$result = parseControlCommand($command);
 			$newCommand = json_decode($result,true);
 			$newCommand['timestamp'] = timeStamp();
@@ -1331,6 +1355,33 @@
 	
 	
 	function fetchCastDevices() {
+		//
+		// create new resolver object, passing in an array of name
+		// servers to use for lookups
+		//
+		$r = new Net_DNS2_Resolver(array('nameservers' => array('224.0.0.251:5353')));
+
+		//
+		// execute the query request for the google.com MX servers
+		//
+		try {
+				$result = $r->query('_googlecast._tcp.', 'SRV');
+				
+		} catch(Net_DNS2_Exception $e) {
+				
+				write_log("::query() failed: " . $e->getMessage() . "\n");
+		}
+
+		//
+		// loop through the answer, printing out the MX servers retured.
+		//
+		foreach($result->answer as $mxrr)
+		{
+				write_log("preference=%d, host=%s\n". $mxrr->preference. $mxrr->exchange);
+		}
+	}
+	
+	function fetchCastDevices2() {
 		//MDNS resolver, wip
 		//$loop = React\EventLoop\Factory::create();
 		//$factory = new Factory($loop);
@@ -1552,7 +1603,7 @@
 		
 		checkString: {
 		$winner = false;
-			$results = fetchHubResults(strtolower($title));
+			$results = fetchHubResults(strtolower($title),$type);
 			if ($results) {
 				if ((count($results)>=2) && (count($matchup))) {
 					write_log("Multiple results found, let's see if there are any mods.");
@@ -1635,8 +1686,9 @@
 	// This is our one-shot search mechanism
 	// It queries the /hubs endpoint, scrapes together a bunch of results, and then decides
 	// how relevant those results are and returns them to our talk-bot
-	function fetchHubResults($title) {
+	function fetchHubResults($title,$type=false) {
 		write_log("Function Fired.");
+		write_log("Type is ".$type);
 		$searchType = '';
 		$searchArray = explode(" ",$title);
 		$stripIn = array("of","the","an","a","at","th","nd","in","it","from","movie","show","episode","season");
@@ -1695,7 +1747,13 @@
 								}
 							} 
 							if (($Hub['type'] == 'show') || ($Hub['type'] == 'movie') || ($Hub['type'] == 'episode')) {
-								array_push($exactResults,$Element);
+								if ($type) {
+									if ($Hub['type'] == $type) {
+										array_push($exactResults,$Element);
+									}
+								} else {
+									array_push($exactResults,$Element);
+								}
 							}
 						} else {
 							$weight = similar_text($search, $titleOut, $percent);
@@ -2260,7 +2318,6 @@
 		$result = curl_exec($ch);
 		curl_close ($ch);
 		write_log('Playback URL is ' . $playUrl);
-		write_log('Headers array: '.print_r($headers,true));
 		write_log("Result value is ".$result);
 		$status = ((strpos($result,'HTTP/1.1 200 OK')!==false)?'success':'error');
 		write_log("Result is ".$status);
@@ -2390,7 +2447,6 @@
 		if ($_SESSION['product_plexclient'] == 'cast') {
 			return castStatus();
 		} else {
-			write_log("PLAYERSTSTUS");
 			$url = $_SESSION['uri_plexclient'].
 			'/player/timeline/poll?wait='.$wait.'&commandID='.$_SESSION['counter'];
 			$ch = curl_init();
@@ -2428,7 +2484,6 @@
 							if ($media) {
 								$mediaContainer = new SimpleXMLElement($media);
 								$MC = json_decode(json_encode($mediaContainer),true);
-								write_log("DA MC YO :" .json_encode($MC));
 								$thumb = (($MC['Video']['@attributes']['type'] == 'movie') ? $MC['Video']['@attributes']['thumb'] : $MC['Video']['@attributes']['parentThumb']);
 								$art = $MC['Video']['@attributes']['art'];
 								$status['status'] = (string)$Timeline['state'];
@@ -2459,7 +2514,6 @@
 			$status['status'] = 'error';
 		}
 		$status = json_encode($status);
-		write_log("Final Player Status: ".$status);
 		return $status;
 	}
 	
