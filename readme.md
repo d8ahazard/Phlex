@@ -106,12 +106,11 @@ OK Google, Ask Flex TV what the name of this movie is.
 OK Google, Tell Flex TV I want to watch Frozen From 1 Hour and 45 Minutes.
 
 
-**Trigger phrases:**
+## Trigger phrases: ##
 
 Below are all of the recognized trigger phrases for Google Assistant commands.
 
-**"Playback":**
-	"play",
+**"Play":**
         "I want to watch",
         "I feel like watching",
         "do I have",
@@ -124,9 +123,7 @@ Below are all of the recognized trigger phrases for Google Assistant commands.
         "find",
         "can you find"
 
-		
-## 'Control' commands (play, pause, stop, volume, etc.): ##
-
+	
 **"Resume":**
         "Play",
         "Resume",
