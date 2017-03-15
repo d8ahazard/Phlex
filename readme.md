@@ -39,7 +39,7 @@ You will also need the CURL and openSSL extensions enabled.
 
 
 
-###Post-Installation (Network Stuff)###
+### Post-Installation (Network Stuff) ###
 
 First, you'll need to forward IP traffic to port 80 on the computer where Phlex is running.  You do not have to forward port 80 to port 80, you can choose any open port you like.
 
@@ -48,7 +48,7 @@ If you wish to change the listening port for Phlex to something other than 80, y
 In httpd.conf, you will see a line that reads "Listen 80".  Change 80 to whichever port you want.  Restart apache, and forward to that port.  If you are on Windows, you will need to make a rule in Windows Firewall to allow that port's traffic as well.
 
 
-##Setting it up with Google Assistant##
+### Setting it up with Google Assistant ###
 Log into Phlex with your Plex.tv username and password.
 Click on the gear icon to open settings.
 In settings, under the general tab, make sure you fill in the "Public Address" box with the FULL address of your Phlex server.  Typically, you will just need to append /Phlex to the directory path, and a port if you changed it to something other than 80.  
@@ -76,23 +76,39 @@ On the next page, pick your Google account or log in if prompted.  Once logged i
 Boom.  You can now talk to Phlex by saying things like "Ask Flex TV to play batman begins" or "Ask Flex TV to play the lastest episode of THe Big Bang Theory".  I'll be adding a wiki page for voice commands as time allows.
 
 
-##Google Assistant Commands##
+### Google Assistant Commands ###
 OK Google, Ask Flex TV to play Batman Begins.
+
 OK Google, Tell Flex TV to play the latest episode of Game of Thrones.
+
 OK Google, Ask Flex TV to pause playback.
+
 OK Google, Ask Flex TV to stop playback.
+
 OK Google, Ask Flex TV to set the volume to 80%.
+
 OK Google, Ask Flex TV to turn on a Bill Murray movie.
+
 OK Google, Ask Flex TV to fire up a Comedy.
+
 OK Google, Ask Flex TV to play a movie.
+
 OK Google, Ask Flex TV to play season 4 episode 3 of The Simpsons.
+
 OK Google, Ask Flex TV to download the show Alf.
+
 OK Google, Ask Flex TV to fetch The Avengers Age of Ultron.
+
 OK Google, Ask Flex TV what's playing.
+
 OK Google, Ask Flex TV what the name of this movie is.
+
 OK Google, Tell Flex TV I want to watch Frozen From 1 Hour and 45 Minutes.
 
-Notes on OK Google Commands:
+
+**Trigger phrases:**
+
+Below are all of the recognized trigger phrases for Google Assistant commands.
 
 **"Playback":**
 	"play",
@@ -108,7 +124,8 @@ Notes on OK Google Commands:
         "find",
         "can you find"
 
-****'Control' commands (play, pause, stop, volume, etc.):****
+		
+## 'Control' commands (play, pause, stop, volume, etc.): ##
 
 **"Resume":**
         "Play",
@@ -223,7 +240,7 @@ Notes on OK Google Commands:
 
 
 
-##Setting up IFTTT With Phlex##
+## Setting up IFTTT With Phlex ##
 
 (This needs better formatting) 
 
