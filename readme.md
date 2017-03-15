@@ -29,7 +29,7 @@ MySQL, FileZilla FTP Server, Mercury Mail Server, Tomcat, Perl, phpMyAdmin, Weba
 Once installed, clone or download the Phlex directory to the root web directory of XAMPP, which should be the /htdocs folder.  When done, the path should be something like C:\xampp\htdocs\phlex (windows) or usr/home/xampp/htdocs/phlex (linux).  
 
 
-That should be it.  You can now restart the apache service for your webserver, and browse to your Phlex installation at 'http://yourserveraddress/Phlex:80'.
+That should be it.  You can now restart the apache service for your webserver, and browse to your Phlex installation at 'http://yourserveraddress:80/Phlex'.
 
 To log in, enter your Plex username and password.
 
