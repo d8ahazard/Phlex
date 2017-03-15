@@ -70,6 +70,7 @@
 					//write_log("Okay, now it's a POST");
 					$json =file_get_contents('php://input'); 
 					$request = json_decode($json, true);
+					$request = array_filter_recursive($request);
 					parseApiCommand($request);
 				}
 			} else {
@@ -774,8 +775,6 @@
 		$contextName = "yes";
 		$queryOut['commandType'] = $action;
 		$resultData = array();
-		$affirmatives = array("I guess I could play ","Sure, let me look for", "Okay, let's see if you have","Hang on, I'll try to find ");
-		$affirmative = $affirmatives[array_rand($affirmatives)];
 		
 		if ($greeting) {
 			$greetings = array("Hi, I'm Flex TV.  What can I do for you today?","Greetings! How can I help you?","Hello there. Try asking me to play a movie or show.'");
@@ -3745,6 +3744,16 @@
 		return implode('/', $relPath);
 	}
 	
+	function array_filter_recursive( array $array, callable $callback = null ) {
+		$array = is_callable( $callback ) ? array_filter( $array, $callback ) : array_filter( $array );
+		foreach ( $array as &$value ) {
+			if ( is_array( $value ) ) {
+				$value = call_user_func( __FUNCTION__, $value, $callback );
+			}
+		}
+ 
+    return $array;
+}
 		
 ?>
 
