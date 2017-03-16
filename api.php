@@ -74,7 +74,7 @@
 					parseApiCommand($request);
 				}
 			} else {
-				if (isset($_GET['test'])) {
+				if (isset($_GET['testclient'])) {
 					write_log("API Link Test FAILED!  Invalid API Token.");
 					echo 'Invalid API Token Specified! <br>';
 					die();
@@ -162,10 +162,18 @@
 	}
 	
 	
-	if (isset($_GET['test'])) {
+	if (isset($_GET['testclient'])) {
 		write_log("API Link Test successful!!");
 		write_log("API Link Test successful!!");
 		echo 'success';
+		die();
+	}
+	
+	if (isset($_GET['test'])) {
+		$result = array();
+		$result['status'] = testConnection($_GET['test']);
+		header('Content-Type: application/json');
+		echo JSON_ENCODE($result);
 		die();
 	}
 	
