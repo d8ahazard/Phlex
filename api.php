@@ -5,7 +5,7 @@
 	defined("CONFIG") ? null : define('CONFIG', 'config.ini.php');
 	date_default_timezone_set("America/Chicago");
 	ini_set("log_errors", 1);
-	error_reporting(E_ALL ^ E_NOTICE);
+	error_reporting(E_ERROR);
 	$errfilename = 'Phlex_error.log';
 	ini_set("error_log", $errfilename);
 	if ( is_session_started() === FALSE ) {
@@ -1163,23 +1163,32 @@
 			if ($response == 'yes') {
 				$request = json_decode($json, true);
 				$result = $request["result"];
-				write_log("This should be an API reply command.");
+				write_log("This should be an yes/no reply command.");
 				write_log("Results? " . print_r($result,true));
 				$contexts=$result["contexts"];
-				write_log("Contexts? " . print_r($contexts,true));
-				$command = strtolower($result["contexts"][0]["parameters"]["command"]);
-				write_log("API reply command should be ".$command);
-				$result = parseFetchCommand($command);
-				if ($result['status'] == 'success') {
-					$resultTitle = $result['mediaResult']['@attributes']['title'];
-					$resultYear = $result['mediaResult']['@attributes']['year'];
-					$resultImage = $result['mediaResult']['@attributes']['art'];
-					$resultSummary = $result['mediaResult']['@attributes']['summary'];
-					$resultData['image'] = $resultImage;
-					//$resultData[]
-					$speech = "Okay, I've added ".$resultTitle." (".$resultYear.") to the fetch list.";
+				$command = false;
+				foreach($contexts as $context) {
+					if (($context['name'] == 'yes')) {
+						write_log("This is a response to a title query.");
+						$command = strtolower($context["parameters"]["command"]);
+					}
+				}
+				if ($command) {
+					write_log("Yes/No reply command should be ".$command);
+					$result = parseFetchCommand($command);
+					if ($result['status'] == 'success') {
+						$resultTitle = $result['mediaResult']['@attributes']['title'];
+						$resultYear = $result['mediaResult']['@attributes']['year'];
+						$resultImage = $result['mediaResult']['@attributes']['art'];
+						$resultSummary = $result['mediaResult']['@attributes']['summary'];
+						$resultData['image'] = $resultImage;
+						//$resultData[]
+						$speech = "Okay, I've added ".$resultTitle." (".$resultYear.") to the fetch list.";
+					} else {
+						$speech = "Unfortunately, I was not able to find anything with that title to download.";
+					}
 				} else {
-					$speech = "Unfortunately, I was not able to find anything with that title to download.";
+					$speech = "Hmmm, I don't seem to have the name of anything to download...";
 				}
 			} else {
 				$speech = "Allright.  Let me know if you change your mind.";
@@ -2983,6 +2992,7 @@
 			$resultJSONS = json_decode($result,true);
 			if (!(empty($resultJSONS))) {
 				$resultJSON = $resultJSONS[0];
+				write_log("Result JSON: ".json_encode($resultJSON));
 				$putURL = $baseURL.'/series'.'?apikey='.$sonarrApiKey;
 				write_log("sending result for fetching, URL is ".$putURL);
 				$resultObject['title'] = (string)$resultJSON['title'];
@@ -3175,6 +3185,7 @@
 			$resultJSONS = json_decode($result,true);
 			if (!(empty($resultJSONS))) {
 				$resultJSON = $resultJSONS[0];
+				write_log("Result JSON: ".json_encode($resultJSON));
 				$putURL = $baseURL.'/movie'.'?apikey='.$radarrApiKey;
 				write_log("sending result for fetching, URL is ".$putURL);
 				$resultObject['title'] = (string)$resultJSON['title'];
