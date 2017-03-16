@@ -74,6 +74,11 @@
 					parseApiCommand($request);
 				}
 			} else {
+				if (isset($_GET['test'])) {
+					write_log("API Link Test FAILED!  Invalid API Token.");
+					echo 'Invalid API Token Specified! <br>';
+					die();
+				}
 				write_log("API Token specified, but value is invalid.  Execution terminated.");
 				die();
 			}
@@ -158,11 +163,9 @@
 	
 	
 	if (isset($_GET['test'])) {
-		$result = array();
-		$result['status'] = testConnection($_GET['test']);
-		header('Content-Type: application/json');
-		echo JSON_ENCODE($result);
-		//castMedia();
+		write_log("API Link Test successful!!");
+		write_log("API Link Test successful!!");
+		echo 'success';
 		die();
 	}
 	
@@ -1353,7 +1356,7 @@
 	}
 	
 	
-	function fetchCastDevices() {
+	function fetchCastDevices2() {
 		//
 		// create new resolver object, passing in an array of name
 		// servers to use for lookups
@@ -1380,17 +1383,12 @@
 		}
 	}
 	
-	function fetchCastDevices2() {
-		//MDNS resolver, wip
-		//$loop = React\EventLoop\Factory::create();
-		//$factory = new Factory($loop);
-		//$resolver = $factory->createResolver();
-
-		//$resolver->lookup('hostname.local')->then(function ($ip) {
-		  // write_log('Found: ' . $ip);
-		//});
-
-		//$loop->run();
+	function fetchCastDevices() {
+		if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+			write_log('This is a server using Windows, cast detection disabled.');
+			$foo = array();
+			return $foo;
+		}
 		try {
 			$scanner = new Scanner;
 			$scanner

@@ -4,6 +4,7 @@
 	ini_set("log_errors", 1);
 	$errfilename = 'Phlex_error.log';
 	ini_set("error_log", $errfilename);
+	date_default_timezone_set("America/Chicago");
 	if (!(isset($_SESSION['plex_token'])) || isset($_GET['logout'])) {
 		include('login.php');
 		die();

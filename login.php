@@ -1,6 +1,7 @@
 <?php
 	$config = new Config_Lite('config.ini.php');
 	defined("CONFIG") ? null : define('CONFIG', 'config.ini.php');
+	date_default_timezone_set("America/Chicago");
 	$deviceID = $config->get('general', 'deviceID', false);
 	if ($deviceID===false) {
 		$deviceID = randomToken2(12);
