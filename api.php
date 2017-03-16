@@ -1664,7 +1664,13 @@
 							$showResult2 = json_decode(json_encode($showResult),true);
 							$onDeck = $showResult->OnDeck->Video;
 							$searchType = 'First On-deck TV Item '.$searchType;
-							$winner = $onDeck;
+							
+							if ($ondeck) {
+								$winner = $onDeck;
+							} else {
+								write_log("Show has no on deck items, fetching first episode.");
+								$winner = fetchFirstUnwatchedEpisode($key);
+							}
 							write_log("Winning JSON: ".json_encode($onDeck));
 							//write_log("WTF Now: ".print_r($showResult,true));
 						}
@@ -1812,7 +1818,7 @@
 			$count = 0;
 			foreach($finalResults as $Result) {
 				write_log("This result is called ".$Result['title']. " or maybe ".$Result['tag']);
-				$Result['exact'] = $exact;
+				$Result['@attributes']['exact'] = $exact;
 				$Result['searchType'] = $searchType;
 				array_push($Returns,$Result);
 			}			
