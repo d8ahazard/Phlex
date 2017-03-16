@@ -894,7 +894,7 @@
 			} else {
 				write_log("Error fetching hub list.");
 				$queryOut['mediaStatus'] = "ERROR: Could not fetch hub list.";
-				$speech = "Unfortunately, I wasn't able to find any results for that currently.  Please try again later.";
+				$speech = "Unfortunately, I wasn't able to find any results for that.  Please try again later.";
 			}
 			$waitForResponse = false;
 			$contextName = 'PlayMedia';
@@ -1825,11 +1825,13 @@
 	function fetchHubList($section,$type=null) {
 		$url = $_SESSION['uri_plexserver'].'/hubs?X-Plex-Token='.$_SESSION['plexToken'];
 		$result = curlGet($url);
+		write_log("URL: ".$url);
 		if ($result) {
-			write_log("Raw hub data:".$result);
 			$container = new SimpleXMLElement($result);
+			write_log("Hub JSON: ".json_encode($container));
 			$hubId = false;
 			if ($section == 'recent') {
+				write_log("Looking for recents");
 				if ($type == 'show') {
 					$hubId = "home.television.recent";
 				}
@@ -2419,11 +2421,9 @@
 			$container = new SimpleXMLElement($result);
 			$container2 = json_decode(json_encode($container),true);
 			$status = array();
-			write_log("Status 2 Contains: ". json_encode($container2));
 			foreach ($container->Video as $Video) {
 				$vidArray = json_decode(json_encode($Video),true);
 				if ($vidArray['Player']['@attributes']['address'] == substr($addresses[1],2)) {
-					write_log("Found a session for the currently selected player.");
 					$status['status'] = $vidArray['Player']['@attributes']['state'];
 					$status['time']=$vidArray['TranscodeSession']['@attributes']['progress'];
 					$status['plexServer']=$_SESSION['uri_plexserver'];
@@ -2444,7 +2444,6 @@
 			$status['status'] = 'error';
 		}
 		$status = json_encode($status);
-		write_log("Final Player Status: ".$status);
 		return $status;
 	}
 	
