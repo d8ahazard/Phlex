@@ -752,6 +752,10 @@
 				write_log("This is a response to a title query.");
 				if (!($command)) $command = $request['result']['resolvedQuery'];
 			}
+			if (($context['name'] == 'yes') && ($action=='fetchAPI')) {
+				write_log("Context JSON should be ".json_encode($context));
+				$command = (string)$context['parameters']['command'];
+			}
 			if (($context['name'] == 'google_assistant_welcome') && ($action == '') && ($command == '') && ($control == ''))  {
 				write_log("Looks like the default intent, we should say hello.");
 				$greeting = true;
@@ -1040,7 +1044,7 @@
 				
 			} else {
 				$waitForResponse = true;
-				$speech = "I'm sorry, I was unable to find ".$command." in your library.  Would you like me add it to your watch list?";
+				$speech = "I'm sorry, I was unable to find ".$command." in your library.  Would you like me to add it to your watch list?";
 				returnSpeech($speech,$contextName,$waitForResponse);
 				$queryOut['parsedCommand'] = "Play a media item with the title of '".$command.".'";
 				$queryOut['mediaStatus'] = 'ERROR: No results found, prompting to download.';
@@ -1166,13 +1170,6 @@
 				write_log("This should be an yes/no reply command.");
 				write_log("Results? " . print_r($result,true));
 				$contexts=$result["contexts"];
-				$command = false;
-				foreach($contexts as $context) {
-					if (($context['name'] == 'yes')) {
-						write_log("This is a response to a title query.");
-						$command = strtolower($context["parameters"]["command"]);
-					}
-				}
 				if ($command) {
 					write_log("Yes/No reply command should be ".$command);
 					$result = parseFetchCommand($command);
