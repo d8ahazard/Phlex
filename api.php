@@ -560,7 +560,6 @@
 		$result['mediaStatus'] = $result['status'];
 		$result['parsedCommand'] = $resultOut['parsedCommand'];
 		$result['initialCommand'] = $command;
-		log_command(json_encode($result));
 		return $result;
 	}
 		
@@ -621,6 +620,7 @@
 	
 	// This is now our one and only handler for searches.  
 	function parsePlayCommand($command,$year=false) {
+		$command = preg_replace("#[[:punct:]]#", "", $command);
 		$searchType = false;
 		write_log("Function Fired.");
 		write_log("################parsePlayCommand_START$##########################");
@@ -3208,7 +3208,8 @@
 						$resultObject['year'] = $resultJSON['year'];
 						$resultObject['summary'] = $resultJSON['overview'];
 						$resultObject['type'] = 'movie';
-						$artUrl = 'http://'.$radarrURL.':'.$radarrPort.'/MediaCover/'. $movie['id'] . '/banner.jpg?apikey='.$radarrApiKey;
+						$artUrl = 'http://'.$radarrURL.':'.$radarrPort.'/api/MediaCover/'. $movie['id'] . '/banner.jpg?apikey='.$radarrApiKey;
+						write_log("Art URL Should be ".$artUrl);
 						$resultObject['art'] = cacheImage($artUrl);
 						$response['mediaResult']['@attributes'] = $resultObject;
 						return $response;						
@@ -3237,7 +3238,8 @@
 				if ($responseJSON) {
 					$response['status'] = 'success';
 					$response['mediaResult']['@attributes']['url'] = $url2;
-					$artUrl = 'http://'.$radarrURL.':'.$radarrPort.'/MediaCover/'. $responseJSON['id'] . '/banner.jpg?apikey='.$radarrApiKey;
+					$artUrl = 'http://'.$radarrURL.':'.$radarrPort.'/api/MediaCover/'. $responseJSON['id'] . '/banner.jpg?apikey='.$radarrApiKey;
+					write_log("Art URL Should be ".$artUrl);
 					$responseJSON['art'] = cacheImage($artUrl);
 					$responseJSON['type'] = 'movie';
 					$movieID = $responseJSON['id'];
