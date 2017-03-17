@@ -275,7 +275,7 @@
 	// This tells the api to parse our command with the plex "play" parser
 	if (isset($_GET['play'])) {
 		if (isset($_GET['command'])) {
-			$command = trim(strtolower($_GET['command']));
+			$command = cleanCommandString($_GET['command']);
 			write_log("################PARSEPLAY_START$###################################\r\n\r\n");
 			write_log('Got a request to play ' . $command);
 			$resultArray = parsePlayCommand($command);
@@ -317,7 +317,7 @@
 	// This tells the api to parse our command with the plex "control" parser
 	if (isset($_GET['control'])) {
 		if (isset($_GET['command'])) {
-			$command = strtolower($_GET['command']);
+			$command = cleanCommandString($_GET['command']);
 			write_log('Got a control request: ' . $command);
 			$result = parseControlCommand($command);
 			$newCommand = json_decode($result,true);
@@ -333,7 +333,7 @@
 	// This tells the api to parse our command with the "fetch" parser
 	if (isset($_GET['fetch'])) {
 		if (isset($_GET['command'])) {
-			$command = strtolower($_GET['command']);
+			$command = cleanCommandString($_GET['command']);
 			$result = parseFetchCommand($command);
 			$result['commandType'] = 'fetch';
 			$result['timestamp'] = timeStamp();
@@ -568,7 +568,6 @@
 		write_log("Function Fired.");
 		//Sanitize our string and try to rule out synonyms for commands
 		$queryOut[initialCommand] = $command;
-		$command = strtolower($command);
 		write_log("Initial command is ".$command);
 		$command = str_replace("resume","play",$command);
 		$command = str_replace("jump","skip",$command);
@@ -620,7 +619,6 @@
 	
 	// This is now our one and only handler for searches.  
 	function parsePlayCommand($command,$year=false) {
-		$command = preg_replace("#[[:punct:]]#", "", $command);
 		$searchType = false;
 		write_log("Function Fired.");
 		write_log("################parsePlayCommand_START$##########################");
@@ -739,7 +737,8 @@
 		$control = (string)strtolower($request["result"]['parameters']["Controls"]);
 		$command = false;
 		$year = false;
-		$command = strtolower($request["result"]["parameters"]["command"]);
+		$command = (string) $request["result"]["parameters"]["command"];
+		$command = cleanCommandString($command);
 		$age = $request["result"]["parameters"]["age"];
 		if (is_array($age))	$year = strtolower($request["result"]["parameters"]["age"]["amount"]);
 		$control = strtolower($request["result"]["parameters"]["Controls"]);
@@ -750,11 +749,12 @@
 			if (($context['name'] == 'promptfortitle') && ($action=='')) {
 				$action = 'play';
 				write_log("This is a response to a title query.");
-				if (!($command)) $command = $request['result']['resolvedQuery'];
+				if (!($command)) $command = cleanString($request['result']['resolvedQuery']);
 			}
 			if (($context['name'] == 'yes') && ($action=='fetchAPI')) {
 				write_log("Context JSON should be ".json_encode($context));
 				$command = (string)$context['parameters']['command'];
+				$command = cleanCommandString($_GET['command']);
 			}
 			if (($context['name'] == 'google_assistant_welcome') && ($action == '') && ($command == '') && ($control == ''))  {
 				write_log("Looks like the default intent, we should say hello.");
@@ -765,7 +765,7 @@
 				$type = ((strpos($actionOriginal,'server') !== false) ? 'servers' : 'players');
 				$deviceName = array_key_exists('player',$context['parameters']);
 				write_log("Type is ".$type);
-				if (($actionOriginal !='') && isset($_SESSION['deviceArray'])) {
+				if (($actionOriginal != '') && isset($_SESSION['deviceArray'])) {
 					write_log("Okay, we've got the context, we should change device now.");
 					$action = 'changeDevice';
 					$command = ($deviceName ? $context['parameters']['player'] : $rawspeech);
@@ -797,6 +797,7 @@
 			$waitForResponse = true;
 			$contextName = 'PlayMedia';
 			returnSpeech($speech,$contextName,$waitForResponse);
+			unset($_SESSION['deviceArray']);
 			die();
 		}
 		
@@ -863,6 +864,7 @@
 				$queryOut['mediaStatus'] = "Success: Player status retrieved";
 				$queryOut['mediaResult'] = $status['mediaResult'];
 				log_command(json_encode($queryOut));
+				unset($_SESSION['deviceArray']);
 			die();
 		}
 		
@@ -906,6 +908,7 @@
 			$queryOut['parsedCommand'] = "Return a list of ".$action.' '.(($action == 'recent') ? $type : 'items').'.';
 			$queryOut['speech'] = $speech;
 			log_command(json_encode($queryOut));
+			unset($_SESSION['deviceArray']);
 			die();
 		}
 		
@@ -1009,6 +1012,7 @@
 					$queryOut['playResult'] = $playResult;
 					write_log("Type and stuff: ".$type. " and ".$title);
 					log_command(json_encode($queryOut));
+					unset($_SESSION['deviceArray']);
 					die();
 				}
 				
@@ -1039,6 +1043,7 @@
 					$title = $queryOut['mediaResult']['title'];
 					$type = $queryOut['mediaResult']['type'];
 					log_command(json_encode($queryOut));
+					unset($_SESSION['deviceArray']);
 					die();
 				}
 				
@@ -1056,7 +1061,7 @@
 		}
 
 		if (($action == 'control') || ($control != '')) {
-			if ($action == '') $command = $control;
+			if ($action == '') $command = cleanCommandString($control);
 			$pct = strtolower($request["result"]["parameters"]["percentage"]);
 			if ($pct != '') { 
 				$command .= " " . $pct;
@@ -1075,7 +1080,7 @@
 			
 			$result = json_encode($newCommand);
 			log_command($result);
-			
+			unset($_SESSION['deviceArray']);
 			die();
 				
 		}
@@ -1133,7 +1138,7 @@
 				$queryOut['mediaStatus'] = 'SUCCESS: Media added to fetcher.';
 				$queryOut['speech'] = $speech;
 				log_command(json_encode($queryOut));
-			
+				unset($_SESSION['deviceArray']);
 				die();
 			}
 			if ($result['status'] == 'already in searcher') {
@@ -1148,7 +1153,7 @@
 				$queryOut['mediaStatus'] = 'SUCCESS: Media already in fetcher.';
 				$queryOut['speech'] = $speech;
 				log_command(json_encode($queryOut));
-			
+				unset($_SESSION['deviceArray']);
 				die();
 			}
 			else {
@@ -1157,6 +1162,7 @@
 				$queryOut['mediaStatus'] = 'ERROR: Nothing found to fetch.';
 				$queryOut['speech'] = $speech;
 				log_command(json_encode($queryOut));
+				unset($_SESSION['deviceArray']);
 				die();
 			}
 			
@@ -1192,6 +1198,8 @@
 			}
 			$waitForResponse = false;
 			returnSpeech($speech,$contextName,$waitForResponse);
+			// log_command($result);
+			unset($_SESSION['deviceArray']);
 			die();
 		}
 		
@@ -1206,6 +1214,7 @@
 			$queryOut['mediaStatus'] = 'ERROR: Command not recognized.';
 			$queryOut['speech'] = $speech;
 			log_command(json_encode($queryOut));
+			unset($_SESSION['deviceArray']);
 			die();
 		}
 		
@@ -1743,7 +1752,7 @@
 						$year = $Element['year'];
 						$stripIn = array("of","the","an","a","at","th","nd","in","it","from","movie","show","episode","season",$yearString,$year);
 						$titleArray = array_diff($titleArray, $stripIn);
-						write_log("Title Array should now be ".print_r($titleArray,true));
+						write_log("Title Array should now be ".json_encode($titleArray));
 						$titleOut = implode(" ",$titleArray);
 						$titleOut = strtolower(trim($titleOut));
 						
@@ -3678,34 +3687,38 @@
 	}
 	
 	function cacheImage($url) {
-		$cacheDir = dirname(__FILE__) . '/img/cache/';
-		$cached_filename = md5($url);
-		$files = glob($cacheDir . '*.{jpg,jpeg,png,gif}', GLOB_BRACE);
-		foreach($files as $file) {
-			$fileName = explode('.',basename($file));
-			if ($fileName[0] == $cached_filename) {
-				  return getRelativePath(dirname(__FILE__),$file);
-			}
-		}
-		$image = file_get_contents($url);
-		if ($image) {
-			write_log("Caching Image from URL: ".$url);
-			$tempName = $cacheDir . $cached_filename;
-			file_put_contents($tempName,$image);
-			$imageData = getimagesize($tempName);
-			$mimeType = image_type_to_mime_type($imageData[2]);
-			$extension = image_type_to_extension($imageData[2]);
-			if($extension) {
-				$filenameOut = $cacheDir . $cached_filename . $extension;
-				$result = file_put_contents($filenameOut, $image);
-				if ($result) {
-					rename($tempName,$filenameOut);
-					return getRelativePath(dirname(__FILE__),$filenameOut);
+		try {
+			$cacheDir = dirname(__FILE__) . '/img/cache/';
+			$cached_filename = md5($url);
+			$files = glob($cacheDir . '*.{jpg,jpeg,png,gif}', GLOB_BRACE);
+			foreach($files as $file) {
+				$fileName = explode('.',basename($file));
+				if ($fileName[0] == $cached_filename) {
+					  return getRelativePath(dirname(__FILE__),$file);
 				}
-			} else {
-				write_log("Supplied file doesn't appear to be an image.");
-				unset($tempName);
 			}
+			$image = file_get_contents($url);
+			if ($image) {
+				write_log("Caching Image from URL: ".$url);
+				$tempName = $cacheDir . $cached_filename;
+				file_put_contents($tempName,$image);
+				$imageData = getimagesize($tempName);
+				$mimeType = image_type_to_mime_type($imageData[2]);
+				$extension = image_type_to_extension($imageData[2]);
+				if($extension) {
+					$filenameOut = $cacheDir . $cached_filename . $extension;
+					$result = file_put_contents($filenameOut, $image);
+					if ($result) {
+						rename($tempName,$filenameOut);
+						return getRelativePath(dirname(__FILE__),$filenameOut);
+					}
+				} else {
+					write_log("Supplied file doesn't appear to be an image.");
+					unset($tempName);
+				}
+			}
+		} catch (\Exception $e) {
+			write_log('Exception: ' . $e->getMessage());
 		}
 		return false;
 	}
@@ -3776,5 +3789,14 @@
     return $array;
 }
 		
+	function cleanCommandString($string) {
+		$string = trim(strtolower($string));
+		$string = preg_replace("#[[:punct:]]#", "", $string);
+		$stringArray = explode(" "	,$string);
+		$stripIn = array("of","the","an","a","at","th","nd","in","it","from","and");
+		$stringArray = array_diff($stringArray,array_intersect($stringArray,$stripIn));
+		$result = implode(" ",$stringArray);
+		return $result;
+	}
 ?>
 
