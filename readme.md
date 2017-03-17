@@ -287,3 +287,18 @@ The URLs can be found in settings.
 Then click create action, and it should work.
 
 Repeat for a download and "control playback" command.
+
+
+### SUPPORT ###
+
+For general help with installation, setup, or questions, feel free to pop on over to https://forums.plex.tv/discussion/252910/phlex-google-home-plex-integration-with-support-for-sonarr-couchpotato-etc-now-live/p17 and let me know if you need help.
+
+If you think you've found a bug or would like to make a feature request, feel free to use the issue tracker here on github.
+
+
+### DONATIONS ###
+
+If you really really like this project and want to thank me for sharing it with the world, you can send money via paypal to donate.to.digitalhigh@gmail.com.  
+
+This is a donate-only address, support requests will not be answered.
+
