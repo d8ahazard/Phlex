@@ -1,7 +1,6 @@
 <?php
 	require_once dirname(__FILE__) . '/vendor/autoload.php';
 	require_once dirname(__FILE__) . '/cast/Chromecast.php';
-	require_once dirname(__FILE__) . '/cast/Discover.php';
 	defined("CONFIG") ? null : define('CONFIG', 'config.ini.php');
 	date_default_timezone_set("America/Chicago");
 	ini_set("log_errors", 1);
@@ -1378,68 +1377,26 @@
 	}
 	
 	
-	function fetchCastDevices2() {
-		//
-		// create new resolver object, passing in an array of name
-		// servers to use for lookups
-		//
-		$r = new Net_DNS2_Resolver(array('nameservers' => array('224.0.0.251:5353')));
-
-		//
-		// execute the query request for the google.com MX servers
-		//
-		try {
-				$result = $r->query('_googlecast._tcp.', 'SRV');
-				
-		} catch(Net_DNS2_Exception $e) {
-				
-				write_log("::query() failed: " . $e->getMessage() . "\n");
+	function fetchCastDevices() {
+		write_log("Function fired.");
+		$result = Chromecast::scan();
+		$returns = array();
+		write_log("Returns: ".json_encode($result));
+		foreach ($result as $key=>$value) {
+			$deviceOut = array();
+			$nameString = preg_replace("/\._googlecast.*/","",$key);
+			$nameArray = explode('-',$nameString);
+			$id = array_pop($nameArray);
+			$deviceOut['name'] = implode(" ",$nameArray);
+			$deviceOut['product'] = 'cast';
+			$deviceOut['id'] = $id;
+			$deviceOut['token'] = 'none';
+			$deviceOut['uri'] = "https://" . $value['ip'] . ":" . $value['port'];
+			array_push($returns, $deviceOut);
 		}
-
-		//
-		// loop through the answer, printing out the MX servers retured.
-		//
-		foreach($result->answer as $mxrr)
-		{
-				write_log("preference=%d, host=%s\n". $mxrr->preference. $mxrr->exchange);
-		}
+		return $returns;
 	}
 	
-	function fetchCastDevices() {
-		if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-			write_log('This is a server using Windows, cast detection disabled.');
-			$foo = array();
-			return $foo;
-		}
-		try {
-			$scanner = new Scanner;
-			$scanner
-				->setTimeout(1)
-				->setSearchType('upnp:rootdevice');
-
-			$devices = $scanner->discover();
-			$returns = array();
-			foreach ($devices as $device) {
-				unset($deviceOut);
-				$deviceOut = array();
-				$uri = (string) $device['URLBase'];
-				$uri = substr($uri,0,-1);
-				write_log("Fetched, shortened fucking URI is ".$uri);
-				$uri = $uri."9";
-				write_log("With an eight, this time: ".$uri);
-				$deviceOut['uri'] = $uri;
-				$deviceOut['name'] = (string) $device['device']['friendlyName'];
-				$deviceOut['product'] = 'cast';
-				$deviceOut['id'] = (string) $device['device']['UDN'];
-				$deviceOut['token'] = 'none';
-				array_push($returns, $deviceOut);
-			}
-			return $returns;
-		} catch (\Exception $e) {
-			write_log('Exception: ' . $e->getMessage());
-		}
-		
-	}
 	
 	/// What used to be a bigl ugly THING is now just a wrapper and parser of the result of fetchDevices
 	function fetchClientList() {
