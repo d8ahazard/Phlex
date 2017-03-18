@@ -754,7 +754,7 @@
 			if (($context['name'] == 'yes') && ($action=='fetchAPI')) {
 				write_log("Context JSON should be ".json_encode($context));
 				$command = (string)$context['parameters']['command'];
-				$command = cleanCommandString($_GET['command']);
+				$command = cleanCommandString($command);
 			}
 			if (($context['name'] == 'google_assistant_welcome') && ($action == '') && ($command == '') && ($control == ''))  {
 				write_log("Looks like the default intent, we should say hello.");
@@ -1125,7 +1125,6 @@
 			
 			$waitForResponse = false;
 			$result = parseFetchCommand($command);
-			write_log("The fucking result string is ".$result['status']);
 			if ($result['status'] === 'success') {
 				$resultTitle = $result['mediaResult']['@attributes']['title'];
 				$resultYear = $result['mediaResult']['@attributes']['year'];
