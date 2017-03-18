@@ -407,6 +407,7 @@ function updateStatus() {
 					$('#mediaSummary').html(resultSummary);
 					$('#mediaYear').html(resultYear);
 					$('.wrapperArt').css('background-image','url('+artPath+')');
+					$('.backArt').hide();
 					var itemPath = plexServerURI+resultKey+"?X-Plex-Token="+token;
 					if ((!($('.nowPlayingFooter').is(":visible")))&& (!($('.nowPlayingFooter').hasClass('reHide')))) {
 						console.log("Now Playing footer is hidden, showing.");
@@ -420,9 +421,10 @@ function updateStatus() {
 				}
 			} else {
 				if ($('.nowPlayingFooter').is(":visible")) {
-					$('.wrapperArt').css('background-image','');
+					$('.backArt').show();
 					$('.nowPlayingFooter').slideUp();
 					$('.nowPlayingFooter').removeClass("playing");
+					$('.wrapperArt').css('background-image','');
 				}
 				
 			}
