@@ -3427,13 +3427,13 @@
 			write_log("Generating using mcrypt_create.");
 	        return bin2hex(mcrypt_create_iv($length, MCRYPT_DEV_URANDOM));
 	    } 
+		if (function_exists('openssl_random_pseudo_bytes')) {
+			write_log("Generating using pseudo_random.");
+	        return bin2hex(openssl_random_pseudo_bytes($length));
+	    }
 		if (function_exists('random_bytes')) {
 			write_log("Generating using random_bytes.");
 	        return bin2hex(random_bytes($length));
-	    }
-	    if (function_exists('openssl_random_pseudo_bytes')) {
-			write_log("Generating using pseudo_random.");
-	        return bin2hex(openssl_random_pseudo_bytes($length));
 	    }
 	}
  
