@@ -405,7 +405,7 @@
 			</div>
 			
 			<div class="wrapperArt"></div>
-			<iframe id="backArt" class="backArt" src="/cc.html"></iframe>
+			<iframe id="backArt" class="backArt" src="cc.html"></iframe>
 			<div id="metaTags"><?PHP echo metaTags()?></div>
 		</div>
 		<script type="text/javascript" src="js/jquery-3.1.1.min.js"></script>
