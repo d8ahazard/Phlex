@@ -596,6 +596,27 @@
 		if (strpos($command,"volume")) {
 				write_log("Should be a volume command.");
 				$int = filter_var($command, FILTER_SANITIZE_NUMBER_INT);
+				if (! $int) {
+					$adjust = false;
+					if (preg_match("/UP/",$command)) {
+						$adujst = true;
+						$int = 10;
+					}
+					
+					if (preg_match("/DOWN/",$command)) {
+						$adjust = true;
+						$int = -10;
+					}
+					if ($adjust) {
+						$status = playerStatus();
+						$status = json_decode($status,true);
+						$volume = $status['volume'];
+						if ($volume) {
+							$int = $volume + $int;
+						}
+						
+					}
+				}
 				$queryOut[parsedCommand] .= "Set the volume to " . $int . " percent.";
 				$cmd = 'setParameters?volume='.$int;
 		} else {
@@ -760,10 +781,6 @@
 				$command = (string)$context['parameters']['command'];
 				$command = cleanCommandString($command);
 			}
-			if (($context['name'] == 'google_assistant_welcome') && ($action == '') && ($command == '') && ($control == ''))  {
-				write_log("Looks like the default intent, we should say hello.");
-				$greeting = true;
-			}
 			if ($context['name'] == 'waitforplayer') {
 				$actionOriginal = $context['parameters']['action.original'];
 				$type = ((strpos($actionOriginal,'server') !== false) ? 'servers' : 'players');
@@ -774,6 +791,10 @@
 					$action = 'changeDevice';
 					$command = ($deviceName ? $context['parameters']['player'] : $rawspeech);
 				}
+			}
+			if (($context['name'] == 'google_assistant_welcome') && ($action == '') && ($command == '') && ($control == ''))  {
+				write_log("Looks like the default intent, we should say hello.");
+				$greeting = true;
 			}
 		}
 		write_log("Control is ".$control);
@@ -1067,12 +1088,45 @@
 
 		if (($action == 'control') || ($control != '')) {
 			if ($action == '') $command = cleanCommandString($control);
-			$pct = strtolower($request["result"]["parameters"]["percentage"]);
-			if ($pct != '') { 
-				$command .= " " . $pct;
-			}
 			$waitForResponse = false;
-			$speech = "Okay, sending a command to ".$command;
+			if (preg_match("/volume/",$command)) {
+				$int = strtolower($request["result"]["parameters"]["percentage"]);
+				if ($int != '') { 
+					$command .= " " . $int;
+					$speech = "Okay, setting the volume to ".$int;
+				} else {
+					write_log("What the fuck, no volume parameter.");
+					$adjust = false;
+					if (preg_match("/up/",$rawspeech)) {
+						write_log("UP, UP, UP");
+						$int = (($_SESSION['volume'] <=90) ? $_SESSION['volume'] + 10 : 100);
+						$command .= " UP";
+						$speech = "Okay, I'll turn it up a little.";
+					}
+					
+					if (preg_match("/down/",$rawspeech)) {
+						write_log("DOWN, DOWN, DOWN");
+						$command .= " DOWN";
+						$speech = "Okay, I'll turn it down a little.";
+					}
+					
+				}
+			
+			} else {
+				switch ($command) {
+					case "resume":
+						$speech = 'Resuming playback.';
+						break;
+					case "stop":
+						$speech = 'Plex should now be stopped.';
+						break;
+					case "pause":
+						$speech = 'Plex should now be paused.';
+						break;
+					default:
+						$speech = 'Sending a command to '.$command;
+				}
+			}
 			$queryOut['speech'] = $speech;
 			returnSpeech($speech,$contextName,$waitForResponse);
 			if ($command == 'jump to') {
@@ -1290,7 +1344,7 @@
 		}
 		$diffSeconds = round($now-$lastCheck);
 		$diffMinutes = ceil($diffSeconds/60);
-		if (($diffMinutes >= 5) || $force || (empty($list))) {
+		if (($diffMinutes >= 5) || $force) {
 			write_log("Time expired or forced, re-fetching ".$type);
 			$list = fetchDevices($type);
 		} else {
@@ -1315,15 +1369,11 @@
 		write_log( "URL is ".$url);
 		if($selected) {
 			$selectedName = $_SESSION['config']->get('user-_-'.$_SESSION['username'], $settingType.'Name', false);
-			write_log("Selected item for ". $type . " is " .$selected.". Name is ".$selectedName);	
-		} else {
-			write_log("Hey, I need to select a device.");
 		}
 		write_log("I am looking for ".$type);
 		$result = curlGet($url);
 		if ($result) {
 			$container = new SimpleXMLElement($result);
-			//write_log("Result JSON: ".json_encode($container));
 			$devices = array();
 			$i = 0;
 			foreach ($container->children() as $device) {
@@ -1331,7 +1381,6 @@
 				$deviceOut = array();
 				$add = false;
 				$provides = explode(',',(string)$device['provides']);
-				write_log("Device ".(string)$device['name']." provides ".implode(" ",$provides));
 				$present = ($device['presence'] == 1);
 				$local = ($device['publicAddressMatches'] == 1);
 				$owned = ($device['owned'] == 1);
@@ -1358,15 +1407,11 @@
 						foreach ($device->Connection as $connection) {
 							$address = (string) $connection['address'];
 							$octets = explode(".",$address);
-							write_log("First octet is ".$octets[0]);
 							if (($connection['local'] == 1) && ($octets[0] != 169)) {
 								$deviceOut['uri'] = (string) $connection['uri'];
-								write_log("Pushing ".$deviceOut['name']." to array.");
 								array_push($devices, $deviceOut);
 								$i++;
 								break;
-							} else {
-								if ($octets[0] == "169") write_log("Filtering self-assigned IP");
 							}
 						}
 					}
@@ -1375,10 +1420,8 @@
 						$deviceOut['uri'] = false;
 						$deviceOut['publicAddress'] = (string) $device['publicAddress'];
 						foreach ($device->Connection as $connection) {
-							write_log("Localval ". $connection['local']. " and ".$device['publicAddressMatches']);
 							if ($connection['local'] == $local) {
 								$deviceOut['uri'] = (string) $connection['uri'];
-								write_log("Pushing ".$deviceOut['name']." to array.");
 								array_push($devices, $deviceOut);
 								$i++;
 								break;
@@ -1392,11 +1435,8 @@
 			
 			if (($type == 'clients') && ($_SESSION['use_cast'])) {
 			$castDevices = fetchCastDevices();
-				write_log("Cast devices: ".print_r($castDevices,true));
 				foreach ($castDevices as $castDevice) {
 					if (trim($castDevice['id']) == trim($selected)) {
-						write_log( "I have a preselected device - ".$castDevice['name']);
-						write_log( "Stuff: ".$castDevice['name'] ." vs ". $selected);
 						$castDevice['selected'] = true;
 					}
 					array_push($devices, $castDevice);
@@ -1442,7 +1482,7 @@
 	/// What used to be a bigl ugly THING is now just a wrapper and parser of the result of fetchDevices
 	function fetchClientList() {
 		write_log("Function Fired.");
-		$clients = fetchDevices('clients');
+		$clients = refreshDevices('clients');
 		$options = "";
 		if ($clients) {
 			write_log("Client list retrieved.");
@@ -1455,11 +1495,9 @@
 				$product = $client['product'];
 				$displayName = $name;
 				if ($product == 'cast') $displayName = $name.' (cc)';
-				write_log("Device name is ".$name .". It is ".($selected ? 'selected.' : 'not selected.'));
 				$options.='<a class="dropdown-item client-item'.(($selected) ? ' dd-selected':'').'" href="#" product="'.$product.'" value="'.$id.'" name="'.$name.'" uri="'.$uri.'">'.ucwords($displayName).'</a>';
 			}
 		}
-		write_log("Final array of options for client list is ".$options);
 		return $options;
 	}
 	
@@ -1478,7 +1516,6 @@
 				$token = $client['token'];
 				$product = $client['product'];
 				$publicAddress = $client['publicAddress'];
-				write_log("Device name is ".$name .". It is ".($selected ? 'selected.' : 'not selected.'));
 				$options .= '<option type="plexServer" publicAddress="'.$publicAddress.'" product="'.$product.'" value="'.$id.'" uri='.$uri.' name="'.$name.'"'.' token="'.$token.'"'.($selected ? ' selected':'').'>'.ucwords($name).'</option>';
 			}
 		}
@@ -2509,6 +2546,7 @@
 								$thumb = (($MC['Video']['@attributes']['type'] == 'movie') ? $MC['Video']['@attributes']['thumb'] : $MC['Video']['@attributes']['parentThumb']);
 								$art = $MC['Video']['@attributes']['art'];
 								$status['status'] = (string)$Timeline['state'];
+								$status['volume'] = (string)$Timeline['volume'];
 								$status['mediaResult'] = $mediaContainer->Video;
 								if ($Timeline['time']) {
 									$status['time']=(string)$Timeline['time'];
@@ -2547,7 +2585,7 @@
 					$result = castCommand($cmd);
 					break;
 				default:
-					$url = $client.'/player/playback/'. $cmd . ((substr($cmd,0,1) == "?") ? "&" : "?").'X-Plex-Token=' .$_SESSION['plex_token'];
+					$url = $client.'/player/playback/'. $cmd . ((strstr($cmd, '?')) ? "&" : "?").'X-Plex-Token=' .$_SESSION['plex_token'];
 					$result = playerCommand($url);
 					break;
 			}
