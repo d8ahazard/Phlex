@@ -210,6 +210,8 @@
 		$_SESSION['config']->set('user-_-'.$_SESSION['username'],$type.'Product',$product);
 		saveConfig($_SESSION['config']);
 		setSessionVariables();
+		write_log("Refreshing devices of ".$type);
+		refreshDevices($type,true);
 		die();
 	}
 	
@@ -447,6 +449,9 @@
 		$_SESSION['uri_plexclient'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'],'plexClientUri',false);
 		$_SESSION['product_plexclient'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'],'plexClientProduct',false);
 		$_SESSION['token_plexclient'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'],'plexClientToken',false);
+		
+		$_SESSION['fetch_plexclient'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'],'plexClientFetched',false);
+		$_SESSION['fetch_plexserver'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'],'plexServerFetched',false);
 		
 		$_SESSION['use_cast'] = $_SESSION['config']->getBool('user-_-'.$_SESSION['username'], 'useCast', false);
 		$_SESSION['plexHeader'] = '&X-Plex-Product=Phlex'.
@@ -830,6 +835,7 @@
 			$queryOut['parsedCommand'] = "Change ".$typeString." to ".$command.".";
 			$queryOut['speech'] = $speech;
 			$queryOut['mediaStatus'] = "Not a media command.";
+			refreshDevices($type,true);
 			log_command(json_encode($queryOut));
 			unset($_SESSION['deviceArray']);
 			die();
@@ -1088,7 +1094,7 @@
 			write_log("Got a request to change ".$action);
 			unset($_SESSION['deviceArray']);
 			$type = (($action == 'player') ? 'clients' : 'servers');
-			$list = fetchDevices($type);
+			$list = refreshDevices($type);
 			if (count($list) >=2) {
 				$_SESSION['deviceArray'] = $list;
 				foreach($list as $device) {
@@ -1268,6 +1274,31 @@
 		}
 		return $token;
 	}
+	
+	function refreshDevices($type,$force=false) {
+		write_log("Checking for cached ".$type);
+		$now = microtime(true);
+		if (($type == 'clients') || ($type == 'plexClients')) {
+			$lastCheck = $_SESSION['fetch_plexclient'];
+			$list = $_SESSION['list_plexclient'];
+			$type = 'clients';
+		} 
+		if (($type == 'servers') || ($type == 'plexServers')) {
+			$lastCheck = $_SESSION['fetch_plexserver'];
+			$list = $_SESSION['list_plexserver'];
+			$type = 'servers';
+		}
+		$diffSeconds = round($now-$lastCheck);
+		$diffMinutes = ceil($diffSeconds/60);
+		if (($diffMinutes >= 5) || $force || (empty($list))) {
+			write_log("Time expired or forced, re-fetching ".$type);
+			$list = fetchDevices($type);
+		} else {
+			write_log("Returning cached list of ".$type);
+		}
+		write_log("Returning array: ".json_encode($list));
+		return $list;
+	}
 
 	// Should have been doing this the whole time.  
 	// Pass one paramater to this function, either "clients" or "servers".  
@@ -1371,6 +1402,16 @@
 					array_push($devices, $castDevice);
 				}
 			}
+			if ($type == 'clients') {
+				$_SESSION['fetch_plexclient'] = microtime(true);
+				$_SESSION['list_plexclient'] = $devices;
+				$_SESSION['config']->set('user-_-'.$_SESSION['username'],'plexClientFetched',$_SESSION['fetch_plexclient']);
+			} else {
+				$_SESSION['fetch_plexserver'] = microtime(true);
+				$_SESSION['list_plexserver'] = $devices;
+				$_SESSION['config']->set('user-_-'.$_SESSION['username'],'plexServerFetched',$_SESSION['fetch_plexserver']);
+			}
+			saveConfig($_SESSION['config']);;
 			if (!(empty($devices)))	return $devices;
 		}
 		return false;
@@ -1451,7 +1492,7 @@
 		write_log("Looking for a type ".$type);
 		$type = (($type=='players') ? 'clients' : 'servers');
 		$name = strtolower(preg_replace("#[[:punct:]]#", "", $name));
-		$list = fetchDevices($type);
+		$list = refreshDevices($type);
 		foreach($list as $device) {
 			$devName = strtolower(preg_replace("/[^A-Za-z0-9 ]/", '', $device['name']));
 			write_log("Looking for a match with a device named ".$name ." against ".$devName);
@@ -2787,6 +2828,7 @@
 		$cache_new .= json_encode($json_a, JSON_PRETTY_PRINT);
 		if (fwrite($handle, $cache_new) === FALSE) die;
 		fclose($handle);
+		refreshDevices('clients');
 		return $json_a;
 	}
 	
