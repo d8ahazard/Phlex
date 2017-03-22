@@ -11,7 +11,7 @@ Or, in short - you can watch and download movies and shows just by telling your 
 
 ### Installation: ###
 
-Phlex requires a webserver and PHP with CURL/SSH enabled in order to work correctly.
+Phlex requires a webserver and PHP with CURL/SSH enabled in order to work correctly.  For Cast Device Control, you will also need to enable the Sockets module.
 
 For most use cases, XAMPP is going to be the easiest options.
 
