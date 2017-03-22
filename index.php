@@ -1,5 +1,6 @@
 <?php
 	require_once dirname(__FILE__) . '/vendor/autoload.php';
+	require_once dirname(__FILE__) . '/util.php';
 	session_start();
 	ini_set("log_errors", 1);
 	$errfilename = 'Phlex_error.log';
@@ -13,11 +14,16 @@
 		$_SESSION['url'] = $_SERVER['REQUEST_URI'];
 		$config = new Config_Lite('config.ini.php');
 		require ('api.php');
-		checkSetApiToken();
+		$apiToken = checkSetApiToken();
+		if (! $apiToken) {
+			echo "Unable to set API Token, please check write access to Phlex root and try again.";
+			die();
+		} else {
+			$_SESSION['apiToken'] = $apiToken;
+		}
 		
 	
 	// Check our config file exists
-	$_SESSION['apiToken'] = $config->get('user-_-'.$_SESSION['username'], 'apiToken', false);
 	
 	$_SESSION['enable_couch'] = $config->get('user-_-'.$_SESSION['username'], 'couchEnabled', false);
 	$_SESSION['enable_ombi'] = $config->get('user-_-'.$_SESSION['username'], 'ombiEnabled', false);
@@ -159,7 +165,7 @@
 									<div class="form-group">
 										<div class="form-group">
 											<label for="apiToken" class="appLabel">API Key:
-												<input id="apiToken" class="appInput form-control" type="text" value="<?php echo checkSetApiToken() ?>" readonly="readonly"/>
+												<input id="apiToken" class="appInput form-control" type="text" value="<?php echo $_SESSION['apiToken'] ?>" readonly="readonly"/>
 											</label>
 										</div>
 									</div>
@@ -406,7 +412,7 @@
 			
 			<div class="wrapperArt"></div>
 			<iframe id="backArt" class="backArt" src="cc.html"></iframe>
-			<div id="metaTags"><?PHP echo metaTags()?></div>
+			<div id="metaTags"><?PHP echo '<meta id="apiTokenData" data="'.$_SESSION['apiToken'].'"></meta>' . metaTags();?></div>
 		</div>
 		<script type="text/javascript" src="js/jquery-3.1.1.min.js"></script>
 		<script type="text/javascript" src="js/tether.min.js"></script>
