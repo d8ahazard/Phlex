@@ -17,7 +17,6 @@ jQuery(document).ready(function($) {
 	if (Logdata != "") {
 		updateCommands(JSON.parse(Logdata),false);
 	}
-	
 	var plexServerURI = $('#serverURI').attr('data');
 	var plexClientURI = $('#clientURI').attr('data');
 	$(".select").dropdown({"optionClass": "withripple"});
