@@ -175,7 +175,7 @@ function signIn($user, $pass, $deviceID) {
 				'Authorization:Basic '.$userpass
 	];
 	curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-	curl_setopt ($ch, CURLOPT_CAINFO, dirname(__FILE__) . "/cert/cacert.pem");
+	curl_setopt ($ch, CURLOPT_CAINFO, rtrim(dirname(__FILE__), '/') . "/cert/cacert.pem");
 	$result = curl_exec ($ch);
 	if (curl_errno($ch)) {
 			// this would be your first hint that something went wrong
