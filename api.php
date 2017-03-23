@@ -1408,7 +1408,7 @@
 							$address = (string) $connection['address'];
 							$octets = explode(".",$address);
 							if (($connection['local'] == 1) && ($octets[0] != 169)) {
-								$deviceOut['uri'] = (string) $connection['uri'];
+								$deviceOut['uri'] = (string) rtrim($connection['uri'], '/');
 								array_push($devices, $deviceOut);
 								$i++;
 								break;
@@ -1421,7 +1421,7 @@
 						$deviceOut['publicAddress'] = (string) $device['publicAddress'];
 						foreach ($device->Connection as $connection) {
 							if ($connection['local'] == $local) {
-								$deviceOut['uri'] = (string) $connection['uri'];
+								$deviceOut['uri'] = (string) rtrim($connection['uri'], '/');
 								array_push($devices, $deviceOut);
 								$i++;
 								break;
