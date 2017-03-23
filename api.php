@@ -782,14 +782,13 @@
 				$command = (string)$context['parameters']['command'];
 				$command = cleanCommandString($command);
 			}
-			if ($context['name'] == 'waitforplayer') {
+			if (($context['name'] == 'waitforplayer') && ($action == 'changeDevice')) {
 				$actionOriginal = $context['parameters']['action.original'];
 				$type = ((strpos($actionOriginal,'server') !== false) ? 'servers' : 'players');
 				$deviceName = array_key_exists('player',$context['parameters']);
 				write_log("Type is ".$type);
-				if (($actionOriginal != '') && isset($_SESSION['deviceArray'])) {
-					write_log("Okay, we've got the context, we should change device now.");
-					$action = 'changeDevice';
+				if ($actionOriginal != '') {
+					write_log("Changing device now.");
 					$command = ($deviceName ? $context['parameters']['player'] : $rawspeech);
 				}
 			}
@@ -1363,7 +1362,7 @@
 	
 	function fetchDevices($type) {
 		
-		$url = 'https://plex.tv/api/resources'.(($type=='clients') ? '?X-Plex-Token=' : '?includeHttps=1&X-Plex-Token=').$_SESSION['plex_token'];
+		$url = 'https://plex.tv/api/resources'.((($type=='clients')|| (strtoupper(substr(PHP_OS, 0, 5)) === 'LINUX')) ? '?X-Plex-Token=' : '?includeHttps=1&X-Plex-Token=').$_SESSION['plex_token'];
 		$settingType = (($type =='clients') ? 'plexClient' : 'plexServer');
 		$selected = $_SESSION['config']->get('user-_-'.$_SESSION['username'], $settingType, false);
 		write_log( "URL is ".$url);
