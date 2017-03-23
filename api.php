@@ -1289,7 +1289,7 @@
 		$ch=curl_init();
 		curl_setopt($ch, CURLOPT_URL, $url);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-		curl_setopt ($ch, CURLOPT_CAINFO, dirname(__FILE__) . "/cert/cacert.pem");
+		curl_setopt ($ch, CURLOPT_CAINFO, rtrim(dirname(__FILE__), '/') . "/cert/cacert.pem");
 		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 1);
 		$result=curl_exec($ch);
 		curl_close($ch);
@@ -1300,7 +1300,7 @@
 			curl_setopt($ch, CURLOPT_URL,$url);
 			curl_setopt($ch, CURLOPT_POST, 1);
 			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-			curl_setopt ($ch, CURLOPT_CAINFO, dirname(__FILE__) . "/cert/cacert.pem");
+			curl_setopt ($ch, CURLOPT_CAINFO, rtrim(dirname(__FILE__), '/') . "/cert/cacert.pem");
 			$headers = array(
 				'X-Plex-Client-Identifier: '.$_SESSION['deviceID'],
 				'X-Plex-Device:PhlexWeb',
@@ -2247,7 +2247,7 @@
 		curl_setopt($ch, CURLOPT_URL,$url);
 		curl_setopt($ch, CURLOPT_POST, 1);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt ($ch, CURLOPT_CAINFO, dirname(__FILE__) . "/cert/cacert.pem");
+		curl_setopt ($ch, CURLOPT_CAINFO, rtrim(dirname(__FILE__), '/') . "/cert/cacert.pem");
 		$headers = array(
 			'X-Plex-Client-Identifier:'.$_SESSION['deviceID'],
 			'X-Plex-Device:PhlexWeb',
@@ -2514,7 +2514,7 @@
 			curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 3);
 			curl_setopt($ch, CURLOPT_TIMEOUT, 1);
 			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-			curl_setopt ($ch, CURLOPT_CAINFO, dirname(__FILE__) . "/cert/cacert.pem");
+			curl_setopt ($ch, CURLOPT_CAINFO, rtrim(dirname(__FILE__), '/') . "/cert/cacert.pem");
 			$headers = array(
 				'X-Plex-Client-Identifier:'.$_SESSION['deviceID'],
 				'X-Plex-Device:PhlexWeb',
@@ -2608,7 +2608,7 @@
 		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 1);
 		curl_setopt($ch, CURLOPT_TIMEOUT, 1);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt ($ch, CURLOPT_CAINFO, dirname(__FILE__) . "/cert/cacert.pem");
+		curl_setopt ($ch, CURLOPT_CAINFO, rtrim(dirname(__FILE__), '/') . "/cert/cacert.pem");
 		$headers = array(
 			'X-Plex-Client-Identifier:'.$_SESSION['deviceID'],
 			'X-Plex-Device:PhlexWeb',
@@ -3294,7 +3294,7 @@
 					curl_setopt($ch, CURLOPT_URL,$url);
 					curl_setopt($ch, CURLOPT_POST, 1);
 					curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-					curl_setopt ($ch, CURLOPT_CAINFO, dirname(__FILE__) . "/cert/cacert.pem");
+					curl_setopt ($ch, CURLOPT_CAINFO, rtrim(dirname(__FILE__), '/') . "/cert/cacert.pem");
 					$headers = array(
 						$authString,
 						'Content-Length: 0'
@@ -3365,7 +3365,7 @@
 					$ch = curl_init();
 					curl_setopt($ch, CURLOPT_URL,$apiUrl);
 					curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-					curl_setopt ($ch, CURLOPT_CAINFO, dirname(__FILE__) . "/cert/cacert.pem");
+					curl_setopt ($ch, CURLOPT_CAINFO, rtrim(dirname(__FILE__), '/') . "/cert/cacert.pem");
 					$headers = array(
 						'Authorization:Bearer '.$_SESSION['apiai_dev_token']
 					);
@@ -3442,7 +3442,7 @@
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL,$apiUrl);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt ($ch, CURLOPT_CAINFO, dirname(__FILE__) . "/cert/cacert.pem");
+		curl_setopt ($ch, CURLOPT_CAINFO, rtrim(dirname(__FILE__), '/') . "/cert/cacert.pem");
 		$headers = array(
 			'Authorization:Bearer '.$_SESSION['apiai_dev_token']
 		);
@@ -3475,7 +3475,7 @@
 			curl_setopt($ch, CURLOPT_POSTFIELDS,json_encode($item));
 			curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "DELETE");
 			//curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-			curl_setopt ($ch, CURLOPT_CAINFO, dirname(__FILE__) . "/cert/cacert.pem");
+			curl_setopt ($ch, CURLOPT_CAINFO, rtrim(dirname(__FILE__), '/') . "/cert/cacert.pem");
 			$headers = array(
 				'Authorization:Bearer '.$_SESSION['apiai_dev_token'],
 			);
@@ -3499,7 +3499,7 @@
 			curl_setopt($ch, CURLOPT_POSTFIELDS,json_encode($item)); 
 			curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "DELETE");
 			//curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-			curl_setopt ($ch, CURLOPT_CAINFO, dirname(__FILE__) . "/cert/cacert.pem");
+			curl_setopt ($ch, CURLOPT_CAINFO, rtrim(dirname(__FILE__), '/') . "/cert/cacert.pem");
 			$headers = array(
 				'Authorization:Bearer '.$_SESSION['apiai_dev_token'],
 			);
@@ -3522,7 +3522,7 @@
 			curl_setopt($ch, CURLOPT_POSTFIELDS,json_encode($item)); 
 			//curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "PUT");
 			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-			curl_setopt ($ch, CURLOPT_CAINFO, dirname(__FILE__) . "/cert/cacert.pem");
+			curl_setopt ($ch, CURLOPT_CAINFO, rtrim(dirname(__FILE__), '/') . "/cert/cacert.pem");
 			$headers = array(
 				'Authorization:Bearer '.$_SESSION['apiai_dev_token'],
 				'Content-Type: application/json; charset=utf-8'
@@ -3549,7 +3549,7 @@
 			curl_setopt($ch, CURLOPT_POSTFIELDS,json_encode($item)); 
 			//curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "PUT");
 			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-			curl_setopt ($ch, CURLOPT_CAINFO, dirname(__FILE__) . "/cert/cacert.pem");
+			curl_setopt ($ch, CURLOPT_CAINFO, rtrim(dirname(__FILE__), '/') . "/cert/cacert.pem");
 			$headers = array(
 				'Authorization:Bearer '.$_SESSION['apiai_dev_token'],
 				'Content-Type: application/json; charset=utf-8'
