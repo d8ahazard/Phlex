@@ -6,6 +6,7 @@ jQuery(document).ready(function($) {
 	fade2 = $('.fade2');
 	fade = true;
 	showFade = fade1;
+	$('.wrapper').cycle();
 	$('.wrapper').cycle('pause');
 	setBackground();
 	setInterval(function() {
@@ -31,8 +32,10 @@ function setBackground() {
 	showFade = $('.cycle-slide-active');
 	if (showFade.hasClass('fade1')) {
 		hideFade = fade2;
+		console.log("Hidefade is fade2.");
 	} else {
 		hideFade = fade1;
+		console.log("Hidefade is fade1.");
 	}
 	
 	hideFade.css("background-image","url("+imgUrl+")");
@@ -41,7 +44,7 @@ function setBackground() {
 	hideFade.find("#metadata-line-2").text(desc2);
 	hideFade.find("#metadata-line-3").text(desc3);
 	setWeather();
-	$('.wrapper').cycle('cycle-next');
+	$('.wrapper').cycle('next');
 }
 
 
