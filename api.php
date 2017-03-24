@@ -653,7 +653,7 @@
 		$commandArray = explode(" "	,$command);
 		// An array of words which don't do us any good
 		// Adding the apostrophe and 's' are necessary for the movie "Daddy's Home", which Google Inexplicably returns as "Daddy ' s Home"
-		$stripIn = array("of","the","an","a","at","th","nd","in","it","from","'","s","and");
+		$stripIn = array("of","the","an","a","at","th","nd","in","it","from","'","s","and","on","in");
 		
 		// An array of words that indicate what kind of media we'd like
 		$mediaIn = array("season","series","show","episode","movie","film","beginning","rest","end","minutes","minute","hours","hour","seconds","second");
@@ -666,6 +666,23 @@
 				
 		// An array of words to indicate where to start playing from (reference, we should filter these from media)
 		$timeIn = array("beginning","rest","end","minute","minutes","hour","hours");
+		
+		foreach($_SESSION['list_plexclient'] as $client) {
+			write_log("I got a client named ".$client['name']);
+			$clientName = '/'.strtolower($client['name']).'/';
+			if (preg_match($clientName,$command)) {
+				write_log("I was just asked me to play something on a specific device: ".$client['name']);
+				$playerIn = explode(" ",strtolower($client['name']));
+				$_SESSION['id_plexclient'] = $client['id'];
+				$_SESSION['name_plexclient'] = $client['name'];
+				$_SESSION['uri_plexclient'] = $client['uri'];
+				$_SESSION['product_plexclient'] = $client['product'];
+			}
+		}
+		
+		if ($playerIn) {
+			$commandArray = array_diff($commandArray,$playerIn);
+		}
 		
 		// An array of words from our command that are numeric
 		$numberIn=array();
@@ -1362,7 +1379,7 @@
 	
 	function fetchDevices($type) {
 		
-		$url = 'https://plex.tv/api/resources'.((($type=='clients')|| (strtoupper(substr(PHP_OS, 0, 5)) === 'LINUX')) ? '?X-Plex-Token=' : '?includeHttps=1&X-Plex-Token=').$_SESSION['plex_token'];
+		$url = 'https://plex.tv/api/resources'.(($type=='clients') ? '?X-Plex-Token=' : '?includeHttps=1&X-Plex-Token=').$_SESSION['plex_token'];
 		$settingType = (($type =='clients') ? 'plexClient' : 'plexServer');
 		$selected = $_SESSION['config']->get('user-_-'.$_SESSION['username'], $settingType, false);
 		write_log( "URL is ".$url);
@@ -1417,10 +1434,15 @@
 					
 					if (($type == 'servers') && arrayContains('server',$provides)) {
 						$deviceOut['uri'] = false;
+						$platform = $device['platform'];
 						$deviceOut['publicAddress'] = (string) $device['publicAddress'];
 						foreach ($device->Connection as $connection) {
 							if ($connection['local'] == $local) {
-								$deviceOut['uri'] = (string) rtrim($connection['uri'], '/');
+								if ($platform == 'linux') {
+									$deviceOut['uri'] = 'http://'.$connection['address'].':'.$connection['port'];
+								} else {
+									$deviceOut['uri'] = (string) rtrim($connection['uri'], '/');
+								}
 								array_push($devices, $deviceOut);
 								$i++;
 								break;
@@ -3378,6 +3400,7 @@
 				
 			case "Plex":
 				$url = $_SESSION['uri_plexserver'].'?X-Plex-Token='.$_SESSION['plexToken'];
+				write_log("URL is ".$url);
 				$result = curlGet($url);
 				$result = (($result) ? 'Connection to '.$_SESSION['name_plexserver'].' successful!': 'ERROR: '.$_SESSION['name_plexserver'].' not available.');
 				break;
