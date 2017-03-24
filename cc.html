@@ -45,11 +45,10 @@
 				overflow: hidden;
 				text-overflow: ellipsis;
 				white-space: pre;
+				max-width: 250px;
 			}
 			
-			.fade1 {
-				display:none;
-			}
+		
 			.ng-scope {
 				bottom: 0 !important;
 			
@@ -198,9 +197,8 @@
 	</head>
 	<body>
 		<div class="background-container">
-			<div class="wrapper">
-				<div class="fade1">
-					<div class="background">
+			<div class="wrapper cycle-slideshow" data-cycle-fx="fade" data-cycle-timeout="10000" data-cycle-speed=2000 data-cycle-slides="> div">
+				<div class="fade1 background">
 						<div class="textDiv">
 							<span class="spacer" ng-if="showWeather">
 							<span class="tempDiv meta">&ensp;</span>
@@ -210,10 +208,9 @@
 							<div id="metadata-line-2" class="meta"></div>
 							<div id="metadata-line-3" class="meta"></div>
 						</div>
-					</div>
+					
 				</div>
-				<div class="fade2">
-					<div class="background">
+				<div class="fade2 background">
 						<div class="textDiv">
 							<span class="spacer" ng-if="showWeather">
 							<span class="tempDiv meta">&ensp;</span>
@@ -223,7 +220,7 @@
 							<div id="metadata-line-2" class="meta"></div>
 							<div id="metadata-line-3" class="meta"></div>
 						</div>
-					</div>
+					
 				</div>
 			</div>
 		</div>
@@ -231,5 +228,6 @@
 		<script type="text/javascript" src="js/jquery-3.1.1.min.js"></script>
 		<script type="text/javascript" src="js/jquery.simpleWeather.min.js"></script>
 		<script type="text/javascript" src="js/cast_script.js"></script>
+		<script type="text/javascript" src="js/jquery.cycle2.min.js"></script>
 	</body>
 </html>
