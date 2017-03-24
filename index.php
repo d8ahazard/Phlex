@@ -115,7 +115,7 @@
 							<div class="queryBtnWrap">
 								<div class="queryBtnGrp">
 									<div class="dropdown show btn btn-sm" id="cmdDD">
-										<a class="dropdown-toggle" href="https://example.com" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+										<a class="dropdown-toggle" href="" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 											<i class="material-icons barBtn" id="commandIcon">queue_play_next</i>
 										</a>
 										<div class="dropdown-menu"  id="plexServerClient" aria-labelledby="dropdownMenuButton">
@@ -200,7 +200,7 @@
 										<div class="form-group">
 											<label for="sel1">Playback Server:</label>
 											<select class="form-control" id="serverList">
-												<?php echo fetchServerList() ?>
+												
 											</select>
 											<br>
 											<div class="togglebutton">

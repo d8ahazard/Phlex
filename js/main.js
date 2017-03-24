@@ -12,7 +12,6 @@ jQuery(document).ready(function($) {
 	radarr = ($('#radarr').attr('enable') == 'true');
 	ombi = ($('#ombi').attr('enable') == 'true');
 	$.material.init();
-	updateStatus();
 	var Logdata = decodeURIComponent($('#logData').attr('data').replace(/\+/g, '%20'));
 	if (Logdata != "") {
 		updateCommands(JSON.parse(Logdata),false);
@@ -20,9 +19,8 @@ jQuery(document).ready(function($) {
 	var plexServerURI = $('#serverURI').attr('data');
 	var plexClientURI = $('#clientURI').attr('data');
 	$(".select").dropdown({"optionClass": "withripple"});
-	
 	$('#play').addClass('clicked');
-	var ddText = $('#clientName').attr("data");
+	var ddText = $('.dd-selected').text();
 	$('.ddLabel').html(ddText);
 	var progressSlider = document.getElementById('progressSlider');
 		noUiSlider.create(progressSlider, {
@@ -122,24 +120,6 @@ jQuery(document).ready(function($) {
 		}
 	});
 	
-	$('.clientMenu').on('click',function() {
-		if ($('#plexClient').is(":hidden")) {
-			apiToken = $('#apiTokenData').attr('data');
-			var clientList = $.get('api.php?clientList&apiToken=' + apiToken,function(clientData) {
-				console.log("Received HTML Data from fetch. " + clientData);
-				$('#clientWrapper').html(clientData);	
-			}) ;
-		}
-		
-	});
-	
-	$('#serverList').on('click',function() {
-		apiToken = $('#apiTokenData').attr('data');
-		var serverList = $.get('api.php?serverList&apiToken=' + apiToken,function(serverData) {
-			$('#serverList').html(serverData);	
-		});
-	});
-	
 	
 	
 	$(document).on('click', '.client-item' , function() {
@@ -153,10 +133,6 @@ jQuery(document).ready(function($) {
 		$('#clientURI').attr('data',decodeURIComponent($(this).attr('uri')));
 		$(this).siblings().removeClass('dd-selected');
 		$(this).addClass('dd-selected');
-		setTimeout( function(){ 
-						updateStatus();
-					}  , 5000 );
-	
 	});
 	
 	$("#serverList").change(function(){
@@ -346,6 +322,8 @@ jQuery(document).ready(function($) {
 	}) ;
 	
 	
+	updateStatus();
+	
 	
 });
 
@@ -367,6 +345,10 @@ function updateStatus() {
 			updateCommands(JSON.parse(decodeURIComponent(dataCommands)),false);
 		}
 		try {
+			$('#clientWrapper').html(data.players);	
+			$('#serverList').html(data.servers);	
+			ddText = $('.dd-selected').text();
+			$('.ddLabel').html(ddText);
 			data.playerStatus = JSON.parse(data.playerStatus);
 			if (data.playerStatus.status=='playing') {
 				var plexServerURI = data.playerStatus.plexServer;

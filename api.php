@@ -156,6 +156,8 @@
 			$contents .= fgets($handle);
 		}  
 		$result['commands'] =  urlencode(($contents));
+		$result['players'] = fetchClientList();
+		$result['servers'] = fetchServerList();
 		header('Content-Type: application/json');
 		echo JSON_ENCODE($result);
 		die();
@@ -289,8 +291,8 @@
 				$queryOut['mediaResult'] = $result;
 				$playResult = playMedia($result);
 				$searchType = $result['searchType'];
-				$Type = (($searchType == '') ? $queryOut['mediaResult']['@attributes']['type'] : $searchType);
-				$queryOut['parsedCommand'] = 'Play the '.$Type.' named '.$command.'.';
+				$type = (($searchType == '') ? $result['type'] : $searchType);
+				$queryOut['parsedCommand'] = 'Play the '.$type.' named '.$command.'.';
 				$queryOut['playResult'] = $playResult;
 				
 				if ($queryOut['mediaResult']['@attributes']['exact'] == 1) {
@@ -672,11 +674,16 @@
 			$clientName = '/'.strtolower($client['name']).'/';
 			if (preg_match($clientName,$command)) {
 				write_log("I was just asked me to play something on a specific device: ".$client['name']);
-				$playerIn = explode(" ",strtolower($client['name']));
+				$playerIn = explode(" ",cleanCommandString($client['name']));
 				$_SESSION['id_plexclient'] = $client['id'];
 				$_SESSION['name_plexclient'] = $client['name'];
 				$_SESSION['uri_plexclient'] = $client['uri'];
 				$_SESSION['product_plexclient'] = $client['product'];
+				$_SESSION['config']->set('user-_-'.$_SESSION['username'],'plexClient',$client['id']);
+				$_SESSION['config']->set('user-_-'.$_SESSION['username'],'plexClientProduct',$client['product']);
+				$_SESSION['config']->set('user-_-'.$_SESSION['username'],'plexClientName',$client['name']);
+				$_SESSION['config']->set('user-_-'.$_SESSION['username'],'plexClientUri',$client['uri']);
+				saveConfig($_SESSION['config']);
 			}
 		}
 		
