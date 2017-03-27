@@ -1160,7 +1160,6 @@
 			$newCommand = json_decode($result,true);
 			$newCommand['timestamp'] = timeStamp();
 			$queryOut['parsedCommand'] = 'Send a player command: '.$command;
-			
 			$result = json_encode($newCommand);
 			log_command($result);
 			unset($_SESSION['deviceArray']);
@@ -1202,7 +1201,7 @@
 				
 		}
 		
-		if ($action == 'fetch') && ($command) {
+		if (($action == 'fetch') && ($command)) {
 			$queryOut['parsedCommand'] = 'Fetch the media named '.$comand.'.';
 			log_command(json_encode($queryOut));
 			
@@ -1356,19 +1355,19 @@
 	function refreshDevices($type,$force=false) {
 		if (!(isset($_GET['pollPlayer']))) write_log("Checking for cached ".$type);
 		$now = microtime(true);
-		if (($type == 'clients') || ($type == 'plexClients')) {
+		if (($type == 'clients') || ($type == 'plexClients') || ($type == 'plexClient')) {
 			$lastCheck = $_SESSION['fetch_plexclient'];
 			$list = $_SESSION['list_plexclient'];
 			$type = 'clients';
 		} 
-		if (($type == 'servers') || ($type == 'plexServers')) {
+		if (($type == 'servers') || ($type == 'plexServers') || ($type == 'plexServer')) {
 			$lastCheck = $_SESSION['fetch_plexserver'];
 			$list = $_SESSION['list_plexserver'];
 			$type = 'servers';
 		}
 		$diffSeconds = round($now-$lastCheck);
 		$diffMinutes = ceil($diffSeconds/60);
-		if (($diffMinutes >= 5) || $force) {
+		if (($diffMinutes >= 5) || $force || is_null($list)) {
 			if (!(isset($_GET['pollPlayer']))) write_log("Time expired or forced, re-fetching ".$type);
 			$list = fetchDevices($type);
 			if (($type == 'clients') || ($type == 'plexClients')) {
@@ -1392,7 +1391,7 @@
 	// caching all the devices.
 	
 	function fetchDevices($type) {
-		
+		write_log("Looking for ".$type);
 		$url = 'https://plex.tv/api/resources'.(($type=='clients') ? '?X-Plex-Token=' : '?includeHttps=1&X-Plex-Token=').$_SESSION['plex_token'];
 		$settingType = (($type =='clients') ? 'plexClient' : 'plexServer');
 		$selected = $_SESSION['config']->get('user-_-'.$_SESSION['username'], $settingType, false);
