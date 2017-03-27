@@ -7,3 +7,4 @@
 /PhlexREQ.log*
 /composer.lock
 /img/cache/*
+/vendor/*git*
