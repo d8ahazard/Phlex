@@ -2,6 +2,7 @@
 	require_once dirname(__FILE__) . '/vendor/autoload.php';
 	require_once dirname(__FILE__) . '/cast/Chromecast.php';
 	require_once dirname(__FILE__) . '/util.php';
+	use Kryptonit3\SickRage\SickRage;
 	defined("CONFIG") ? null : define('CONFIG', 'config.ini.php');
 	date_default_timezone_set("America/Chicago");
 	ini_set("log_errors", 1);
@@ -1539,7 +1540,7 @@
 	// Fetch a list of servers for playback
 	function fetchServerList() {
 		if (!(isset($_GET['pollPlayer']))) write_log("Function Fired.");
-		$clients = fetchDevices('servers');
+		$clients = refreshDevices('servers');
 		$options = "";
 		if ($clients) {
 			foreach($clients as $client) {
