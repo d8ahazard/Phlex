@@ -12,8 +12,9 @@ jQuery(document).ready(function($) {
 	radarr = ($('#radarr').attr('enable') == 'true');
 	ombi = ($('#ombi').attr('enable') == 'true');
 	$.material.init();
-	var Logdata = decodeURIComponent($('#logData').attr('data').replace(/\+/g, '%20'));
+	var Logdata = $('#logData').attr('data');
 	if (Logdata != "") {
+		Logdata = decodeURIComponent($('#logData').attr('data').replace(/\+/g, '%20'));
 		updateCommands(JSON.parse(Logdata),false);
 	}
 	var plexServerURI = $('#serverURI').attr('data');
@@ -342,7 +343,13 @@ function updateStatus() {
 	$.get('api.php?pollPlayer&apiToken=' + apiToken, function(data) {
 		var dataCommands = data.commands.replace(/\+/g, '%20');
 		if (dataCommands) {
-			updateCommands(JSON.parse(decodeURIComponent(dataCommands)),false);
+			try {
+				a = JSON.parse(decodeURIComponent(dataCommands));
+				updateCommands(a,false);
+			} catch(e) {
+				//alert(e); // error in the above string (in this case, yes)!
+			}
+
 		}
 		try {
 			$('#clientWrapper').html(data.players);	

@@ -1,11 +1,13 @@
 <?PHP
-
+	require_once dirname(__FILE__) . '/vendor/autoload.php';
+	
 	// Checks whether an API Token exists for the current user, generates and saves one if none exists.
 	// Returns generated or existing API Token.
-	function checkSetApiToken() {
+	function checkSetApiToken($userName) {
 		// Check that we have generated an API token for our user, create and save one if none exists
-		foreach ($_SESSION['config'] as $section => $user) {
-				if (($_SESSION['username'] = $user['plexUserName']) && ($section != "general")) {
+		$config = new Config_Lite('config.ini.php');
+		foreach ($config as $section => $user) {
+				if (($userName = $user['plexUserName']) && ($section != "general")) {
 					$apiToken = ($user['apiToken'] ? $user['apiToken'] : false);
 				}
 		}
@@ -14,13 +16,11 @@
 			write_log("NO API TOKEN FOUND, generating one for ".$_SESSION['username']);
 			$apiToken = randomToken(21);
 			write_log("API token created ".$apiToken);
-			$_SESSION['config']->set('user-_-'.$_SESSION['username'],'apiToken',$apiToken);
-			saveConfig($_SESSION['config']);
+			$config->set('user-_-'.$_SESSION['username'],'apiToken',$apiToken);
+			saveConfig($config);
 		} else {
 			write_log("EXISTING API TOKEN FOUND, RETURNING IT.");
 		}
-		
-		$_SESSION['apiToken'] = $apiToken;
 		return $apiToken;
 	}
 	
@@ -119,7 +119,6 @@
 			}
 			$image = file_get_contents($url);
 			if ($image) {
-				write_log("Caching Image from URL: ".$url);
 				$tempName = $cacheDir . $cached_filename;
 				file_put_contents($tempName,$image);
 				$imageData = getimagesize($tempName);
@@ -133,14 +132,13 @@
 						return getRelativePath(dirname(__FILE__),$filenameOut);
 					}
 				} else {
-					write_log("Supplied file doesn't appear to be an image.");
 					unset($tempName);
 				}
 			}
 		} catch (\Exception $e) {
 			write_log('Exception: ' . $e->getMessage());
 		}
-		return false;
+		return $url;
 	}
 	
 	// Check if string is present in an array
@@ -214,8 +212,8 @@
 			write_log('Error saving configuration.','E');
 		}
 		$cache_new = "'; <?php die('Access denied'); ?>"; // Adds this to the top of the config so that PHP kills the execution if someone tries to request the config-file remotely.
-		$cache_new .= file_get_contents(CONFIG);
-		file_put_contents(CONFIG,$cache_new);
+		$cache_new .= file_get_contents($inConfig);
+		file_put_contents($inConfig,$cache_new);
 		
 	}
 	
