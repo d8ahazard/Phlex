@@ -419,25 +419,25 @@
 		$_SESSION['enable_couch'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'couchEnabled', false);
 		$_SESSION['enable_ombi'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'ombiEnabled', false);
 		$_SESSION['enable_sonarr'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'sonarrEnabled', false);
-		$_SESSION['enable_sickbeard'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'sickbeardEnabled', false);
+		$_SESSION['enable_sick'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'sickEnabled', false);
 		$_SESSION['enable_radarr'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'radarrEnabled', false);
 		$_SESSION['enable_apiai'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'apiEnabled', false);
 		
 		$_SESSION['ip_couch'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'couchIP', 'localhost');
 		$_SESSION['ip_ombi'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'ombiUrl', 'localhost');
 		$_SESSION['ip_sonarr'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'sonarrIP', 'localhost');
-		$_SESSION['ip_sickbeard'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'sickbeardIP', 'localhost');
+		$_SESSION['ip_sick'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'sickIP', 'localhost');
 		$_SESSION['ip_radarr'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'radarrIP', 'localhost');
 		
 		$_SESSION['port_couch'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'couchPort', '5050');
 		$_SESSION['port_ombi'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'ombiPort', '3579');
 		$_SESSION['port_sonarr'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'sonarrPort', '8989');
-		$_SESSION['port_sickbeard'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'sickbeardPort', '8083');
+		$_SESSION['port_sick'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'sickPort', '8083');
 		$_SESSION['port_radarr'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'radarrPort', '7878');
 		
 		$_SESSION['auth_couch'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'couchAuth', '');
 		$_SESSION['auth_sonarr'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'sonarrAuth', '');
-		$_SESSION['auth_sickbeard'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'sickbeardAuth', '');
+		$_SESSION['auth_sick'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'sickAuth', '');
 		$_SESSION['auth_radarr'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'radarrAuth', '');
 		
 		$_SESSION['log_tokens'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'logTokens', false);
@@ -491,7 +491,7 @@
 		write_log("Ombi Enabled: ".$_SESSION['enable_ombi']);
 		write_log("Radarr Enabled: ".$_SESSION['enable_radarr']);
 		write_log("Sonarr Enabled: ".$_SESSION['enable_sonarr']);
-		write_log("Sickbeard Enabled: ".$_SESSION['enable_sickbeard']);
+		write_log("Sick Enabled: ".$_SESSION['enable_sick']);
 		write_log("----------------------------------------");
 	}
 
@@ -532,7 +532,7 @@
 		switch ($type) {
 			case 'show':
 			write_log("Searching explicitely for a show.");
-				if ($_SESSION['enable_sonarr']) {
+				if ($_SESSION['enable_sonarr'] || $_SESSION['enable_sick']) {
 					$result = downloadSeries(implode(" ",$commandArray));
 				} else {
 					$result['status'] = 'no fetcher configured for ' .$type;
@@ -550,7 +550,7 @@
 				break;
 			default:
 				if (($_SESSION['enable_couch']) || ($_SESSION['enable_ombi']) || ($_SESSION['enable_radarr'])) {
-					write_log("Searching for first meda matching title.");
+					write_log("Searching for first media matching title.");
 					$result = downloadMovie(implode(" ",$commandArray));
 					if ($result['status'] == 'successfully added') break;
 					if (($result['status'] == 'no results') && (($_SESSION['enable_sonarr']) || (($_SESSION['enable_ombi'])))) {
@@ -796,7 +796,7 @@
 		
 		$contexts=$result["contexts"];
 		foreach($contexts as $context) {
-			if (($context['name'] == 'promptfortitle') && ($action=='')) {
+			if (($context['name'] == 'promptForTitle') && ($action=='')) {
 				$action = 'play';
 				write_log("This is a response to a title query.");
 				if (!($command)) $command = cleanString($request['result']['resolvedQuery']);
@@ -1099,15 +1099,16 @@
 				
 			} else {
 				$waitForResponse = true;
-				$speech = "I'm sorry, I was unable to find ".$command." in your library.  Would you like me to add it to your watch list?";
-				returnSpeech($speech,$contextName,$waitForResponse);
-				$queryOut['parsedCommand'] = "Play a media item with the title of '".$command.".'";
-				$queryOut['mediaStatus'] = 'ERROR: No results found, prompting to download.';
-				$contextName = 'yes';
-				$queryOut['speech'] = $speech;
-				log_command(json_encode($queryOut));
-			}
-			
+				if ($command) {
+					$speech = "I'm sorry, I was unable to find ".$command." in your library.  Would you like me to add it to your watch list?";
+					returnSpeech($speech,$contextName,$waitForResponse);
+					$queryOut['parsedCommand'] = "Play a media item with the title of '".$command.".'";
+					$queryOut['mediaStatus'] = 'ERROR: No results found, prompting to download.';
+					$contextName = 'yes';
+					$queryOut['speech'] = $speech;
+					log_command(json_encode($queryOut));
+				}
+			}			
 		}
 
 		if (($action == 'control') || ($control != '')) {
@@ -1201,7 +1202,7 @@
 				
 		}
 		
-		if ($action == 'fetch') {
+		if ($action == 'fetch') && ($command) {
 			$queryOut['parsedCommand'] = 'Fetch the media named '.$comand.'.';
 			log_command(json_encode($queryOut));
 			
@@ -1353,7 +1354,7 @@
 	}
 	
 	function refreshDevices($type,$force=false) {
-		write_log("Checking for cached ".$type);
+		if (!(isset($_GET['pollPlayer']))) write_log("Checking for cached ".$type);
 		$now = microtime(true);
 		if (($type == 'clients') || ($type == 'plexClients')) {
 			$lastCheck = $_SESSION['fetch_plexclient'];
@@ -1368,12 +1369,18 @@
 		$diffSeconds = round($now-$lastCheck);
 		$diffMinutes = ceil($diffSeconds/60);
 		if (($diffMinutes >= 5) || $force) {
-			write_log("Time expired or forced, re-fetching ".$type);
+			if (!(isset($_GET['pollPlayer']))) write_log("Time expired or forced, re-fetching ".$type);
 			$list = fetchDevices($type);
-		} else {
-			write_log("Returning cached list of ".$type);
+			if (($type == 'clients') || ($type == 'plexClients')) {
+			$_SESSION['list_plexclient'] = $list;
+		} 
+		if (($type == 'servers') || ($type == 'plexServers')) {
+			$_SESSION['list_plexserver'] = $list;
 		}
-		write_log("Returning array: ".json_encode($list));
+		} else {
+			if (!(isset($_GET['pollPlayer']))) write_log("Returning cached list of ".$type);
+		}
+		if (!(isset($_GET['pollPlayer']))) write_log("Returning array: ".json_encode($list));
 		return $list;
 	}
 
@@ -1389,11 +1396,11 @@
 		$url = 'https://plex.tv/api/resources'.(($type=='clients') ? '?X-Plex-Token=' : '?includeHttps=1&X-Plex-Token=').$_SESSION['plex_token'];
 		$settingType = (($type =='clients') ? 'plexClient' : 'plexServer');
 		$selected = $_SESSION['config']->get('user-_-'.$_SESSION['username'], $settingType, false);
-		write_log( "URL is ".$url);
+		if (!(isset($_GET['pollPlayer']))) write_log( "URL is ".$url);
 		if($selected) {
 			$selectedName = $_SESSION['config']->get('user-_-'.$_SESSION['username'], $settingType.'Name', false);
 		}
-		write_log("I am looking for ".$type);
+		if (!(isset($_GET['pollPlayer'])))write_log("I am looking for ".$type);
 		$result = curlGet($url);
 		if ($result) {
 			$container = new SimpleXMLElement($result);
@@ -1416,13 +1423,13 @@
 					$deviceOut['selected'] = false;
 					if ($selected) {
 						if (trim($deviceOut['id']) == trim($selected)) {
-							write_log( "I have a preselected device - ".$deviceOut['name']);
-							write_log( "Stuff: ".$deviceOut['id'] ." vs ". $selected);
+							if (!(isset($_GET['pollPlayer'])))write_log( "I have a preselected device - ".$deviceOut['name']);
+							if (!(isset($_GET['pollPlayer'])))write_log( "Stuff: ".$deviceOut['id'] ." vs ". $selected);
 							$deviceOut['selected'] = true;
 						}
 					} else {
 						if ($i == 0) {
-							write_log( "Using device ".$deviceOut['name']." as first selected item.");
+							if (!(isset($_GET['pollPlayer'])))write_log( "Using device ".$deviceOut['name']." as first selected item.");
 							$deviceOut['selected'] = true;
 						}
 					}
@@ -1445,7 +1452,7 @@
 						$deviceOut['publicAddress'] = (string) $device['publicAddress'];
 						foreach ($device->Connection as $connection) {
 							if ($connection['local'] == $local) {
-								if ($platform == 'linux') {
+								if (strtolower($platform) == 'linux') {
 									$deviceOut['uri'] = 'http://'.$connection['address'].':'.$connection['port'];
 								} else {
 									$deviceOut['uri'] = (string) rtrim($connection['uri'], '/');
@@ -1487,10 +1494,10 @@
 	
 	
 	function fetchCastDevices() {
-		write_log("Function fired.");
+		if (!(isset($_GET['pollPlayer']))) write_log("Function fired.");
 		$result = Chromecast::scan();
 		$returns = array();
-		write_log("Returns: ".json_encode($result));
+		if (!(isset($_GET['pollPlayer']))) write_log("Returns: ".json_encode($result));
 		foreach ($result as $key=>$value) {
 			$deviceOut = array();
 			$nameString = preg_replace("/\._googlecast.*/","",$key);
@@ -1509,12 +1516,12 @@
 	
 	/// What used to be a bigl ugly THING is now just a wrapper and parser of the result of fetchDevices
 	function fetchClientList() {
-		write_log("Function Fired.");
+		if (!(isset($_GET['pollPlayer']))) write_log("Function Fired.");
 		$clients = refreshDevices('clients');
 		$options = "";
 		if ($clients) {
-			write_log("Client list retrieved.");
-			write_log(print_r($clients,true));
+			if (!(isset($_GET['pollPlayer']))) write_log("Client list retrieved.");
+			if (!(isset($_GET['pollPlayer']))) write_log(print_r($clients,true));
 			foreach($clients as $client) {
 				$selected = $client['selected'];
 				$id = $client['id'];
@@ -1532,7 +1539,7 @@
 	
 	// Fetch a list of servers for playback
 	function fetchServerList() {
-		write_log("Function Fired.");
+		if (!(isset($_GET['pollPlayer']))) write_log("Function Fired.");
 		$clients = fetchDevices('servers');
 		$options = "";
 		if ($clients) {
@@ -1553,14 +1560,14 @@
 		
 	// Look up our device by name
 	function fetchDeviceByName($name,$type) {
-		write_log("Function fired");
-		write_log("Looking for a type ".$type);
+		if (!(isset($_GET['pollPlayer']))) write_log("Function fired");
+		if (!(isset($_GET['pollPlayer']))) write_log("Looking for a type ".$type);
 		$type = (($type=='players') ? 'clients' : 'servers');
 		$name = strtolower(preg_replace("#[[:punct:]]#", "", $name));
 		$list = refreshDevices($type);
 		foreach($list as $device) {
 			$devName = strtolower(preg_replace("/[^A-Za-z0-9 ]/", '', $device['name']));
-			write_log("Looking for a match with a device named ".$name ." against ".$devName);
+			if (!(isset($_GET['pollPlayer']))) write_log("Looking for a match with a device named ".$name ." against ".$devName);
 			if ($devName == $name) {
 				write_log("Got the matching device.");
 				return $device;
@@ -2896,7 +2903,7 @@
 				'<meta id="clientName" data="'.$_SESSION['name_plexclient'].'"></meta>'.
 				'<meta id="couchpotato" enable="'.$_SESSION['enable_couch'].'" ip="'.$_SESSION['ip_couch'].'" port="'.$_SESSION['port_couch'].'" auth="'.$_SESSION['auth_couch'].'"></meta>'.
 				'<meta id="sonarr" enable="'.$_SESSION['enable_sonarr'].'" ip="'.$_SESSION['ip_sonarr'].'" port="'.$_SESSION['port_sonarr'].'" auth="'.$_SESSION['auth_sonarr'].'"></meta>'.
-				'<meta id="sickbeard" enable="'.$_SESSION['enable_sickbeard'].'" ip="'.$_SESSION['ip_sickbeard'].'" port="'.$_SESSION['port_sickbeard'].'" auth="'.$_SESSION['auth_sickbeard'].'"></meta>'.
+				'<meta id="sick" enable="'.$_SESSION['enable_sick'].'" ip="'.$_SESSION['ip_sick'].'" port="'.$_SESSION['port_sick'].'" auth="'.$_SESSION['auth_sick'].'"></meta>'.
 				'<meta id="radarr" enable="'.$_SESSION['enable_radarr'].'" ip="'.$_SESSION['ip_radarr'].'" port="'.$_SESSION['port_radarr'].'" auth="'.$_SESSION['auth_radarr'].'"></meta>'.
 				'<meta id="ombi" enable="'.$_SESSION['enable_ombi'].'" ip="'.$_SESSION['ip_ombi'].'" port="'.$_SESSION['port_ombi'].'" auth="'.$_SESSION['auth_ombi'].'"></meta>'.
 				'<meta id="logData" data="'.$commandData.'"></meta>';
@@ -2905,7 +2912,7 @@
 	
 	
 	function downloadSeries($command) {
-		$enableSickbeard = $_SESSION['enable_sickbeard'];
+		$enableSick = $_SESSION['enable_sick'];
 		$enableSonarr = $_SESSION['enable_sonarr'];
 		
 		if ($enableSonarr == 'true') {
@@ -2914,20 +2921,20 @@
 			return $response;
 		}
 		
-		if ($enableSickbeard == 'true') { 
-			write_log("Using Sickbeard for Episode agent");
-			$response = sickbeardDownload($command);
+		if ($enableSick == 'true') { 
+			write_log("Using Sick for Episode agent");
+			$response = sickDownload($command,$season,$episode);
 			return $response;
 		}
 		return "No downloader";
 	}
 	
-	function sickbeardDownload($command) {
+	function sickDownload($command) {
 		write_log("Function fired");
-		$sickbeardURL = $_SESSION['ip_sickbeard'];
-		$sickbeardApiKey = $_SESSION['auth_sickbeard'];
-		$sickbeardPort = $_SESSION['port_sickbeard'];
-		$baseURL = 'http://'.$sickbeardURL.':'.$sickbeardPort.'/api/'.$sickbeardApiKey.'/';
+		$sickURL = $_SESSION['ip_sick'];
+		$sickApiKey = $_SESSION['auth_sick'];
+		$sickPort = $_SESSION['port_sick'];
+		$baseURL = 'http://'.$sickURL.':'.$sickPort.'/api/'.$sickApiKey.'/';
 		$searchURL = $baseURL . '?cmd=sb.searchtvdb&name='.urlencode($command);
 		$result = curlGet($searchURL);
 		write_log($result);
@@ -2976,7 +2983,6 @@
 		$sonarrApiKey = $_SESSION['auth_sonarr'];
 		$sonarrPort = $_SESSION['port_sonarr'];
 		$baseURL = 'http://'.$sonarrURL.':'.$sonarrPort.'/api';
-		
 		$searchString = '/series/lookup?term='.urlencode($command);
 		$authString = '&apikey='.$sonarrApiKey;
 		$searchURL = $baseURL.$searchString.$authString;
@@ -2989,14 +2995,11 @@
 			write_log("RootPath: ".$rootPath);
 			write_log("Search URL is ".$searchURL);
 		}
-		
 		$seriesCollectionURL = $baseURL.'/series?apikey='.$sonarrApiKey;
 		$seriesCollection = curlGet($seriesCollectionURL);
 		if ($seriesCollection) {
-			//write_log("Collection data retrieved: ".$seriesCollection);
 			$seriesJSON = json_decode($seriesCollection,true);
 		}
-		
 		$result = curlGet($baseURL.$searchString.$authString);
 		if ($result) {
 			//write_log("Result is ".$result);
@@ -3299,7 +3302,6 @@
 			$result = $remote->play($movie);
 			write_log(print_r($result,true));
 		}
-		
 	}
 	
 	
@@ -3371,15 +3373,15 @@
 				} else $result = "ERROR: Missing server parameters.";
 				break;
 				
-			case "Sickbeard":
+			case "Sick":
 				$result = false;
-				$sickbeardURL = $_SESSION['ip_sickbeard'];
-				$sickbeardApikey = $_SESSION['auth_sickbeard'];
-				$sickbeardPort = $_SESSION['port_sickbeard'];
-				if (($sickbeardURL) && ($sickbeardApikey) && ($sickbeardPort)) {
-					$url = "http://" . $sickbeardURL . ":" . $sickbeardPort . "/api/".$sickbeardApikey."/?cmd=sb";
+				$sickURL = $_SESSION['ip_sick'];
+				$sickApikey = $_SESSION['auth_sick'];
+				$sickPort = $_SESSION['port_sick'];
+				if (($sickURL) && ($sickApikey) && ($sickPort)) {
+					$url = "http://" . $sickURL . ":" . $sickPort . "/api/".$sickApikey."/?cmd=sb";
 					$result = curlGet($url);
-					$result = (($result !== false) ? 'Connection to Sickbeard successful!' : 'ERROR: Server not available.');
+					$result = (($result !== false) ? 'Connection to Sick successful!' : 'ERROR: Server not available.');
 				} else $result = "ERROR: Missing server parameters.";
 				break;
 				
@@ -3418,51 +3420,14 @@
 		}
 		return $result;
 	}
-
-   
-	
- 
- 
-	
- 
 	
  
  // APIAI ITEMS
  // Put our calls to API.ai here
  // #######################################################################
- 
- 
  // Push API.ai bot to other's account.  This can go after Google approval
-	function setupBot() {
-			
-		$_SESSION['apiai_enabled'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'apiEnabled', false);
-		$_SESSION['apiai_client_token'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'apiClientToken', false);
-		$_SESSION['apiai_dev_token'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'apiDevToken', false);
-		write_log("apiAiToken is: ".$_SESSION['apiai_dev_token']);
-		if (($_SESSION['apiai_enabled']) && ($_SESSION['apiai_client_token']) && ($_SESSION['apiai_dev_token'])) {
-			
-			// Need to GET Entities, intents, see if they match our array of set values
-			$entities = fetchApiAiList('entities');
-			$entitiesLocal = getApiAiList('entities');
-			$intents = fetchApiAiList('intents');
-			$intentsLocal = getApiAiList('intents');
-		if ((!($entities == $entitiesLocal)) || (!($intents == $intentsLocal))) {
-				write_log("Putting apiList: entities");
-				$result = putApiAiList($entitiesLocal, $entities, $intentsLocal,$intents);
-			} else {
-				write_log("Hey, entities match.  Good for you.");
-			}
-			
-			if ($result) {
-				write_log("setupBot: Success");
-				return "API.ai Bot successfully deployed.";
-			}
-		} else {
-			write_log("setupBot: Errors");
-			return "API.ai encountered deployment errors, please check the log.";
-		}
-	}
  
+
  
 	// Fetch a list of objects specified by $type (either 'intents' or 'entities')
 	function fetchApiAiList($type) {

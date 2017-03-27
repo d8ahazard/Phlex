@@ -28,25 +28,25 @@
 	$_SESSION['enable_couch'] = $config->get('user-_-'.$_SESSION['username'], 'couchEnabled', false);
 	$_SESSION['enable_ombi'] = $config->get('user-_-'.$_SESSION['username'], 'ombiEnabled', false);
 	$_SESSION['enable_sonarr'] = $config->get('user-_-'.$_SESSION['username'], 'sonarrEnabled', false);
-	$_SESSION['enable_sickbeard'] = $config->get('user-_-'.$_SESSION['username'], 'sickbeardEnabled', false);
+	$_SESSION['enable_sick'] = $config->get('user-_-'.$_SESSION['username'], 'sickEnabled', false);
 	$_SESSION['enable_radarr'] = $config->get('user-_-'.$_SESSION['username'], 'radarrEnabled', false);
 	$_SESSION['enable_apiai'] = $config->get('user-_-'.$_SESSION['username'], 'apiEnabled', false);
 	
 	$_SESSION['ip_couch'] = $config->get('user-_-'.$_SESSION['username'], 'couchIP', 'localhost');
 	$_SESSION['ip_ombi'] = $config->get('user-_-'.$_SESSION['username'], 'ombiUrl', 'localhost');
 	$_SESSION['ip_sonarr'] = $config->get('user-_-'.$_SESSION['username'], 'sonarrIP', 'localhost');
-	$_SESSION['ip_sickbeard'] = $config->get('user-_-'.$_SESSION['username'], 'sickbeardIP', 'localhost');
+	$_SESSION['ip_sick'] = $config->get('user-_-'.$_SESSION['username'], 'sickIP', 'localhost');
 	$_SESSION['ip_radarr'] = $config->get('user-_-'.$_SESSION['username'], 'radarrIP', 'localhost');
 	
 	$_SESSION['port_couch'] = $config->get('user-_-'.$_SESSION['username'], 'couchPort', '5050');
 	$_SESSION['port_ombi'] = $config->get('user-_-'.$_SESSION['username'], 'ombiPort', '3579');
 	$_SESSION['port_sonarr'] = $config->get('user-_-'.$_SESSION['username'], 'sonarrPort', '8989');
-	$_SESSION['port_sickbeard'] = $config->get('user-_-'.$_SESSION['username'], 'sickbeardPort', '8083');
+	$_SESSION['port_sick'] = $config->get('user-_-'.$_SESSION['username'], 'sickPort', '8083');
 	$_SESSION['port_radarr'] = $config->get('user-_-'.$_SESSION['username'], 'radarrPort', '7878');
 	
 	$_SESSION['auth_couch'] = $config->get('user-_-'.$_SESSION['username'], 'couchAuth', '');
 	$_SESSION['auth_sonarr'] = $config->get('user-_-'.$_SESSION['username'], 'sonarrAuth', '');
-	$_SESSION['auth_sickbeard'] = $config->get('user-_-'.$_SESSION['username'], 'sickbeardAuth', '');
+	$_SESSION['auth_sick'] = $config->get('user-_-'.$_SESSION['username'], 'sickAuth', '');
 	$_SESSION['auth_radarr'] = $config->get('user-_-'.$_SESSION['username'], 'radarrAuth', '');
 	
 	$_SESSION['apiai_client_token'] = $config->get('user-_-'.$_SESSION['username'], 'apiClientToken', '');
@@ -316,32 +316,32 @@
 							
 							<div class="appContainer card">	
 								<div class="card-body">
-									<h4>Sickbeard</h4>
+									<h4>Sickbeard/SickRage</h4>
 									<div class="togglebutton">
 										<label class="appLabel">Enable
-											<input id="sickbeardEnabled" type="checkbox" class="appInput"/>
+											<input id="sickEnabled" type="checkbox" class="appInput"/>
 										</label>
 									</div>
-									<div class="form-group" id="sickbeardGroup">
+									<div class="form-group" id="sickGroup">
 										<div class="form-group">
-											<label for="sickbeardIP" class="appLabel">Sickbeard IP/URL:
-												<input id="sickbeardIP" class="appInput form-control Sickbeard" type="text" value="<?php echo $_SESSION['ip_sickbeard'] ?>"/>
+											<label for="sickIP" class="appLabel">Sick IP/URL:
+												<input id="sickIP" class="appInput form-control Sick" type="text" value="<?php echo $_SESSION['ip_sick'] ?>"/>
 											</label>
 										</div>
 										<div class="form-group">
-											<label for="sickbeardPort" class="appLabel">Sickbeard Port:
-												<input id="sickbeardPort" class="appInput form-control Sickbeard" type="text" value="<?php echo $_SESSION['port_sickbeard'] ?>"/>
+											<label for="sickPort" class="appLabel">Sick Port:
+												<input id="sickPort" class="appInput form-control Sick" type="text" value="<?php echo $_SESSION['port_sick'] ?>"/>
 											</label>
 										</div>
 										<div class="form-group">
-											<label for="sickbeardAuth" class="appLabel">Sickbeard Token:
-												<input id="sickbeardAuth" class="appInput form-control Sickbeard" type="text" value="<?php echo $_SESSION['auth_sickbeard'] ?>"/>
+											<label for="sickAuth" class="appLabel">Sick Token:
+												<input id="sickAuth" class="appInput form-control Sick" type="text" value="<?php echo $_SESSION['auth_sick'] ?>"/>
 											</label>
 										</div>
 										<div class="text-center">
 											<div class="form-group btn-group">
-												<button value="Sickbeard" class="testInput btn btn-raised btn-info btn-100" type="button">Test</button>
-												<button id="resetSickbeard" value="Sickbeard" class="resetInput btn btn-raised btn-danger btn-100" type="button">Reset</button>
+												<button value="Sick" class="testInput btn btn-raised btn-info btn-100" type="button">Test</button>
+												<button id="resetSick" value="Sick" class="resetInput btn btn-raised btn-danger btn-100" type="button">Reset</button>
 											</div>
 										</div>
 									</div>

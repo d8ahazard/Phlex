@@ -7,7 +7,7 @@ jQuery(document).ready(function($) {
 	deviceID = $('#deviceID').attr('data');
 	publicIP = $('#publicIP').attr('data');
 	sonarr = ($('#sonarr').attr('enable') == 'true');
-	sickbeard = ($('#sickbeard').attr('enable') == 'true');
+	sick = ($('#sick').attr('enable') == 'true');
 	couch = ($('#couchpotato').attr('enable') == 'true');
 	radarr = ($('#radarr').attr('enable') == 'true');
 	ombi = ($('#ombi').attr('enable') == 'true');
@@ -217,7 +217,7 @@ jQuery(document).ready(function($) {
 	$('#ombiEnabled').prop("checked",ombi);
 	$('#couchEnabled').prop("checked",couch);
 	$('#sonarrEnabled').prop("checked",sonarr);
-	$('#sickbeardEnabled').prop("checked",sickbeard);
+	$('#sickEnabled').prop("checked",sick);
 	$('#radarrEnabled').prop("checked",radarr);
 	
 	
@@ -247,10 +247,10 @@ jQuery(document).ready(function($) {
 		$('#sonarrGroup').hide();
 	}
 	
-	if ($('#sickbeardEnabled').is(':checked')) {
-		$('#sickbeardGroup').show();
+	if ($('#sickEnabled').is(':checked')) {
+		$('#sickGroup').show();
 	} else {
-		$('#sickbeardGroup').hide();
+		$('#sickGroup').hide();
 	}
 	
 	if ($('#radarrEnabled').is(':checked')) {
@@ -287,8 +287,8 @@ jQuery(document).ready(function($) {
 		$('#sonarrGroup').toggle();
 	});
 		
-	$('#sickbeardEnabled').change(function() {
-		$('#sickbeardGroup').toggle();
+	$('#sickEnabled').change(function() {
+		$('#sickGroup').toggle();
 	});
 	
 	$('#radarrEnabled').change(function() {
