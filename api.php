@@ -518,15 +518,50 @@
 		$result[initialCommand] = $command;
 		$commandArray = explode(' ',$command);
 		$type = false;
-		if (($commandArray[0]=='the') && ($commandArray[1]=='movie')) {
-			array_splice($commandArray,0,2);
+		if (arrayContains('movie',$commandArray)) {
+			$commandArray = array_diff($commandArray,array('movie'));
 			$type = 'movie';
 			$resultOut['parsedCommand'] = 'Fetch the movie named '.implode(" ",$commandArray);
 		}
-		if (($commandArray[0]=='the') && (($commandArray[1]=='show') || ($commandArray[1]=='series'))) {
-			array_splice($commandArray,0,2);
+		if (arrayContains('show',$commandArray) || arrayContains('series',$commandArray)) {
+			$commandArray = array_diff($commandArray,array('show','series'));
 			$type = 'show';
-			$resultOut['parsedCommand'] = 'Fetch the show named '.implode(" ",$commandArray);
+		}
+		$useNext = false;
+		if (arrayContains('season',$commandArray)) {
+			write_log("Found the word season.");
+			foreach($commandArray as $word) {
+				if ($useNext) {
+					$season = intVal($word);
+					break;
+				}
+				if ($word == 'season') {
+					$useNext = true;
+				}
+				
+			}
+			if ($season) {
+				$type = 'show';
+				$commandArray = array_diff($commandArray,array('season',$season));
+			}
+		}
+		$useNext = false;
+		if (arrayContains('episode',$commandArray)) {
+			write_log("Found the word episode.");
+			foreach($commandArray as $word) {
+				if ($useNext) {
+					$episode = intVal($word);
+					break;
+				}
+				if ($word == 'episode') {
+					$useNext = true;
+				}
+				
+			}
+			if ($episode) {
+				$type = 'show';
+				$commandArray = array_diff($commandArray,array('episode',$episode));
+			}
 		}
 		if ($type == false) $resultOut['parsedCommand'] = 'Fetch the first movie or show named '.implode(" ",$commandArray);
 		
@@ -534,7 +569,11 @@
 			case 'show':
 			write_log("Searching explicitely for a show.");
 				if ($_SESSION['enable_sonarr'] || $_SESSION['enable_sick']) {
-					$result = downloadSeries(implode(" ",$commandArray));
+					$result = downloadSeries(implode(" ",$commandArray),$season,$episode);
+					$resultTitle = $result['mediaResult']['@attributes']['title'];
+					$resultOut['parsedCommand'] = 'Fetch '.($season ? 'Season '.$season.' of ' : '').($episode ? 'Episode '.$episode.' of ' : '').'the show named '.$resultTitle;
+					write_log("Result ".json_encode($result));
+					
 				} else {
 					$result['status'] = 'no fetcher configured for ' .$type;
 					write_log("". $result['status']);
@@ -2911,7 +2950,7 @@
 	}
 	
 	
-	function downloadSeries($command) {
+	function downloadSeries($command,$season,$episode) {
 		$enableSick = $_SESSION['enable_sick'];
 		$enableSonarr = $_SESSION['enable_sonarr'];
 		
@@ -2929,50 +2968,98 @@
 		return "No downloader";
 	}
 	
-	function sickDownload($command) {
+	function sickDownload($command,$season=false,$episode=false) {
 		write_log("Function fired");
+		$response = [];
 		$sickURL = $_SESSION['ip_sick'];
 		$sickApiKey = $_SESSION['auth_sick'];
 		$sickPort = $_SESSION['port_sick'];
-		$baseURL = 'http://'.$sickURL.':'.$sickPort.'/api/'.$sickApiKey.'/';
-		$searchURL = $baseURL . '?cmd=sb.searchtvdb&name='.urlencode($command);
-		$result = curlGet($searchURL);
+		$sick = new SickRage('http://'.$sickURL.':'.$sickPort, $sickApiKey);
+		$result = $sick->sbSearchTvdb($command);
 		write_log($result);
 		if ($result) {
 			$responseJSON = json_decode($result, true);
-			$resultName = (string) $responseJSON['data']['results'][0]['name'];
-			write_log("Got response for search: ".$resultName);
-			$resultID = (string) $responseJSON['data']['results'][0]['tvdbid'];
-			$resultDate = (string) $responseJSON['data']['results'][0]['first_aired'];
-			$resultDate = explode("-",$resultDate);
-			$resultYear = $resultDate[0];
+			$highest = 0;
+			foreach ($responseJSON['data']['results'] as $searchResult) {
+				$resultName = (string) $searchResult['name'];
+				$cleaned = cleanCommandString($resultName);
+				write_log("Similarity between results is ".similarity($command, $cleaned) * 100);
+				if ($cleaned == $command) {
+					write_log("This is an exact match.");
+					$result = $searchResult;
+					$exact = true;
+					break;
+				} else {
+					$score = similarity($command,$cleaned) * 100;
+					if ($score > $highest) {
+						write_log("This is the highest matched result so far.");
+						$highest = $score;
+						$result = $searchResult;
+					}
+				}
+			}
+			
+			if ($result) {
+				$resultName = (string) $result['name'];
+				write_log("Got response for search: ".$resultName);
+				$resultID = (string) $result['tvdbid'];
+				$resultDate = (string) $result['first_aired'];
+				$resultDate = explode("-",$resultDate);
+				$resultYear = $resultDate[0];
+			}
+			
 			unset($result);
 			unset($responseJSON);
-			$fetchURL = $baseURL . '?cmd=show.addnew&tvdbid='.$resultID.'&status=wanted';
-			$artURL = $baseURL . '?cmd=show.getbanner&tvdbid='.$resultID;
-			$result = curlGet($fetchURL);
-			write_log($result);
-			if ($result) {
-				$responseJSON = json_decode($result, true);
-					if ($responseJSON) {
-						$response['status'] = $responseJSON['result'];
-						$response['mediaResult']['@attributes']['url'] = $fetchURL;
-						$response['mediaResult']['@attributes']['title'] = $resultName;
-						$response['mediaResult']['@attributes']['year'] = $resultYear;
-						$responseJSON['art'] = cacheImage($artURL);
-						$responseJSON['type'] = 'show';
-						$response['mediaResult']['@attributes'] = $responseJSON;
-						return $response;
-					}	
-			} else {
-				$response['status'] = 'fetch error';
+			$check = $sick->show($resultID);
+			if ($check) {
+				write_log("Check contains ".$check);
+				$responseJSON = json_decode($check,true);
+				write_log("Check result is ".$checkJSON['result']);
+				$result = (string) $checkJSON['result'];
+				$exists = (($result == 'failure') ? false : true);
+			}
+			
+			if (! $exists) {
+				write_log("Show not in list, adding.");
+				$result = $sick->showAddNew($resultID);
+				$responseJSON = json_decode($result,true);
+				write_log('Fetch result: '.$result);
+				$exists = (($responseJSON['result'] == 'success') ? true : false);
+			}
+			
+			if ($exists) {
+				if ($season) {
+					if ($episode) {
+						write_log("And an episode. ".$episode);
+						$result = $sick->episodeSearch($resultID, $season, $episode);
+						if ($result) {
+							unset($responseJSON);
+							write_log("Episode search worked, result is ".$result);
+							$responseJSON = json_decode($result,true);
+							$resultName = (string)$responseJSON['data']['name'];
+							$resultYear = (string)$responseJSON['data']['airdate'];
+							$resultYearArray = explode("-",$resultYear);
+							$resultYear = $resultYearArray[0];
+						}
+					}
+				} 
+				
+				$response['status'] = ($responseJSON['message'] ? $responseJSON['message'] : $responseJSON['result']);
+				$response['mediaResult']['@attributes']['title'] = $resultName;
+				$response['mediaResult']['@attributes']['year'] = $resultYear;
+				$artURL = 'http://'.$sickURL.':'.$sickPort.'/api/'.$sickApiKey.'/' . '?cmd=show.getbanner&tvdbid='.$resultID;
+				$responseJSON['art'] = cacheImage($artURL);
+				write_log("Art should be findable at ".$responseJSON['art']);
+				$responseJSON['type'] = 'show';
+				$response['mediaResult']['@attributes'] = $responseJSON;
 				return $response;
+				
 			}
 		} else {
 			$response['status'] = 'no results';
 			return $response;
 		}
-		
+		return false;
 		
 		
 	}
