@@ -1,5 +1,7 @@
 <?PHP
 
+	// Checks whether an API Token exists for the current user, generates and saves one if none exists.
+	// Returns generated or existing API Token.
 	function checkSetApiToken() {
 		// Check that we have generated an API token for our user, create and save one if none exists
 		foreach ($_SESSION['config'] as $section => $user) {
@@ -36,6 +38,7 @@
 			write_log("Generating using pseudo_random.");
 	        return bin2hex(openssl_random_pseudo_bytes($length));
 	    }
+		// Keep this last, as there appear to be issues with random_bytes and Docker.
 		if (function_exists('random_bytes')) {
 			write_log("Generating using random_bytes.");
 	        return bin2hex(random_bytes($length));
@@ -49,6 +52,8 @@
 		return $stamp;
 	}
 	
+	// Recursively filter empty keys from an array
+	// Returns filtered array.
 	function array_filter_recursive( array $array, callable $callback = null ) {
 		$array = is_callable( $callback ) ? array_filter( $array, $callback ) : array_filter( $array );
 		foreach ( $array as &$value ) {
@@ -60,10 +65,12 @@
 		return $array;
 	}
 	
+	//Get the current protocol of the server
 	function serverProtocol() {
 	   return (((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')	|| $_SERVER['SERVER_PORT'] == 443) ? 'https://' : 'http://');
 	}
 	
+	//Get the relative path to $to in relation to where $from is
 	function getRelativePath($from, $to)
 	{
 		// some compatibility fixes for Windows paths
@@ -97,6 +104,8 @@
 		return implode('/', $relPath);
 	}
 	
+	// Grab an image from a server and save it locally
+	// TODO: Some way to remove images older than N days
 	function cacheImage($url) {
 		try {
 			$cacheDir = dirname(__FILE__) . '/img/cache/';
@@ -143,6 +152,7 @@
 		return $result;
 	}
  
+	// Fetch data from a URL using CURL
 	function curlGet($url) {
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL,$url);
@@ -154,7 +164,8 @@
 		return $result;
 	}
 	
-	// It would be nice to have this auto-read the name of the calling function...
+	// Write log information to $filename
+	// Auto rotates files larger than 2MB
 	function write_log($text,$level=null) {
 		if ($level === null) {
 			$level = 'I';	
@@ -175,25 +186,27 @@
 		fclose($handle);
 	}
 	
-	// Get the name of the function calling the function that called getCaller (for logging)
-	function getCaller($what = NULL) {
+	// Get the name of the function calling write_log
+	function getCaller() {
 		$trace = debug_backtrace();
 		$count = count($trace);
-		if ($count >=4) {
-			$previousCall = $trace[3]['function']; // 0 is this call, 1 is the include, 2 is call in previous function, 3 is caller of that function
-		} else {
-			$previousCall = $trace[$count - 2]['function'];
-			if ($previousCall == 'include') $previousCall = $trace[$count - 1]['function'];
+		$useNext = false;
+		$caller = false;
+		foreach($trace as $event) {
+			if ($useNext) {
+				$caller = $event['function'];
+				break;
+			}
+			if ($event['function'] == 'write_log') {
+				$useNext = true;
+				$caller = $event['function'];
+			}
 		}
-		if(isset($what)) {
-			return $previousCall[$what];
-		} else {
-			return $previousCall;
-		}   
+		return $caller;   
 	}
 	
+	// Save the specified configuration file using CONFIG_LITE
 	function saveConfig($inConfig) {
-		write_log("Function fired.");
 		try {
 			$inConfig->save();
 		} catch (Config_Lite_Exception $e) {
@@ -205,4 +218,33 @@
 		file_put_contents(CONFIG,$cache_new);
 		
 	}
+	
+	// A more precise way of calculating the similarity between two strings
+	function similarity($str1, $str2) {
+		$len1 = strlen($str1);
+		$len2 = strlen($str2);
+		
+		$max = max($len1, $len2);
+		$similarity = $i = $j = 0;
+		
+		while (($i < $len1) && isset($str2[$j])) {
+			if ($str1[$i] == $str2[$j]) {
+				$similarity++;
+				$i++;
+				$j++;
+			} elseif ($len1 < $len2) {
+				$len1++;
+				$j++;
+			} elseif ($len1 > $len2) {
+				$i++;
+				$len1--;
+			} else {
+				$i++;
+				$j++;
+			}
+		}
+
+		return round($similarity / $max, 2);
+	}
+
 ?>
