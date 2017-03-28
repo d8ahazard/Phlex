@@ -1,8 +1,7 @@
 <?php
 	require_once dirname(__FILE__) . '/util.php';
-	$config = new Config_Lite('config.ini.php');
-	defined("CONFIG") ? null : define('CONFIG', 'config.ini.php');
 	date_default_timezone_set("America/Chicago");
+	$config = new Config_Lite('config.ini.php');
 	$deviceID = $config->get('general', 'deviceID', false);
 	if ($deviceID===false) {
 		$deviceID = randomToken(12);
@@ -47,7 +46,7 @@
 			$config->set($userString,"plexCred",$userpass);
 			$config->set($userString,"plexUserName",$_SESSION['username']);
 			saveConfig($config);
-			$apiToken = checkSetApiToken();
+			$apiToken = checkSetApiToken(urlencode($username));
 			write_log("ApiToken is ".$apiToken);
 			if (! $apiToken) {
 				echo "Unable to set API Token, please check write access to Phlex root and try again.";

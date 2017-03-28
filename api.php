@@ -137,8 +137,6 @@
 	// If we are authenticated and have a username and token, continue
 	
 	
-	// If this is a new session, re-cache devices and set our session variables
-	// This should probably be looked at and made more efficient somehow, as fetchResources is a heavy call.
 	if (!(isset($_SESSION['counter']))) {
 		$_SESSION['counter'] = 0;
 		setSessionVariables();
@@ -222,6 +220,9 @@
 	// If we are changing a setting variable via the web UI.
 	if (isset($_GET['id'])) {
 		$id = $_GET['id'];
+		if (trim($id) == 'useCast') {
+			refreshDevices('plexClient',true);
+		}
 		$value = $_GET['value'];
 		write_log('GET: Setting parameter changed '.$id . ' : ' . $value);
 		if ($val = 'true') $val = true;
@@ -634,7 +635,7 @@
 		$queryOut[parsedCommand] = "";
 		$serverToken = $_SESSION['plex_token'];
 		$client = $_SESSION['uri_plexclient'];
-		$command = trim($command);
+		$command = cleanCommandString($command);
 		$commandArray = array("play","pause","stop","skipNext","stepForward","stepBack","skipPrevious","volume");
 		if (strpos($command,"volume")) {
 				write_log("Should be a volume command.");
@@ -663,7 +664,7 @@
 				$queryOut[parsedCommand] .= "Set the volume to " . $int . " percent.";
 				$cmd = 'setParameters?volume='.$int;
 		} else {
-			$result = arrayContains($command, $commandArray);
+			$result = implode(" ",array_intersect($commandArray,explode(" ",$command)));
 			if ($result) {
 				$queryOut[parsedCommand] .= $result;
 				$cmd = $result;
@@ -785,7 +786,7 @@
 			}
 			$mods['media'] = $mediaOut;
 		}
-		
+		$mods['preFilter'] = implode(" ",$commandArray);
 		if ($numberOut) {
 			$commandArray = array_diff($commandArray, $numberOut);
 			// "first","pilot","second","third","last","final","latest","random"
@@ -1451,7 +1452,7 @@
 				$add = false;
 				$provides = explode(',',(string)$device['provides']);
 				$present = ($device['presence'] == 1);
-				$local = ($device['publicAddressMatches'] == 1);
+				//$local = ($device['publicAddressMatches'] == 1);
 				$owned = ($device['owned'] == 1);
 				$publicAddress = (string) $device['publicAddress'];
 				$deviceOut['name'] = (string) $device['name'];
@@ -1472,7 +1473,17 @@
 							$deviceOut['selected'] = true;
 						}
 					}
-					if (($type === 'clients') && arrayContains('player',$provides) && $owned && $local)  {
+					
+					if ($type == 'clients') {
+						write_log("I found a device: ".(string)$device['name']." Provides is ".json_encode($provides));
+						if (arrayContains('player',$provides)) {
+							write_log("This matches.");
+						}
+						if ($owned) write_log("I own it.");
+						if ($local) write_log("And it's Looooocal");
+					}
+					if (($type === 'clients') && (arrayContains('player',$provides)) && $owned)  {
+						
 						foreach ($device->Connection as $connection) {
 							$address = (string) $connection['address'];
 							$octets = explode(".",$address);
@@ -1683,6 +1694,10 @@
 					}
 				}
 			}
+			if ($key=='preFilter') {
+				write_log("We have a preFilter: ".$mod);
+				$preFilter = $mod;
+			}
 		}
 		$searchType = $type;
 		$matchup = array();
@@ -1690,6 +1705,9 @@
 		if ((count($media) == count($nums)) && (count($media))) {
 			write_log("Merging arrays.");
 			$matchup = array_combine($media, $nums);		
+		} else {
+			write_log("Number doesn't appear to be related to a context, re-appending.");
+			$title = $preFilter;
 		}
 		
 		if (count($matchup)) {
@@ -1823,12 +1841,9 @@
 	function fetchHubResults($title,$type=false) {
 		write_log("Function Fired.");
 		write_log("Type is ".$type);
+		$title = cleanCommandString($title);
 		$searchType = '';
-		$searchArray = explode(" ",$title);
-		$stripIn = array("of","the","an","a","at","th","nd","in","it","from","movie","show","episode","season");
-		$searchArray = array_diff($searchArray, $stripIn);
-		$search = implode(" ",$searchArray);
-		$url = $_SESSION['uri_plexserver'].'/hubs/search?query='.urlencode($search).'&limit=30&X-Plex-Token='.$_SESSION['token_plexserver'];
+		$url = $_SESSION['uri_plexserver'].'/hubs/search?query='.urlencode($title).'&limit=30&X-Plex-Token='.$_SESSION['token_plexserver'];
 		$searchResult['url'] = $url;
 		$cast = false;
 		write_log('URL is : '.$url);
@@ -1858,13 +1873,9 @@
 						$titleArray = explode(" ",$elementTitle);
 						$yearString = "(".$Element['year'].")";
 						$year = $Element['year'];
-						$stripIn = array("of","the","an","a","at","th","nd","in","it","from","movie","show","episode","season",$yearString,$year);
-						$titleArray = array_diff($titleArray, $stripIn);
-						write_log("Title Array should now be ".json_encode($titleArray));
-						$titleOut = implode(" ",$titleArray);
-						$titleOut = strtolower(trim($titleOut));
+						$titleOut = cleanCommandString($elementTitle);
 						
-						if ($titleOut == $search) {
+						if ($titleOut == $title) {
 							write_log("Title matches exactly: ".$title);
 							
 							if (($Hub['type'] == 'actor') || ($Hub['type'] == 'director')) {
@@ -1890,9 +1901,9 @@
 								}
 							}
 						} else {
-							$weight = similar_text($search, $titleOut, $percent);
-							write_log("Weight of ".$search . " vs " . $titleOut . " is ".$weight);
-							if ($weight >= 6) {
+							$weight = similarity($title, $titleOut);
+							write_log("Weight of ".$title . " vs " . $titleOut . " is ".$weight);
+							if ($weight >= .36) {
 								write_log("Heavy enough, pushing.");
 								array_push($fuzzyResults,$Element);
 							}
@@ -2552,9 +2563,13 @@
 			$status = array();
 			foreach ($container->Video as $Video) {
 				$vidArray = json_decode(json_encode($Video),true);
-				if ($vidArray['Player']['@attributes']['address'] == substr($addresses[1],2)) {
+				$isCast = ($vidArray['Player']['@attributes']['address'] == substr($addresses[1],2));
+				$isPlayer = ($vidArray['Player']['@attributes']['machineIdentifier'] == $_SESSION['id_plexclient']);
+				if (($isPlayer) || ($isCast)) {
 					$status['status'] = $vidArray['Player']['@attributes']['state'];
-					$status['time']=$vidArray['TranscodeSession']['@attributes']['progress'];
+					$time=$vidArray['TranscodeSession']['@attributes']['progress'];
+					$duration = $vidArray['TranscodeSession']['@attributes']['duration'];
+					$status['time'] = $duration / $time;
 					$status['plexServer']=$_SESSION['uri_plexserver'];
 					$status['mediaResult'] = $vidArray;
 					$thumb = (($vidArray['@attributes']['type'] == 'movie') ? $vidArray['@attributes']['thumb'] : $vidArray['@attributes']['parentThumb']);

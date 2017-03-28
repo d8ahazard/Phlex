@@ -145,7 +145,7 @@
 	function arrayContains($str, array $arr)	{
 		//write_log("Function Fired.");
 		$result = array_intersect($arr,explode(" ",$str));
-		if (count($result)==1) $result = implode($result);
+		if (count($result)==1) $result = true;
 		if (count($result)==0) $result = false;
 		return $result;
 	}
