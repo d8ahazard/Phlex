@@ -3,7 +3,6 @@
 	require_once dirname(__FILE__) . '/cast/Chromecast.php';
 	require_once dirname(__FILE__) . '/util.php';
 	use Kryptonit3\SickRage\SickRage;
-	defined("CONFIG") ? null : define('CONFIG', 'config.ini.php');
 	date_default_timezone_set("America/Chicago");
 	ini_set("log_errors", 1);
 	error_reporting(E_ERROR);
@@ -1452,7 +1451,7 @@
 				$add = false;
 				$provides = explode(',',(string)$device['provides']);
 				$present = ($device['presence'] == 1);
-				//$local = ($device['publicAddressMatches'] == 1);
+				$local = ($device['publicAddressMatches'] == 1);
 				$owned = ($device['owned'] == 1);
 				$publicAddress = (string) $device['publicAddress'];
 				$deviceOut['name'] = (string) $device['name'];
