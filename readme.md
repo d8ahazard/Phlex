@@ -71,11 +71,11 @@ Log into Phlex with your Plex.tv username and password.
 Click on the gear icon to open settings.
 In settings, under the general tab, make sure you fill in the "Public Address" box with the FULL address of your Phlex server.  Typically, you will just need to append /Phlex to the directory path, and a port if you changed it to something other than 80.  
 <BR>
-#### For example:####
+#### For example: ####
 
     273.482.234.33/Phlex:66678
 
-#### If you've set up a domain with reverse proxy, then just put the url you've setup:####
+#### If you've set up a domain with reverse proxy, then just put the url you've setup: ####
 
     my.domain.com/Phlex
 
@@ -325,6 +325,6 @@ If you think you've found a bug or would like to make a feature request, feel fr
 
 ### DONATIONS ###
 <br>
-If you really really like this project and want to thank me for sharing it with the world, you can send money via paypal to **donate.to.digitalhigh@gmail.com**.  
+If you really really like this project and want to thank me for sharing it with the world, you can send money via paypal to ** donate.to.digitalhigh@gmail.com **.  
 
 This is a donate-only address, support requests will not be answered.
