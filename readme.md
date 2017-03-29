@@ -9,8 +9,10 @@ Aside from being a made-up name that sounds cool, The purpose of Phlex is to pro
 Or, in short - you can watch and download movies and shows just by telling your phone to do so.
 <br><br>
 
-<iframe width="854" height="480" src="https://www.youtube.com/embed/FZBlNwBocAc" frameborder="0" allowfullscreen></iframe>
-<br>
+<a href="http://www.youtube.com/watch?feature=player_embedded&v=FZBlNwBocAc
+" target="_blank"><img src="http://img.youtube.com/vi/FZBlNwBocAc/0.jpg"
+alt="Phlex Demo #2" width="480" height="360" border="10" /></a>
+
 
 <a href="http://s803.photobucket.com/user/d8ahazard/media/Phlex/0.png.html" target="_blank"><img src="http://i803.photobucket.com/albums/yy318/d8ahazard/Phlex/0.png" border="0" alt=" photo 0.png"/></a>
 
