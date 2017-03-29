@@ -16,12 +16,12 @@ alt="Phlex Demo #2" width="480" height="360" border="10" /></a>
 
 <a href="http://s803.photobucket.com/user/d8ahazard/media/Phlex/0.png.html" target="_blank"><img src="http://i803.photobucket.com/albums/yy318/d8ahazard/Phlex/0.png" border="0" alt=" photo 0.png"/></a>
 
-<a href="http://s803.photobucket.com/user/d8ahazard/media/Phlex/1.png.html" target="_blank"><img src="http://i803.photobucket.com/albums/yy318/d8ahazard/Phlex/1.png" border="0" alt=" photo 1.png"/></a>
+<a href="http://s803.photobucket.com/user/d8ahazard/media/ccbg.png.html" target="_blank"><img src="http://i803.photobucket.com/albums/yy318/d8ahazard/ccbg.png" border="0" alt=" photo ccbg.png"/></a>
 
-<a href="http://s803.photobucket.com/user/d8ahazard/media/Phlex/4.png.html" target="_blank"><img src="http://i803.photobucket.com/albums/yy318/d8ahazard/Phlex/4.png" border="0" alt=" photo 4.png"/></a>
+<a href="http://s803.photobucket.com/user/d8ahazard/media/ccbg2.png.html" target="_blank"><img src="http://i803.photobucket.com/albums/yy318/d8ahazard/ccbg2.png" border="0" alt=" photo ccbg2.png"/></a>
 
-<a href="http://s803.photobucket.com/user/d8ahazard/media/Phlex/5.png.html" target="_blank"><img src="http://i803.photobucket.com/albums/yy318/d8ahazard/Phlex/5.png" border="0" alt=" photo 5.png"/></a>
-
+<a href="http://s803.photobucket.com/user/d8ahazard/media/ccbg3.png.html" target="_blank"><img src="http://i803.photobucket.com/albums/yy318/d8ahazard/ccbg3.png" border="0" alt=" photo ccbg3.png"/></a>
+<a href="http://s803.photobucket.com/user/d8ahazard/media/ccbg4.png.html" target="_blank"><img src="http://i803.photobucket.com/albums/yy318/d8ahazard/ccbg4.png" border="0" alt=" photo ccbg4.png"/></a>
 <a href="http://s803.photobucket.com/user/d8ahazard/media/Phlex/6.png.html" target="_blank"><img src="http://i803.photobucket.com/albums/yy318/d8ahazard/Phlex/6.png" border="0" alt=" photo 6.png"/></a>
 
 ## Installation: ##
