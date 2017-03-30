@@ -3527,12 +3527,16 @@
 						$resultJSON = json_decode($result,true);
 						write_log("Hey, we've got some profiles: ".json_encode($resultJSON));
 						$array = array();
+						$first = false;
 						foreach ($resultJSON['list'] as $profile) {
 							$id = $profile['_id'];
 							$name = $profile['label'];
 							$array[$id] = $name;
+							if (! $first) $first = $id;
 						}
 						$_SESSION['list_couch'] = $array;
+						if (! $_SESSION['profile_couch']) $_SESSION['profile_couch'] = $first;
+						$_SESSION['config']->set('user-_-'.$_SESSION['username'], 'couchProfile',$first);
 						$_SESSION['config']->set('user-_-'.$_SESSION['username'], 'couchList',$array);
 						saveConfig($_SESSION['config']);
 					}
@@ -3554,11 +3558,15 @@
 						write_log("Result JSON: ".json_encode($resultJSON));
 						
 						$array = array();
+						$first = false;
 						foreach($resultJSON as $profile) {
+							$first = ($first ? $first : $profile['id']);
 							$array[$profile['id']] = $profile['name'];
 						}
 						write_log("Final array is ".json_encode($array));
 						$_SESSION['list_sonarr'] = $array;
+						if (! $_SESSION['profile_sonarr']) $_SESSION['profile_sonarr'] = $first;
+						$_SESSION['config']->set('user-_-'.$_SESSION['username'], 'sonarrProfile',$first);
 						$_SESSION['config']->set('user-_-'.$_SESSION['username'], 'sonarrList',$array);
 						saveConfig($_SESSION['config']);
 					}
@@ -3579,11 +3587,16 @@
 						write_log("Result retrieved.");
 						$resultJSON = json_decode($result,true);
 						$array = array();
+						$first = false;
 						foreach($resultJSON as $profile) {
+							$first = ($first ? $first : $profile['id']);
 							$array[$profile['id']] = $profile['name'];
 						}
 						write_log("Final array is ".json_encode($array));
 						$_SESSION['list_radarr'] = $array;
+						if (! $_SESSION['profile_radarr']) $_SESSION['profile_radarr'] = $first;
+						$_SESSION['config']->set('user-_-'.$_SESSION['username'], 'radarrProfile',$first);
+						
 						$_SESSION['config']->set('user-_-'.$_SESSION['username'], 'radarrList',$array);
 						saveConfig($_SESSION['config']);
 					}
@@ -3604,7 +3617,9 @@
 					$list = $result['data']['initial'];
 					$array = array();
 					$count = 0;
+					$first = false;
 					foreach ($list as $profile) {
+						$first = ($first ? $first : $cound);
 						$array[$count] = $profile;
 						$count++;
 					}
@@ -3614,28 +3629,6 @@
 					write_log("List: ".print_r($_SESSION['list_sick'],true));
 					$result = (($result) ? 'Connection to Sick successful!' : 'ERROR: Server not available.');
 				} else $result = "ERROR: Missing server parameters.";
-				break;
-				
-			case "APIai":
-				$_SESSION['apiai_enabled'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'apiEnabled', false);
-				$_SESSION['apiai_client_token'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'apiClientToken', false);
-				$_SESSION['apiai_dev_token'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'apiDevToken', false);
-				if (($_SESSION['apiai_enabled']) && ($_SESSION['apiai_client_token']) && ($_SESSION['apiai_dev_token'])) {
-					
-					$apiUrl = 'https://api.api.ai/v1/intents?v=20150910';
-					$ch = curl_init();
-					curl_setopt($ch, CURLOPT_URL,$apiUrl);
-					curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-					curl_setopt ($ch, CURLOPT_CAINFO, rtrim(dirname(__FILE__), '/') . "/cert/cacert.pem");
-					$headers = array(
-						'Authorization:Bearer '.$_SESSION['apiai_dev_token']
-					);
-					curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-					$result = curl_exec ($ch);
-					curl_close ($ch);
-					$result = (($result) ? 'Connection to API.ai successful!': 'ERROR: Server not available.');
-			
-				} else $result="ERROR: Missing access tokens.";
 				break;
 				
 			case "Plex":
