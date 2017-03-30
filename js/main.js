@@ -61,6 +61,14 @@ jQuery(document).ready(function($) {
 			}
 			apiToken = $('#apiTokenData').attr('data');
 			var posting = $.get('api.php?apiToken=' + apiToken, {id:id, value:value});
+			if ($(this).hasClass("appParam")) {
+				var id = $(this).parent().parent().parent().attr('id');
+				id = id.replace("Group","");
+				$.get('api.php?apiToken=' + apiToken + '&fetchList=' + id, function(data){
+					console.log("DATA: " + data);
+					$('#'+id + 'Profile').html(data);
+				})
+			}
 		}
 		
 		
@@ -146,6 +154,15 @@ jQuery(document).ready(function($) {
 		apiToken = $('#apiTokenData').attr('data');
 		console.log("Server should be changing to " + serverName);
 		$.get('api.php?apiToken=' + apiToken, {device:'plexServer',id:serverID,uri:serverUri,name:serverName,token:serverToken,product:serverProduct});
+	});
+	
+	$(".profileList").change(function(){
+		var service = $(this).attr('id');
+		var index = $(this).find('option:selected').attr('index');
+		var profile = $(this).find('option:selected').attr('id');
+		apiToken = $('#apiTokenData').attr('data');
+		console.log("Profile for " + service + " should be set to " + profile + ": " + index);
+		$.get('api.php?apiToken=' + apiToken, {id:service,value:index});
 	});
 		
 	$(".cmdBtn").click(function() {

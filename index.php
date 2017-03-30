@@ -228,18 +228,24 @@
 									<div class="form-group" id="couchGroup">
 										<div class="form-group">
 											<label for="couchIP" class="appLabel">Couchpotato IP/URL:
-												<input id="couchIP" class="appInput form-control CouchPotato" type="text" value="<?php echo $_SESSION['ip_couch'] ?>"/>
+												<input id="couchIP" class="appInput form-control CouchPotato appParam" type="text" value="<?php echo $_SESSION['ip_couch'] ?>"/>
 											</label>
 										</div>
 										<div class="form-group">
 											<label for="couchPort" class="appLabel">Couchpotato Port:
-												<input id="couchPort" class="appInput form-control CouchPotato" type="text" value="<?php echo $_SESSION['port_couch'] ?>"/>
+												<input id="couchPort" class="appInput form-control CouchPotato appParam" type="text" value="<?php echo $_SESSION['port_couch'] ?>"/>
 											</label>
 										</div>
 										<div class="form-group">
 											<label for="couchAuth" class="appLabel">Couchpotato Token:
-												<input id="couchAuth" class="appInput form-control CouchPotato" type="text" value="<?php echo $_SESSION['auth_couch'] ?>"/>
+												<input id="couchAuth" class="appInput form-control CouchPotato appParam" type="text" value="<?php echo $_SESSION['auth_couch'] ?>"/>
 											</label>
+										</div>
+										<div class="form-group">
+											<label for="sel1">Quality Profile:</label>
+											<select class="form-control profileList" id="couchProfile">
+												<?php echo fetchList("couch") ?>
+											</select>
 										</div>
 										<div class="text-center">
 											<div class="form-group btn-group">
@@ -262,13 +268,19 @@
 									<div class="form-group" id="ombiGroup">
 										<div class="form-group">
 										<label for="ombiUrl" class="appLabel">Ombi IP/URL:
-											<input id="ombiUrl" class="appInput form-control ombiUrl" type="text"  value="<?php echo $_SESSION['ip_ombi'] ?>" />
+											<input id="ombiUrl" class="appInput form-control ombiUrl appParam" type="text"  value="<?php echo $_SESSION['ip_ombi'] ?>" />
 										</label>
 										</div>
 										<div class="form-group">
 											<label for="ombiPort" class="appLabel">Ombi Port:
-												<input id="ombiPort" class="appInput form-control Ombi" type="text" value="<?php echo $_SESSION['port_ombi'] ?>"/>
+												<input id="ombiPort" class="appInput form-control Ombi appParam" type="text" value="<?php echo $_SESSION['port_ombi'] ?>"/>
 											</label>
+										</div>
+										<div class="form-group">
+											<label for="sel1">Quality Profile:</label>
+											<select class="form-control profileList" id="ombi">
+												
+											</select>
 										</div>
 										<div class="text-center">
 											<div class="form-group btn-group">
@@ -291,18 +303,24 @@
 									<div class="form-group" id="radarrGroup">
 										<div class="form-group">
 											<label for="radarrIP" class="appLabel">Radarr IP/URL:
-												<input id="radarrIP" class="appInput form-control Radarr" type="text" value="<?php echo $_SESSION['ip_radarr'] ?>"/>
+												<input id="radarrIP" class="appInput form-control Radarr appParam" type="text" value="<?php echo $_SESSION['ip_radarr'] ?>"/>
 											</label>
 										</div>
 										<div class="form-group">
 											<label for="radarrPort" class="appLabel">Radarr Port:
-												<input id="radarrPort" class="appInput form-control Radarr" type="text" value="<?php echo $_SESSION['port_radarr'] ?>"/>
+												<input id="radarrPort" class="appInput form-control Radarr appParam" type="text" value="<?php echo $_SESSION['port_radarr'] ?>"/>
 											</label>
 										</div>
 										<div class="form-group">
 											<label for="radarrAuth" class="appLabel">Radarr Token:
-												<input id="radarrAuth" class="appInput form-control Radarr" type="text" value="<?php echo $_SESSION['auth_radarr'] ?>"/>
+												<input id="radarrAuth" class="appInput form-control Radarr appParam" type="text" value="<?php echo $_SESSION['auth_radarr'] ?>"/>
 											</label>
+										</div>
+										<div class="form-group">
+											<label for="sel1">Quality Profile:</label>
+											<select class="form-control profileList" id="radarrProfile">
+												<?php echo fetchList("radarr") ?>
+											</select>
 										</div>
 										<div class="text-center">
 											<div class="form-group btn-group">
@@ -325,18 +343,24 @@
 									<div class="form-group" id="sickGroup">
 										<div class="form-group">
 											<label for="sickIP" class="appLabel">Sick IP/URL:
-												<input id="sickIP" class="appInput form-control Sick" type="text" value="<?php echo $_SESSION['ip_sick'] ?>"/>
+												<input id="sickIP" class="appInput form-control Sick appParam" type="text" value="<?php echo $_SESSION['ip_sick'] ?>"/>
 											</label>
 										</div>
 										<div class="form-group">
 											<label for="sickPort" class="appLabel">Sick Port:
-												<input id="sickPort" class="appInput form-control Sick" type="text" value="<?php echo $_SESSION['port_sick'] ?>"/>
+												<input id="sickPort" class="appInput form-control Sick appParam" type="text" value="<?php echo $_SESSION['port_sick'] ?>"/>
 											</label>
 										</div>
 										<div class="form-group">
 											<label for="sickAuth" class="appLabel">Sick Token:
-												<input id="sickAuth" class="appInput form-control Sick" type="text" value="<?php echo $_SESSION['auth_sick'] ?>"/>
+												<input id="sickAuth" class="appInput form-control Sick appParam" type="text" value="<?php echo $_SESSION['auth_sick'] ?>"/>
 											</label>
+										</div>
+										<div class="form-group">
+											<label for="sel1">Quality Profile:</label>
+											<select class="form-control appInput profileList" id="sickProfile">
+												<?php echo fetchList("sick") ?>
+											</select>
 										</div>
 										<div class="text-center">
 											<div class="form-group btn-group">
@@ -359,18 +383,24 @@
 									<div class="form-group" id="sonarrGroup">
 										<div class="form-group">
 											<label for="sonarrIP" class="appLabel">Sonarr IP/URL:
-												<input id="sonarrIP" class="appInput form-control Sonarr" type="text" value="<?php echo $_SESSION['ip_sonarr'] ?>"/>
+												<input id="sonarrIP" class="appInput form-control Sonarr appParam" type="text" value="<?php echo $_SESSION['ip_sonarr'] ?>"/>
 											</label>
 										</div>
 										<div class="form-group">
 											<label for="sonarrPort" class="appLabel">Sonarr Port:
-												<input id="sonarrPort" class="appInput form-control Sonarr" type="text" value="<?php echo $_SESSION['port_sonarr'] ?>"/>
+												<input id="sonarrPort" class="appInput form-control Sonarr appParam" type="text" value="<?php echo $_SESSION['port_sonarr'] ?>"/>
 											</label>
 										</div>
 										<div class="form-group">
 											<label for="sonarrAuth" class="appLabel">Sonarr Token:
-												<input id="sonarrAuth" class="appInput form-control Sonarr" type="text" value="<?php echo $_SESSION['auth_sonarr'] ?>"/>
+												<input id="sonarrAuth" class="appInput form-control Sonarr appParam" type="text" value="<?php echo $_SESSION['auth_sonarr'] ?>"/>
 											</label>
+										</div>
+										<div class="form-group">
+											<label for="sel1">Quality Profile:</label>
+											<select class="form-control profileList" id="sonarrProfile">
+												<?php echo fetchList("sonarr") ?>
+											</select>
 										</div>
 										<div class="text-center">
 											<div class="form-group btn-group">

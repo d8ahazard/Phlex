@@ -161,6 +161,10 @@
 		die();
 	}
 	
+	if ((isset($_GET['getProfiles'])) && (isset($_GET['service']))) {
+		$service = $_GET['service'];
+		write_log("Got a request to fetch the profiles for ".$service);
+	}
 	
 	if (isset($_GET['testclient'])) {
 		write_log("API Link Test successful!!");
@@ -269,6 +273,14 @@
 		write_log("API: Returning serverList");
 		$devices = fetchServerList();
 		echo $devices;
+		die();
+	}
+	
+	if (isset($_GET['fetchList'])) {
+		$fetch = $_GET['fetchList'];
+		write_log("API: Returning profile list for ".$fetch);
+		$list = fetchList($fetch);
+		echo $list;
 		die();
 	}
 	
@@ -440,6 +452,18 @@
 		$_SESSION['auth_sonarr'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'sonarrAuth', '');
 		$_SESSION['auth_sick'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'sickAuth', '');
 		$_SESSION['auth_radarr'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'radarrAuth', '');
+		
+		$_SESSION['profile_couch'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'couchProfile', false);
+		$_SESSION['profile_ombi'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'ombiProfile', false);
+		$_SESSION['profile_sonarr'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'sonarrProfile', false);
+		$_SESSION['profile_sick'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'sickProfile', false);
+		$_SESSION['profile_radarr'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'radarrProfile', false);
+		
+		$_SESSION['list_couch'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'couchList', false);
+		$_SESSION['list_ombi'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'ombiList', false);
+		$_SESSION['list_sonarr'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'sonarrList', false);
+		$_SESSION['list_sick'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'sickList', false);
+		$_SESSION['list_radarr'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'radarrList', false);
 		
 		$_SESSION['log_tokens'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'logTokens', false);
 		$_SESSION['plexToken'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'plexToken', false);
@@ -1254,7 +1278,11 @@
 				$resultSummary = $result['mediaResult']['@attributes']['summary'];
 				$resultData['image'] = $resultImage;
 				//$resultData[]
-				$speech = "Okay, I've added ".$resultTitle." (".$resultYear.") to the fetch list.";
+				if ($resultTitle) {
+					$speech = "Okay, I've added ".$resultTitle." (".$resultYear.") to the fetch list.";
+				} else {
+					$speech = "Hmmm, looks like there was an issue understanding '".$command."' as a fetch command.";
+				}
 				returnSpeech($speech,$contextName,$waitForResponse);
 				$queryOut['mediaStatus'] = 'SUCCESS: Media added to fetcher.';
 				$queryOut['speech'] = $speech;
@@ -3079,7 +3107,7 @@
 	}
 	// Fetch a series from Sonarr
 	// Need to add a method to trigger it to search for all episodes, etc.
-	function sonarrDownload($command) {
+	function sonarrDownload($command,$season=false,$episode=false) {
 		$sonarrURL = $_SESSION['ip_sonarr'];
 		$sonarrApiKey = $_SESSION['auth_sonarr'];
 		$sonarrPort = $_SESSION['port_sonarr'];
@@ -3087,7 +3115,6 @@
 		$searchString = '/series/lookup?term='.urlencode($command);
 		$authString = '&apikey='.$sonarrApiKey;
 		$searchURL = $baseURL.$searchString.$authString;
-		//$defaultProfile = 
 		$root = curlGet($baseURL.'/rootfolder?apikey='.$sonarrApiKey);
 		if ($root) {
 			$rootPathObj = json_decode($root,true);
@@ -3103,19 +3130,26 @@
 		}
 		$result = curlGet($baseURL.$searchString.$authString);
 		if ($result) {
-			//write_log("Result is ".$result);
 			$resultJSONS = json_decode($result,true);
 			if (!(empty($resultJSONS))) {
 				$resultJSON = $resultJSONS[0];
-				write_log("Result JSON: ".json_encode($resultJSON));
+				$aired = $resultJSON['firstAired'];
+				$date = explode("-",$aired);
+				$year = $date[0];
+				write_log("Result JSON is ".json_encode($resultJSON));
 				$putURL = $baseURL.'/series'.'?apikey='.$sonarrApiKey;
 				write_log("sending result for fetching, URL is ".$putURL);
 				$resultObject['title'] = (string)$resultJSON['title'];
 				$resultObject['tvdbId'] = (string)$resultJSON['tvdbId'];
-				$resultObject['qualityProfileId'] = 1;
+				$resultObject['qualityProfileId'] = ($_SESSION['profile_sonarr'] ? $_SESSION['profile_sonarr'] : 0);
 				$resultObject['titleSlug'] = (string)$resultJSON['titleSlug'];
 				$resultObject['images'] = $resultJSON['images'];
-				$resultObject['seasons'] = $resultJSON['seasons'];
+				$seasons = array();
+				foreach ($resultJSON['seasons'] as $season) {
+					$monitored = (($season['seasonNumber'] == 0) ? false : true);
+					array_push($seasons,array(seasonNumber=>$season['seasonNumber'],monitored=>$monitored));
+				}
+				$resultObject['seasons'] = $seasons;
 				$resultObject['monitored'] = true;
 				$resultObject['titleSlug'] = (string)$resultJSON['titleSlug'];
 				$resultObject['rootFolderPath'] = $rootPath;
@@ -3129,36 +3163,23 @@
 						$exists = true;
 						$response['status'] = 'already in searcher';
 						$response['mediaResult']['@attributes']['url'] = $url2;
-						$resultObject['year'] = $resultJSON['year'];
+						$resultObject['year'] = $year;
 						$resultObject['summary'] = $resultJSON['overview'];
 						$resultObject['type'] = 'show';
 						$artUrl = 'http://'.$sonarrURL.':'.$sonarrPort.'/MediaCover/'. $series['id'] . '/fanart.jpg?apikey='.$sonarrApiKey;
-						write_log("About to try and cache a file: ".$artUrl);
 						$resultObject['art'] = cacheImage($artUrl);
 						$resultObject['thumb'] = cacheImage($artUrl);
 						$response['mediaResult']['@attributes'] = $resultObject;
-						write_log("Returning ".json_encode($response));
+						$scanURL = $baseURL . "/command/SearchSeries?apikey=".$sonarrApiKey;
+						$searchArray = [name=>"SearchSeries",seriesId=>$resultObject['tvdbId']];
+						$foo = curlPost($scanURL,json_encode($searchArray),true);
 						return $response;						
 					}
 				}
 				write_log("Made it to the next CURL");
 				$content = json_encode($resultObject);
-				$curl = curl_init($putURL);
-				curl_setopt($curl, CURLOPT_HEADER, false);
-				curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-				curl_setopt ($curl, CURLOPT_CAINFO, dirname(__FILE__) . "/cert/cacert.pem");
-				curl_setopt($curl, CURLOPT_HTTPHEADER,
-						array("Content-type: application/json"));
-				curl_setopt($curl, CURLOPT_POST, true);
-				curl_setopt($curl, CURLOPT_POSTFIELDS, $content);
-				$json_response = curl_exec($curl);
-				$status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-
-				/*if ( $status != 201 ) {
-					write_log("Curl error. Status is ".$status . " and response is ".$json_response);
-					die("Error: call to URL $url failed with status $status, response $json_response, curl_error " . curl_error($curl) . ", curl_errno " . curl_errno($curl));
-				}*/
-				curl_close($curl);
+				write_log("Request content format: ".$content);
+				$json_response = curlPost($putURL,$content,true);
 				write_log("Add Command Successful!  Response is ".$json_response);
 				$responseJSON = json_decode($json_response, true);
 				if ($responseJSON) {
@@ -3166,10 +3187,10 @@
 					$response['mediaResult']['@attributes']['url'] = $url2;
 					$artImage = 'http://'.$sonarrURL.':'.$sonarrPort.'/MediaCover/'. $responseJSON['id'] . '/fanart.jpg?apikey='.$sonarrApiKey;
 					$artImage = cacheImage($artImage);
-					write_log("About to try and cache a file: ".$artUrl);
 					$responseJSON['art'] = $artImage;
 					$responseJSON['thumb'] = $artImage;
 					$responseJSON['type'] = 'show';
+					$responseJSON['year'] = $year;
 					$seriesID = $responseJSON['id'];
 					$response['mediaResult']['@attributes'] = $responseJSON;
 					$scanURL = $baseURL.'/command'.'?apikey='.$sonarrApiKey;
@@ -3255,7 +3276,7 @@
 			$resultObject['thumb'] = $art;
 			$resultObject['summary'] = $plot;
 			$resultObject['type'] = 'movie';
-			$url2 = "http://" . $couchURL . ":" . $couchPort . "/api/" . $couchApikey . "/movie.add/?identifier=" . $imdbID . "?title=" . urlencode($command);
+			$url2 = "http://" . $couchURL . ":" . $couchPort . "/api/" . $couchApikey . "/movie.add/?identifier=" . $imdbID . "&title=" . urlencode($command).($_SESSION['profile_couch'] ? '&profile_id='.$_SESSION['profile_couch'] : '');
 			write_log("Sending add request to: " . $url2);
 			$response2 = curlGet($url2);
 			$response['status'] = 'success';
@@ -3303,11 +3324,14 @@
 				write_log("Result JSON: ".json_encode($resultJSON));
 				$putURL = $baseURL.'/movie'.'?apikey='.$radarrApiKey;
 				write_log("sending result for fetching, URL is ".$putURL);
+				unset($resultObject);
 				$resultObject['title'] = (string)$resultJSON['title'];
 				$resultObject['year'] = (string)$resultJSON['year'];
 				$resultObject['tmdbId'] = (string)$resultJSON['tmdbId'];
-				$resultObject['qualityProfileId'] = 0;
-				$resultObject['ProfileId'] = 1;
+				//$resultObject['qualityProfileId'] = 0;
+				$resultObject['profileId'] = ($_SESSION['profile_radarr'] ? $_SESSION['profile_radarr'] : 0);
+				$resultObject['qualityProfileId'] = ($_SESSION['profile_radarr'] ? $_SESSION['profile_radarr'] : 0);
+				//$resultObject['ProfileId'] = 1;
 				$resultObject['titleSlug'] = (string)$resultJSON['titleSlug'];
 				$resultObject['images'] = $resultJSON['images'];
 				$resultObject['monitored'] = true;
@@ -3406,6 +3430,60 @@
 	}
 	
 	
+	function fetchList($serviceName) {
+		switch($serviceName) {
+			case "sick":
+				if ($_SESSION['list_sick']) {
+					$list = $_SESSION['list_sick'];
+				} else {
+					testConnection("Sick");
+					$list = $_SESSION['list_sick'];
+				}
+				$selected = $_SESSION['profile_sick'];
+				break;
+			case "ombi":
+				if ($_SESSION['list_ombi']) {
+					$list = $_SESSION['ombi'];
+				} else {}
+				break;
+			case "sonarr":
+				if ($_SESSION['list_sonarr']) {
+					$list = $_SESSION['list_sonarr'];
+				} else {
+					testConnection("Sonarr");
+					$list = $_SESSION['list_sonarr'];
+				}
+				$selected = $_SESSION['profile_sonarr'];
+				break;
+			case "couch":
+				if ($_SESSION['list_couch']) {
+					$list = $_SESSION['list_couch'];
+				}  else {
+					testConnection("Couch");
+					$list = $_SESSION['list_couch'];
+				}
+				$selected = $_SESSION['profile_couch'];
+				break;
+			case "radarr":
+				if ($_SESSION['list_radarr']) {
+					$list = $_SESSION['list_radarr'];
+				} else {
+					testConnection("Radarr");
+					$list = $_SESSION['list_radarr'];
+				}
+				$selected = $_SESSION['profile_radarr'];
+				break;
+			default:
+				$list = false;
+				break;
+		}
+		$html = "";
+		foreach ($list as $id=>$name) {
+			$html .= "<option index='".$id."' id='".$name."' ".(($selected == $id) ? 'selected' : '').">".$name."</option>";
+		}
+		write_log("HTML: ".$html);
+		return $html;
+	}
 	
 	
 	// Test the specified service for connectivity
@@ -3443,8 +3521,21 @@
 				$couchApikey = $_SESSION['auth_couch'];
 				$couchPort = $_SESSION['port_couch'];
 				if (($couchURL) && ($couchApikey) && ($couchPort)) {
-					$url = "http://" . $couchURL . ":" . $couchPort . "/api/" . $couchApikey . "/app.available";
+					$url = "http://" . $couchURL . ":" . $couchPort . "/api/" . $couchApikey . "/profile.list";
 					$result = curlGet($url);
+					if ($result) {
+						$resultJSON = json_decode($result,true);
+						write_log("Hey, we've got some profiles: ".json_encode($resultJSON));
+						$array = array();
+						foreach ($resultJSON['list'] as $profile) {
+							$id = $profile['_id'];
+							$name = $profile['label'];
+							$array[$id] = $name;
+						}
+						$_SESSION['list_couch'] = $array;
+						$_SESSION['config']->set('user-_-'.$_SESSION['username'], 'couchList',$array);
+						saveConfig($_SESSION['config']);
+					}
 					$result = ((strpos($result,'"success": true') ? 'Connection to CouchPotato Successful!': 'ERROR: Server not available.'));
 				} else $result = "ERROR: Missing server parameters.";
 				break;
@@ -3455,8 +3546,22 @@
 				$sonarrApikey = $_SESSION['auth_sonarr'];
 				$sonarrPort = $_SESSION['port_sonarr'];
 				if (($sonarrURL) && ($sonarrApikey) && ($sonarrPort)) {
-					$url = "http://" . $sonarrURL . ":" . $sonarrPort . "/api/system/status?apikey=".$sonarrApikey;
+					$url = "http://" . $sonarrURL . ":" . $sonarrPort . "/api/profile?apikey=".$sonarrApikey;
 					$result = curlGet($url);
+					if ($result) {
+						write_log("Result retrieved.");
+						$resultJSON = json_decode($result,true);
+						write_log("Result JSON: ".json_encode($resultJSON));
+						
+						$array = array();
+						foreach($resultJSON as $profile) {
+							$array[$profile['id']] = $profile['name'];
+						}
+						write_log("Final array is ".json_encode($array));
+						$_SESSION['list_sonarr'] = $array;
+						$_SESSION['config']->set('user-_-'.$_SESSION['username'], 'sonarrList',$array);
+						saveConfig($_SESSION['config']);
+					}
 					$result = (($result !== false) ? 'Connection to Sonarr successful!' : 'ERROR: Server not available.');
 				} else $result = "ERROR: Missing server parameters.";
 				
@@ -3468,8 +3573,20 @@
 				$radarrApikey = $_SESSION['auth_radarr'];
 				$radarrPort = $_SESSION['port_radarr'];
 				if (($radarrURL) && ($radarrApikey) && ($radarrPort)) {
-					$url = "http://" . $radarrURL . ":" . $radarrPort . "/api/system/status?apikey=".$radarrApikey;
+					$url = "http://" . $radarrURL . ":" . $radarrPort . "/api/profile?apikey=".$radarrApikey;
 					$result = curlGet($url);
+					if ($result) {
+						write_log("Result retrieved.");
+						$resultJSON = json_decode($result,true);
+						$array = array();
+						foreach($resultJSON as $profile) {
+							$array[$profile['id']] = $profile['name'];
+						}
+						write_log("Final array is ".json_encode($array));
+						$_SESSION['list_radarr'] = $array;
+						$_SESSION['config']->set('user-_-'.$_SESSION['username'], 'radarrList',$array);
+						saveConfig($_SESSION['config']);
+					}
 					$result = (($result !== false) ? 'Connection to Radarr successful!' : 'ERROR: Server not available.');
 				} else $result = "ERROR: Missing server parameters.";
 				break;
@@ -3477,12 +3594,25 @@
 			case "Sick":
 				$result = false;
 				$sickURL = $_SESSION['ip_sick'];
-				$sickApikey = $_SESSION['auth_sick'];
+				$sickApiKey = $_SESSION['auth_sick'];
 				$sickPort = $_SESSION['port_sick'];
-				if (($sickURL) && ($sickApikey) && ($sickPort)) {
-					$url = "http://" . $sickURL . ":" . $sickPort . "/api/".$sickApikey."/?cmd=sb";
-					$result = curlGet($url);
-					$result = (($result !== false) ? 'Connection to Sick successful!' : 'ERROR: Server not available.');
+				if (($sickURL) && ($sickApiKey) && ($sickPort)) {
+					$sick = new SickRage('http://'.$sickURL.':'.$sickPort, $sickApiKey);
+					$result = $sick->sbGetDefaults();
+					$result = json_decode($result,true);
+					write_log("Got some kind of result ".json_encode($result));
+					$list = $result['data']['initial'];
+					$array = array();
+					$count = 0;
+					foreach ($list as $profile) {
+						$array[$count] = $profile;
+						$count++;
+					}
+					$_SESSION['list_sick'] = $array;
+					$_SESSION['config']->set('user-_-'.$_SESSION['username'], 'sickList',$array);
+					saveConfig($_SESSION['config']);
+					write_log("List: ".print_r($_SESSION['list_sick'],true));
+					$result = (($result) ? 'Connection to Sick successful!' : 'ERROR: Server not available.');
 				} else $result = "ERROR: Missing server parameters.";
 				break;
 				
