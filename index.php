@@ -14,7 +14,7 @@
 		$_SESSION['url'] = $_SERVER['REQUEST_URI'];
 		$config = new Config_Lite('config.ini.php');
 		require ('api.php');
-		$apiToken = checkSetApiToken();
+		$apiToken = checkSetApiToken($_SESSION['username']);
 		if (! $apiToken) {
 			echo "Unable to set API Token, please check write access to Phlex root and try again.";
 			die();
