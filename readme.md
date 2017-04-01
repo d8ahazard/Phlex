@@ -84,12 +84,14 @@ In settings, under the general tab, make sure you fill in the "Public Address" b
     phlex.my.domain.com
 
 <br><br>
-Once you've got the address entered, simply ask your Google Assistant to "Talk to Flex TV".  This is the invocation name you will use to talk to Phlex.  
 
-You should now be prompted to link your Google account.  Hop over to Phlex, and click that "Link Google Account" button.  On the page you'll be redirected to, paste in the API key that's been conveniently
-copied to your clipboard.  Press the button.  
+Once you've got the address entered, click the "register server" button.  Your server address will be sent to the Phlex Mothership and verified, and if I determine your client is set up correctly for communication, will register you with the db and forward you to google to link your account.
 
-On the next page, pick your Google account or log in if prompted.  Once logged in, you should be redirected to Google.com with a success message.  
+Once this is done, you just need to ask your Google Assistant to "Talk to Flex TV".  This is the invocation name you will use to talk to Phlex.  
+
+You should now be prompted to link your Google account(again).  
+
+Open the Google Home app on your phone, and look for the card prompting you to link your account.  Go through that, and you should be all linked up!
 
 Boom.  You can now talk to Phlex by saying things like "Ask Flex TV to play batman begins" or "Ask Flex TV to play the lastest episode of THe Big Bang Theory".  I'll be adding a wiki page for voice commands as time allows.
 <br><br>
