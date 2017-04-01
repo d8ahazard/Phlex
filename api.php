@@ -915,7 +915,7 @@
 		}
 		
 		
-		if ($action == 'changeDevice') {
+		if (($action == 'changeDevice') && ($command)) {
 			$result = fetchDeviceByName($command,$type);
 			write_log("Fetchresult should be ".print_r($result,true));
 			if ($result) {
@@ -1353,19 +1353,18 @@
 		}
 		
 		// Say SOMETHING if we don't undersand the request.
-		if (($action == '') && ($command == '')) {
-			$unsureAtives = array("Uh, I don't know what you want me to do right now.","Danger Will Robinson!  Command not understood!","I'm sorry, request does not compute.");
-			$speech = $unsureAtives[array_rand($unsureAtives)];
-			$waitForResponse = false;
-			$contextName = 'playmedia';
-			returnSpeech($speech,$contextName,$waitForResponse);
-			$queryOut['parsedCommand'] = 'Command not recognized.';
-			$queryOut['mediaStatus'] = 'ERROR: Command not recognized.';
-			$queryOut['speech'] = $speech;
-			log_command(json_encode($queryOut));
-			unset($_SESSION['deviceArray']);
-			die();
-		}
+		$unsureAtives = array("I'm afraid I don't understand what you mean by ".$rawspeech.".","Unfortunately, I couldn't figure out to do when you said '".$rawspeech."'.","Danger Will Robinson!  Command '".$rawspeech."' not understood!","I'm sorry, your request of '".$rawspeech."' does not compute.");
+		$speech = $unsureAtives[array_rand($unsureAtives)];
+		$waitForResponse = false;
+		$contextName = 'playmedia';
+		returnSpeech($speech,$contextName,$waitForResponse);
+		$queryOut['parsedCommand'] = 'Command not recognized.';
+		$queryOut['mediaStatus'] = 'ERROR: Command not recognized.';
+		$queryOut['speech'] = $speech;
+		log_command(json_encode($queryOut));
+		unset($_SESSION['deviceArray']);
+		die();
+		
 		
 	}
 	//

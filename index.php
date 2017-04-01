@@ -179,7 +179,7 @@
 									<div class="form-group text-center">
 										<div class="form-group">
 											<label for="linkAccount">Google Action Account Linking:</label><br>
-											<button id="linkAccount" class="btn btn-raised linkBtn btn-primary" type="button"/>Link Account</button>
+											<button id="linkAccount" class="btn btn-raised linkBtn btn-primary" type="button"/>Register Server</button>
 										</div>
 									</div>
 									<div class="text-center">

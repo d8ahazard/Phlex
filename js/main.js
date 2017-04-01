@@ -118,7 +118,6 @@ jQuery(document).ready(function($) {
 		if ($(this).hasClass("linkBtn")) {
 			localStorage.setItem("apiToken", apiToken);
 			clipboard.copy(apiToken);
-			window.alert("API Token has been copied to clipboard.  Please paste it in the new window and click 'Submit'.");
 			var serverAddress = $('#publicAddress').val();
 			var regUrl = 'https://phlexserver.cookiehigh.us/api.php?apiToken='+apiToken+"&serverAddress="+serverAddress;
 			newwindow=window.open(regUrl,'');
