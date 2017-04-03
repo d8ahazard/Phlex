@@ -33,6 +33,11 @@
 		
 	// Check that we have some form of set credentials 
 	if ((isset($_SESSION['plex_token'])) || (isset($_GET['apiToken'])) || (isset($_SERVER['HTTP_APITOKEN']))) {
+		write_log('_______________________________________________________________________________');
+		write_log('-------------------------------- SESSION START --------------------------------');
+		write_log("Starting session ID ".session_id());
+		write_log((isset($_SESSION['plex_token'])?"Session token is set to ".$_SESSION['plex_token']:"Session token not found."));
+		write_log((isset($_SESSION['username'])?"Session username is set to ".$_SESSION['username']:"Session token not found."));
 		
 		// If this request is using an API Token
 		if ((isset($_GET['apiToken'])) || (isset($_SERVER['HTTP_APITOKEN']))) {
@@ -44,7 +49,7 @@
 				$token = $_SERVER['HTTP_APITOKEN'];
 			}
 			if (!(isset($_GET['pollPlayer']))) {
-				write_log("AUTHENTICATION: Using API Token for authentication: ".$token);
+				write_log("AUTHENTICATION: Using Valid API Token for authentication.");
 			}
 			foreach ($_SESSION['config'] as $section => $setting) {
 				if ($section != "general") {
@@ -284,10 +289,6 @@
 		die();
 	}
 	
-	write_log('$$$$$$$$$$$$$$$$$$$$$$$$$$$ SESSION START $$$$$$$$$$$$$$$$$$$$$$$$$$$$$');
-	write_log("Starting session ID ".session_id());
-	write_log((isset($_SESSION['plex_token'])?"Session token is set to ".$_SESSION['plex_token']:"Session token not found."));
-	write_log((isset($_SESSION['username'])?"Session username is set to ".$_SESSION['username']:"Session token not found."));
 	
 	// This tells the api to parse our command with the plex "play" parser
 	if (isset($_GET['play'])) {
@@ -435,6 +436,8 @@
 		$_SESSION['enable_sick'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'sickEnabled', false);
 		$_SESSION['enable_radarr'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'radarrEnabled', false);
 		$_SESSION['enable_apiai'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'apiEnabled', false);
+		
+		$_SESSION['returnItems'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'returnItems', 0);
 		
 		$_SESSION['ip_couch'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'couchIP', 'localhost');
 		$_SESSION['ip_ombi'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'ombiUrl', 'localhost');
@@ -1226,6 +1229,7 @@
 			$queryOut['parsedCommand'] = 'Send a player command: '.$command;
 			$result = json_encode($newCommand);
 			log_command($result);
+			refreshDevices('clients',true);
 			unset($_SESSION['deviceArray']);
 			die();
 				
@@ -1240,7 +1244,6 @@
 				$_SESSION['deviceArray'] = $list;
 				foreach($list as $device) {
 					$count++;
-					write_log("Counting: ".$count. " and ". count($list));
 					if ($count == count($list)) {
 						$speechString .= " or ".$device['name'].".";
 					} else {
@@ -1408,7 +1411,6 @@
 			$result = curl_exec ($ch);
 			curl_close ($ch);
 			if ($result) {
-				write_log("Signin Dump: ".$result);
 				$container = new SimpleXMLElement($result);
 				$token = (string)$container['authToken'];
 				return $token;
@@ -1419,7 +1421,8 @@
 		return $token;
 	}
 	
-	function refreshDevices($type,$force=false) {
+	function refreshDevices($type,$force=null) {
+		if ($force) write_log("Forcing recache.");
 		if (!(isset($_GET['pollPlayer']))) write_log("Checking for cached ".$type);
 		$now = microtime(true);
 		if (($type == 'clients') || ($type == 'plexClients') || ($type == 'plexClient')) {
@@ -1446,7 +1449,6 @@
 		} else {
 			if (!(isset($_GET['pollPlayer']))) write_log("Returning cached list of ".$type);
 		}
-		if (!(isset($_GET['pollPlayer']))) write_log("Returning array: ".json_encode($list));
 		return $list;
 	}
 
@@ -1462,7 +1464,7 @@
 		$url = 'https://plex.tv/api/resources'.(($type=='clients') ? '?X-Plex-Token=' : '?includeHttps=1&X-Plex-Token=').$_SESSION['plex_token'];
 		$settingType = (($type =='clients') ? 'plexClient' : 'plexServer');
 		$selected = $_SESSION['config']->get('user-_-'.$_SESSION['username'], $settingType, false);
-		if (!(isset($_GET['pollPlayer']))) write_log( "URL is ".$url);
+		if (!(isset($_GET['pollPlayer']))) write_log('URL is: '.protectURL($url));
 		if($selected) {
 			$selectedName = $_SESSION['config']->get('user-_-'.$_SESSION['username'], $settingType.'Name', false);
 		}
@@ -1501,15 +1503,11 @@
 					}
 					
 					if ($type == 'clients') {
-						write_log("I found a device: ".(string)$device['name']." Provides is ".json_encode($provides));
 						if (arrayContains('player',$provides)) {
 							write_log("This matches.");
 						}
-						if ($owned) write_log("I own it.");
-						if ($local) write_log("And it's Looooocal");
 					}
 					if (($type === 'clients') && (arrayContains('player',$provides)) && $owned)  {
-						
 						foreach ($device->Connection as $connection) {
 							$address = (string) $connection['address'];
 							$octets = explode(".",$address);
@@ -1597,7 +1595,6 @@
 		$options = "";
 		if ($clients) {
 			if (!(isset($_GET['pollPlayer']))) write_log("Client list retrieved.");
-			if (!(isset($_GET['pollPlayer']))) write_log(print_r($clients,true));
 			foreach($clients as $client) {
 				$selected = $client['selected'];
 				$id = $client['id'];
@@ -1658,13 +1655,15 @@
 		$url = $_SESSION['uri_plexserver'].
 		'/security/token?type=delegation&scope=all'.
 		$_SESSION['plexHeader'];
-		write_log("Fetching transient token, URL is ".$url);
 		$result = curlGet($url);
 		if ($result) {
 			$container = new SimpleXMLElement($result);
-			$_SESSION['transientToken'] = (string)$container['token'];
-			write_log("Transient token is: ".$_SESSION['transientToken']);
-			return (string)$container['token'];
+			$ttoken = (string)$container['token'];
+			if ($ttoken) {
+				$_SESSION['transientToken'] = $ttoken;
+				write_log("Transient token is valid: ".substr($ttoken,0,5));
+				return $ttoken;
+			}
 		}
 		return false;
 	}
@@ -1872,7 +1871,7 @@
 		$url = $_SESSION['uri_plexserver'].'/hubs/search?query='.urlencode($title).'&limit=30&X-Plex-Token='.$_SESSION['token_plexserver'];
 		$searchResult['url'] = $url;
 		$cast = false;
-		write_log('URL is : '.$url);
+		write_log('URL is : '.protectURL($url));
 		$result = curlGet($url);
 		if ($result) {
 			$container = new SimpleXMLElement($result);
@@ -1989,38 +1988,32 @@
 	}
 	
 	function fetchHubList($section,$type=null) {
-		$url = $_SESSION['uri_plexserver'].'/hubs?X-Plex-Token='.$_SESSION['plexToken'];
-		$result = curlGet($url);
-		write_log("URL: ".$url);
-		if ($result) {
-			$container = new SimpleXMLElement($result);
-			write_log("Hub JSON: ".json_encode($container));
-			$hubId = false;
-			if ($section == 'recent') {
-				write_log("Looking for recents");
-				if ($type == 'show') {
-					$hubId = "home.television.recent";
-				}
-				if ($type == 'movie') {
-					$hubId = "home.movies.recent";
-				}
-				
+
+		$baseUrl = $_SESSION['uri_plexserver'];
+		if ($section == 'recent') {
+			write_log("Looking for recents");
+			if ($type == 'show') {
+				$url = $baseUrl . '/hubs/home/recentlyAdded?type=2';
 			}
-			if ($section == 'ondeck') {
-				$hubId = "home.ondeck";
+			if ($type == 'movie') {
+				$url = $baseUrl . '/hubs/home/recentlyAdded?type=1';
 			}
-			if ($hubId) {
-				write_log("HubID is ".$hubId);
-				foreach ($container->children() as $hub) {
-					if ($hub['hubIdentifier'] == $hubId) {
-						write_log("Found a hub that matches the request.");
-						$results = array();
-						foreach($hub->children() as $result) {
-							array_push($results,$result);
-						}
-					}
-				}
-				//write_log("Final output array: ".print_r($results,true));
+			
+		}
+		if ($section == 'ondeck') {
+			write_log("Fetching on-deck list");
+			$url = $baseUrl . '/hubs/home/recentlyAdded?type=1';
+		}
+		if ($url) {
+			$url = $url."&X-Plex-Token=".$_SESSION['token_plexserver']."&X-Plex-Container-Start=0&X-Plex-Container-Size=".$_SESSION['returnItems'];
+			write_log("URL is ".$url);
+			$result = curlGet($url);
+			write_log("Result: ".$result);
+			if ($result) $container = new SimpleXMLElement($result);
+			if ($container) {
+				$results = array();
+				foreach ($container->Video as $video) array_push($results, $video);
+				write_log("We got a container and stuff: ".json_encode($results));
 				if (!(empty($results))) return json_encode($results);
 			}
 		}
@@ -2062,7 +2055,7 @@
 		write_log("Function Fired.");
 		$serverToken = $_SESSION['plex_token'];
 		$url = $_SESSION['uri_plexserver'].$key.'&limit=30&X-Plex-Token=' . $_SESSION['token_plexserver'];
-		write_log("url is ".$url);
+		write_log('URL is : '.protectURL($url));
 		$result = curlGet($url);
 		if ($result) {
 			$matches = array();
@@ -2156,7 +2149,7 @@
 		$serverToken = $_SESSION['plex_token'];
 		$mediaDir = preg_replace('/children$/', 'allLeaves', $key);
 		$url = $_SESSION['uri_plexserver'].$mediaDir.'?X-Plex-Token=' . $_SESSION['token_plexserver'];
-		write_log("fetchLatestEpisode url is " . $url);
+		write_log('URL is: '.protectURL($url));
 		$result = curlGet($url);
 		write_log("fetchlatest: Result string is ".$result);
 		if ($result) {
@@ -2175,7 +2168,7 @@
 		$serverToken = $_SESSION['plex_token'];
 		$mediaDir = preg_replace('/children$/', 'allLeaves', $key);
 		$url = $_SESSION['uri_plexserver'].$mediaDir.'?X-Plex-Token=' . $_SESSION['token_plexserver'];
-		write_log("Url is " . $url);
+		write_log('URL is: '.protectURL($url));
 		$result = curlGet($url);
 		
 		if ($result) {
@@ -2193,7 +2186,7 @@
 		write_log("Searching for ".$selector." number ". $num . ($epNum != null ? ' and episode number ' . $epNum : ''));
 		$mediaDir = preg_replace('/children$/', 'allLeaves', $seriesKey);
 		$url = $_SESSION['uri_plexserver'].$mediaDir. '?X-Plex-Token=' . $_SESSION['token_plexserver'];
-		write_log("Url is " . htmlspecialchars_decode($url,ENT_HTML5));
+		write_log('URL is: '.protectURL($url));
 		$result = curlGet($url);
 		if ($result) {
 			$container = new SimpleXMLElement($result);
@@ -2240,7 +2233,7 @@
 		write_log("Function Fired.");
 		$serverToken = $_SESSION['token_plexserver'];
 		$sectionsUrl = $_SESSION['uri_plexserver'].$fastKey.'&X-Plex-Token='.$serverToken;
-		write_log("Url is ". $sectionsUrl . " type search is ".$type);
+		write_log("Url is ". protectURL($sectionsUrl) . " type search is ".$type);
 		$sectionsResult = curlGet($sectionsUrl);
 		if ($sectionsResult) {
 			$container = new SimpleXMLElement($sectionsResult);
@@ -2420,10 +2413,10 @@
 		$serverToken = $_SESSION['plex_token'];
 		$serverID = $_SESSION['id_plexserver'];
 		$client = $_SESSION['uri_plexclient'];
-		$server = explode(":",$_SESSION['uri_plexserver']);
-		$serverProtocol = $server[0];
-		$serverIP = substr($server[1],2);
-		$serverPort =$server[2];
+		$server = parse_url($_SESSION['uri_plexserver']);
+		$serverProtocol = $server['scheme'];
+		$serverIP = $server['host'];
+		$serverPort =$server['port'];
 		$transientToken = fetchTransientToken();
 		$playUrl = $client.'/player/playback/playMedia'.
 		'?key='.urlencode($media['key']) .
@@ -2436,7 +2429,7 @@
 		'&X-Plex-Target-Client-Identifier='.$_SESSION['id_plexclient'].
 		'&token=' .$transientToken;
 		$status = playerCommand($playUrl);
-		write_log('Playback URL is ' . htmlspecialchars_decode($playUrl));
+		write_log('Playback URL is ' . protectURL($playUrl));
 		$result['url'] = $playUrl;
 		$result['status'] = $status['status'];
 		return $result;
@@ -2445,10 +2438,10 @@
 	
 	function playMediaQueued($media) {
 		write_log("Function Fired.");
-		$server = explode(":",$_SESSION['uri_plexserver']);
-		$serverProtocol = $server[0];
-		$serverIP = substr($server[1],2);
-		$serverPort =$server[2];
+		$server = parse_url($_SESSION['uri_plexserver']);
+		$serverProtocol = $server['scheme'];
+		$serverIP = $server['host'];
+		$serverPort =$server['port'];
 		$serverToken = $_SESSION['plex_token'];
 		$serverID = $_SESSION['id_plexserver'];
 		$deviceID = $_SESSION['deviceID'];
@@ -2490,7 +2483,7 @@
 		));
 		$result = curl_exec($ch);
 		curl_close ($ch);
-		write_log('Playback URL is ' . $playUrl);
+		write_log('Playback URL is ' . protectURL($playUrl));
 		write_log("Result value is ".$result);
 		$status = ((strpos($result,'HTTP/1.1 200 OK')!==false)?'success':'error');
 		write_log("Result is ".$status);
@@ -2507,17 +2500,18 @@
 		$key = $media['key'];
 		$machineIdentifier = $_SESSION['deviceID'];
 		$transientToken = fetchTransientToken();
-		$addressBlock = explode(":",$_SESSION['uri_plexserver']);
-		$serverProtocol = $addressBlock[0];
-		$serverAddress = substr($addressBlock[1],2);
-		$serverPort = $addressBlock[2];
+		$server = parse_url($_SESSION['uri_plexserver']);
+		$serverProtocol = $server['scheme'];
+		$serverIP = $server['host'];
+		$serverPort =$server['port'];
 		$userName = $_SESSION['username'];
 		$queueID = queueMedia($media);
 		
 		
 		// Set up our cast device
 		$addresses = explode(":",$_SESSION['uri_plexclient']);
-		$cc = new Chromecast(substr($addresses[1],2),'8009');
+		$client = parse_url($_SESSION['uri_plexclient']);
+		$cc = new Chromecast($client['host'],$client['port']);
 		// Launch the Plex cast app
 		// Is there some way to test if app is already loaded, or check a status before firing this?
 		$cc->launch("9AC194DC");
@@ -2580,7 +2574,7 @@
 	}
 	
 	function castStatus($wait=0) {
-		$addresses = explode(":",$_SESSION['uri_plexclient']);
+		$addresses = parse_url($_SESSION['uri_plexclient']);
 		$url = $_SESSION['uri_plexserver'].'/status/sessions/?X-Plex-Token='.$_SESSION['token_plexserver'];
 		$result = curlGet($url);
 		if ($result) {
@@ -2589,7 +2583,7 @@
 			$status = array();
 			foreach ($container->Video as $Video) {
 				$vidArray = json_decode(json_encode($Video),true);
-				$isCast = ($vidArray['Player']['@attributes']['address'] == substr($addresses[1],2));
+				$isCast = ($vidArray['Player']['@attributes']['address'] == $addresses['host']);
 				$isPlayer = ($vidArray['Player']['@attributes']['machineIdentifier'] == $_SESSION['id_plexclient']);
 				if (($isPlayer) || ($isCast)) {
 					$status['status'] = $vidArray['Player']['@attributes']['state'];
@@ -2753,7 +2747,7 @@
 			}
 		}
 		curl_close ($ch);
-		write_log("Url is " . $url);
+		write_log('URL is: '.protectURL($url));
 		write_log("Status is " . $status);
 		$return['url'] = $url;
 		$return['status'] = $status;
@@ -2766,9 +2760,9 @@
 		if (preg_match("/volume/s", $cmd)) {
 			$int = filter_var($cmd, FILTER_SANITIZE_NUMBER_INT);
 			$cmd = "volume";
-		} 
-		$addresses = explode(":",$_SESSION['uri_plexclient']);
-		$cc = new Chromecast(substr($addresses[1],2),'8009');
+		}
+		$client = parse_url($_SESSION['uri_plexclient']);
+		$cc = new Chromecast($client['host'],$client['port']);
 		
 		// Connect to the Application
 		if ($cmd != 'volume') {
@@ -2883,7 +2877,8 @@
 		}
 		write_log("Thumb path is ".$thumbUrl);
 		$tmpString = explode(":",$thumbUrl);
-		if (preg_match('/library/',$thumbUrl)) {
+		$thumbPaths = parse_url($thumbUrl);
+		if ((preg_match('/library/metadata',$thumbUrl)) && (! isset($thumbPaths['host']))) {
 			write_log("Logged command is from Plex, building cached URL.");
 			$thumbUrl = $_SESSION['uri_plexserver'].$thumbUrl.'?X-Plex-Token='.$_SESSION['plexToken'];
 			$thumbUrl = cacheImage($thumbUrl);
@@ -3120,7 +3115,7 @@
 			$rootObj = $rootPathObj[0];
 			$rootPath = (string)$rootObj['path'];
 			write_log("RootPath: ".$rootPath);
-			write_log("Search URL is ".$searchURL);
+			write_log("Search URL is ".protectURL($searchURL));
 		}
 		$seriesCollectionURL = $baseURL.'/series?apikey='.$sonarrApiKey;
 		$seriesCollection = curlGet($seriesCollectionURL);
@@ -3137,7 +3132,7 @@
 				$year = $date[0];
 				write_log("Result JSON is ".json_encode($resultJSON));
 				$putURL = $baseURL.'/series'.'?apikey='.$sonarrApiKey;
-				write_log("sending result for fetching, URL is ".$putURL);
+				write_log("sending result for fetching, URL is ".protectURL($putURL));
 				$resultObject['title'] = (string)$resultJSON['title'];
 				$resultObject['tvdbId'] = (string)$resultJSON['tvdbId'];
 				$resultObject['qualityProfileId'] = ($_SESSION['profile_sonarr'] ? $_SESSION['profile_sonarr'] : 0);
@@ -3304,7 +3299,7 @@
 			$rootObj = $rootPathObj[0];
 			$rootPath = (string)$rootObj['path'];
 			write_log("RootPath: ".$rootPath);
-			write_log("Search URL is ".$searchURL);
+			write_log("Search URL is ".protectURL($searchURL));
 		}
 		
 		$movieCollectionURL = $baseURL.'/movie?apikey='.$radarrApiKey;
@@ -3322,7 +3317,7 @@
 				$resultJSON = $resultJSONS[0];
 				write_log("Result JSON: ".json_encode($resultJSON));
 				$putURL = $baseURL.'/movie'.'?apikey='.$radarrApiKey;
-				write_log("sending result for fetching, URL is ".$putURL);
+				write_log("sending result for fetching, URL is ".protectURL($putURL));
 				unset($resultObject);
 				$resultObject['title'] = (string)$resultJSON['title'];
 				$resultObject['year'] = (string)$resultJSON['year'];
@@ -3480,7 +3475,6 @@
 		foreach ($list as $id=>$name) {
 			$html .= "<option index='".$id."' id='".$name."' ".(($selected == $id) ? 'selected' : '').">".$name."</option>";
 		}
-		write_log("HTML: ".$html);
 		return $html;
 	}
 	
@@ -3497,7 +3491,7 @@
 				$len = strlen($authString);
 				if (($ombiURL) && ($plexCred) && ($ombiPort)) {
 					$url = "http://" . $ombiURL . ":" . $ombiPort . "/api/v1/login";
-					write_log("Test URL is ".$url);
+					write_log("Test URL is ".protectURL($url));
 					$ch = curl_init();
 					curl_setopt($ch, CURLOPT_URL,$url);
 					curl_setopt($ch, CURLOPT_POST, 1);
@@ -3632,7 +3626,7 @@
 				
 			case "Plex":
 				$url = $_SESSION['uri_plexserver'].'?X-Plex-Token='.$_SESSION['plexToken'];
-				write_log("URL is ".$url);
+				write_log('URL is: '.protectURL($url));
 				$result = curlGet($url);
 				$result = (($result) ? 'Connection to '.$_SESSION['name_plexserver'].' successful!': 'ERROR: '.$_SESSION['name_plexserver'].' not available.');
 				break;
@@ -3655,7 +3649,7 @@
 	// Fetch a list of objects specified by $type (either 'intents' or 'entities')
 	function fetchApiAiList($type) {
 		$apiUrl = 'https://api.api.ai/v1/'.$type.'?v=20150910';
-		write_log("URL is ".$apiUrl);
+		write_log("URL is ".protectURL($apiUrl));
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL,$apiUrl);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -3834,7 +3828,7 @@
 		$registerUrl = "https://phlexserver.cookiehigh.us/api.php".
 		"?apiToken=".$_SESSION['apiToken'].
 		"&serverAddress=".htmlentities($_SESSION['publicAddress']);
-		write_log("registerServer: URL is " . $registerUrl);
+		write_log("registerServer: URL is " . protectURL($registerUrl));
 		$result = curlGet($registerUrl);
 		if ($result == "OK") {
 			$_SESSION['config']->set('user-_-'.$_SESSION['username'],'lastCheckIn',time());

@@ -32,6 +32,8 @@
 	$_SESSION['enable_radarr'] = $config->get('user-_-'.$_SESSION['username'], 'radarrEnabled', false);
 	$_SESSION['enable_apiai'] = $config->get('user-_-'.$_SESSION['username'], 'apiEnabled', false);
 	
+	$_SESSION['returnItems'] = $config->get('user-_-'.$_SESSION['username'], 'returnItems', "6");
+	
 	$_SESSION['ip_couch'] = $config->get('user-_-'.$_SESSION['username'], 'couchIP', 'localhost');
 	$_SESSION['ip_ombi'] = $config->get('user-_-'.$_SESSION['username'], 'ombiUrl', 'localhost');
 	$_SESSION['ip_sonarr'] = $config->get('user-_-'.$_SESSION['username'], 'sonarrIP', 'localhost');
@@ -173,6 +175,13 @@
 										<div class="form-group">
 											<label for="publicAddress" class="appLabel">Public Address:
 												<input id="publicAddress" class="appInput form-control formpop" type="text" value="<?php echo $_SESSION['publicAddress'] ?>" />
+											</label>
+										</div>
+									</div>
+									<div class="form-group">
+										<div class="form-group">
+											<label for="returnItems" class="appLabel">Number of On-Deck/Recent Items to Return:
+												<input id="returnItems" class="appInput form-control" type="number" min="1" max="20" value="<?php echo $_SESSION['returnItems'] ?>" />
 											</label>
 										</div>
 									</div>

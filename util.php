@@ -15,11 +15,12 @@
 		if (! $apiToken) {
 			write_log("NO API TOKEN FOUND, generating one for ".$_SESSION['username']);
 			$apiToken = randomToken(21);
-			write_log("API token created ".$apiToken);
+			$cleaned = str_repeat("X", strlen($apiToken)); 
+			write_log("API token created ".$cleaned);
 			$config->set('user-_-'.$_SESSION['username'],'apiToken',$apiToken);
 			saveConfig($config);
 		} else {
-			write_log("EXISTING API TOKEN FOUND, RETURNING IT.");
+			write_log("Found an existing token, returning it.");
 		}
 		return $apiToken;
 	}
@@ -111,6 +112,14 @@
 			$cacheDir = dirname(__FILE__) . '/img/cache/';
 			$cached_filename = md5($url);
 			$files = glob($cacheDir . '*.{jpg,jpeg,png,gif}', GLOB_BRACE);
+			$now = time();
+			foreach ($files as $file) {
+				if (is_file($file)) {
+					if ($now - filemtime($file) >= 60 * 60 * 24 * 5) { // 5 days
+						unlink($file);
+					}
+				}
+			}
 			foreach($files as $file) {
 				$fileName = explode('.',basename($file));
 				if ($fileName[0] == $cached_filename) {
@@ -178,11 +187,11 @@
 	
 	// Write log information to $filename
 	// Auto rotates files larger than 2MB
-	function write_log($text,$level=null) {
+	function write_log($text,$level=null,$nocall=null) {
 		if ($level === null) {
 			$level = 'I';	
 		}
-		$caller = (string) getCaller();
+		if(! $nocall) $caller = (string) getCaller();
 		$filename = 'Phlex.log';
 		$text = $level .'/'. date(DATE_RFC2822) . ': '.$caller . ": " . $text . PHP_EOL;
 		if (!file_exists($filename)) { touch($filename); chmod($filename, 0666); }
@@ -204,14 +213,19 @@
 		$count = count($trace);
 		$useNext = false;
 		$caller = false;
+		//write_log("TRACE: ".print_r($trace,true),null,true);
 		foreach($trace as $event) {
 			if ($useNext) {
-				$caller = $event['function'];
-				break;
+				if (($event['function'] != 'require') && ($event['function'] != 'include')) {
+					$caller .= "::".$event['function'];
+					break;
+				}
 			}
 			if ($event['function'] == 'write_log') {
 				$useNext = true;
-				$caller = $event['function'];
+				// Set our caller as the calling file until we get a function
+				$file = pathinfo($event['file']);
+				$caller = $file['filename'].".".$file['extension'];
 			}
 		}
 		return $caller;   
@@ -229,6 +243,31 @@
 		$cache_new .= file_get_contents($inConfig);
 		file_put_contents($inConfig,$cache_new);
 		
+	}
+	
+	function protectURL($string) {
+		$keys = parse_url($string);
+		$cleaned = str_repeat("X", strlen($keys['host'])); 
+		$string = str_replace($keys['host'],$cleaned,$string);
+		$pairs = array();
+		if($keys['query']) {
+			$params = explode('&',$keys['query']);
+			foreach ($params as $key) {
+				$set = explode('=',$key);
+				if (count($set) == 2) {
+					$pairs[$set[0]] = $set[1];
+				}
+			}
+		}
+		if (! empty($pairs)) {
+			foreach ($pairs as $key=>$value) {
+				if ((preg_match("/token/",$key)) || (preg_match("/Token/",$key)) || (preg_match("/address/",$key))) {
+					$cleaned = str_repeat("X", strlen($value)); 
+					$string = str_replace($value,$cleaned,$string);
+				}
+			}
+		}
+		return $string;
 	}
 	
 	// A more precise way of calculating the similarity between two strings
