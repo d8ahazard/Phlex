@@ -74,26 +74,26 @@
 		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<meta name="description" content="Phlex">
-		<link rel="apple-touch-icon" sizes="180x180" href="/img/apple-touch-icon.png">
-		<link rel="icon" type="image/png" href="/img/favicon-32x32.png" sizes="32x32">
-		<link rel="icon" type="image/png" href="/img/favicon-16x16.png" sizes="16x16">
-		<link rel="manifest" href="/img/manifest.json">
-		<link rel="mask-icon" href="/img/safari-pinned-tab.svg" color="#5bbad5">
-		<link rel="shortcut icon" href="/img/favicon.ico">
-		<meta name="msapplication-config" content="/img/browserconfig.xml">
+		<link rel="apple-touch-icon" sizes="180x180" href="./img/apple-touch-icon.png">
+		<link rel="icon" type="image/png" href="./img/favicon-32x32.png" sizes="32x32">
+		<link rel="icon" type="image/png" href="./img/favicon-16x16.png" sizes="16x16">
+		<link rel="manifest" href="./img/manifest.json">
+		<link rel="mask-icon" href="./img/safari-pinned-tab.svg" color="#5bbad5">
+		<link rel="shortcut icon" href="./img/favicon.ico">
+		<meta name="msapplication-config" content="./img/browserconfig.xml">
 		<meta name="theme-color" content="#ffffff">
 		<meta name="apple-mobile-web-app-capable" content="yes">
-		<link href="css/bootstrap-reboot.css" rel="stylesheet">
-		<link href="css/bootstrap.min.css" rel="stylesheet">
-		<link href="css/font-awesome.min.css" rel="stylesheet">
+		<link href="./css/bootstrap-reboot.css" rel="stylesheet">
+		<link href="./css/bootstrap.min.css" rel="stylesheet">
+		<link href="./css/font-awesome.min.css" rel="stylesheet">
 		<link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Roboto:300,400,500,700">
 		<link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/icon?family=Material+Icons">
-		<link href="css/material.css" rel="stylesheet">
-		<link href="css/snackbar.min.css" rel="stylesheet">
-		<link href="css/bootstrap-material-design.min.css" rel="stylesheet">
-		<link href="css/bootstrap-dialog.css" rel="stylesheet">
-		<link href="css/ripples.min.css" rel="stylesheet">
-		<link href="css/main.css" rel="stylesheet">
+		<link href="./css/material.css" rel="stylesheet">
+		<link href="./css/snackbar.min.css" rel="stylesheet">
+		<link href="./css/bootstrap-material-design.min.css" rel="stylesheet">
+		<link href="./css/bootstrap-dialog.css" rel="stylesheet">
+		<link href="./css/ripples.min.css" rel="stylesheet">
+		<link href="./css/main.css" rel="stylesheet">
 		
 		<!--[if lt IE 9]>
 			<link href="/css/bootstrap-ie8.css" rel="stylesheet">
@@ -450,20 +450,20 @@
 			</div>
 			
 			<div class="wrapperArt"></div>
-			<iframe id="backArt" class="backArt" src="cc.html"></iframe>
+			<iframe id="backArt" class="backArt" src="./cc.html"></iframe>
 			<div id="metaTags"><?PHP echo '<meta id="apiTokenData" data="'.$_SESSION['apiToken'].'"></meta>' . metaTags();?></div>
 		</div>
-		<script type="text/javascript" src="js/jquery-3.1.1.min.js"></script>
-		<script type="text/javascript" src="js/tether.min.js"></script>
-		<script type="text/javascript" src="js/bootstrap.min.js"></script>
-		<script type="text/javascript" src="js/arrive.min.js"></script>
-		<script type="text/javascript" src="js/material.min.js"></script>
-		<script type="text/javascript" src="js/ripples.min.js"></script>
-		<script type="text/javascript" src="js/nouislider.min.js"></script>
-		<script type="text/javascript" src="js/main.js"></script>
-		<script type="text/javascript" src="js/snackbar.min.js"></script>
-		<script type="text/javascript" src="js/bootstrap-dialog.js"></script>
-		<script type="text/javascript" src="js/clipboard.min.js"></script>
+		<script type="text/javascript" src="./js/jquery-3.1.1.min.js"></script>
+		<script type="text/javascript" src="./js/tether.min.js"></script>
+		<script type="text/javascript" src="./js/bootstrap.min.js"></script>
+		<script type="text/javascript" src="./js/arrive.min.js"></script>
+		<script type="text/javascript" src="./js/material.min.js"></script>
+		<script type="text/javascript" src="./js/ripples.min.js"></script>
+		<script type="text/javascript" src="./js/nouislider.min.js"></script>
+		<script type="text/javascript" src="./js/main.js"></script>
+		<script type="text/javascript" src="./js/snackbar.min.js"></script>
+		<script type="text/javascript" src="./js/bootstrap-dialog.js"></script>
+		<script type="text/javascript" src="./js/clipboard.min.js"></script>
 
     
 	</body>
