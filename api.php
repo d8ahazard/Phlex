@@ -18,7 +18,6 @@
 		}
 		session_start();
 	}
-	
 	// Define our config globally
 	$_SESSION['config'] = new Config_Lite('config.ini.php');
 	
@@ -62,7 +61,13 @@
 						$_SESSION['plex_cred'] = $setting['plexCred'];
 						$_SESSION['plex_token'] = $setting['plexToken'];
 						$valid = true;
-					} 
+					} else {
+						if (isset($_GET['testclient'])) {
+							write_log("API Link Test failed, token does not match!");
+							echo 'ERROR: unrecognized API token!';
+							die();
+						}
+					}
 				}
 			}
 			
@@ -539,7 +544,7 @@
 
 	
 	function parseFetchCommand($command) {
-	
+		
 		write_log("Function Fired.");
 		//Sanitize our string and try to rule out synonyms for commands
 		$result[initialCommand] = $command;
@@ -863,7 +868,7 @@
 		
 		$contexts=$result["contexts"];
 		foreach($contexts as $context) {
-			if (($context['name'] == 'promptForTitle') && ($action=='')) {
+			if (($context['name'] == 'promptfortitle') && ($action=='')) {
 				$action = 'play';
 				write_log("This is a response to a title query.");
 				if (!($command)) $command = cleanString($request['result']['resolvedQuery']);
@@ -1030,7 +1035,7 @@
 		}
 		
 		// Start handling playback commands now"
-		if ($action == 'play') {
+		if (($action == 'play') || ($action == 'playfromlist')) {
 			if (!($command)) {
 				write_log("This does not have a command.  Checking for a different identifier.");
 				foreach($request["result"]['parameters'] as $param=>$value) {
@@ -1040,7 +1045,33 @@
 					}
 				}
 			} else {
-				$mediaResult = parsePlayCommand(strtolower($command),$year);
+				if ($action == 'playfromlist') {
+					$list = $_SESSION['config']->get('user-_-'.$_SESSION['username'],'mlist',false);
+					$list = base64_decode($list);
+					write_log("Decode List: ".$list);
+					if ($list) $_SESSION['mediaList'] = json_decode($list,true);
+					write_log("So, we have a list to play from, neat.");
+					foreach($_SESSION['mediaList'] as $mediaItem) {
+						write_log("MediaItemJSON: ".json_encode($mediaItem));
+						$title = cleanCommandString($mediaItem['@attributes']['title']);
+						$cleanedRaw = cleanCommandString($rawspeech);
+						if ($age) $title .= " ".$mediaItem['@attributes']['year'];
+						$weight = similarity($title,$cleanedRaw);
+						write_log("Weight of ".$title." versus ".$cleanedRaw." is ".$weight.".");
+						if ($weight >=.8) {
+							$mediaResult = [$mediaItem];
+							break;
+						}
+					}
+					if (! $mediaResult) {
+						$waitForResponse = false;
+						$speech = "Silly goose, '".$rawspeech."' doesn't match anything I just said.";
+						returnSpeech($speech,$contextName,$waitForResponse);
+						die();
+					}
+				} else {
+					$mediaResult = parsePlayCommand(strtolower($command),$year);
+				}
 			}
 			if ($mediaResult) {
 				if (count($mediaResult)==1) { 
@@ -1116,9 +1147,9 @@
 					} else {
 						$speech = $affirmative. "Playing ".$title . " (".$year.").";
 					}
-					if ($_SESSION['promptForTitle'] == true) {
-						$contextOut = 'promptForTitle';
-						$_SESSION['promptForTitle'] = false;
+					if ($_SESSION['promptfortitle'] == true) {
+						$contextOut = 'promptfortitle';
+						$_SESSION['promptfortitle'] = false;
 					}
 					$waitForResponse = false;
 					returnSpeech($speech,$contextName,$waitForResponse);
@@ -1138,6 +1169,9 @@
 					$speechString = "";
 					$resultTitles = array();
 					$count = 0;
+					$_SESSION['config']->set('user-_-'.$_SESSION['username'],'mlist',base64_encode(json_encode($mediaResult)));
+					saveConfig($_SESSION['config']);
+					write_log("MR: ".print_r($_SESSION['mediaList'],true));
 					foreach($mediaResult as $Media) {
 						$count++;
 						write_log("Counting: ".$count. " and ". count($mediaResult));
@@ -1149,8 +1183,9 @@
 						array_push($resultTitles,$Media['title']." ".$Media['year']);
 					}
 					$speech = "I found several possible results for that, which one was it?  ". $speechString;
-					$contextName = "promptForTitle";
-					$_SESSION['promptForTitle'] = true;
+					$contextName = "promptfortitle";
+					$_SESSION['promptfortitle'] = true;
+					if (isset($_SESSION['mediaList'])) unset($_SESSION['mediaList']);
 					$waitForResponse = true;
 					returnSpeech($speech,$contextName,$waitForResponse);
 					$playResult = playMedia($mediaResult);
@@ -1560,7 +1595,7 @@
 				$_SESSION['list_plexserver'] = $devices;
 				$_SESSION['config']->set('user-_-'.$_SESSION['username'],'plexServerFetched',$_SESSION['fetch_plexserver']);
 			}
-			saveConfig($_SESSION['config']);;
+			saveConfig($_SESSION['config']);
 			if (!(empty($devices)))	return $devices;
 		}
 		return false;
@@ -3808,6 +3843,7 @@
 		$output["speech"] = $speech;
 		$output["contextOut"] = array();
 		$output["contextOut"][0]["name"] = $contextName;
+		$output["contextOut"][0]["lifespan"] = 2;
 		write_log("Expect response is ". $waitForResponse);
 		$output["data"]["google"]["expect_user_response"] = $waitForResponse;
 		//$output["data"] = $resultData;
