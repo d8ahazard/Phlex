@@ -868,7 +868,7 @@
 		
 		$contexts=$result["contexts"];
 		foreach($contexts as $context) {
-			if (($context['name'] == 'promptfortitle') && ($action=='')) {
+			if (($context['name'] == 'promptfortitle') && ($action=='') && ($control=='')) {
 				$action = 'play';
 				write_log("This is a response to a title query.");
 				if (!($command)) $command = cleanString($request['result']['resolvedQuery']);
