@@ -2582,7 +2582,7 @@
 						'myPlexSubscription' => true,
 						'isVerifiedHostname' => true,
 						'protocol' => $serverProtocol,
-						'address' => $serverAddress,
+						'address' => $serverIP,
 						'port' => $serverPort,
 						'accessToken' => $transientToken,
 						'user' => [
