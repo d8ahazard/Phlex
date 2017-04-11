@@ -1218,63 +1218,7 @@
 				}
 			}			
 		}
-
-		if (($action == 'control') || ($control != '')) {
-			if ($action == '') $command = cleanCommandString($control);
-			$waitForResponse = false;
-			if (preg_match("/volume/",$command)) {
-				$int = strtolower($request["result"]["parameters"]["percentage"]);
-				if ($int != '') { 
-					$command .= " " . $int;
-					$speech = "Okay, setting the volume to ".$int;
-				} else {
-					$adjust = false;
-					if (preg_match("/up/",$rawspeech)) {
-						write_log("UP, UP, UP");
-						$int = (($_SESSION['volume'] <=90) ? $_SESSION['volume'] + 10 : 100);
-						$command .= " UP";
-						$speech = "Okay, I'll turn it up a little.";
-					}
-					
-					if (preg_match("/down/",$rawspeech)) {
-						write_log("DOWN, DOWN, DOWN");
-						$command .= " DOWN";
-						$speech = "Okay, I'll turn it down a little.";
-					}
-					
-				}
-			
-			} else {
-				switch ($command) {
-					case "resume":
-						$speech = 'Resuming playback.';
-						break;
-					case "stop":
-						$speech = 'Plex should now be stopped.';
-						break;
-					case "pause":
-						$speech = 'Plex should now be paused.';
-						break;
-					default:
-						$speech = 'Sending a command to '.$command;
-				}
-			}
-			$queryOut['speech'] = $speech;
-			returnSpeech($speech,$contextName,$waitForResponse);
-			if ($command == 'jump to') {
-				write_log("This is a jump command, raw speech was ".$rawspeech);
-			}
-			$result = parseControlCommand($command);
-			$newCommand = json_decode($result,true);
-			$newCommand['timestamp'] = timeStamp();
-			$queryOut['parsedCommand'] = 'Send a player command: '.$command;
-			$result = json_encode($newCommand);
-			log_command($result);
-			refreshDevices('clients',true);
-			unset($_SESSION['deviceArray']);
-			die();
-				
-		}
+		
 		
 		if (($action == 'player') || ($action == 'server')) {
 			write_log("Got a request to change ".$action);
@@ -1396,7 +1340,69 @@
 			die();
 		}
 		
-		// Say SOMETHING if we don't undersand the request.
+		
+		$cleaned = cleanCommandString($rawspeech);
+		if (preg_match('/to play/',cleanCommandString($rawspeech))) {
+			$action = 'control';
+			$command = 'play';
+		}
+
+		if (($action == 'control') || ($control != '')) {
+			if ($action == '') $command = cleanCommandString($control);
+			$waitForResponse = false;
+			if (preg_match("/volume/",$command)) {
+				$int = strtolower($request["result"]["parameters"]["percentage"]);
+				if ($int != '') { 
+					$command .= " " . $int;
+					$speech = "Okay, setting the volume to ".$int;
+				} else {
+					$adjust = false;
+					if (preg_match("/up/",$rawspeech)) {
+						write_log("UP, UP, UP");
+						$int = (($_SESSION['volume'] <=90) ? $_SESSION['volume'] + 10 : 100);
+						$command .= " UP";
+						$speech = "Okay, I'll turn it up a little.";
+					}
+					if (preg_match("/down/",$rawspeech)) {
+						write_log("DOWN, DOWN, DOWN");
+						$command .= " DOWN";
+						$speech = "Okay, I'll turn it down a little.";
+					}
+				}
+			} else {
+				switch ($command) {
+					case "resume":
+					case "play":
+						$speech = 'Resuming playback.';
+						break;
+					case "stop":
+						$speech = 'Plex should now be stopped.';
+						break;
+					case "pause":
+						$speech = 'Plex should now be paused.';
+						break;
+					default:
+						$speech = 'Sending a command to '.$command;
+				}
+			}
+			$queryOut['speech'] = $speech;
+			returnSpeech($speech,$contextName,$waitForResponse);
+			if ($command == 'jump to') {
+				write_log("This is a jump command, raw speech was ".$rawspeech);
+			}
+			$result = parseControlCommand($command);
+			$newCommand = json_decode($result,true);
+			$newCommand['timestamp'] = timeStamp();
+			$queryOut['parsedCommand'] = 'Send a player command: '.$command;
+			$result = json_encode($newCommand);
+			log_command($result);
+			refreshDevices('clients',true);
+			unset($_SESSION['deviceArray']);
+			die();
+				
+		}
+		
+			// Say SOMETHING if we don't undersand the request.
 		$unsureAtives = array("I'm afraid I don't understand what you mean by ".$rawspeech.".","Unfortunately, I couldn't figure out to do when you said '".$rawspeech."'.","Danger Will Robinson!  Command '".$rawspeech."' not understood!","I'm sorry, your request of '".$rawspeech."' does not compute.");
 		$speech = $unsureAtives[array_rand($unsureAtives)];
 		$waitForResponse = false;
@@ -2141,18 +2147,22 @@
 				if ($video['type'] == $type) {
 					array_push($matches,$video);
 				}
+				if (($video['type'] == 'season') && ($type == 'show')) {
+					array_push($matches,$video);
+				}
 			} 
+			write_log("I Got me sum matches!!: ".json_encode($matches));
 			$size = sizeof($matches);
 				if ($size > 0) {
 					$winner = rand(0,$size);
 					$winner = $matches[$winner];
 					write_log("We got a winner!  Out of ".$size ."  choices, we found  ". ($type=='movie' ? $winner['title']:$winner['parentTitle']) . " and key is " . $winner['key'] . $size);
-					if ($type == 'season') {
+					if ($winner['type'] == 'season') {
 						$result = fetchFirstUnwatchedEpisode($winner['parentKey'].'/children');
 						write_log("I am going to play an episode named ".$result[title]);
-						return $result;
+						return array($result);
 					}
-					return $winner;
+					return array($winner);
 				} else {
 					write_log("Can't seem to find any random " . $type);
 				}
