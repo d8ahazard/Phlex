@@ -32,11 +32,6 @@
 		
 	// Check that we have some form of set credentials 
 	if ((isset($_SESSION['plex_token'])) || (isset($_GET['apiToken'])) || (isset($_SERVER['HTTP_APITOKEN']))) {
-		write_log('_______________________________________________________________________________');
-		write_log('-------------------------------- SESSION START --------------------------------');
-		write_log("Starting session ID ".session_id());
-		write_log((isset($_SESSION['plex_token'])?"Session token is set to ".$_SESSION['plex_token']:"Session token not found."));
-		write_log((isset($_SESSION['username'])?"Session username is set to ".$_SESSION['username']:"Session token not found."));
 		
 		// If this request is using an API Token
 		if ((isset($_GET['apiToken'])) || (isset($_SERVER['HTTP_APITOKEN']))) {
@@ -109,6 +104,11 @@
 			}
 			if ($valid) {
 				if (!(isset($_GET['pollPlayer']))) {
+					write_log('_______________________________________________________________________________');
+					write_log('-------------------------------- SESSION START --------------------------------');
+					write_log("Starting session ID ".session_id());
+					write_log((isset($_SESSION['plex_token'])?"Session token is set to ".$_SESSION['plex_token']:"Session token not found."));
+					write_log((isset($_SESSION['username'])?"Session username is set to ".$_SESSION['username']:"Session token not found."));
 					write_log("Valid plex token used for authentication.");
 				}
 			} else {
@@ -720,8 +720,8 @@
 	// This is now our one and only handler for searches.  
 	function parsePlayCommand($command,$year=false) {
 		$searchType = false;
-		write_log("Function Fired.");
 		write_log("################parsePlayCommand_START$##########################");
+		write_log("Function Fired.");
 		write_log("Initial command - ".$command);
 		$parsedCommand = "";
 		$commandArray = explode(" "	,$command);
@@ -868,10 +868,15 @@
 		
 		$contexts=$result["contexts"];
 		foreach($contexts as $context) {
-			if (($context['name'] == 'promptfortitle') && ($action=='') && ($control=='')) {
+			if (($context['name'] == 'promptfortitle') && ($action=='') && ($control=='') && ($command=='')) {
 				$action = 'play';
 				write_log("This is a response to a title query.");
-				if (!($command)) $command = cleanString($request['result']['resolvedQuery']);
+				if (!($command)) $command = cleanCommandString($request['result']['resolvedQuery']);
+				if ($command == 'googleassistantwelcome') {
+					unset($command);
+					unset($action);
+					$greeting = true;
+				}
 			}
 			if (($context['name'] == 'yes') && ($action=='fetchAPI')) {
 				write_log("Context JSON should be ".json_encode($context));
@@ -1159,6 +1164,7 @@
 					$queryOut['mediaStatus'] = "SUCCESS: ".($exact ? 'Exact' : 'Fuzzy' )." result found";
 					$queryOut['playResult'] = $playResult;
 					write_log("Type and stuff: ".$type. " and ".$title);
+					
 					log_command(json_encode($queryOut));
 					unset($_SESSION['deviceArray']);
 					die();
@@ -1836,7 +1842,8 @@
 						$title = $showResult['title'];
 						$key = $showResult['key'];
 						$epNum = false;
-						if ((($season) || ($episode)) && ($episode != -1)) {
+						if ($episode == -2) write_log("FOUND IT HERE.");
+						if (($season) || (($episode) && ($episode >= 1))) {
 							if (($season) && ($episode)) {
 								$selector = 'season';
 								$num = $season;
@@ -1854,6 +1861,10 @@
 							write_log("Mods Found, fetching a numbered TV Item.");
 							$searchType = 'Numbered TV Item ';
 							$winner = fetchNumberedTVItem($key,$num,$selector,$epNum);
+						}
+						if ($episode == -2) {
+							write_log("Mods Found, fetching random episode.");
+							$winner = fetchRandomEpisode($key);
 						}
 						if ($episode == -1) {
 							write_log("Mods Found, fetching latest/newest episode.");
@@ -2011,6 +2022,9 @@
 			$Returns = array();
 			$count = 0;
 			foreach($finalResults as $Result) {
+				if (! isset($Result['title'])) {
+					write_log("Hey, this doesn't have a title, what is it?  ".json_encode($Result));
+				}
 				write_log("This result is called ".$Result['title']. " or maybe ".$Result['tag']);
 				$Result['@attributes']['exact'] = $exact;
 				$Result['searchType'] = $searchType;
@@ -2201,16 +2215,23 @@
 	function fetchRandomEpisode($showKey) {
 		write_log("Function Fired.");
 		$serverToken = $_SESSION['plex_token'];
-		$mediaDir = preg_replace('/children$/', 'allLeaves', $key);
+		$mediaDir = preg_replace('/children/', 'allLeaves', $showKey);
 		$url = $_SESSION['uri_plexserver'].$mediaDir.'?X-Plex-Token=' . $_SESSION['token_plexserver'];
 		write_log('URL is: '.protectURL($url));
-		$result = curlGet($url);
-		
-		if ($result) {
-			$container = new SimpleXMLElement($result);
-			$size=sizeof($container);
+		$results = curlGet($url);
+		if ($results) {
+			$container = new SimpleXMLElement($results);
+			$size=sizeof($container->Video);
 			$winner = rand(0,$size);
-			return $container[$winner];
+			$contArray = json_decode(json_encode($container),true);
+			$parentArt = (string)$contArray['@attributes']['art'];
+			$result = $container->Video[$winner];
+			$result = json_decode(json_encode($result),true);
+			$result['@attributes']['art'] = $parentArt;
+			$resultz = array();
+			$resultz = $result['@attributes'];
+			$resultz['@attributes'] = $result['@attributes'];
+			return $resultz;
 		}
 		return false;
 	}
@@ -2905,19 +2926,20 @@
 		if (preg_match('/library/',$artUrl)) {
 			write_log("Logged command is from Plex, building cached URL.");
 			$artUrl = $_SESSION['uri_plexserver'].$artUrl.'?X-Plex-Token='.$_SESSION['plexToken'];
+			write_log("Full art URL is ".$artUrl);
 			$artUrl = cacheImage($artUrl);
 			unset($newCommand['mediaResult']['@attributes']['art']);
-			write_log("New URL should be ".$artUrl);
+			write_log("New art URL should be ".$artUrl);
 			$newCommand['mediaResult']['@attributes']['art'] = $artUrl;
 		}
 		write_log("Thumb path is ".$thumbUrl);
 		$tmpString = explode(":",$thumbUrl);
 		$thumbPaths = parse_url($thumbUrl);
-		if ((preg_match('/library/metadata',$thumbUrl)) && (! isset($thumbPaths['host']))) {
+		if (preg_match('/library/',$thumbUrl)) {
 			write_log("Logged command is from Plex, building cached URL.");
 			$thumbUrl = $_SESSION['uri_plexserver'].$thumbUrl.'?X-Plex-Token='.$_SESSION['plexToken'];
 			$thumbUrl = cacheImage($thumbUrl);
-			write_log("New URL Should be ".$thumbUrl);
+			write_log("New thumb URL Should be ".$thumbUrl);
 			unset($newCommand['mediaResult']['@attributes']['thumb']);
 			$newCommand['mediaResult']['@attributes']['thumb'] = $thumbUrl;
 		}

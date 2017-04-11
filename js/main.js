@@ -503,9 +503,8 @@ function updateCommands(data,prepend) {
 						if (data[i].commandType != 'fetch') {
 							var itemPath = plexServerURI+mr[0].key+"?X-Plex-Token="+token;
 						}
-						var artPath = resultArt;
-						if (artPath != false) {
-							var mediaDiv = '<a href="'+itemPath+'" target="_blank"><div class="card-image"><img src="' + artPath + '" alt="Loading image..." class="resultimg"><h4 class="card-image-headline">' + TitleString + '</h4></div></a>';
+						if (typeof resultArt !== 'undefined') {
+							var mediaDiv = '<a href="'+itemPath+'" target="_blank"><div class="card-image"><img src="' + resultArt + '" alt="Loading image..." class="resultimg"><h4 class="card-image-headline">' + TitleString + '</h4></div></a>';
 							
 						} else {
 							var mediaDiv = "";
@@ -525,12 +524,13 @@ function updateCommands(data,prepend) {
 						statusLine = "<b>Search status: </b>" + status + "<br>";
 					}
 				}
-				
-				if ((data[i].playResult) && (data[i].commandType == 'play') && (status.indexOf('SUCCESS') != -1)) {	
+				if ((typeof data[i].playResult !== 'undefined') && (data[i].commandType == 'play') && (status.indexOf('SUCCESS') != -1)) {	
 					var playUrl = data[i].playResult.url;
 					var playStatus = data[i].playResult.status;
-					var trimUrl = playUrl.replace(token,"XXXXXXXXXXXXXXXXXXXX");
-					var trimUrl = trimUrl.substring(0,60) + "...";
+					if (typeof playUrl !== 'undefined') {
+						var trimUrl = playUrl.replace(token,"XXXXXXXXXXXXXXXXXXXX");
+						var trimUrl = trimUrl.substring(0,60) + "...";
+					}
 					statusLine2 = "<b>Playback URL:  </b><i><a href=\"" + playUrl + "\">"+trimUrl+"</a></i><br><b>Playback status:  </b>" + playStatus + "";
 				}
 				if (status.indexOf('Not a media') != -1) {
