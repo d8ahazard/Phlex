@@ -6,12 +6,7 @@
 	if ($deviceID===false) {
 		$deviceID = randomToken(12);
 		$config->set("general","deviceID",$deviceID);
-	try {
-		$config->save();
-	} catch (Config_Lite_Exception $e) {
-		echo "\n", 'Exception Message: ', $e->getMessage();
-	}
-	
+		saveConfig($config);
 	}
 	
 	if(isset($_GET['logout'])) {

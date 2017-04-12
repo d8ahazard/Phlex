@@ -1,7 +1,8 @@
 var action = "play";
-var token, deviceID, resultDuration, lastUpdate, itemJSON, apiToken, ombi, couch, sonarr, radarr, publicIP;
+var token, deviceID, resultDuration, lastUpdate, itemJSON, apiToken, ombi, couch, sonarr, radarr, publicIP, dvr, resolution;
 
 jQuery(document).ready(function($) {
+	dvr = ($('#plexdvr').attr('enable') == 'true');
 	apiToken = $('#apiTokenData').attr('data');
 	token = $('#tokenData').attr('data');
 	deviceID = $('#deviceID').attr('data');
@@ -163,6 +164,18 @@ jQuery(document).ready(function($) {
 		console.log("Profile for " + service + " should be set to " + profile + ": " + index);
 		$.get('api.php?apiToken=' + apiToken, {id:service,value:index});
 	});
+	
+	$("#dvrList").change(function(){
+		var serverID = $(this).val();
+		var element = $(this).find('option:selected'); 
+		var serverUri = element.attr('uri');
+		var serverName = element.attr('name');
+		var serverToken = element.attr('token');
+		var serverProduct = element.attr('product');
+		apiToken = $('#apiTokenData').attr('data');
+		console.log("Server should be changing to " + serverName);
+		$.get('api.php?apiToken=' + apiToken, {device:'plexServer',id:serverID,uri:serverUri,name:serverName,token:serverToken,product:serverProduct});
+	});
 		
 	$(".cmdBtn").click(function() {
 		if ($(this).attr("id") != action) {
@@ -282,6 +295,12 @@ jQuery(document).ready(function($) {
 		$('.apiGroup').hide();
 	}
 	
+	if (dvr) {
+		$('.dvrGroup').show();
+	} else {
+		$('.dvrGroup').hide();
+	}
+	
 	
 	
 	$('#plexServerEnabled').change(function() {
@@ -312,6 +331,14 @@ jQuery(document).ready(function($) {
 		$('#radarrGroup').toggle();
 	});
 	
+	$('#resolution').change(function() {
+		apiToken = $('#apiTokenData').attr('data');
+		var res = $(this).find('option:selected').attr('value');
+		console.log("Resolution set to " + res);
+		$.get('api.php?apiToken=' + apiToken, {id:'resolution', value:res});
+		console.log("CHANGED RESOLUTION");
+	});
+	
 	
 	
 	// Update our status every 10 seconds?  Should this be longer?  Shorter?  IDK...
@@ -337,7 +364,6 @@ jQuery(document).ready(function($) {
 		console.log("Received HTML Data from fetch. " + clientData);
 		$('#clientWrapper').html(clientData);	
 	}) ;
-	
 	
 	updateStatus();
 	
@@ -369,7 +395,8 @@ function updateStatus() {
 		}
 		try {
 			$('#clientWrapper').html(data.players);	
-			$('#serverList').html(data.servers);	
+			$('#serverList').html(data.servers);
+			$('#dvrList').html(data.dvrs);			
 			ddText = $('.dd-selected').text();
 			$('.ddLabel').html(ddText);
 			data.playerStatus = JSON.parse(data.playerStatus);
@@ -476,8 +503,6 @@ function updateCommands(data,prepend) {
 				var mediaDiv = "";
 				var JSONdiv = '<br><a href="javascript:void(0)" id="JSON'+i+'" class="JSONPop" data="'+encodeURIComponent(JSON.stringify(data[i],null,2))+'" title="Result JSON">{JSON}</a>';
 				
-				//var JSONdiv = "<br><div class='expandWrap'>{json}<div class='expand'>" + JSON.stringify(data[i]) + "</div></div>";
-				
 				if ((data[i].commandType == 'play') || (data[i].commandType == 'control')) {
 					var plexServerURI = data[i].serverURI;
 					var plexClientURI = data[i].clientURI;
@@ -498,19 +523,15 @@ function updateCommands(data,prepend) {
 						if (resultType == "episode") {
 							var TitleString = "S" + mr[0].parentIndex + "E"+mr[0].index + " - " + resultTitle;
 						}
-						
-						// Determine if we should be using a Plex art path, or a full path
+						// Determine if we should be using a Plex path, or a full path
 						if (data[i].commandType != 'fetch') {
 							var itemPath = plexServerURI+mr[0].key+"?X-Plex-Token="+token;
 						}
 						if (typeof resultArt !== 'undefined') {
-							var mediaDiv = '<a href="'+itemPath+'" target="_blank"><div class="card-image"><img src="' + resultArt + '" alt="Loading image..." class="resultimg"><h4 class="card-image-headline">' + TitleString + '</h4></div></a>';
-							
+							var mediaDiv = '<a href="'+itemPath+'" target="_blank"><div class="card-image"><img src="' + resultArt + '" alt="Loading image..." class="resultimg"><h4 class="card-image-headline">' + TitleString + '</h4></div></a>';							
 						} else {
 							var mediaDiv = "";
 						}
-						//This adds the image and title display to relevant media
-						
 					}
 				}
 			

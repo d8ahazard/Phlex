@@ -56,6 +56,13 @@
 	
 	$_SESSION['use_cast'] = $config->getBool('user-_-'.$_SESSION['username'], 'useCast', false);
 	
+	$_SESSION['dvr_resolution'] = $config->getBool('user-_-'.$_SESSION['username'], 'dvr_resolution', "0");
+	$_SESSION['dvr_newairings'] = $config->getBool('user-_-'.$_SESSION['username'], 'dvr_newairings', true);
+	$_SESSION['dvr_replacelower'] = $config->getBool('user-_-'.$_SESSION['username'], 'dvr_replacelower', true);
+	$_SESSION['dvr_recordpartials'] = $config->getBool('user-_-'.$_SESSION['username'], 'dvr_recordpartials', false);
+	$_SESSION['dvr_startoffset'] = $config->get('user-_-'.$_SESSION['username'], 'dvr_startoffset', 2);
+	$_SESSION['dvr_endoffset'] = $config->get('user-_-'.$_SESSION['username'], 'dvr_endoffset', 2);
+	$_SESSION['resolution'] = $config->get('user-_-'.$_SESSION['username'], 'resolution', 0);
 	
 	$url = 'https://plex.tv/pms/:/ip';
 	$ch = curl_init();
@@ -223,6 +230,55 @@
 												<button value="Plex" class="testInput btn btn-raised btn-info btn-100" type="button">Test</button>
 											</div>
 										</div>
+									</div>
+								</div>
+							</div>
+							<div class="appContainer card dvrGroup">	
+								<div class="card-body">
+								<h4>Plex DVR</h4>
+									<div class="form-group">
+										<div class="form-group">
+											<label for="dvrList">DVR Server:</label>
+											<select class="form-control" id="dvrList">
+												
+											</select>
+										</div>
+										<div class="form-group">
+											<label for="resolution">Resolution:</label>
+											<select class="form-control appInput" id="resolution">
+												<option value="0" <?php echo ($_SESSION['resolution'] == 0 ? 'selected' : '') ?>>Any</option>
+												<option value="720" <?php echo ($_SESSION['resolution'] == 720 ? 'selected' : '') ?>>High-Definition</option>
+											</select>
+										</div>
+										<br>
+										<div class="togglebutton">
+											<label class="appLabel">Record new Airings Only
+												<input id="dvr_newairings" type="checkbox" class="appInput"<?php echo ($_SESSION['dvr_newairings'] ? 'checked' : '') ?>/>
+											</label>
+										</div>
+										<br>
+										<div class="togglebutton">
+											<label class="appLabel">Replace Lower Quality Recordings
+												<input id="dvr_replacelower" type="checkbox" class="appInput"<?php echo ($_SESSION['dvr_replacelower'] ? 'checked' : '') ?>/>
+											</label>
+										</div>
+										<br>
+										<div class="togglebutton">
+											<label class="appLabel">Record partial episodes
+												<input id="dvr_recordpartials" type="checkbox" class="appInput"<?php echo ($_SESSION['dvr_recordpartials'] ? 'checked' : '') ?>/>
+											</label>
+										</div>
+										<div class="form-group">
+											<label for="dvr_startoffset" class="appLabel">Start Offset (Minutes):
+												<input id="dvr_startoffset" class="appInput form-control" type="number" min="1" max="30" value="<?php echo $_SESSION['dvr_startoffset'] ?>" />
+											</label>
+										</div>
+										<div class="form-group">
+											<label for="dvr_endoffset" class="appLabel">End Offset (Minutes):
+												<input id="dvr_endoffset" class="appInput form-control" type="number" min="1" max="30" value="<?php echo $_SESSION['dvr_endoffset'] ?>" />
+											</label>
+										</div>
+										
 									</div>
 								</div>
 							</div>

@@ -166,6 +166,7 @@
 		$result['commands'] =  urlencode(($contents));
 		$result['players'] = fetchClientList();
 		$result['servers'] = fetchServerList();
+		$result['dvrs'] = fetchDVRList();
 		header('Content-Type: application/json');
 		echo JSON_ENCODE($result);
 		die();
@@ -431,6 +432,24 @@
 				}
 			}
 		}
+		$_SESSION['id_plexdvr'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'plexDVR', false);
+		if (!($_SESSION['id_plexdvr'])) {
+			write_log("No DVR found, checking for them.");
+			$dvrs = fetchDVRList();
+			write_log("Hey, I got somethin... ".json_encode($dvrs));
+			if (count($dvrs) >= 1) {
+				$dvr = $dvrs[0];
+				$_SESSION['config']->set('user-_-'.$_SESSION['username'],'plexDVR',$dvr['id']);
+				$_SESSION['config']->set('user-_-'.$_SESSION['username'],'plexDVRProduct',$dvr['product']);
+				$_SESSION['config']->set('user-_-'.$_SESSION['username'],'plexDVRName',$dvr['name']);
+				$_SESSION['config']->set('user-_-'.$_SESSION['username'],'plexDVRUri',$dvr['uri']);
+				$_SESSION['config']->set('user-_-'.$_SESSION['username'],'plexDVRPublicAddress',$dvr['publicAddress']);
+				$_SESSION['config']->set('user-_-'.$_SESSION['username'],'plexDVRToken',$dvr['token']);
+				saveConfig($_SESSION['config']);
+			}
+			
+		}
+		
 		reloadVariables();
 	}
 	
@@ -480,11 +499,25 @@
 		$_SESSION['uri_plexserver'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'],'plexServerUri',false);
 		$_SESSION['publicAddress_plexserver'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'],'plexServerPublicAddress',false);
 		$_SESSION['token_plexserver'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'],'plexServerToken',false);
+		
 		$_SESSION['id_plexclient'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'plexClient', false);
 		$_SESSION['name_plexclient'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'],'plexClientName',false);
 		$_SESSION['uri_plexclient'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'],'plexClientUri',false);
 		$_SESSION['product_plexclient'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'],'plexClientProduct',false);
 		$_SESSION['token_plexclient'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'],'plexClientToken',false);
+		
+		$_SESSION['id_plexdvr'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'plexDVR', false);
+		$_SESSION['name_plexdvr'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'],'plexDVRName',false);
+		$_SESSION['uri_plexdvr'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'],'plexDVRUri',false);
+		$_SESSION['publicAddress_plexdvr'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'],'plexDVRPublicAddress',false);
+		$_SESSION['token_plexdvr'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'],'plexDVRToken',false);
+		
+		$_SESSION['dvr_newairings'] = $_SESSION['config']->getBool('user-_-'.$_SESSION['username'], 'dvr_newairings', true);
+		$_SESSION['dvr_replacelower'] = $_SESSION['config']->getBool('user-_-'.$_SESSION['username'], 'dvr_replacelower', true);
+		$_SESSION['dvr_recordpartials'] = $_SESSION['config']->getBool('user-_-'.$_SESSION['username'], 'dvr_recordpartials', false);
+		$_SESSION['dvr_startoffset'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'dvr_startoffset', 2);
+		$_SESSION['dvr_endoffset'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'dvr_endoffset', 2);
+		$_SESSION['resolution'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'resolution', 0);
 		
 		$_SESSION['fetch_plexclient'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'],'plexClientFetched',false);
 		$_SESSION['fetch_plexserver'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'],'plexServerFetched',false);
@@ -519,6 +552,8 @@
 		write_log("Client ID: ".$_SESSION['id_plexclient']);
 		write_log("Client URI: ".$_SESSION['uri_plexclient']);
 		write_log("Client Product: ".$_SESSION['product_plexclient']);
+		write_log("----------------------------------------");
+		write_log("Plex DVR Enabled: ".($_SESSION['uri_plexdvr'] ? "true" : "false"));
 		write_log("----------------------------------------");
 		write_log("CouchPotato Enabled: ".$_SESSION['enable_couch']);
 		write_log("Ombi Enabled: ".$_SESSION['enable_ombi']);
@@ -715,7 +750,97 @@
 		return false;
 		
 	}
-		
+	
+
+	function parseRecordCommand($command) {
+		write_log("Function fired.");
+		$url = $_SESSION['uri_plexserver'].'/tv.plex.providers.epg.onconnect:4/hubs/search?sectionId=&query='.urlencode($command).'&X-Plex-Token='.$_SESSION['token_plexserver'];
+		write_log("Url is: ".$url);
+		$result = curlGet($url);
+		if ($result) {
+			write_log("Result is ".$result);
+			$container = new SimpleXMLElement($result);
+			$result = false;
+			foreach($container->Hub as $hub) {
+				$array = json_decode(json_encode($hub),true);
+				$type = (string) $array['@attributes']['type'];
+				if (($type == 'show') || ($type == 'movie')) {
+					$title = $array['Directory']['@attributes']['title'];
+					if (similarity(cleanCommandString($title), $command) >=.7) {
+						write_log("We have a match, proceeding: ".$command);
+						$result = $array;
+					}
+				}
+			}
+			if ($result) {
+				unset($array);
+				$array = $result;
+				$url = $_SESSION['uri_plexserver'];
+				$guid = $array['Directory']['@attributes']['guid'];
+				$params = array(
+					guid=>$guid
+				);
+				$url.= '/media/subscriptions/template?'.http_build_query($params).'&X-Plex-Token='.$_SESSION['token_plexserver'];
+				write_log("URL is ".$url);
+				$template = curlGet($url);
+				if (! $template) {
+					write_log("Error fetching download template, aborting.");
+					return false;
+				}
+				$container = new SimpleXMLElement($template);
+				$container = json_decode(json_encode($container),true);
+				$paramString = $container['SubscriptionTemplate']['MediaSubscription']['@attributes']['parameters'];
+				unset($params);
+				unset($url);
+				$year = $array['Directory']['@attributes']['year'];
+				$thumb = $array['Directory']['@attributes']['thumb'];
+				$url=$_SESSION['uri_plexserver'].'/media/subscriptions?';
+				$params = array();
+				$prefs = array();
+				//These need to be put into settings at some point in time
+				$prefs['onlyNewAirings']=$_SESSION['dvr_newairings'];
+				$prefs['minVideoQuality']=$_SESSION['resolution'];
+				$prefs['replaceLowerQuality']=$_SESSION['dvr_replacelower'];
+				$prefs['recordPartials']=$_SESSION['dvr_recordpartials'];
+				$prefs['startOffsetMinutes']=$_SESSION['dvr_startoffset'];
+				$prefs['endOffsetMinutes']=$_SESSION['dvr_endoffset'];
+				$prefs['lineupChannel']='';
+				$prefs['startTimeslot']=-1;
+				$prefs['oneShot']="true";
+				$prefs['autoDeletionItemPolicyUnwatchedLibrary']=0;
+				$prefs['autoDeletionItemPolicyWatchedLibrary']=0;
+				$params['prefs'] = $prefs;
+				$sectionId = $array['Directory']['@attributes']['librarySectionID'];
+				$title = $array['Directory']['@attributes']['title'];
+				$params['targetLibrarySectionID']= $sectionId;
+				$params['targetSectionLocationID']= $sectionId;
+				$params['includeGrabs'] = 1;
+				$params['type'] = $sectionId;
+				$url .= http_build_query($params).'&'.$paramString.'&X-Plex-Token='.$_SESSION['token_plexserver'];
+				$result = curlPost($url);
+				if ($result) {
+					$container = new SimpleXMLElement($result);
+					foreach ($container->MediaSubscription as $subscription) {
+						$show = json_decode(json_encode($subscription),true);
+						$added = $show['Directory']['@attributes']['title'];
+						if (cleanCommandString($title) == cleanCommandString($added)) {
+							write_log("Show added to record successfully: ".json_encode($show));
+							$return = array(
+								title=>$added,
+								year=>$year,
+								type=>$show['Directory']['@attributes']['type'],
+								thumb=>$thumb,
+								art=>$thumb,
+								url=>$_SESSION['uri_plexserver'].'/subscriptions/'.$subscription['@attributes']['key'].'?X-Plex-Token='.$_SESSION['token_plexserver']
+							);
+							return $return;
+						}
+					}
+				}
+			}
+		}
+		return false;
+	}
 	
 	// This is now our one and only handler for searches.  
 	function parsePlayCommand($command,$year=false) {
@@ -927,6 +1052,36 @@
 			die();
 		}
 		
+		if (($action == 'record') && ($command)) {
+			write_log("Got a record command.");
+			$waitForResponse = false;
+			$contextName = 'waitforplayer';
+			if($_SESSION['uri_plexdvr']) {
+				$result = parseRecordCommand($command);
+				if($result) {
+					$title = $result['title'];
+					$year = $result['year'];
+					$type = $result['type'];
+					$queryOut['initialCommand'] = 'Add the '.$type.' named '.$title.' ('.$year.') to the recording schedule.';
+					$speech = "Hey, look at that.  I've added the ".$type." named ".$title." (".$year.") to the recording schedule.";
+					$results['url'] = $result['url'];
+					$results['status'] = "Success.";
+					$queryOut['mediaResult'] = $result;
+					$queryOut['mediaStatus'] = 'SUCCESS: Not a media command';
+					$queryOut['commandType'] = 'dvr';
+				} else {
+					$queryOut['initialCommand'] = 'Add the media named '.$command;
+					$speech = "I wasn't able to find any results in the episode guide that match '".ucwords($command)."'.";
+					$results['url'] = $result['url'];
+					$results['status'] = "No results.";
+				}
+			} else {
+				$speech = "I'm sorry, but I didn't find any instances of Plex DVR to use.";
+			}
+			returnSpeech($speech,$contextName,$waitForResponse);
+			die();
+			
+		}
 		
 		if (($action == 'changeDevice') && ($command)) {
 			$result = fetchDeviceByName($command,$type);
@@ -1069,8 +1224,13 @@
 						}
 					}
 					if (! $mediaResult) {
+						if (preg_match('/none/',$cleanedRaw) || preg_match('/neither/',$cleanedRaw) || preg_match('/nevermind/',$cleanedRaw) || preg_match('/cancel/',$cleanedRaw)) {
+							$speech = "Okay.";
+						} else {
+							$speech = "Silly goose, '".$rawspeech."' doesn't match anything I just said.";
+						}
 						$waitForResponse = false;
-						$speech = "Silly goose, '".$rawspeech."' doesn't match anything I just said.";
+						
 						returnSpeech($speech,$contextName,$waitForResponse);
 						die();
 					}
@@ -1215,6 +1375,7 @@
 					$contextName = 'yes';
 					$queryOut['speech'] = $speech;
 					log_command(json_encode($queryOut));
+					die();
 				}
 			}			
 		}
@@ -1255,11 +1416,11 @@
 		
 		if (($action == 'fetch') && ($command)) {
 			$queryOut['parsedCommand'] = 'Fetch the media named '.$comand.'.';
-			log_command(json_encode($queryOut));
 			
 			$waitForResponse = false;
 			$result = parseFetchCommand($command);
 			if ($result['status'] === 'success') {
+				$queryOut['mediaResult'] = $result['mediaResult'];
 				$resultTitle = $result['mediaResult']['@attributes']['title'];
 				$resultYear = $result['mediaResult']['@attributes']['year'];
 				$resultImage = $result['mediaResult']['@attributes']['art'];
@@ -1677,6 +1838,43 @@
 		return $options;
 	}
 	
+	function fetchDVRList() {
+		$now = microtime(true);
+		$lastCheck = $_SESSION['config']->get('user-_-'.$_SESSION['username'],'plexDVRFetched',$now);
+		$diffSeconds = round($now-$lastCheck);
+		$diffMinutes = ceil($diffSeconds/60);
+		$_SESSION['config']->set('user-_-'.$_SESSION['username'],'plexDVRFetched',$now);
+		saveConfig($_SESSION['config']);
+		if ((! isset($_SESSION['list_plexdvr'])) || ($diffMinutes >=10) || $force) {
+			write_log("Re-checking DVR List.");
+			if (! isset($_SESSION['list_plexserver'])) refreshDevices('servers',true);
+			$dvrList = array();
+			foreach($_SESSION['list_plexserver'] as $server) {
+				write_log("Here's what we've got: ".json_encode($server));
+				$url = $server['uri'].'/tv.plex.providers.epg.onconnect:4?X-Plex-Token='.$server['token'];
+				write_log("URL is ".$url);
+				$epg = curlGet($url);
+				if($epg) {
+					if (preg_match('/mediaTagPrefix/',$epg)) array_push($dvrList,$server);
+				}
+			}
+			if (count($dvrList)) {
+				$chosen = $_SESSION['id_plexdvr'];
+				foreach($dvrList as $client) {
+					$id = $client['id'];
+					$selected = ($chosen == $id);
+					$name = $client['name'];
+					$uri = $client['uri'];
+					$token = $client['token'];
+					$product = $client['product'];
+					$publicAddress = $client['publicAddress'];
+					$options .= '<option type="plexDVR" publicAddress="'.$publicAddress.'" product="'.$product.'" value="'.$id.'" uri='.$uri.' name="'.$name.'"'.' token="'.$token.'"'.($selected ? ' selected':'').'>'.ucwords($name).'</option>';
+				}
+			}
+			$_SESSION['list_plexdvr'] = $options;
+		}
+		return $_SESSION['list_plexdvr'];
+	}
 		
 	// Look up our device by name
 	function fetchDeviceByName($name,$type) {
@@ -3034,6 +3232,7 @@
 		while (!feof($handle)) { 
 			$contents .= fgets($handle); 
 		}
+		$dvr = ($_SESSION['uri_plexdvr'] ? "true" : "");
 		if ($contents == '[') $contents = '';
 		$commandData = urlencode($contents);
 		$tags .= '<meta id="tokenData" data="'.$_SESSION['token_plexserver'].'"></meta>'.
@@ -3043,6 +3242,8 @@
 				'<meta id="serverURI" data="'.$_SESSION['uri_plexserver'].'"></meta>'.
 				'<meta id="clientURI" data="'.$_SESSION['uri_plexclient'].'"></meta>'.
 				'<meta id="clientName" data="'.$_SESSION['name_plexclient'].'"></meta>'.
+				'<meta id="plexdvr" enable="'.$dvr.'" uri="'.$_SESSION['uri_plexdvr'].'"></meta>'.
+				'<meta id="rez" value="'.$_SESSION['resolution'].'"></meta>'.
 				'<meta id="couchpotato" enable="'.$_SESSION['enable_couch'].'" ip="'.$_SESSION['ip_couch'].'" port="'.$_SESSION['port_couch'].'" auth="'.$_SESSION['auth_couch'].'"></meta>'.
 				'<meta id="sonarr" enable="'.$_SESSION['enable_sonarr'].'" ip="'.$_SESSION['ip_sonarr'].'" port="'.$_SESSION['port_sonarr'].'" auth="'.$_SESSION['auth_sonarr'].'"></meta>'.
 				'<meta id="sick" enable="'.$_SESSION['enable_sick'].'" ip="'.$_SESSION['ip_sick'].'" port="'.$_SESSION['port_sick'].'" auth="'.$_SESSION['auth_sick'].'"></meta>'.
