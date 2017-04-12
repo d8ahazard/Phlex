@@ -1062,7 +1062,7 @@
 					$title = $result['title'];
 					$year = $result['year'];
 					$type = $result['type'];
-					$queryOut['initialCommand'] = 'Add the '.$type.' named '.$title.' ('.$year.') to the recording schedule.';
+					$queryOut['parsedCommand'] = 'Add the '.$type.' named '.$title.' ('.$year.') to the recording schedule.';
 					$speech = "Hey, look at that.  I've added the ".$type." named ".$title." (".$year.") to the recording schedule.";
 					$results['url'] = $result['url'];
 					$results['status'] = "Success.";
@@ -1070,7 +1070,7 @@
 					$queryOut['mediaStatus'] = 'SUCCESS: Not a media command';
 					$queryOut['commandType'] = 'dvr';
 				} else {
-					$queryOut['initialCommand'] = 'Add the media named '.$command;
+					$queryOut['parsedCommand'] = 'Add the media named '.$command;
 					$speech = "I wasn't able to find any results in the episode guide that match '".ucwords($command)."'.";
 					$results['url'] = $result['url'];
 					$results['status'] = "No results.";
@@ -1079,6 +1079,8 @@
 				$speech = "I'm sorry, but I didn't find any instances of Plex DVR to use.";
 			}
 			returnSpeech($speech,$contextName,$waitForResponse);
+			$queryOut['speech'] = $speech;
+			log_command(json_encode($queryOut));
 			die();
 			
 		}
