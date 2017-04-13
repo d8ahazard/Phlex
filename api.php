@@ -754,7 +754,7 @@
 
 	function parseRecordCommand($command) {
 		write_log("Function fired.");
-		$url = $_SESSION['uri_plexserver'].'/tv.plex.providers.epg.onconnect:4/hubs/search?sectionId=&query='.urlencode($command).'&X-Plex-Token='.$_SESSION['token_plexserver'];
+		$url = $_SESSION['uri_plexdvr'].'/tv.plex.providers.epg.onconnect:4/hubs/search?sectionId=&query='.urlencode($command).'&X-Plex-Token='.$_SESSION['token_plexdvr'];
 		write_log("Url is: ".$url);
 		$result = curlGet($url);
 		if ($result) {
@@ -1156,6 +1156,10 @@
 			die();
 		}
 		
+		if ($action == 'upcoming') {
+			write_log("Got an upcoming recordings request.");
+			
+		}
 
 		if (($action == 'recent') || ($action == 'ondeck')) {
 			$type = $request["result"]['parameters']["type"];
