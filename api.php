@@ -1008,22 +1008,17 @@
 				$command = (string)$context['parameters']['command'];
 				$command = cleanCommandString($command);
 			}
-			if (($context['name'] == 'waitforplayer') && ($action == 'changeDevice')) {
-				$actionOriginal = $context['parameters']['action.original'];
-				$type = ((strpos($actionOriginal,'server') !== false) ? 'servers' : 'players');
-				$deviceName = array_key_exists('player',$context['parameters']);
-				write_log("Type is ".$type);
-				if ($actionOriginal != '') {
-					write_log("Changing device now.");
-					$command = ($deviceName ? $context['parameters']['player'] : $rawspeech);
-				}
-			}
 			if (($context['name'] == 'google_assistant_welcome') && ($action == '') && ($command == '') && ($control == ''))  {
 				write_log("Looks like the default intent, we should say hello.");
 				$greeting = true;
 			}
 		}
-		write_log("Control is ".$control);
+		
+		if ($action == 'changeDevice') {
+			$command = $request['result']['parameters']['player'];
+			write_log("Got a player name: ".$command);
+		}
+		
 		if ($control == 'skip forward') {
 			write_log("Action should be changed now.");
 			$action ='control';
@@ -1034,8 +1029,8 @@
 			$action ='control';
 			$command = 'skip backward';
 		}
-		write_log("Final params should be an action of ".$action." and a command of ".$command);
-		
+		write_log("Final params should be an action of ".$action.", a command of ".$command.", and a control of ".$control);
+		if($action == 'changeDevice') write_log("Got a change device command: ");
 		// This value tells API.ai that we are done talking.  We set it to a positive value if we need to ask more questions/get more input.
 		$waitForResponse = false;
 		$contextName = "yes";
@@ -1086,16 +1081,25 @@
 		}
 		
 		if (($action == 'changeDevice') && ($command)) {
-			$result = fetchDeviceByName($command,$type);
-			write_log("Fetchresult should be ".print_r($result,true));
+			$list = $_SESSION['deviceArray'];
+			$score = 0;
+			foreach($list as $device) {
+				$value = similarity(cleanCommandString($device['name']),cleanCommandString($command));
+				if (($value >=.7) && ($value >= $score)) {
+					write_log("Got a winner: ".$device['name']);
+					$result = $device;
+					$score = $value;
+				}
+			}
+			write_log("Result should be ".json_encode($result));
 			if ($result) {
-				$typeString = ((preg_match('/server/',strtolower($actionOriginal)))? 'server' : 'player');
-				$speech = "Okay, I've changed the target ".$typeString ." to ".$command.".";
+				$typeString = (($result['product'] == 'Plex Media Server') ? 'server' : 'client');
+				$speech = "Okay, I've switched the ".$typeString." to ".$command.".";
 				$waitForResponse = false;
 				$contextName = 'waitforplayer';
 				returnSpeech($speech,$contextName,$waitForResponse);
 				write_log("Still alive.");
-				$name = (($type == 'servers') ? 'plexServer' : 'plexClient');
+				$name = (($result['product'] == 'Plex Media Server') ? 'plexServer' : 'plexClient');
 				$_SESSION['config']->set('user-_-'.$_SESSION['username'],$name,$result['id']);
 				$_SESSION['config']->set('user-_-'.$_SESSION['username'],$name.'Uri',$result['uri']);
 				$_SESSION['config']->set('user-_-'.$_SESSION['username'],$name.'Name',$result['name']);
@@ -1229,10 +1233,9 @@
 						if (preg_match('/none/',$cleanedRaw) || preg_match('/neither/',$cleanedRaw) || preg_match('/nevermind/',$cleanedRaw) || preg_match('/cancel/',$cleanedRaw)) {
 							$speech = "Okay.";
 						} else {
-							$speech = "Silly goose, '".$rawspeech."' doesn't match anything I just said.";
+							$speech = "I'm sorry, but '".$rawspeech."' doesn't seem to match anything I just said.";
 						}
 						$waitForResponse = false;
-						
 						returnSpeech($speech,$contextName,$waitForResponse);
 						die();
 					}
@@ -1416,9 +1419,20 @@
 				
 		}
 		
+		if ($action == 'fetchAPI') {
+			$response = $request["result"]['parameters']["YesNo"];
+			if ($response == 'yes') {
+				$action = 'fetch';
+			} else {
+				$speech = "Okay, let me know if you change your mind.";
+				$waitForResponse = false;
+				returnSpeech($speech,$contextName,$waitForResponse);
+				die();
+			}
+		}
+		
 		if (($action == 'fetch') && ($command)) {
 			$queryOut['parsedCommand'] = 'Fetch the media named '.$comand.'.';
-			
 			$waitForResponse = false;
 			$result = parseFetchCommand($command);
 			if ($result['status'] === 'success') {
@@ -1465,42 +1479,6 @@
 				unset($_SESSION['deviceArray']);
 				die();
 			}
-			
-		}
-		
-		if ($action == 'fetchAPI') {
-			$response = $request["result"]['parameters']["YesNo"];
-			if ($response == 'yes') {
-				$request = json_decode($json, true);
-				$result = $request["result"];
-				write_log("This should be an yes/no reply command.");
-				write_log("Results? " . print_r($result,true));
-				$contexts=$result["contexts"];
-				if ($command) {
-					write_log("Yes/No reply command should be ".$command);
-					$result = parseFetchCommand($command);
-					if ($result['status'] == 'success') {
-						$resultTitle = $result['mediaResult']['@attributes']['title'];
-						$resultYear = $result['mediaResult']['@attributes']['year'];
-						$resultImage = $result['mediaResult']['@attributes']['art'];
-						$resultSummary = $result['mediaResult']['@attributes']['summary'];
-						$resultData['image'] = $resultImage;
-						//$resultData[]
-						$speech = "Okay, I've added ".$resultTitle." (".$resultYear.") to the fetch list.";
-					} else {
-						$speech = "Unfortunately, I was not able to find anything with that title to download.";
-					}
-				} else {
-					$speech = "Hmmm, I don't seem to have the name of anything to download...";
-				}
-			} else {
-				$speech = "Allright.  Let me know if you change your mind.";
-			}
-			$waitForResponse = false;
-			returnSpeech($speech,$contextName,$waitForResponse);
-			// log_command($result);
-			unset($_SESSION['deviceArray']);
-			die();
 		}
 		
 		
@@ -4076,7 +4054,18 @@
 		header('Content-Type: application/json');
 		ob_start();
 		$output["speech"] = $speech;
-		$output["contextOut"] = array();
+		$returns = array();
+		$contexts = array('waitforplayer','yes','promptfortitle');
+		foreach($contexts as $context) {
+			if ($context == $contextName) {
+				$lifespan = 2;
+			} else {
+				$lifespan = 0;
+			}
+			$item = array(name=>$context, lifespan=>$lifespan);
+			array_push($returns,$item);
+		}
+		$output["contextOut"] = $returns;
 		$output["contextOut"][0]["name"] = $contextName;
 		$output["contextOut"][0]["lifespan"] = 2;
 		write_log("Expect response is ". $waitForResponse);
