@@ -736,6 +736,28 @@
 				$cmd = $result;
 			}
 		}
+		if (preg_match("/subtitles/",$command)) {
+			write_log("Fixing subtitle Command.");
+			if (preg_match("/off/",$command)) {
+				$streamID = 0;
+			} else {
+				$status = playerStatus();
+				write_log("Got Player Status: ".$status);
+				$statusArray = json_decode($status,true);
+				$streams = $statusArray['mediaResult']['Media']['Part']['Stream'];
+				foreach ($streams as $stream) {
+					$type = $stream['@attributes']['streamType'];
+					if ($type == 3) {
+						write_log("Got me a subtitle.");
+						$code = $stream['@attributes']['languageCode'];
+						if (preg_match("/eng/",$code)) {
+							$streamID = $stream['@attributes']['id'];
+						}
+					}
+				}
+			}
+			$cmd = 'setStreams?subtitleStreamID='.$streamID;
+		}
 		if ($cmd) {
 			$result = sendCommand($cmd);
 			$results['url'] = $result['url'];
@@ -1029,6 +1051,12 @@
 			$action ='control';
 			$command = 'skip backward';
 		}
+		
+		if (preg_match("/subtitles/",$control)) {
+			write_log("Subtitles?");
+			$action = 'control';
+			$command = str_replace(' ', '', $control);
+		}
 		write_log("Final params should be an action of ".$action.", a command of ".$command.", and a control of ".$control);
 		if($action == 'changeDevice') write_log("Got a change device command: ");
 		// This value tells API.ai that we are done talking.  We set it to a positive value if we need to ask more questions/get more input.
@@ -1158,6 +1186,16 @@
 		
 		if ($action == 'upcoming') {
 			write_log("Got an upcoming recordings request.");
+			if($_SESSION['uri_plexdvr']) {
+				$url = $_SESSION['uri_plexdvr'].'/media/subscriptions/scheduled?X-Plex-Token='.$_SESSION['token_plexdvr'];
+				write_log("URL is ".$url);
+				$result = curlGet($url);
+				if ($result) {
+					$container = new SimpleXMLElement($result);
+					$array = json_decode(json_encode($container),true);
+					write_log("Got a container: ".json_encode($array));
+				}
+			}
 			
 		}
 
@@ -1526,6 +1564,16 @@
 					case "pause":
 						$speech = 'Plex should now be paused.';
 						break;
+					case "subtitleson":
+						$speech = 'Subtitles have been enabled.';
+						$queryOut['initialCommand'] = $rawspeech;
+						$queryOut['parsedCommand'] = "Enable Subtitles.";
+						break;
+					case "subtitlesoff":
+						$speech = 'Subtitles have been disabled.';
+						$queryOut['initialCommand'] = $rawspeech;
+						$queryOut['parsedCommand'] = "Disable Subtitles.";
+						break;
 					default:
 						$speech = 'Sending a command to '.$command;
 				}
@@ -1537,8 +1585,8 @@
 			}
 			$result = parseControlCommand($command);
 			$newCommand = json_decode($result,true);
+			$newCommand = array_merge($newCommand,$queryOut);
 			$newCommand['timestamp'] = timeStamp();
-			$queryOut['parsedCommand'] = 'Send a player command: '.$command;
 			$result = json_encode($newCommand);
 			log_command($result);
 			refreshDevices('clients',true);
