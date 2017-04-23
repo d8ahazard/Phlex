@@ -2865,6 +2865,9 @@
 		$status = $cc->getCastMessage;
 		write_log("Post-Play response: ".$status);
 
+		$return['url'] = 'chromecast://'.$client['host'].':'.$client['port'];
+		$return['status'] = 'success';
+		return $return;
 
 	}
 
