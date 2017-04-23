@@ -23,8 +23,8 @@ class Chromecast
 
 		// Establish Chromecast connection
 
-		// Don't pay much attention to the Chromecast's certificate. 
-		// It'll be for the wrong host address anyway if we 
+		// Don't pay much attention to the Chromecast's certificate.
+		// It'll be for the wrong host address anyway if we
 		// use port forwarding!
 		$contextOptions = [
 			'ssl' => [
@@ -38,16 +38,16 @@ class Chromecast
 		} else {
 			throw new Exception("Failed to connect to remote Chromecast");
 		}
-		
+
 		$this->lastip = $ip;
 		$this->lastport = $port;
-		
+
 		$this->lastactivetime = time();
-		
+
 		// Create an instance of the DMP for this CCDefaultMediaPlayer
 		$this->DMP = new CCDefaultMediaPlayer($this);
 	}
-	
+
 	public static function scan() {
 		// Performs an mdns scan of the network to find chromecasts and returns an array
 		// Let's test by finding Google Chromecasts
@@ -74,9 +74,46 @@ class Chromecast
 							}
 							// The chromecast name is in $name. Send a a SRV query
 							$mdns->query($name, 1, 33, "");
-							$cc=10;
+							$mdns->query($name, 1, 16, "");
+							$cc=60;
 						}
 					}
+						if ($inpacket->answerrrs[$x]->qtype == 16) {
+
+							// get target name
+							$offset = 6;
+							$offset++;
+							$target = "";
+							for ($z=0; $z < $size; $z++) {
+								$target .= chr($d[$offset + $z]);
+							}
+							$target .= ".local";
+
+							// get friendly name
+							$a = $inpacket->answerrrs[$x];
+
+							$string = "";
+							for ($x=0; $x < sizeof($a->data); $x++) {
+								$string .= chr($a->data[$x]);
+							}
+							$start = 'fn=';
+							$end = 'ca=';
+							$string = ' ' . $string;
+							$ini = strpos($string, $start);
+							if ($ini == 0) return '';
+							$ini += strlen($start);
+							$len = strpos($string, $end, $ini) - $ini;
+							$fname = substr($string, $ini, $len-1);
+
+							// Loop through the chromecasts and fill in friendly name
+							foreach ($chromecasts as $key=>$value) {
+								if ($value['target'] == $target) {
+									$value['fname'] = $fname;
+									$chromecasts[$key] = $value;
+								}
+							}
+							$cc=60;
+						}
 					if ($inpacket->answerrrs[$x]->qtype == 33) {
 						$d = $inpacket->answerrrs[$x]->data;
 						$port = ($d[4] * 256) + $d[5];
@@ -92,7 +129,7 @@ class Chromecast
 						$chromecasts[$inpacket->answerrrs[$x]->name] = array("port"=>$port, "ip"=>"", "target"=>$target);
 						// We know the name and port. Send an A query for the IP address
 						$mdns->query($target,1,1,"");
-						$cc=10;
+						$cc=60;
 					}
 					if ($inpacket->answerrrs[$x]->qtype == 1) {
 						$d = $inpacket->answerrrs[$x]->data;
@@ -100,7 +137,7 @@ class Chromecast
 						// Loop through the chromecasts and fill in the ip
 						foreach ($chromecasts as $key=>$value) {
 							if ($value['target'] == $inpacket->answerrrs[$x]->name) {
-								$value['ip'] = $ip;	
+								$value['ip'] = $ip;
 								$chromecasts[$key] = $value;
 							}
 						}
@@ -112,7 +149,7 @@ class Chromecast
 
 		return $chromecasts;
 	}
-	
+
 	function testLive() {
 		// If there is a difference of 10 seconds or more between $this->lastactivetime and the current time, then we've been kicked off and need to reconnect
 		if ($this->lastip == "") { return; }
@@ -134,7 +171,7 @@ class Chromecast
 			$this->connect(1);
 		}
 	}
-	
+
 	function cc_connect($tl=0) {
 		// CONNECT TO CHROMECAST
 		// This connects to the chromecast in general.
@@ -152,7 +189,7 @@ class Chromecast
 		fflush($this->socket);
 		$this->lastactivetime = time();
 	}
-	
+
 	public function launch($appid) {
 
 		// Launches the chromecast app on the connected chromecast
@@ -160,7 +197,7 @@ class Chromecast
 		// CONNECT
 		$this->cc_connect();
 
-		
+
 		// LAUNCH
 		$c = new CastMessage();
                 $c->source_id = "sender-0";
@@ -177,8 +214,8 @@ class Chromecast
 			$this->getCastMessage();
 		}
 	}
-	
-	
+
+
 	function getStatus() {
 		// Get the status of the chromecast in general and return it
 		// also fills in the transportId of any currently running app
