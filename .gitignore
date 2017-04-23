@@ -8,3 +8,4 @@
 /composer.lock
 /img/cache/*
 /vendor/*git*
+/.ftpconfig
