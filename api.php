@@ -239,8 +239,17 @@
 		}
 		$value = $_GET['value'];
 		write_log('GET: Setting parameter changed '.$id . ' : ' . $value);
-		if ($val = 'true') $val = true;
-		if ($val = 'false') $val = false;
+		if (preg_match("/IP/",$id)) {
+			$url = parse_url($value);
+			write_log("Got a URL: ".$value);
+			if (isset($url['scheme'])) {
+				write_log("This has a protocol");
+			} else {
+				write_log("No protocol specified, assuming http://");
+				$value = 'http://'.$url['host'];
+			}
+			write_log("Full thing: ".print_r($url,true));
+		}
 		$_SESSION['config']->set('user-_-'.$_SESSION['username'],$id,$value);
 		saveConfig($_SESSION['config']);
 		reloadVariables();
@@ -463,12 +472,21 @@
 
 		$_SESSION['returnItems'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'returnItems', 0);
 
-		$_SESSION['ip_couch'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'couchIP', 'localhost');
-		$_SESSION['ip_ombi'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'ombiUrl', 'localhost');
-		$_SESSION['ip_sonarr'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'sonarrIP', 'localhost');
-		$_SESSION['ip_sick'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'sickIP', 'localhost');
-		$_SESSION['ip_radarr'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'radarrIP', 'localhost');
-
+		$_SESSION['ip_couch'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'couchIP', 'http://localhost');
+		$_SESSION['ip_ombi'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'ombiUrl', 'http://localhost');
+		$_SESSION['ip_sonarr'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'sonarrIP', 'http://localhost');
+		$_SESSION['ip_sick'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'sickIP', 'http://localhost');
+		$_SESSION['ip_radarr'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'radarrIP', 'http://localhost');
+		$ips = array("ip_couch"=>$_SESSION['ip_couch'],"ip_ombi"=>$_SESSION['ip_ombi'],"ip_sonarr"=>$_SESSION['ip_sonarr'],"ip_sick"=>$_SESSION['ip_sick'],"ip_radarr"=>$_SESSION['ip_radarr']);
+		foreach ($ips as $key=>$value) {
+			write_log("IPS: ".$key." = ".$value);
+			$addy = parse_url($value);
+			if(! isset($addy['scheme'])) {
+				write_log("Fixing URL");
+				$_SESSION[$key] = 'http://'.$value;
+				write_log("Fixed value for ".$key." is ".$_SESSION[$key]);
+			}
+		}
 		$_SESSION['port_couch'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'couchPort', '5050');
 		$_SESSION['port_ombi'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'ombiPort', '3579');
 		$_SESSION['port_sonarr'] = $_SESSION['config']->get('user-_-'.$_SESSION['username'], 'sonarrPort', '8989');
@@ -623,11 +641,16 @@
 				if ($word == 'episode') {
 					$useNext = true;
 				}
-
+				if (($word == 'latest') || ($word == 'new') || ($word == 'newest')) {
+					$remove = $word;
+					$episode = -1;
+					break;
+				}
 			}
 			if ($episode) {
 				$type = 'show';
 				$commandArray = array_diff($commandArray,array('episode',$episode));
+				if ($episode == -1) $commandArray = array_diff($commandArray,array('episode',$remove));
 			}
 		}
 		if ($type == false) $resultOut['parsedCommand'] = 'Fetch the first movie or show named '.implode(" ",$commandArray);
@@ -3312,7 +3335,7 @@
 		$sickURL = $_SESSION['ip_sick'];
 		$sickApiKey = $_SESSION['auth_sick'];
 		$sickPort = $_SESSION['port_sick'];
-		$sick = new SickRage('http://'.$sickURL.':'.$sickPort, $sickApiKey);
+		$sick = new SickRage($sickURL.':'.$sickPort, $sickApiKey);
 		$result = $sick->sbSearchTvdb($command);
 		write_log($result);
 		if ($result) {
@@ -3385,7 +3408,7 @@
 				$response['status'] = ($responseJSON['message'] ? $responseJSON['message'] : $responseJSON['result']);
 				$response['mediaResult']['@attributes']['title'] = $resultName;
 				$response['mediaResult']['@attributes']['year'] = $resultYear;
-				$artURL = 'http://'.$sickURL.':'.$sickPort.'/api/'.$sickApiKey.'/' . '?cmd=show.getbanner&tvdbid='.$resultID;
+				$artURL = $sickURL.':'.$sickPort.'/api/'.$sickApiKey.'/' . '?cmd=show.getbanner&tvdbid='.$resultID;
 				$responseJSON['art'] = cacheImage($artURL);
 				write_log("Art should be findable at ".$responseJSON['art']);
 				$responseJSON['type'] = 'show';
@@ -3407,7 +3430,7 @@
 		$sonarrURL = $_SESSION['ip_sonarr'];
 		$sonarrApiKey = $_SESSION['auth_sonarr'];
 		$sonarrPort = $_SESSION['port_sonarr'];
-		$baseURL = 'http://'.$sonarrURL.':'.$sonarrPort.'/api';
+		$baseURL = $sonarrURL.':'.$sonarrPort.'/api';
 		$searchString = '/series/lookup?term='.urlencode($command);
 		$authString = '&apikey='.$sonarrApiKey;
 		$searchURL = $baseURL.$searchString.$authString;
@@ -3462,7 +3485,7 @@
 						$resultObject['year'] = $year;
 						$resultObject['summary'] = $resultJSON['overview'];
 						$resultObject['type'] = 'show';
-						$artUrl = 'http://'.$sonarrURL.':'.$sonarrPort.'/MediaCover/'. $series['id'] . '/fanart.jpg?apikey='.$sonarrApiKey;
+						$artUrl = $sonarrURL.':'.$sonarrPort.'/MediaCover/'. $series['id'] . '/fanart.jpg?apikey='.$sonarrApiKey;
 						$resultObject['art'] = cacheImage($artUrl);
 						$resultObject['thumb'] = cacheImage($artUrl);
 						$response['mediaResult']['@attributes'] = $resultObject;
@@ -3481,7 +3504,7 @@
 				if ($responseJSON) {
 					$response['status'] = 'success';
 					$response['mediaResult']['@attributes']['url'] = $url2;
-					$artImage = 'http://'.$sonarrURL.':'.$sonarrPort.'/MediaCover/'. $responseJSON['id'] . '/fanart.jpg?apikey='.$sonarrApiKey;
+					$artImage = $sonarrURL.':'.$sonarrPort.'/MediaCover/'. $responseJSON['id'] . '/fanart.jpg?apikey='.$sonarrApiKey;
 					$artImage = cacheImage($artImage);
 					$responseJSON['art'] = $artImage;
 					$responseJSON['thumb'] = $artImage;
@@ -3547,7 +3570,7 @@
 
 		// Send our initial request to search the movie
 
-		$url = "http://" . $couchURL . ":" . $couchPort . "/api/" . $couchApikey . "/movie.search/?q=" . urlencode($command);
+		$url = $couchURL . ":" . $couchPort . "/api/" . $couchApikey . "/movie.search/?q=" . urlencode($command);
 		write_log("Sending request to " . $url);
 		$result = curlGet($url);
 
@@ -3572,7 +3595,7 @@
 			$resultObject['thumb'] = $art;
 			$resultObject['summary'] = $plot;
 			$resultObject['type'] = 'movie';
-			$url2 = "http://" . $couchURL . ":" . $couchPort . "/api/" . $couchApikey . "/movie.add/?identifier=" . $imdbID . "&title=" . urlencode($command).($_SESSION['profile_couch'] ? '&profile_id='.$_SESSION['profile_couch'] : '');
+			$url2 = $couchURL . ":" . $couchPort . "/api/" . $couchApikey . "/movie.add/?identifier=" . $imdbID . "&title=" . urlencode($command).($_SESSION['profile_couch'] ? '&profile_id='.$_SESSION['profile_couch'] : '');
 			write_log("Sending add request to: " . $url2);
 			$response2 = curlGet($url2);
 			$response['status'] = 'success';
@@ -3589,7 +3612,7 @@
 		$radarrURL = $_SESSION['ip_radarr'];
 		$radarrApiKey = $_SESSION['auth_radarr'];
 		$radarrPort = $_SESSION['port_radarr'];
-		$baseURL = 'http://'.$radarrURL.':'.$radarrPort.'/api';
+		$baseURL = $radarrURL.':'.$radarrPort.'/api';
 
 		$searchString = '/movies/lookup?term='.urlencode($command);
 		$authString = '&apikey='.$radarrApiKey;
@@ -3646,7 +3669,7 @@
 						$resultObject['year'] = $resultJSON['year'];
 						$resultObject['summary'] = $resultJSON['overview'];
 						$resultObject['type'] = 'movie';
-						$artUrl = 'http://'.$radarrURL.':'.$radarrPort.'/api/MediaCover/'. $movie['id'] . '/banner.jpg?apikey='.$radarrApiKey;
+						$artUrl = $radarrURL.':'.$radarrPort.'/api/MediaCover/'. $movie['id'] . '/banner.jpg?apikey='.$radarrApiKey;
 						write_log("Art URL Should be ".$artUrl);
 						$resultObject['art'] = cacheImage($artUrl);
 						$response['mediaResult']['@attributes'] = $resultObject;
@@ -3676,7 +3699,7 @@
 				if ($responseJSON) {
 					$response['status'] = 'success';
 					$response['mediaResult']['@attributes']['url'] = $url2;
-					$artUrl = 'http://'.$radarrURL.':'.$radarrPort.'/api/MediaCover/'. $responseJSON['id'] . '/banner.jpg?apikey='.$radarrApiKey;
+					$artUrl = $radarrURL.':'.$radarrPort.'/api/MediaCover/'. $responseJSON['id'] . '/banner.jpg?apikey='.$radarrApiKey;
 					write_log("Art URL Should be ".$artUrl);
 					$responseJSON['art'] = cacheImage($artUrl);
 					$responseJSON['type'] = 'movie';
@@ -3792,7 +3815,7 @@
 				$authString = 'Authorization:Basic '.$plexCred;
 				$len = strlen($authString);
 				if (($ombiURL) && ($plexCred) && ($ombiPort)) {
-					$url = "http://" . $ombiURL . ":" . $ombiPort . "/api/v1/login";
+					$url = $ombiURL . ":" . $ombiPort . "/api/v1/login";
 					write_log("Test URL is ".protectURL($url));
 					$ch = curl_init();
 					curl_setopt($ch, CURLOPT_URL,$url);
@@ -3816,7 +3839,7 @@
 				$couchApikey = $_SESSION['auth_couch'];
 				$couchPort = $_SESSION['port_couch'];
 				if (($couchURL) && ($couchApikey) && ($couchPort)) {
-					$url = "http://" . $couchURL . ":" . $couchPort . "/api/" . $couchApikey . "/profile.list";
+					$url = $couchURL . ":" . $couchPort . "/api/" . $couchApikey . "/profile.list";
 					$result = curlGet($url);
 					if ($result) {
 						$resultJSON = json_decode($result,true);
@@ -3845,7 +3868,7 @@
 				$sonarrApikey = $_SESSION['auth_sonarr'];
 				$sonarrPort = $_SESSION['port_sonarr'];
 				if (($sonarrURL) && ($sonarrApikey) && ($sonarrPort)) {
-					$url = "http://" . $sonarrURL . ":" . $sonarrPort . "/api/profile?apikey=".$sonarrApikey;
+					$url = $sonarrURL . ":" . $sonarrPort . "/api/profile?apikey=".$sonarrApikey;
 					$result = curlGet($url);
 					if ($result) {
 						write_log("Result retrieved.");
@@ -3876,7 +3899,7 @@
 				$radarrApikey = $_SESSION['auth_radarr'];
 				$radarrPort = $_SESSION['port_radarr'];
 				if (($radarrURL) && ($radarrApikey) && ($radarrPort)) {
-					$url = "http://" . $radarrURL . ":" . $radarrPort . "/api/profile?apikey=".$radarrApikey;
+					$url = $radarrURL . ":" . $radarrPort . "/api/profile?apikey=".$radarrApikey;
 					$result = curlGet($url);
 					if ($result) {
 						write_log("Result retrieved.");
@@ -3905,7 +3928,7 @@
 				$sickApiKey = $_SESSION['auth_sick'];
 				$sickPort = $_SESSION['port_sick'];
 				if (($sickURL) && ($sickApiKey) && ($sickPort)) {
-					$sick = new SickRage('http://'.$sickURL.':'.$sickPort, $sickApiKey);
+					$sick = new SickRage($sickURL.':'.$sickPort, $sickApiKey);
 					$result = $sick->sbGetDefaults();
 					$result = json_decode($result,true);
 					write_log("Got some kind of result ".json_encode($result));
