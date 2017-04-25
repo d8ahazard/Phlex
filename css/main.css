@@ -4,6 +4,13 @@ html, body {
 	background-color: ;
 }
 
+.background {
+	height: 100%;
+	width: 100%;
+	background-size: 100% 100%;
+	background: no-repeat center center;
+}
+
 .login-box {
 	position: relative;
 	top: 50%;

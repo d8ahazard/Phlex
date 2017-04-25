@@ -7,7 +7,9 @@
   ],
   "require": {
     "pear-pear.php.net/config_lite": "*",
-    "kryptonit3/sickrage": "^1.0"
+    "kryptonit3/sickrage": "^1.0",
+    "kryptonit3/sonarr": "1.0.5"
   },
-  "minimum-stability": "dev"
+  "minimum-stability": "dev",
+  "config": {"secure-http": false}
 }

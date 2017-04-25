@@ -9,3 +9,4 @@
 /img/cache/*
 /vendor/*git*
 /.ftpconfig
+/.idea/*
