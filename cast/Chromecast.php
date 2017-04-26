@@ -167,7 +167,11 @@ class Chromecast
 							$target .= chr($d[$offset + $z]);
 						}
 						$target .= ".local";
-						$chromecasts[$inpacket->answerrrs[$x]->name] = array("port"=>$port, "ip"=>"", "target"=>$target, "friendlyname"=>"");
+                                                if (!isset($chromecasts[$inpacket->answerrrs[$x]->name])) {
+                                                    $chromecasts[$inpacket->answerrrs[$x]->name] = array("port"=>$port, "ip"=>"", "target"=>$target, "friendlyname"=>"");
+                                                } else {
+                                                    $chromecasts[$inpacket->answerrrs[$x]->name]['target'] = $target;
+                                                }
 						// We know the name and port. Send an A query for the IP address
                                                 // or cheat and use the additionalrrs cache if it is present
                                                 $found = 0;
@@ -193,7 +197,11 @@ class Chromecast
                                             $stp = strpos($fn,"fn=")+3;
                                             $etp = strpos($fn,"ca=");
                                             $fn = substr($fn,$stp,$etp-$stp-1);
-                                            $chromecasts[$inpacket->answerrrs[$x]->name]['friendlyname'] = $fn;
+                                            if (!isset($chromecasts[$inpacket->answerrrs[$x]->name])) {
+                                                $chromecasts[$inpacket->answerrrs[$x]->name] = array("port"=>8009, "ip"=>"", "target"=>"", "friendlyname"=>$fn);
+                                            } else {
+                                                $chromecasts[$inpacket->answerrrs[$x]->name]['friendlyname'] = $fn;
+                                            }
                                             $found = 0;
                                             for ($y=0; $y < sizeof($additionalscache); $y++) {
                                                 if ($additionalscache[$y]->qtype==1) {
@@ -317,7 +325,6 @@ class Chromecast
 		$r = "";
 		while ($this->transportid == "") {
 			$r = $this->getCastMessage();
-                        echo "_---" . $r . "\n";
 		}
 		return $r;
 	}

@@ -88,6 +88,14 @@ class CCPlexPlayer extends CCBaseSender
                 $this->chromecast->sendMessage("urn:x-cast:plex",'{"type":"NEXT"}');
         }
         
+        public function plexStatus() {
+                $this->launch();
+		$this->chromecast->sendMessage("urn:x-cast:com.google.cast.media",'{"type":"GET_STATUS", "requestId":1}');
+		$r = $this->chromecast->getCastMessage();
+                $r = substr($r, strpos($r,'{"type'),50000);
+                return json_encode($r);
+        }
+        
 	public function Mute() {
 		// Mute a video
 		$this->launch(); // Auto-reconnects
