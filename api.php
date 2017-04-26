@@ -1799,7 +1799,7 @@
 
 	function fetchCastDevices() {
 		if (!(isset($_GET['pollPlayer']))) write_log("Function fired.");
-		$result = Chromecast::scan();
+		$result = Chromecast::scan(30);
 		$returns = array();
 		if (!(isset($_GET['pollPlayer']))) write_log("Returns: ".json_encode($result));
 		foreach ($result as $key=>$value) {
@@ -1807,7 +1807,7 @@
 			$nameString = preg_replace("/\._googlecast.*/","",$key);
 			$nameArray = explode('-',$nameString);
 			$id = array_pop($nameArray);
-			$deviceOut['name'] = $value['fname'];
+			$deviceOut['name'] = $value['friendlyname'];
 			$deviceOut['product'] = 'cast';
 			$deviceOut['id'] = $id;
 			$deviceOut['token'] = 'none';
@@ -2761,14 +2761,15 @@
 
 		// Set up our cast device
 		$client = parse_url($_SESSION['uri_plexclient']);
-		$cc = new Chromecast($client['host'],$client['port']);
-		// Launch the Plex cast app
-		// Is there some way to test if app is already loaded, or check a status before firing this?
-		$cc->launch("9AC194DC");
-		// Connect to the Application
-		$cc->connect();
-		write_log("Sleeping to make sure plex is up and running (not necessary in real app)");
-		sleep(5);
+
+    try {
+      $cc = new Chromecast($client['host'],$client['port']);
+    } catch (Exception $e) {
+        $return['url'] = 'chromecast://'.$client['host'].':'.$client['port'];
+        $return['status'] = 'Error - Chromecast unresponsive';
+        return $return;
+    }
+
 
 		// Build JSON
 		$result = [
@@ -2807,12 +2808,15 @@
 			]
 		];
 
-		$json = json_encode($result);
-		$status = $cc->sendMessage("urn:x-cast:com.google.cast.media", $json);
-		write_log("Play response: ".$status);
-		sleep(2);
-		$cc->sendMessage("urn:x-cast:plex",'{"type":"PLAY"}');
-		sleep(2);
+                
+    // Launch and play on Plex
+    //write_log("CASTJSONPLAY: " . json_encode($result));
+    $cc->Plex->play(json_encode($result));
+    sleep(1);
+    fclose($cc->socket);
+    sleep(1);
+
+
 		$return['url'] = 'chromecast://'.$client['host'].':'.$client['port'];
 		$return['status'] = 'success';
 		return $return;
@@ -3001,42 +3005,37 @@
 		$int = 100;
 		// Set up our cast device
 		if (preg_match("/volume/s", $cmd)) {
+                    write_log("::::" . $cmd);
 			$int = filter_var($cmd, FILTER_SANITIZE_NUMBER_INT);
 			$cmd = "volume";
 		}
 		$client = parse_url($_SESSION['uri_plexclient']);
 		$cc = new Chromecast($client['host'],$client['port']);
 
-		// Connect to the Application
-		if ($cmd != 'volume') {
-			$cc->cc_connect();
-			$cc->getStatus();
-			$cc->connect();
-			$cc->getStatus();
-		}
 		$valid = true;
+                write_log("Received CAST COmmand: " . $cmd);
 		switch ($cmd) {
 			case "play":
-				$status= $cc->sendMessage("urn:x-cast:plex",'{"type":"PLAY"}');
+				$cc->Plex->restart();
 				break;
 			case "pause":
-				$status = $cc->sendMessage("urn:x-cast:plex",'{"type":"PAUSE"}');
+                                $cc->Plex->pause();
 				break;
 			case "stepForward":
-				$status = $cc->sendMessage("urn:x-cast:plex",'{"type":"STEPFORWARD"}');
+				$cc->Plex->stepForward();
 				break;
 			case "stop":
-				$status = $cc->sendMessage("urn:x-cast:plex",'{"type":"STOP"}');
+				$cc->Plex->stop();
 				break;
 			case "skipBack":
-				$status = $cc->sendMessage("urn:x-cast:plex",'{"type":"PREVIOUS"}');
+				$cc->Plex->skipBack();
 				break;
 			case "skipForward":
-				$status = $cc->sendMessage("urn:x-cast:plex",'{"type":"NEXT"}');
+				$cc->Plex->skipForward();
 				break;
 			case "volume":
 				write_log("Should be a volume command.");
-				$status = $cc->DMP->SetVolume($int);
+				$cc->Plex->SetVolume($int);
 				break;
 			default:
 				$status = "Error.";
@@ -3044,6 +3043,8 @@
 				$valid = false;
 
 		}
+                fclose($cc->socket);
+                sleep(1);
 
 		if ($valid) {
 			write_log("Command response: ".$status);
