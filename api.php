@@ -2877,6 +2877,9 @@
                 // Launch and play on Plex
                 //write_log("CASTJSONPLAY: " . json_encode($result));
                 $cc->Plex->play(json_encode($result));
+                sleep(1);
+                fclose($cc->socket);
+                sleep(1);
 
 		$return['url'] = 'chromecast://'.$client['host'].':'.$client['port'];
 		$return['status'] = 'success';
@@ -3106,6 +3109,8 @@
 				$valid = false;
 
 		}
+                fclose($cc->socket);
+                sleep(1);
 
 		if ($valid) {
 			write_log("Command response: ".$status);
