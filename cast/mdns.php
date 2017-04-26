@@ -1,6 +1,8 @@
 <?php
 
 // Simple MDNS query object
+// Chris Ridings
+// www.chrisridings.com
 
 class mDNS {
 	
@@ -9,6 +11,9 @@ class mDNS {
 	// PTR = 12;
 	// SRV = 33;
 	// TXT = 16;
+        
+        // query cache for the last query packet sent
+        private $querycache = "";
 	
 	public function __construct() {
 		error_reporting(E_ERROR | E_PARSE);
@@ -38,8 +43,14 @@ class mDNS {
 		for ($x = 0; $x < sizeof($b); $x++) { 
 			$data .= chr($b[$x]);
 		}
+                $this->querycache = $data;
 		$r = socket_sendto($this->mdnssocket, $data, strlen($data), 0, '224.0.0.251',5353);	
 	}
+        
+        public function requery() {
+            // resend the last query
+            $r = socket_sendto($this->mdnssocket, $this->querycache, strlen($this->querycache), 0, '224.0.0.251',5353);
+        }
 	
 	public function readIncoming() {
 		// Read some incoming data. Timeout after 1 second
@@ -51,6 +62,7 @@ class mDNS {
 			$response = socket_read($this->mdnssocket, 1024, PHP_BINARY_READ);
 		} catch (Exception $e) {
 		}
+                if (strlen($response) < 1) { return ""; }
 		// Create an array to represent the bytes
 		$bytes = array();
 		for ($x = 0; $x < strlen($response); $x++) {
