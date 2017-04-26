@@ -317,7 +317,6 @@ class Chromecast
 		$r = "";
 		while ($this->transportid == "") {
 			$r = $this->getCastMessage();
-                        echo "_---" . $r . "\n";
 		}
 		return $r;
 	}

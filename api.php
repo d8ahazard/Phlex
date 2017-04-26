@@ -2916,12 +2916,29 @@
 					$status['mediaResult']['art'] = $art;
 					$status['mediaResult']['@attributes']['thumb'] = $thumb;
 					$status['mediaResult']['@attributes']['art'] = $art;
+                                        // Progress seems to go to 100 and then stop. Use the chromecast reporting to fill in the actual time.
+                                        $addresses = explode(":",$_SESSION['uri_plexclient']);
+                                        $client = parse_url($_SESSION['uri_plexclient']);
+                                        try {
+                                            $cc = new Chromecast($client['host'],$client['port']);
+                                            $r = $cc->Plex->plexStatus();
+                                            fclose($cc->socket);
+                                            $r = str_replace('\"','"',$r);
+                                            preg_match("/\"currentTime\"\:([^\,]*)/s",$r,$m);
+                                            $currentTime = $m[1];
+                                            if ($currentTime == "") { $currentTime = 0; }
+                                            $status['time'] = $currentTime * 1000;
+                                            //write_log("CASTSTATUS: (M) : " . $currentTime . " - " . $duration);
+                                        } catch (Exception $e) {
+                                            // If the chromecast doesn't answer then it doesn't matter so much!
+                                        }
 				}
 			}
 		} else {
 			$status['status'] = 'error';
 		}
 		$status = json_encode($status);
+                //write_log("CASTSTATUS: " . $status);
 		return $status;
 	}
 
