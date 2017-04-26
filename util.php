@@ -172,14 +172,24 @@
 	}
 	
 	
-	function curlPost($url,$content,$JSON=false) {
+	function curlPost($url,$content=false,$JSON=false, Array $headers=null) {
 		$curl = curl_init($url);
 		curl_setopt($curl, CURLOPT_HEADER, false);
 		curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt ($curl, CURLOPT_CAINFO, dirname(__FILE__) . "/cert/cacert.pem");
-		if ($JSON) curl_setopt($curl, CURLOPT_HTTPHEADER, array("Content-type: application/json"));
 		curl_setopt($curl, CURLOPT_POST, true);
-		curl_setopt($curl, CURLOPT_POSTFIELDS, $content);
+        if ($headers) {
+            if ($JSON){
+                $headers = array_merge($headers,array("Content-type: application/json"));
+            }
+            curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+        } else {
+            if ($JSON){
+                $headers = array_merge($headers,array("Content-type: application/json"));
+                curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+            }
+        }
+        if ($content) curl_setopt($curl, CURLOPT_POSTFIELDS, $content);
 		$response = curl_exec($curl);
 		curl_close($curl);
 		return $response;
