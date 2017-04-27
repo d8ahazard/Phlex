@@ -1771,35 +1771,34 @@
 				}
 
 			}
-
-			if (($type == 'clients') && ($_SESSION['use_cast'])) {
-			$castDevices = fetchCastDevices();
-				foreach ($castDevices as $castDevice) {
-					if (trim($castDevice['id']) == trim($selected)) {
-						$castDevice['selected'] = true;
-					}
-					array_push($devices, $castDevice);
-				}
-			}
-			if ($type == 'clients') {
-				$_SESSION['fetch_plexclient'] = microtime(true);
-				$_SESSION['list_plexclient'] = $devices;
-				$GLOBALS['config']->set('user-_-'.$_SESSION['username'],'plexClientFetched',$_SESSION['fetch_plexclient']);
-			} else {
-				$_SESSION['fetch_plexserver'] = microtime(true);
-				$_SESSION['list_plexserver'] = $devices;
-				$GLOBALS['config']->set('user-_-'.$_SESSION['username'],'plexServerFetched',$_SESSION['fetch_plexserver']);
-			}
-			saveConfig($GLOBALS['config']);
-			if (!(empty($devices)))	return $devices;
-		}
+                }
+                if (($type == 'clients') && ($_SESSION['use_cast'])) {
+                $castDevices = fetchCastDevices();
+                        foreach ($castDevices as $castDevice) {
+                                if (trim($castDevice['id']) == trim($selected)) {
+                                        $castDevice['selected'] = true;
+                                }
+                                array_push($devices, $castDevice);
+                        }
+                }
+                if ($type == 'clients') {
+                        $_SESSION['fetch_plexclient'] = microtime(true);
+                        $_SESSION['list_plexclient'] = $devices;
+                        $GLOBALS['config']->set('user-_-'.$_SESSION['username'],'plexClientFetched',$_SESSION['fetch_plexclient']);
+                } else {
+                        $_SESSION['fetch_plexserver'] = microtime(true);
+                        $_SESSION['list_plexserver'] = $devices;
+                        $GLOBALS['config']->set('user-_-'.$_SESSION['username'],'plexServerFetched',$_SESSION['fetch_plexserver']);
+                }
+                saveConfig($GLOBALS['config']);
+                if (!(empty($devices)))	return $devices;
 		return false;
 	}
 
 
 	function fetchCastDevices() {
 		if (!(isset($_GET['pollPlayer']))) write_log("Function fired.");
-		$result = Chromecast::scan(30);
+		$result = Chromecast::scan();
 		$returns = array();
 		if (!(isset($_GET['pollPlayer']))) write_log("Returns: ".json_encode($result));
 		foreach ($result as $key=>$value) {

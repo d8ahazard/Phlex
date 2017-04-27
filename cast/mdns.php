@@ -216,7 +216,7 @@ class DNSPacket {
 		if ($this->packetheader->getAdditionalRRs() > 0) {
 			// Finally read any additional rrs
 			for ($xq = 1; $xq <= $this->packetheader->getAdditionalRRs(); $xq++) {
-				$rq = $this->readRR($data);
+				$qr = $this->readRR($data);
 				array_push($this->additionalrrs, $qr);
 			}
 		}
@@ -228,13 +228,18 @@ class DNSPacket {
 		$size = 0;
 		$resetoffsetto = 0;
 		$firstreset = 0;
+                $sectionstart = $this->offset;
+                $sectionsize = 0;
 		while ($data[$this->offset]<>0) {
 			if ($size == 0) {
 				$size = $data[$this->offset];
+                                if ($sectionsize == 0) {
+                                    $sectionsize = $size;
+                                }
 				if (($size & 192) == 192) {
-					if ($firstreset == 0 && $resetoffsetto <> 0) { $firstrest = $resetoffsetto; }
+					if ($firstreset == 0 && $resetoffsetto <> 0) { $firstreset = $resetoffsetto; }
 					$resetoffsetto = $this->offset;
-					$this->offset = $data[$this->offset + 1];
+					$this->offset = $data[$this->offset + 1] + (($data[$this->offset] - 192)*256);
 					$size = $data[$this->offset];
 				}
 			} else {
@@ -262,6 +267,7 @@ class DNSPacket {
 			array_push($ddata, $data[$this->offset]); 
 			$this->offset = $this->offset + 1;
 		}
+                $storeoffset = $this->offset;
 		// For PTR, SRV, and TXT records we need to uncompress the data
 		$datadecode = "";
 		$size = 0;
@@ -288,12 +294,13 @@ class DNSPacket {
 			if ($firstreset <> 0) { $resetoffsetto = $firstreset; }
 			if ($resetoffseto <> 0) { $offset = $resetoffsetto + 1; }
 			$datadecode = substr($datadecode, 0, strlen($datadecode)-1);
-			$this->offset++;
 			$ddata = array();
 			for ($x = 0; $x < strlen($datadecode); $x++) {
 				array_push($ddata, ord(substr($datadecode,$x,1)));
-			}
+                                $this->offset++;
+                        }
 		}
+                $this->offset = $storeoffset;
 		$r = New DNSResourceRecord;
 		$r->name = $name;
 		$r->qclass = $qclass;

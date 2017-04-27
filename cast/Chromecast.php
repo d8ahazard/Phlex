@@ -75,10 +75,10 @@ class Chromecast
 		$mdns->query("_googlecast._tcp.local",1,12,"");
 		$mdns->query("_googlecast._tcp.local",1,12,"");
 		$cc = $wait;
+                $dontrequery = 0;
                 set_time_limit($wait * 2);
 		$chromecasts = array();
-                $additionalscache = array(); // Hold additionalRRs
-		while ($cc>0) {
+                while ($cc>0) {
                         $inpacket = "";
                         $breakout = 100;
                         while ($inpacket == "" && $breakout > 0) {
@@ -97,7 +97,8 @@ class Chromecast
                             }
                             if ($inpacket == "" || $f = 1) { 
                                 usleep(5000);
-                                $mdns->requery(); 
+                                if ($dontrequery == 0) { $mdns->requery(); }
+                                if ($dontrequery == 1) { $breakout--; }
                             }
                         }
                         // If we get here and inpacket is "" then there was an error
@@ -106,14 +107,9 @@ class Chromecast
                         }
 			// If our packet has answers, then read them
                         //$mdns->printPacket($inpacket);
-                        if ($inpacket->packetheader->getAdditionalRRS()>0) {
-                            // Loop the additional RRs for A records
-                            for ($x=0; $x < sizeof($inpacket->additionalrrs); $x++) {
-                                array_push($additionalscache, $inpacket->additionalrrs[$x]);
-                            }
-                        }
 			if ($inpacket->packetheader->getAnswerRRs()> 0) {
-                     //       $mdns->printPacket($inpacket);
+                                $dontrequery = 0;
+                            //$mdns->printPacket($inpacket);
 				for ($x=0; $x < sizeof($inpacket->answerrrs); $x++) {
 					if ($inpacket->answerrrs[$x]->qtype == 12) {
 						//print_r($inpacket->answerrrs[$x]);
@@ -122,37 +118,88 @@ class Chromecast
 							for ($y = 0; $y < sizeof($inpacket->answerrrs[$x]->data); $y++) {
 								$name .= chr($inpacket->answerrrs[$x]->data[$y]);
 							}
-							// The chromecast name is in $name. Send a a SRV query unless it's already in the additionalscache
-                                                        // If it is then swap the additional into the answer and cheat :-)
-                                                        $found = 0;
-                                                        for ($y=0; $y < sizeof($additionalscache); $y++) {
-                                                            if ($additionalscache[$y]->qtype==33) {
-                                                                if ($additionalscache[$y]->name==$name) {
-                                                                    $found = 1;
-                                                                    $inpacket->answerrrs[$x] = $additionalscache[$y];
+                                                        // The chromecast itself fills in additional rrs. So if that's there then we have a quicker method of
+                                                        // processing the results.
+                                                        // First build any missing entries with any 33 packets we find.
+                                                        for ($p = 0; $p < sizeof($inpacket->additionalrrs);$p++) {
+                                                            if ($inpacket->additionalrrs[$p]->qtype == 33) {
+                                                                $d = $inpacket->additionalrrs[$p]->data;
+                                                                $port = ($d[4] * 256) + $d[5];
+                                                                // We need the target from the data
+                                                                $offset = 6;
+                                                                $size = $d[$offset];
+                                                                $offset++;
+                                                                $target = "";
+                                                                for ($z=0; $z < $size; $z++) {
+                                                                        $target .= chr($d[$offset + $z]);
                                                                 }
+                                                                $target .= ".local";
+                                                                if (!isset($chromecasts[$inpacket->additionalrrs[$p]->name])) {
+                                                                    $chromecasts[$inpacket->additionalrrs[$x]->name] = array("port"=>8009, "ip"=>"", "target"=>"", "friendlyname"=>"");
+                                                                }
+                                                                $chromecasts[$inpacket->additionalrrs[$x]->name]['target'] = $target;
                                                             }
                                                         }
-                                                        if ($found == 0) {
+                                                        // Next repeat the process for 16
+                                                        for ($p = 0; $p < sizeof($inpacket->additionalrrs);$p++) {
+                                                            if ($inpacket->additionalrrs[$p]->qtype == 16) {
+                                                                $fn = "";
+                                                                for ($q=0; $q < sizeof($inpacket->additionalrrs[$p]->data); $q++) {
+                                                                    $fn .= chr($inpacket->additionalrrs[$p]->data[$q]);
+                                                                }
+                                                                $stp = strpos($fn,"fn=")+3;
+                                                                $etp = strpos($fn,"ca=");
+                                                                $fn = substr($fn,$stp,$etp-$stp-1);
+                                                                if (!isset($chromecasts[$inpacket->additionalrrs[$p]->name])) {
+                                                                    $chromecasts[$inpacket->additionalrrs[$x]->name] = array("port"=>8009, "ip"=>"", "target"=>"", "friendlyname"=>"");
+                                                                }
+                                                                $chromecasts[$inpacket->additionalrrs[$x]->name]['friendlyname'] = $fn;
+                                                            }
+                                                        }
+                                                        // And finally repeat again for 1
+                                                        for ($p = 0; $p < sizeof($inpacket->additionalrrs);$p++) {
+                                                            if ($inpacket->additionalrrs[$p]->qtype == 1) {
+                                                                $d = $inpacket->additionalrrs[$p]->data;
+                                                                $ip = $d[0] . "." . $d[1] . "." . $d[2] . "." . $d[3];
+                                                                foreach ($chromecasts as $key=>$value) {
+                                                                        if ($value['target'] == $inpacket->additionalrrs[$p]->name) {
+                                                                                $value['ip'] = $ip;	
+                                                                                $chromecasts[$key] = $value;
+                                                                        }
+                                                                }
+                                                            }
+                                                        }  
+                                                        $dontrequery = 1;
+                                                        // Check our item. If it doesn't exist then it wasn't in the additionals, so send requests.
+                                                        // If it does exist then check it has all the items. If not, send the requests.
+                                                        if (isset($chromecasts[$name])) {
+                                                            $xx = $chromecasts[$name];
+                                                            if ($xx['target'] == "") {
+                                                                // Send a 33 request
+                                                                $mdns->query($name,1,33,"");
+                                                                $dontrequery = 0;
+                                                            }
+                                                            if ($xx['friendlyname']=="") {
+                                                                // Send a 16 request
+                                                                $mdns->query($name,1,16,"");
+                                                                $dontrequery = 0;
+                                                            }
+                                                            if ($xx['target'] != "" && $xx['friendlyname'] != "" && $xx['ip'] == "") {
+                                                                // Only missing the ip address for the target.
+                                                                $mdns->query($xx['target'],1,1,"");
+                                                                $dontrequery = 0;
+                                                            }
+                                                        } else {
+                                                            // Send queries. These'll trigger a 1 query when we have a target name.
                                                             $mdns->query($name, 1, 33, "");
-                                                            $cc=$wait;
-                                                            set_time_limit($wait * 2);
-                                                        }
- 							// Repeat for text
-                                                        $found = 0;
-                                                        for ($y=0; $y < sizeof($additionalscache); $y++) {
-                                                            if ($additionalscache[$y]->qtype==16) {
-                                                                if ($additionalscache[$y]->name==$name) {
-                                                                    $found = 1;
-                                                                    $inpacket->answerrrs[$x] = $additionalscache[$y];
-                                                                }
-                                                            }
-                                                        }
-                                                        if ($found == 0) {
+                                                            sleep(1);
                                                             $mdns->query($name, 1, 16, "");
-                                                            $cc=$wait;
-                                                            set_time_limit($wait * 2);
+                                                            $dontrequery = 0;
                                                         }
+                                                        
+                                                        if ($dontrequery == 0) { $cc=$wait; }
+                                                        usleep(25000 * $wait);
+                                                        set_time_limit($wait * 2);    
 						}
 					}
 					if ($inpacket->answerrrs[$x]->qtype == 33) {
@@ -173,21 +220,9 @@ class Chromecast
                                                     $chromecasts[$inpacket->answerrrs[$x]->name]['target'] = $target;
                                                 }
 						// We know the name and port. Send an A query for the IP address
-                                                // or cheat and use the additionalrrs cache if it is present
-                                                $found = 0;
-                                                for ($y=0; $y < sizeof($additionalscache); $y++) {
-                                                    if ($additionalscache[$y]->qtype==1) {
-                                                        if ($additionalscache[$y]->name==$target) {
-                                                            $found = 1;
-                                                            $inpacket->answerrrs[$x] = $additionalscache[$y];
-                                                        }
-                                                    }
-                                                }
-                                                if ($found == 0) {
-                                                    $mdns->query($target,1,1,"");
-                                                    $cc=$wait;
-                                                    set_time_limit($wait * 2);
-                                                }
+                                                $mdns->query($target,1,1,"");
+                                                $cc=$wait;
+                                                set_time_limit($wait * 2);
 					}
                                         if ($inpacket->answerrrs[$x]->qtype == 16) {
                                             $fn = "";
@@ -202,15 +237,7 @@ class Chromecast
                                             } else {
                                                 $chromecasts[$inpacket->answerrrs[$x]->name]['friendlyname'] = $fn;
                                             }
-                                            $found = 0;
-                                            for ($y=0; $y < sizeof($additionalscache); $y++) {
-                                                if ($additionalscache[$y]->qtype==1) {
-                                                    if ($additionalscache[$y]->name==$target) {
-                                                        $found = 1;
-                                                        $inpacket->answerrrs[$x] = $additionalscache[$y];
-                                                    }
-                                                }
-                                            }
+ 
                                             $mdns->query($chromecasts[$inpacket->answerrrs[$x]->name]['target'],1,1,"");
                                             $cc=$wait;
                                             set_time_limit($wait * 2);
