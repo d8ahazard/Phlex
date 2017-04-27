@@ -1798,7 +1798,7 @@
 
 	function fetchCastDevices() {
 		if (!(isset($_GET['pollPlayer']))) write_log("Function fired.");
-		$result = Chromecast::scan(30);
+		$result = Chromecast::scan();
 		$returns = array();
 		if (!(isset($_GET['pollPlayer']))) write_log("Returns: ".json_encode($result));
 		foreach ($result as $key=>$value) {
