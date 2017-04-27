@@ -47,7 +47,7 @@ class CCPlexPlayer extends CCBaseSender
 			$r = "";
 			while (!preg_match("/Plex/",$r) && !preg_match("/Default Media Receiver/",$r)) {
 				$r = $this->chromecast->getStatus();
-                                echo $r . "\n";
+                                //echo $r . "\n";
 				sleep(1);
 			}
 			$this->chromecast->connect();
