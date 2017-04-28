@@ -3,7 +3,6 @@
 namespace Kryptonit3\Sonarr;
 
 use GuzzleHttp\Client;
-use Kryptonit3\Sonarr\Exceptions\InvalidException;
 
 class Sonarr
 {
@@ -29,7 +28,6 @@ class Sonarr
      * @param string|null $start
      * @param string|null $end
      * @return array|object|string
-     * @throws InvalidException
      */
     public function getCalendar($start = null, $end = null)
     {
@@ -39,30 +37,38 @@ class Sonarr
             if ( $this->validateDate($start) ) {
                 $uriData['start'] = $start;
             } else {
-                throw new InvalidException('Start date string was not recognized as a valid DateTime. Format must be yyyy-mm-dd.');
+                echo json_encode(array(
+                    'error' => array(
+                        'msg' => 'Start date string was not recognized as a valid DateTime. Format must be yyyy-mm-dd.',
+                        'code' => 400,
+                    ),
+                ));
+
+                exit();
             }
         }
         if ( $end ) {
             if ( $this->validateDate($end) ) {
                 $uriData['end'] = $end;
             } else {
-                throw new InvalidException('End date string was not recognized as a valid DateTime. Format must be yyyy-mm-dd.');
+                echo json_encode(array(
+                    'error' => array(
+                        'msg' => 'End date string was not recognized as a valid DateTime. Format must be yyyy-mm-dd.',
+                        'code' => 400,
+                    ),
+                ));
+
+                exit();
             }
         }
 
-        try {
-            $response = $this->_request(
-                [
-                    'uri' => 'calendar',
-                    'type' => 'get',
-                    'data' => $uriData
-                ]
-            );
-        } catch ( \Exception $e ) {
-            throw new InvalidException($e->getMessage());
-        }
+        $response = [
+            'uri' => 'calendar',
+            'type' => 'get',
+            'data' => $uriData
+        ];
 
-        return $response->getBody()->getContents();
+        return $this->processRequest($response);
     }
 
     /**
@@ -70,25 +76,18 @@ class Sonarr
      *
      * @param null $id Unique ID of the command
      * @return array|object|string
-     * @throws InvalidException
      */
     public function getCommand($id = null)
     {
         $uri = ($id) ? 'command/' . $id : 'command';
 
-        try {
-            $response = $this->_request(
-                [
-                    'uri' => $uri,
-                    'type' => 'get',
-                    'data' => []
-                ]
-            );
-        } catch ( \Exception $e ) {
-            throw new InvalidException($e->getMessage());
-        }
+        $response = [
+            'uri' => $uri,
+            'type' => 'get',
+            'data' => []
+        ];
 
-        return $response->getBody()->getContents();
+        return $this->processRequest($response);
     }
 
     /**
@@ -101,7 +100,6 @@ class Sonarr
      * @param $name
      * @param array|null $params
      * @return string
-     * @throws InvalidException
      */
     public function postCommand($name, array $params = null)
     {
@@ -118,44 +116,31 @@ class Sonarr
         if ( array_key_exists('files', $params) ) { $uriData['files'] = $params['files']; }
         if ( array_key_exists('seriesIds', $params) ) { $uriData['seriesIds'] = $params['seriesIds']; }
 
-        try {
-            $response = $this->_request(
-                [
-                    'uri' => $uri,
-                    'type' => 'post',
-                    'data' => $uriData
-                ]
-            );
-        } catch ( \Exception $e ) {
-            throw new InvalidException($e->getMessage());
-        }
+        $response = [
+            'uri' => $uri,
+            'type' => 'post',
+            'data' => $uriData
+        ];
 
-        return $response->getBody()->getContents();
+        return $this->processRequest($response);
     }
 
     /**
      * Gets Diskspace
      *
      * @return array|object|string
-     * @throws InvalidException
      */
     public function getDiskspace()
     {
         $uri = 'diskspace';
 
-        try {
-            $response = $this->_request(
-                [
-                    'uri' => $uri,
-                    'type' => 'get',
-                    'data' => []
-                ]
-            );
-        } catch ( \Exception $e ) {
-            throw new InvalidException($e->getMessage());
-        }
+        $response = [
+            'uri' => $uri,
+            'type' => 'get',
+            'data' => []
+        ];
 
-        return $response->getBody()->getContents();
+        return $this->processRequest($response);
     }
 
     /**
@@ -163,27 +148,20 @@ class Sonarr
      *
      * @param $seriesId
      * @return array|object|string
-     * @throws InvalidException
      */
     public function getEpisodes($seriesId)
     {
         $uri = 'episode';
 
-        try {
-            $response = $this->_request(
-                [
-                    'uri' => $uri,
-                    'type' => 'get',
-                    'data' => [
-                        'SeriesId' => $seriesId
-                    ]
-                ]
-            );
-        } catch ( \Exception $e ) {
-            throw new InvalidException($e->getMessage());
-        }
+        $response = [
+            'uri' => $uri,
+            'type' => 'get',
+            'data' => [
+                'SeriesId' => $seriesId
+            ]
+        ];
 
-        return $response->getBody()->getContents();
+        return $this->processRequest($response);
     }
 
     /**
@@ -191,25 +169,18 @@ class Sonarr
      *
      * @param $id
      * @return string
-     * @throws InvalidException
      */
     public function getEpisode($id)
     {
         $uri = 'episode';
 
-        try {
-            $response = $this->_request(
-                [
-                    'uri' => $uri . '/' . $id,
-                    'type' => 'get',
-                    'data' => []
-                ]
-            );
-        } catch ( \Exception $e ) {
-            throw new InvalidException($e->getMessage());
-        }
+        $response = [
+            'uri' => $uri . '/' . $id,
+            'type' => 'get',
+            'data' => []
+        ];
 
-        return $response->getBody()->getContents();
+        return $this->processRequest($response);
     }
 
     /**
@@ -220,25 +191,18 @@ class Sonarr
      *
      * @param array $data
      * @return string
-     * @throws InvalidException
      */
     public function updateEpisode(array $data)
     {
         $uri = 'episode';
 
-        try {
-            $response = $this->_request(
-                [
-                    'uri' => $uri,
-                    'type' => 'put',
-                    'data' => $data
-                ]
-            );
-        } catch ( \Exception $e ) {
-            throw new InvalidException($e->getMessage());
-        }
+        $response = [
+            'uri' => $uri,
+            'type' => 'put',
+            'data' => $data
+        ];
 
-        return $response->getBody()->getContents();
+        return $this->processRequest($response);
     }
 
     /**
@@ -246,27 +210,20 @@ class Sonarr
      *
      * @param $seriesId
      * @return array|object|string
-     * @throws InvalidException
      */
     public function getEpisodeFiles($seriesId)
     {
         $uri = 'episodefile';
 
-        try {
-            $response = $this->_request(
-                [
-                    'uri' => $uri,
-                    'type' => 'get',
-                    'data' => [
-                        'SeriesId' => $seriesId
-                    ]
-                ]
-            );
-        } catch ( \Exception $e ) {
-            throw new InvalidException($e->getMessage());
-        }
+        $response = [
+            'uri' => $uri,
+            'type' => 'get',
+            'data' => [
+                'SeriesId' => $seriesId
+            ]
+        ];
 
-        return $response->getBody()->getContents();
+        return $this->processRequest($response);
     }
 
     /**
@@ -274,25 +231,18 @@ class Sonarr
      *
      * @param $id
      * @return string
-     * @throws InvalidException
      */
     public function getEpisodeFile($id)
     {
         $uri = 'episodefile';
 
-        try {
-            $response = $this->_request(
-                [
-                    'uri' => $uri . '/' . $id,
-                    'type' => 'get',
-                    'data' => []
-                ]
-            );
-        } catch ( \Exception $e ) {
-            throw new InvalidException($e->getMessage());
-        }
+        $response = [
+            'uri' => $uri . '/' . $id,
+            'type' => 'get',
+            'data' => []
+        ];
 
-        return $response->getBody()->getContents();
+        return $this->processRequest($response);
     }
 
     /**
@@ -300,25 +250,18 @@ class Sonarr
      *
      * @param $id
      * @return string
-     * @throws InvalidException
      */
     public function deleteEpisodeFile($id)
     {
         $uri = 'episodefile';
 
-        try {
-            $response = $this->_request(
-                [
-                    'uri' => $uri . '/' . $id,
-                    'type' => 'delete',
-                    'data' => []
-                ]
-            );
-        } catch ( \Exception $e ) {
-            throw new InvalidException($e->getMessage());
-        }
+        $response = [
+            'uri' => $uri . '/' . $id,
+            'type' => 'delete',
+            'data' => []
+        ];
 
-        return $response->getBody()->getContents();
+        return $this->processRequest($response);
     }
 
     /**
@@ -329,30 +272,23 @@ class Sonarr
      * @param string $sortKey 'series.title' or 'date'
      * @param string $sortDir 'asc' or 'desc'
      * @return array|object|string
-     * @throws InvalidException
      */
     public function getHistory($page = 1, $pageSize = 10, $sortKey = 'series.title', $sortDir = 'asc')
     {
         $uri = 'history';
 
-        try {
-            $response = $this->_request(
-                [
-                    'uri' => $uri,
-                    'type' => 'get',
-                    'data' => [
-                        'page' => $page,
-                        'pageSize' => $pageSize,
-                        'sortKey' => $sortKey,
-                        'sortDir' => $sortDir
-                    ]
-                ]
-            );
-        } catch ( \Exception $e ) {
-            throw new InvalidException($e->getMessage());
-        }
+        $response = [
+            'uri' => $uri,
+            'type' => 'get',
+            'data' => [
+                'page' => $page,
+                'pageSize' => $pageSize,
+                'sortKey' => $sortKey,
+                'sortDir' => $sortDir
+            ]
+        ];
 
-        return $response->getBody()->getContents();
+        return $this->processRequest($response);
     }
 
     /**
@@ -363,80 +299,59 @@ class Sonarr
      * @param string $sortKey 'series.title' or 'airDateUtc'
      * @param string $sortDir 'asc' or 'desc'
      * @return array|object|string
-     * @throws InvalidException
      */
     public function getWantedMissing($page = 1, $pageSize = 10, $sortKey = 'series.title', $sortDir = 'asc')
     {
         $uri = 'wanted/missing';
 
-        try {
-            $response = $this->_request(
-                [
-                    'uri' => $uri,
-                    'type' => 'get',
-                    'data' => [
-                        'page' => $page,
-                        'pageSize' => $pageSize,
-                        'sortKey' => $sortKey,
-                        'sortDir' => $sortDir
-                    ]
-                ]
-            );
-        } catch ( \Exception $e ) {
-            throw new InvalidException($e->getMessage());
-        }
+        $response = [
+            'uri' => $uri,
+            'type' => 'get',
+            'data' => [
+                'page' => $page,
+                'pageSize' => $pageSize,
+                'sortKey' => $sortKey,
+                'sortDir' => $sortDir
+            ]
+        ];
 
-        return $response->getBody()->getContents();
+        return $this->processRequest($response);
     }
 
     /**
      * Displays currently downloading info
      *
      * @return array|object|string
-     * @throws InvalidException
      */
     public function getQueue()
     {
         $uri = 'queue';
 
-        try {
-            $response = $this->_request(
-                [
-                    'uri' => $uri,
-                    'type' => 'get',
-                    'data' => []
-                ]
-            );
-        } catch ( \Exception $e ) {
-            throw new InvalidException($e->getMessage());
-        }
+        $response = [
+            'uri' => $uri,
+            'type' => 'get',
+            'data' => []
+        ];
 
-        return $response->getBody()->getContents();
+        return $this->processRequest($response);
     }
 
     /**
      * Gets all quality profiles
      *
      * @return array|object|string
-     * @throws InvalidException
      */
     public function getProfiles()
     {
         $uri = 'profile';
 
-        try {
-            $response = $this->_request(
-                [
-                    'uri' => $uri,
-                    'type' => 'get',
-                    'data' => []
-                ]
-            );
-        } catch ( \Exception $e ) {
-            throw new InvalidException($e->getMessage());
-        }
+        $response = [
+            'uri' => $uri,
+            'type' => 'get',
+            'data' => []
+        ];
 
-        return $response->getBody()->getContents();
+        return $this->processRequest($response);
     }
 
     /**
@@ -444,7 +359,6 @@ class Sonarr
      *
      * @param $episodeId
      * @return string
-     * @throws InvalidException
      */
     public function getRelease($episodeId)
     {
@@ -453,19 +367,13 @@ class Sonarr
             'episodeId' => $episodeId
         ];
 
-        try {
-            $response = $this->_request(
-                [
-                    'uri' => $uri,
-                    'type' => 'get',
-                    'data' => $uriData
-                ]
-            );
-        } catch ( \Exception $e ) {
-            throw new InvalidException($e->getMessage());
-        }
+        $response = [
+            'uri' => $uri,
+            'type' => 'get',
+            'data' => $uriData
+        ];
 
-        return $response->getBody()->getContents();
+        return $this->processRequest($response);
     }
 
     /**
@@ -475,7 +383,6 @@ class Sonarr
      *
      * @param $guid
      * @return string
-     * @throws InvalidException
      */
     public function postRelease($guid)
     {
@@ -484,19 +391,13 @@ class Sonarr
             'guid' => $guid
         ];
 
-        try {
-            $response = $this->_request(
-                [
-                    'uri' => $uri,
-                    'type' => 'post',
-                    'data' => $uriData
-                ]
-            );
-        } catch ( \Exception $e ) {
-            throw new InvalidException($e->getMessage());
-        }
+        $response = [
+            'uri' => $uri,
+            'type' => 'post',
+            'data' => $uriData
+        ];
 
-        return $response->getBody()->getContents();
+        return $this->processRequest($response);
     }
 
     /**
@@ -507,7 +408,6 @@ class Sonarr
      * @param $downloadProtocol (Usenet or Torrent)
      * @param $publishDate (ISO8601 Date)
      * @return string
-     * @throws InvalidException
      */
     public function postReleasePush($title, $downloadUrl, $downloadProtocol, $publishDate)
     {
@@ -519,69 +419,49 @@ class Sonarr
             'publishDate' => $publishDate
         ];
 
-        try {
-            $response = $this->_request(
-                [
-                    'uri' => $uri,
-                    'type' => 'post',
-                    'data' => $uriData
-                ]
-            );
-        } catch ( \Exception $e ) {
-            throw new InvalidException($e->getMessage());
-        }
+        $response = [
+            'uri' => $uri,
+            'type' => 'post',
+            'data' => $uriData
+        ];
 
-        return $response->getBody()->getContents();
+        return $this->processRequest($response);
     }
 
     /**
      * Gets root folder
      *
      * @return array|object|string
-     * @throws InvalidException
      */
     public function getRootFolder()
     {
         $uri = 'rootfolder';
 
-        try {
-            $response = $this->_request(
-                [
-                    'uri' => $uri,
-                    'type' => 'get',
-                    'data' => []
-                ]
-            );
-        } catch ( \Exception $e ) {
-            throw new InvalidException($e->getMessage());
-        }
+        $response = [
+            'uri' => $uri,
+            'type' => 'get',
+            'data' => []
+        ];
 
-        return $response->getBody()->getContents();
+        return $this->processRequest($response);
     }
 
     /**
      * Returns all series in your collection
      *
      * @return array|object|string
-     * @throws InvalidException
      */
     public function getSeries()
     {
         $uri = 'series';
 
-        try {
-            $response = $this->_request(
-                [
-                    'uri' => $uri,
-                    'type' => 'get',
-                    'data' => []
-                ]
-            );
-        } catch ( \Exception $e ) {
-            throw new InvalidException($e->getMessage());
-        }
+        $response = [
+            'uri' => $uri,
+            'type' => 'get',
+            'data' => []
+        ];
 
-        return $response->getBody()->getContents();
+        return $this->processRequest($response);
     }
 
     /**
@@ -603,7 +483,6 @@ class Sonarr
      * after adding the series, setting to true (default) will only monitor future episodes.
      *
      * @return array|object|string
-     * @throws InvalidException
      */
     public function postSeries(array $data, $onlyFutureEpisodes = true)
     {
@@ -629,19 +508,13 @@ class Sonarr
             ];
         }
 
-        try {
-            $response = $this->_request(
-                [
-                    'uri' => $uri,
-                    'type' => 'post',
-                    'data' => $uriData
-                ]
-            );
-        } catch ( \Exception $e ) {
-            throw new InvalidException($e->getMessage());
-        }
+        $response = [
+            'uri' => $uri,
+            'type' => 'post',
+            'data' => $uriData
+        ];
 
-        return $response->getBody()->getContents();
+        return $this->processRequest($response);
     }
 
     /**
@@ -650,7 +523,6 @@ class Sonarr
      * @param int $id
      * @param bool|true $deleteFiles
      * @return string
-     * @throws InvalidException
      */
     public function deleteSeries($id, $deleteFiles = true)
     {
@@ -658,21 +530,13 @@ class Sonarr
         $uriData = [];
         $uriData['deleteFiles'] = ($deleteFiles) ? 'true' : 'false';
 
-        try {
-            $response = $this->_request(
-                [
-                    'uri' => $uri . '/' . $id,
-                    'type' => 'delete',
-                    'data' => $uriData
-                ]
+        $response = [
+            'uri' => $uri . '/' . $id,
+            'type' => 'delete',
+            'data' => $uriData
+        ];
 
-
-            );
-        } catch ( \Exception $e ) {
-            throw new InvalidException($e->getMessage());
-        }
-
-        return $response->getBody()->getContents();
+        return $this->processRequest($response);
     }
 
     /**
@@ -682,7 +546,6 @@ class Sonarr
      *
      * @param string $searchTerm query string for the search (Use tvdb:12345 to lookup TVDB ID 12345)
      * @return string
-     * @throws InvalidException
      */
     public function getSeriesLookup($searchTerm)
     {
@@ -691,48 +554,31 @@ class Sonarr
             'term' => $searchTerm
         ];
 
-        try {
-            $response = $this->_request(
-                [
-                    'uri' => $uri,
-                    'type' => 'get',
-                    'data' => $uriData
-                ]
+        $response = [
+            'uri' => $uri,
+            'type' => 'get',
+            'data' => $uriData
+        ];
 
-
-            );
-        } catch ( \Exception $e ) {
-            throw new InvalidException($e->getMessage());
-        }
-
-        return $response->getBody()->getContents();
+        return $this->processRequest($response);
     }
 
     /**
      * Get System Status
      *
      * @return string
-     * @throws InvalidException
      */
     public function getSystemStatus()
     {
         $uri = 'system/status';
 
-        try {
-            $response = $this->_request(
-                [
-                    'uri' => $uri,
-                    'type' => 'get',
-                    'data' => []
-                ]
+        $response = [
+            'uri' => $uri,
+            'type' => 'get',
+            'data' => []
+        ];
 
-
-            );
-        } catch ( \Exception $e ) {
-            throw new InvalidException($e->getMessage());
-        }
-
-        return $response->getBody()->getContents();
+        return $this->processRequest($response);
     }
 
     /**
@@ -746,10 +592,10 @@ class Sonarr
         $client = new Client();
         $options = [
             'headers' => [
-                'X-Api-Key' => $this->apiKey    
-            ]    
+                'X-Api-Key' => $this->apiKey
+            ]
         ];
-        
+
         if ( $this->httpAuthUsername && $this->httpAuthPassword ) {
             $options['auth'] = [
                 $this->httpAuthUsername,
@@ -766,14 +612,14 @@ class Sonarr
         if ( $params['type'] == 'put' ) {
             $url = $this->url . '/api/' . $params['uri'];
             $options['json'] = $params['data'];
-            
+
             return $client->put($url, $options);
         }
 
         if ( $params['type'] == 'post' ) {
             $url = $this->url . '/api/' . $params['uri'];
             $options['json'] = $params['data'];
-            
+
             return $client->post($url, $options);
         }
 
@@ -782,6 +628,36 @@ class Sonarr
 
             return $client->delete($url, $options);
         }
+    }
+
+    /**
+     * Process requests, catch exceptions, return json response
+     *
+     * @param array $request uri, type, data from method
+     * @return string json encoded response
+     */
+    protected function processRequest(array $request)
+    {
+        try {
+            $response = $this->_request(
+                [
+                    'uri' => $request['uri'],
+                    'type' => $request['type'],
+                    'data' => $request['data']
+                ]
+            );
+        } catch ( \Exception $e ) {
+            echo json_encode(array(
+                'error' => array(
+                    'msg' => $e->getMessage(),
+                    'code' => $e->getCode(),
+                ),
+            ));
+
+            exit();
+        }
+
+        return $response->getBody()->getContents();
     }
 
     /**

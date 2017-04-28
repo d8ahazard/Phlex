@@ -100,7 +100,8 @@
 		<link href="./css/bootstrap-material-design.min.css" rel="stylesheet">
 		<link href="./css/bootstrap-dialog.css" rel="stylesheet">
 		<link href="./css/ripples.min.css" rel="stylesheet">
-		<link href="./css/main.css" rel="stylesheet">
+        <link href="./css/main.css" rel="stylesheet">
+
 		
 		<!--[if lt IE 9]>
 			<link href="/css/bootstrap-ie8.css" rel="stylesheet">
@@ -506,7 +507,38 @@
 			</div>
 			
 			<div class="wrapperArt"></div>
-			<iframe id="backArt" class="backArt" src="./cc.html"></iframe>
+
+            <div class="castArt">
+                <div class="background-container">
+                    <div class="ccWrapper cycle-slideshow" data-cycle-fx="fade" data-cycle-timeout="10000" data-cycle-speed=2000 data-cycle-slides="> div">
+                        <div class="fade1 ccBackground">
+                            <div class="ccTextDiv">
+                                <span class="spacer" ng-if="showWeather">
+                                <span class="tempDiv meta">&ensp;</span>
+                                <div class="weatherIcon"></div>
+                                <div class="timeDiv meta"></div>
+                                <div id="metadata-line-1" class="meta"></div>
+                                <div id="metadata-line-2" class="meta"></div>
+                                <div id="metadata-line-3" class="meta"></div>
+                            </div>
+
+                        </div>
+                        <div class="fade2 ccBackground">
+                            <div class="ccTextDiv">
+                                <span class="spacer" ng-if="showWeather">
+                                <span class="tempDiv meta">&ensp;</span>
+                                <div class="weatherIcon"></div>
+                                <div class="timeDiv meta"></div>
+                                <div id="metadata-line-1" class="meta"></div>
+                                <div id="metadata-line-2" class="meta"></div>
+                                <div id="metadata-line-3" class="meta"></div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
 			<div id="metaTags"><?PHP echo '<meta id="apiTokenData" data="'.$_SESSION['apiToken'].'"></meta>' . metaTags();?></div>
 		</div>
 		<script type="text/javascript" src="./js/jquery-3.1.1.min.js"></script>
@@ -520,8 +552,8 @@
 		<script type="text/javascript" src="./js/snackbar.min.js"></script>
 		<script type="text/javascript" src="./js/bootstrap-dialog.js"></script>
 		<script type="text/javascript" src="./js/clipboard.min.js"></script>
-
-    
+        <script type="text/javascript" src="./js/jquery.simpleWeather.min.js"></script>
+        <script type="text/javascript" src="./js/jquery.cycle2.min.js"></script>
 	</body>
 </html>
 <?php

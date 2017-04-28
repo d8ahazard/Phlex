@@ -33,9 +33,6 @@
             "GuzzleHttp\\Tests\\": "tests/"
         }
     },
-    "suggest": {
-        "psr/log": "Required for using the Log middleware"
-    },
     "extra": {
         "branch-alias": {
             "dev-master": "6.2-dev"

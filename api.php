@@ -4,7 +4,7 @@
 	require_once dirname(__FILE__) . '/util.php';
 	use Kryptonit3\SickRage\SickRage;
     use Kryptonit3\Sonarr\Sonarr;
-	date_default_timezone_set("America/Chicago");
+    date_default_timezone_set("America/Chicago");
 	ini_set("log_errors", 1);
 	error_reporting(E_ERROR);
 	$errfilename = 'Phlex_error.log';
@@ -21,7 +21,7 @@
 	}
 	// Define our config globally
 	$config = new Config_Lite('config.ini.php');
-
+	$_SESSION['mc'] = initMCurl();
 	// Fetch our Plex device ID, create one if it does not exist
 	$_SESSION['deviceID'] = $config->get('general','deviceID','');
 	if (($_SESSION['deviceID'])=="") {
@@ -167,6 +167,7 @@
 		$result['commands'] =  urlencode(($contents));
 		$result['players'] = fetchClientList();
 		$result['servers'] = fetchServerList();
+		fetchDVRList();
 		$result['dvrs'] = $_SESSION['list_plexdvr'];
 		header('Content-Type: application/json');
 		echo JSON_ENCODE($result);
@@ -442,7 +443,6 @@
 				$GLOBALS['config']->set('user-_-'.$_SESSION['username'],'plexDVRToken',$dvr['token']);
 				saveConfig($GLOBALS['config']);
 			}
-
 		}
 
 		reloadVariables();
@@ -1613,37 +1613,12 @@
 	function signIn($plexCred) {
 		$token = $_SESSION['plex_token'];
 		$url = 'https://plex.tv/pms/servers.xml?X-Plex-Token='.$_SESSION['plex_token'];
-		$ch=curl_init();
-		curl_setopt($ch, CURLOPT_URL, $url);
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-		curl_setopt ($ch, CURLOPT_CAINFO, rtrim(dirname(__FILE__), '/') . "/cert/cacert.pem");
-		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 1);
-		$result=curl_exec($ch);
-		curl_close($ch);
+		$result=curlGet($url);
 		if (strpos($result,'Please sign in.')){
 			write_log("Test connection to Plex failed, updating token.");
 			$url='https://plex.tv/users/sign_in.xml';
-			$ch = curl_init();
-			curl_setopt($ch, CURLOPT_URL,$url);
-			curl_setopt($ch, CURLOPT_POST, 1);
-			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-			curl_setopt ($ch, CURLOPT_CAINFO, rtrim(dirname(__FILE__), '/') . "/cert/cacert.pem");
-			$headers = array(
-				'X-Plex-Client-Identifier: '.$_SESSION['deviceID'],
-				'X-Plex-Device:PhlexWeb',
-				'X-Plex-Device-Screen-Resolution:1520x707,1680x1050,1920x1080',
-				'X-Plex-Device-Name:Phlex',
-				'X-Plex-Platform:Web',
-				'X-Plex-Platform-Version:1.0.0',
-				'X-Plex-Product:Phlex',
-				'X-Plex-Version:1.0.0',
-				'X-Plex-Provides:player,controller,sync-target,pubsub-player',
-				'Authorization:Basic '.$plexCred
-
-			);
-			curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-			$result = curl_exec ($ch);
-			curl_close ($ch);
+            $headers = clientHeaders();
+            $result=curlPost($url,false,false,$headers);
 			if ($result) {
 				$container = new SimpleXMLElement($result);
 				$token = (string)$container['authToken'];
@@ -1858,8 +1833,8 @@
 		return $options;
 	}
 
-	function fetchDVRList($force = false) {
-		write_log("Function fired.");
+	function fetchDVRList($force=false) {
+        if (!(isset($_GET['pollPlayer']))) write_log("Function fired.");
 		$dvrList = false;
 		$now = microtime(true);
 		$lastCheck = $GLOBALS['config']->get('user-_-'.$_SESSION['username'],'plexDVRFetched',$now);
@@ -2578,6 +2553,7 @@
 
 	// Send some stuff to a play queue
 	function queueMedia($media) {
+		$queueID = false;
 		write_log("Function Fired.");
 		write_log("Media array: ".json_encode($media));
 		$key = $media['key'];
@@ -2600,38 +2576,16 @@
 		'&uri='.$uri.
 		'&shuffle=0&repeat=0&includeChapters=1&continuous=1'.
 		$_SESSION['plexHeader'];
-		write_log("QueueMedia Url: ".$url);
-		$ch = curl_init();
-		curl_setopt($ch, CURLOPT_URL,$url);
-		curl_setopt($ch, CURLOPT_POST, 1);
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt ($ch, CURLOPT_CAINFO, rtrim(dirname(__FILE__), '/') . "/cert/cacert.pem");
-		$headers = array(
-			'X-Plex-Client-Identifier:'.$_SESSION['deviceID'],
-			'X-Plex-Device:PhlexWeb',
-			'X-Plex-Device-Name:Phlex',
-			'X-Plex-Device-Screen-Resolution:1520x707,1680x1050,1920x1080',
-			'X-Plex-Platform:Web',
-			'X-Plex-Platform-Version:1.0.0',
-			'X-Plex-Product:Phlex',
-			'X-Plex-Target-Client-Identifier:'.$_SESSION['id_plexclient'],
-			'X-Plex-Version:1.0.0'
-		);
-		curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-		$result = curl_exec($ch);
-		curl_close ($ch);
-		//$result = curlGet($url);
+        $headers = clientHeaders();
+        write_log("QueueMedia Url: ".protectURL($url));
+		$result = curlPost($url,false,false,$headers);
 		if ($result) {
-			write_log("Result contains: ".$result);
 			$container = new SimpleXMLElement($result);
 			$container = json_decode(json_encode($container),true);
-			write_log("Have some JSON ".json_encode($container));
-			$queueID = (string)$container['@attributes']['playQueueID'];
-			write_log("Holy fucking fucking fuck, I got an ID of ".$queueID);
-			return $queueID;
-
+			$queueID = (isset($container['@attributes']['playQueueID']) ? $container['@attributes']['playQueueID'] : false);
+			write_log("Retrieved queue ID of ".$queueID);
 		}
-		return false;
+        return $queueID;
 
 	}
 
@@ -2641,7 +2595,10 @@
 			$clientProduct = $_SESSION['product_plexclient'];
 			switch ($clientProduct) {
 				case 'cast':
-					$result = playMediaCast($media);
+                    //$child = fopen('http://'.$_SERVER['HTTP_HOST'].'/devices.php?media='.urlencode($media), 'r');
+                    //$result = stream_get_contents($child);
+                    $result = playMediaCast($media);
+
 					break;
 				case 'Plex for Android':
 					$result = playMediaDirect($media);
@@ -2699,17 +2656,6 @@
 		$queueID = queueMedia($media);
 		$transientToken = fetchTransientToken();
 		$_SESSION['counter']++;
-		$headers = array(
-			'X-Plex-Client-Identifier:'.$_SESSION['deviceID'],
-			'X-Plex-Target-Client-Identifier:'.$_SESSION['id_plexclient'],
-			'X-Plex-Device:PhlexWeb',
-			'X-Plex-Device-Name:Phlex',
-			'X-Plex-Device-Screen-Resolution:1520x707,1680x1050,1920x1080',
-			'X-Plex-Platform:Web',
-			'X-Plex-Platform-Version:1.0.0',
-			'X-Plex-Product:Phlex',
-			'X-Plex-Version:1.0.0'
-		);
 		write_log("Current command ID is " . $_SESSION['counter']);
 		write_log("Queue Token is ".$queueID);
 		$playUrl = $_SESSION['uri_plexclient'].'/player/playback/playMedia'.
@@ -2722,17 +2668,8 @@
 		'&containerKey=%2FplayQueues%2F'.$queueID.'%3Fown%3D1%26window%3D200'.
 		'&token=' .$transientToken.
 		'&commandID='.$_SESSION['counter'];
-		$ch = curl_init();
-		curl_setopt_array($ch, array(
-			CURLOPT_URL => $playUrl,
-			CURLOPT_RETURNTRANSFER => true,
-			CURLOPT_HEADER => true,
-			CURLOPT_NOBODY => true,
-			CURLOPT_VERBOSE => true,
-			CURLOPT_HTTPHEADER => $headers
-		));
-		$result = curl_exec($ch);
-		curl_close ($ch);
+        $headers = clientHeaders();
+        $result = curlGet($playUrl,$headers);
 		write_log('Playback URL is ' . protectURL($playUrl));
 		write_log("Result value is ".$result);
 		$status = ((strpos($result,'HTTP/1.1 200 OK')!==false)?'success':'error');
@@ -2749,27 +2686,21 @@
 		//Set up our variables like a good boy
 		$key = $media['key'];
 		$machineIdentifier = $_SESSION['deviceID'];
-		$transientToken = fetchTransientToken();
 		$server = parse_url($_SESSION['uri_plexserver']);
 		$serverProtocol = $server['scheme'];
 		$serverIP = $server['host'];
 		$serverPort =$server['port'];
 		$userName = $_SESSION['username'];
 		$queueID = queueMedia($media);
+        $transientToken = fetchTransientToken();
 
+        write_log("Got queued media, continuing.");
 
 		// Set up our cast device
 		$client = parse_url($_SESSION['uri_plexclient']);
-
-    try {
-      $cc = new Chromecast($client['host'],$client['port']);
-    } catch (Exception $e) {
-        $return['url'] = 'chromecast://'.$client['host'].':'.$client['port'];
-        $return['status'] = 'Error - Chromecast unresponsive';
-        return $return;
-    }
-
-
+		write_log("Client: ".json_encode($client));
+		$cc = new Chromecast($client['host'],$client['port']);
+		write_log("We have a CC");
 		// Build JSON
 		$result = [
 			'type' => 'LOAD',
@@ -2808,16 +2739,19 @@
 		];
 
                 
-    // Launch and play on Plex
-    //write_log("CASTJSONPLAY: " . json_encode($result));
-    $cc->Plex->play(json_encode($result));
-    sleep(1);
-    fclose($cc->socket);
-    sleep(1);
+		// Launch and play on Plex
+		write_log("CASTJSONPLAY: " . json_encode($result));
+        //$cc->Plex = new CCPlexPlayer($cc);
+		$cc->Plex->play(json_encode($result));
+		write_log("Sent play request.");
+		sleep(1);
+		fclose($cc->socket);
+		sleep(1);
 
 
 		$return['url'] = 'chromecast://'.$client['host'].':'.$client['port'];
 		$return['status'] = 'success';
+		write_log("Returning something");
 		return $return;
 
 	}
@@ -2877,33 +2811,14 @@
 	}
 
 	function playerStatus($wait=0) {
-		$mediaContainer = false;
+		$mediaContainer = $status = false;
 		if ($_SESSION['product_plexclient'] == 'cast') {
 			return castStatus();
 		} else {
 			$url = $_SESSION['uri_plexclient'].
 			'/player/timeline/poll?wait='.$wait.'&commandID='.$_SESSION['counter'];
-			$ch = curl_init();
-			curl_setopt($ch, CURLOPT_URL,$url);
-			curl_setopt($ch, CURLOPT_POST, 1);
-			curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 3);
-			curl_setopt($ch, CURLOPT_TIMEOUT, 1);
-			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-			curl_setopt ($ch, CURLOPT_CAINFO, rtrim(dirname(__FILE__), '/') . "/cert/cacert.pem");
-			$headers = array(
-				'X-Plex-Client-Identifier:'.$_SESSION['deviceID'],
-				'X-Plex-Device:PhlexWeb',
-				'X-Plex-Device-Name:Phlex',
-				'X-Plex-Device-Screen-Resolution:1520x707,1680x1050,1920x1080',
-				'X-Plex-Platform:Web',
-				'X-Plex-Platform-Version:1.0.0',
-				'X-Plex-Product:Phlex',
-				'X-Plex-Target-Client-Identifier:'.$_SESSION['id_plexclient'],
-				'X-Plex-Version:1.0.0'
-			);
-			curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-			$results = curl_exec($ch);
-			curl_close ($ch);
+            $headers = clientHeaders();
+			$results = curlPost($url,false,false,$headers);
 			$status = array();
 			if ($results) {
 				$container = new SimpleXMLElement($results);
@@ -2918,8 +2833,9 @@
 							$media = curlGet($mediaURL);
 							if ($media) {
 								$mediaContainer = new SimpleXMLElement($media);
-								$MC = json_decode(json_encode($mediaContainer),true);
-								$thumb = (($MC['Video']['@attributes']['type'] == 'movie') ? $MC['Video']['@attributes']['thumb'] : $MC['Video']['@attributes']['parentThumb']);
+                                $MC = json_decode(json_encode($mediaContainer),true);
+                                $status['mediaResult'] = $MC['Video'];
+                                $thumb = (($MC['Video']['@attributes']['type'] == 'movie') ? $MC['Video']['@attributes']['thumb'] : $MC['Video']['@attributes']['parentThumb']);
 								$art = $MC['Video']['@attributes']['art'];
                                 $thumb = $_SESSION['uri_plexserver'].$thumb."?X-Plex-Token=".$_SESSION['token_plexserver'];
                                 $art = $_SESSION['uri_plexserver'].$art."?X-Plex-Token=".$_SESSION['token_plexserver'];
@@ -2931,7 +2847,6 @@
                                 $status['mediaResult']['@attributes']['art'] = $art;
 								$status['status'] = (string)$Timeline['state'];
 								$status['volume'] = (string)$Timeline['volume'];
-								$status['mediaResult'] = $mediaContainer->Video;
 								if ($Timeline['time']) {
 									$status['time']=(string)$Timeline['time'];
 									$status['plexServer']=$_SESSION['uri_plexserver'];
@@ -2942,11 +2857,10 @@
 				}
 			}
 		}
-		if (! $mediaContainer) {
+		if (! $status) {
 			$status['status'] = 'error';
 		}
-		$status = json_encode($status);
-		return $status;
+		return json_encode($status);
 	}
 
 	function sendCommand($cmd) {
@@ -2973,42 +2887,15 @@
 		$_SESSION['counter']++;
 		write_log("Current command ID is " . $_SESSION['counter']);
 		$url .='&commandID='.$_SESSION['counter'];
-		$ch = curl_init();
-		curl_setopt($ch, CURLOPT_URL,$url);
-		curl_setopt($ch, CURLOPT_POST, 1);
-		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 1);
-		curl_setopt($ch, CURLOPT_TIMEOUT, 1);
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt ($ch, CURLOPT_CAINFO, rtrim(dirname(__FILE__), '/') . "/cert/cacert.pem");
-		$headers = array(
-			'X-Plex-Client-Identifier:'.$_SESSION['deviceID'],
-			'X-Plex-Device:PhlexWeb',
-			'X-Plex-Device-Name:Phlex',
-			'X-Plex-Device-Screen-Resolution:1520x707,1680x1050,1920x1080',
-			'X-Plex-Platform:Web',
-			'X-Plex-Platform-Version:1.0.0',
-			'X-Plex-Product:Phlex',
-			'X-Plex-Target-Client-Identifier:'.$_SESSION['id_plexclient'],
-			'X-Plex-Version:1.0.0'
-		);
-		curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-
-		$container = curl_exec($ch);
+        $headers = clientHeaders();
+        $container = curlPost($url,false,false,$headers);
 		write_log("Command response is ".$container);
-		if (curl_errno($ch)) {
-			// this would be your first hint that something went wrong
-			write_log("CURL Error while sending command. " . curl_error($ch));
+		if (preg_match("/error/",$container)) {
+			write_log('Request failed, HTTP status code: ' . $status);
+			$status = 'error';
 		} else {
-			// check the HTTP status code of the request
-			$resultStatus = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-			if ($resultStatus != 200) {
-				write_log('Request failed, HTTP status code: ' . $status);
-				$status = 'error';
-			} else {
-				$status = 'success';
-			}
+			$status = 'success';
 		}
-		curl_close ($ch);
 		write_log('URL is: '.protectURL($url));
 		write_log("Status is " . $status);
 		$return['url'] = $url;
@@ -3732,19 +3619,9 @@
 				$authString = 'Authorization:Basic '.$plexCred;
 				if (($ombiURL) && ($plexCred) && ($ombiPort)) {
 					$url = $ombiURL . ":" . $ombiPort . "/api/v1/login";
-					write_log("Test URL is ".protectURL($url));
-					$ch = curl_init();
-					curl_setopt($ch, CURLOPT_URL,$url);
-					curl_setopt($ch, CURLOPT_POST, 1);
-					curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-					curl_setopt ($ch, CURLOPT_CAINFO, rtrim(dirname(__FILE__), '/') . "/cert/cacert.pem");
-					$headers = array(
-						$authString,
-						'Content-Length: 0'
-					);
-					curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-					$result = curl_exec ($ch);
-					curl_close ($ch);
+                    write_log("Test URL is ".protectURL($url));
+					$headers = array($authString, 'Content-Length: 0');
+					$result = curlPost($url,false,false,$headers);
 					write_log('Test result is '.$result);
 					$result = ((strpos($result,'"success": true') ? 'Connection to CouchPotato Successful!': 'ERROR: Server not available.'));
 				} else $result = "ERROR: Missing server parameters.";
