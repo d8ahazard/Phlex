@@ -6,6 +6,7 @@
 require_once("CCprotoBuf.php");
 require_once("CCDefaultMediaPlayer.php");
 require_once("CCPlexPlayer.php");
+require_once dirname(__FILE__) . '/../util.php';
 require_once("mdns.php");
 
 class Chromecast
@@ -25,7 +26,7 @@ class Chromecast
 	public $lastactivetime; // store the time we last did something
 
 	public function __construct($ip, $port) {
-
+        write_log("Function fired.");
 		// Establish Chromecast connection
 
 		// Don't pay much attention to the Chromecast's certificate. 
@@ -55,6 +56,7 @@ class Chromecast
 	}
         
         public static function scan($wait=15) {
+            write_log("Function fired.");
             // Wrapper for scan
             $c = 10;
             $result = array("Error");
@@ -66,6 +68,7 @@ class Chromecast
         }
 	
 	public static function scansub($wait=15) {
+		write_log("Function fired.");
 		// Performs an mdns scan of the network to find chromecasts and returns an array
 		// Let's test by finding Google Chromecasts
 		$mdns = new mDNS();
@@ -75,35 +78,19 @@ class Chromecast
 		$mdns->query("_googlecast._tcp.local",1,12,"");
 		$mdns->query("_googlecast._tcp.local",1,12,"");
 		$cc = $wait;
-                $dontrequery = 0;
                 set_time_limit($wait * 2);
 		$chromecasts = array();
                 while ($cc>0) {
+                        sleep(1);
                         $inpacket = "";
-                        $breakout = 100;
-                        while ($inpacket == "" && $breakout > 0) {
-                            $inpacket = $mdns->readIncoming();
-                            $f = 0;
-                            if ($inpacket <> "") {
-                                if ($inpacket->packetheader->getQuestions() > 0) {
-                                    $f = 0;
-                                    if ($inpacket->questions[0]->qtype==0) {
-                                        if ($inpacket->questions[0]->qclass==256) {
-                                            $breakout--;
-                                        }
-                                    }
-                                    if ($f==0) { $inpacket = ""; }
-                                }
-                            }
-                            if ($inpacket == "" || $f = 1) { 
-                                usleep(5000);
-                                if ($dontrequery == 0) { $mdns->requery(); }
-                                if ($dontrequery == 1) { $breakout--; }
-                            }
-                        }
+                        $inpacket = $mdns->readIncoming();
                         // If we get here and inpacket is "" then there was an error
                         if ($inpacket == "") {
-                            return array("Error");
+                            if (sizeof($chromecasts) == 0) {
+                                return array("Error");
+                            } else {
+                                return $chromecasts;
+                            }
                         }
 			// If our packet has answers, then read them
                         //$mdns->printPacket($inpacket);
@@ -169,94 +156,8 @@ class Chromecast
                                                                 }
                                                             }
                                                         }  
-                                                        $dontrequery = 1;
-                                                        // Check our item. If it doesn't exist then it wasn't in the additionals, so send requests.
-                                                        // If it does exist then check it has all the items. If not, send the requests.
-                                                        if (isset($chromecasts[$name])) {
-                                                            $xx = $chromecasts[$name];
-                                                            if ($xx['target'] == "") {
-                                                                // Send a 33 request
-                                                                $mdns->query($name,1,33,"");
-                                                                $dontrequery = 0;
-                                                            }
-                                                            if ($xx['friendlyname']=="") {
-                                                                // Send a 16 request
-                                                                $mdns->query($name,1,16,"");
-                                                                $dontrequery = 0;
-                                                            }
-                                                            if ($xx['target'] != "" && $xx['friendlyname'] != "" && $xx['ip'] == "") {
-                                                                // Only missing the ip address for the target.
-                                                                $mdns->query($xx['target'],1,1,"");
-                                                                $dontrequery = 0;
-                                                            }
-                                                        } else {
-                                                            // Send queries. These'll trigger a 1 query when we have a target name.
-                                                            $mdns->query($name, 1, 33, "");
-                                                            sleep(1);
-                                                            $mdns->query($name, 1, 16, "");
-                                                            $dontrequery = 0;
-                                                        }
                                                         
-                                                        if ($dontrequery == 0) { $cc=$wait; }
-                                                        usleep(25000 * $wait);
                                                         set_time_limit($wait * 2);    
-						}
-					}
-					if ($inpacket->answerrrs[$x]->qtype == 33) {
-						$d = $inpacket->answerrrs[$x]->data;
-						$port = ($d[4] * 256) + $d[5];
-						// We need the target from the data
-						$offset = 6;
-						$size = $d[$offset];
-						$offset++;
-						$target = "";
-						for ($z=0; $z < $size; $z++) {
-							$target .= chr($d[$offset + $z]);
-						}
-						$target .= ".local";
-                                                if (!isset($chromecasts[$inpacket->answerrrs[$x]->name])) {
-                                                    $chromecasts[$inpacket->answerrrs[$x]->name] = array("port"=>$port, "ip"=>"", "target"=>$target, "friendlyname"=>"");
-                                                } else {
-                                                    $chromecasts[$inpacket->answerrrs[$x]->name]['target'] = $target;
-                                                }
-						// We know the name and port. Send an A query for the IP address
-                                                $mdns->query($target,1,1,"");
-                                                $cc=$wait;
-                                                set_time_limit($wait * 2);
-					}
-                                        if ($inpacket->answerrrs[$x]->qtype == 16) {
-                                            $fn = "";
-                                            for ($q=0; $q < sizeof($inpacket->answerrrs[$x]->data); $q++) {
-                                                $fn .= chr($inpacket->answerrrs[$x]->data[$q]);
-                                            }
-                                            $stp = strpos($fn,"fn=")+3;
-                                            $etp = strpos($fn,"ca=");
-                                            $fn = substr($fn,$stp,$etp-$stp-1);
-                                            if (!isset($chromecasts[$inpacket->answerrrs[$x]->name])) {
-                                                $chromecasts[$inpacket->answerrrs[$x]->name] = array("port"=>8009, "ip"=>"", "target"=>"", "friendlyname"=>$fn);
-                                            } else {
-                                                $chromecasts[$inpacket->answerrrs[$x]->name]['friendlyname'] = $fn;
-                                            }
- 
-                                            $mdns->query($chromecasts[$inpacket->answerrrs[$x]->name]['target'],1,1,"");
-                                            $cc=$wait;
-                                            set_time_limit($wait * 2);
-                                        }
-					if ($inpacket->answerrrs[$x]->qtype == 1) {
-						$d = $inpacket->answerrrs[$x]->data;
-						$ip = $d[0] . "." . $d[1] . "." . $d[2] . "." . $d[3];
-						// Loop through the chromecasts and fill in the ip
-						foreach ($chromecasts as $key=>$value) {
-							if ($value['target'] == $inpacket->answerrrs[$x]->name) {
-								$value['ip'] = $ip;	
-								$chromecasts[$key] = $value;
-                                                                // If we have an IP address but no friendly name, try and get the friendly name again!
-                                                                if (strlen($value['friendlyname'])<1) {
-                                                                    $mdns->query($key, 1, 16, "");
-                                                                    $cc=$wait;
-                                                                    set_time_limit($wait * 2);
-                                                                }
-							}
 						}
 					}
 				}
@@ -267,6 +168,7 @@ class Chromecast
 	}
 	
 	function testLive() {
+        write_log("Function fired.");
 		// If there is a difference of 10 seconds or more between $this->lastactivetime and the current time, then we've been kicked off and need to reconnect
 		if ($this->lastip == "") { return; }
 		$diff = time() - $this->lastactivetime;
@@ -289,6 +191,7 @@ class Chromecast
 	}
 	
 	function cc_connect($tl=0) {
+        write_log("Function fired.");
 		// CONNECT TO CHROMECAST
 		// This connects to the chromecast in general.
 		// Generally this is called by launch($appid) automatically upon launching an app
@@ -307,7 +210,7 @@ class Chromecast
 	}
 	
 	public function launch($appid) {
-
+        write_log("Function fired.");
 		// Launches the chromecast app on the connected chromecast
 
 		// CONNECT
@@ -336,6 +239,7 @@ class Chromecast
 	
 	
 	function getStatus() {
+        write_log("Function fired.");
 		// Get the status of the chromecast in general and return it
 		// also fills in the transportId of any currently running app
 		$this->testLive();
@@ -350,13 +254,20 @@ class Chromecast
 		$this->lastactivetime = time();
 		$this->requestId++;
 		$r = "";
+		// Nvidia shield doesn't run an app by default and doesn't report an appid/transport id. :-(
 		while ($this->transportid == "") {
 			$r = $this->getCastMessage();
+			if (preg_match("/controlType\"\:\"master\"/",$r) && !preg_match("/transportId/",$r)) {
+				// Assume this is nvidia shield.
+				$this->transportid = "nvidia-shield";
+				$this->sessionid = 0;
+			}
 		}
 		return $r;
 	}
 
 	function connect($tl = 0) {
+        write_log("Function fired.");
 	// This connects to the transport of the currently running app
 	// (you need to have launched it yourself or connected and got the status)
 	if ($tl == 0) { $this->testLive(); };
@@ -373,6 +284,7 @@ class Chromecast
 	}
 
 	public function getCastMessage() {
+        write_log("Function fired.");
 		// Get the Chromecast Message/Response
 		// Later on we could update CCprotoBuf to decode this
 		// but for now all we need is the transport id  and session id if it is
@@ -384,7 +296,7 @@ class Chromecast
 			sleep(3);
 			$response = fread($this->socket, 2000);
                         // Wait infinitely for a packet.
-                        set_time_limit(30);
+                        //set_time_limit(30);
 		}
 		if (preg_match("/transportId/s", $response)) {
 			preg_match("/transportId\"\:\"([^\"]*)/",$response,$matches);
@@ -395,10 +307,12 @@ class Chromecast
 			preg_match("/\"sessionId\"\:\"([^\"]*)/",$response,$r);
 			$this->sessionid = $r[1];
 		}
+
 		return $response;
 	}
 
 	public function sendMessage($urn,$message) {
+        write_log("Function fired.");
 		// Send the given message to the given urn
 		$this->testLive();
 		$c = new CastMessage();
@@ -420,6 +334,7 @@ class Chromecast
 	}
 
 	public function pingpong() {
+        write_log("Function fired.");
 		// Officially you should run this every 5 seconds or so to keep
 		// the device alive. Doesn't seem to be necessary if an app is running
 		// that doesn't have a short timeout.
@@ -437,6 +352,7 @@ class Chromecast
 	}
 
 	public function pong() {
+        write_log("Function fired.");
 		// To answer a pingpong
 		$c = new CastMessage();
                 $c->source_id = "sender-0";

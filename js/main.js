@@ -411,6 +411,7 @@ function updateStatus() {
 					var resultType = mr[0].type;
 					var resultYear = mr[0].year;
 					var thumbPath = mr[0].thumb;
+					console.log("THumb path: " + thumbPath);
 					var artPath = mr[0].art;
 					var resultKey = mr[0].key;
 					var resultSummary = mr[0].summary;
@@ -444,9 +445,11 @@ function updateStatus() {
 						console.log("Now Playing footer is hidden, showing.");
 						$('.nowPlayingFooter').slideDown();
 						$('.nowPlayingFooter').addClass("playing");
-						setTimeout( function(){ 
+						setTimeout( function(){
+							var sliderWidth2 = $('.statusWrapper').width() - $('#statusImage').width()-60;
+							console.log("Slider width should be set to "+sliderWidth2);
 							var sliderWidth = $('.statusText').width()-30;
-							$("#progressSlider").css('width',sliderWidth);
+							$("#progressSlider").css('width',sliderWidth2);
 						}  , 300 );
 					} 
 				}

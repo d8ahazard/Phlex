@@ -81,10 +81,10 @@ class RequestException extends TransferException
         $level = (int) floor($response->getStatusCode() / 100);
         if ($level === 4) {
             $label = 'Client error';
-            $className = ClientException::class;
+            $className = __NAMESPACE__ . '\\ClientException';
         } elseif ($level === 5) {
             $label = 'Server error';
-            $className = ServerException::class;
+            $className = __NAMESPACE__ . '\\ServerException';
         } else {
             $label = 'Unsuccessful request';
             $className = __CLASS__;
@@ -93,15 +93,13 @@ class RequestException extends TransferException
         $uri = $request->getUri();
         $uri = static::obfuscateUri($uri);
 
-        // Client Error: `GET /` resulted in a `404 Not Found` response:
+        // Server Error: `GET /` resulted in a `404 Not Found` response:
         // <html> ... (truncated)
         $message = sprintf(
-            '%s: `%s %s` resulted in a `%s %s` response',
+            '%s: `%s` resulted in a `%s` response',
             $label,
-            $request->getMethod(),
-            $uri,
-            $response->getStatusCode(),
-            $response->getReasonPhrase()
+            $request->getMethod() . ' ' . $uri,
+            $response->getStatusCode() . ' ' . $response->getReasonPhrase()
         );
 
         $summary = static::getResponseBodySummary($response);
@@ -131,11 +129,6 @@ class RequestException extends TransferException
         }
 
         $size = $body->getSize();
-
-        if ($size === 0) {
-            return null;
-        }
-
         $summary = $body->read(120);
         $body->rewind();
 

@@ -106,11 +106,13 @@
 	}
 	
 	// Grab an image from a server and save it locally
-	// TODO: Some way to remove images older than N days
 	function cacheImage($url) {
 		try {
 			$cacheDir = dirname(__FILE__) . '/img/cache/';
-			$cached_filename = md5($url);
+            if (!file_exists($cacheDir)) {
+                mkdir($cacheDir, 0777, true);
+            }
+         	$cached_filename = md5($url);
 			$files = glob($cacheDir . '*.{jpg,jpeg,png,gif}', GLOB_BRACE);
 			$now = time();
 			foreach ($files as $file) {
@@ -123,7 +125,8 @@
 			foreach($files as $file) {
 				$fileName = explode('.',basename($file));
 				if ($fileName[0] == $cached_filename) {
-					  return getRelativePath(dirname(__FILE__),$file);
+				    $path = getRelativePath(dirname(__FILE__),$file);
+					  return $path;
 				}
 			}
 			$image = file_get_contents($url);
@@ -158,26 +161,43 @@
 		if (count($result)==0) $result = false;
 		return $result;
 	}
+
+	function initMCurl() {
+        $mc = JMathai\PhpMultiCurl\MultiCurl::getInstance();
+        return $mc;
+    }
  
 	// Fetch data from a URL using CURL
-	function curlGet($url) {
+	function curlGet($url, $headers=null) {
+        //write_log("Function fired");
+        $mc = JMathai\PhpMultiCurl\MultiCurl::getInstance();
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL,$url);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 1);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 1);
 		curl_setopt ($ch, CURLOPT_CAINFO, rtrim(dirname(__FILE__), '/') . "/cert/cacert.pem");
-		$result = curl_exec($ch);
-		curl_close ($ch);
+		if ($headers) curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+		//$result = curl_exec($ch);
+		//curl_close ($ch);
+        $call = $mc->addCurl($ch);
+        // Access response(s) from your cURL calls.
+        $result = $call->response;
 		//write_log("URL is ".$url.". Result is ".$result);
 		return $result;
 	}
 	
 	
 	function curlPost($url,$content=false,$JSON=false, Array $headers=null) {
-		$curl = curl_init($url);
+        //write_log("Function fired");
+        $mc = JMathai\PhpMultiCurl\MultiCurl::getInstance();
+        $curl = curl_init($url);
 		curl_setopt($curl, CURLOPT_HEADER, false);
 		curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt ($curl, CURLOPT_CAINFO, dirname(__FILE__) . "/cert/cacert.pem");
 		curl_setopt($curl, CURLOPT_POST, true);
+        curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 1);
+        curl_setopt($curl, CURLOPT_TIMEOUT, 1);
         if ($headers) {
             if ($JSON){
                 $headers = array_merge($headers,array("Content-type: application/json"));
@@ -185,14 +205,17 @@
             curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
         } else {
             if ($JSON){
-                $headers = array_merge($headers,array("Content-type: application/json"));
+                $headers = array("Content-type: application/json");
                 curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
             }
         }
         if ($content) curl_setopt($curl, CURLOPT_POSTFIELDS, $content);
-		$response = curl_exec($curl);
-		curl_close($curl);
-		return $response;
+		//$response = curl_exec($curl);
+		//curl_close($curl);
+        $call = $mc->addCurl($curl);
+        // Access response(s) from your cURL calls.
+        $result = $call->response;
+		return $result;
 	}
 	
 	// Write log information to $filename
@@ -216,7 +239,21 @@
 		if (fwrite($handle, $text) === FALSE) die;
 		fclose($handle);
 	}
-	
+
+	function clientHeaders() {
+        return array(
+            'X-Plex-Client-Identifier:' . $_SESSION['deviceID'],
+            'X-Plex-Target-Client-Identifier:' . $_SESSION['id_plexclient'],
+            'X-Plex-Device:PhlexWeb',
+            'X-Plex-Device-Name:Phlex',
+            'X-Plex-Device-Screen-Resolution:1520x707,1680x1050,1920x1080',
+            'X-Plex-Platform:Web',
+            'X-Plex-Platform-Version:1.0.0',
+            'X-Plex-Product:Phlex',
+            'X-Plex-Version:1.0.0'
+        );
+    }
+
 	// Get the name of the function calling write_log
 	function getCaller() {
 		$trace = debug_backtrace();

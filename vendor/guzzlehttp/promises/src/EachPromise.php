@@ -74,9 +74,7 @@ class EachPromise implements PromisorInterface
         try {
             $this->createPromise();
             $this->iterable->rewind();
-            if (!$this->checkIfFinished()) {
-                $this->refillPending();
-            }
+            $this->refillPending();
         } catch (\Throwable $e) {
             $this->aggregate->reject($e);
         } catch (\Exception $e) {

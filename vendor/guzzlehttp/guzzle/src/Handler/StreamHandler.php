@@ -301,16 +301,6 @@ class StreamHandler
             );
         }
 
-        // Microsoft NTLM authentication only supported with curl handler
-        if (isset($options['auth'])
-            && is_array($options['auth'])
-            && isset($options['auth'][2])
-            && 'ntlm' == $options['auth'][2]
-        ) {
-
-            throw new \InvalidArgumentException('Microsoft NTLM authentication only supported with curl handler');
-        }
-
         $context = $this->createResource(
             function () use ($context, $params) {
                 return stream_context_create($context, $params);
@@ -318,17 +308,9 @@ class StreamHandler
         );
 
         return $this->createResource(
-            function () use ($request, &$http_response_header, $context, $options) {
+            function () use ($request, &$http_response_header, $context) {
                 $resource = fopen((string) $request->getUri()->withFragment(''), 'r', null, $context);
                 $this->lastHeaders = $http_response_header;
-
-                if (isset($options['read_timeout'])) {
-                    $readTimeout = $options['read_timeout'];
-                    $sec = (int) $readTimeout;
-                    $usec = ($readTimeout - $sec) * 100000;
-                    stream_set_timeout($resource, $sec, $usec);
-                }
-
                 return $resource;
             }
         );

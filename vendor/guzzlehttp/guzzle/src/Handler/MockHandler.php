@@ -1,7 +1,6 @@
 <?php
 namespace GuzzleHttp\Handler;
 
-use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Promise\PromiseInterface;
 use GuzzleHttp\Promise\RejectedPromise;
@@ -73,18 +72,6 @@ class MockHandler implements \Countable
         $this->lastRequest = $request;
         $this->lastOptions = $options;
         $response = array_shift($this->queue);
-
-        if (isset($options['on_headers'])) {
-            if (!is_callable($options['on_headers'])) {
-                throw new \InvalidArgumentException('on_headers must be callable');
-            }
-            try {
-                $options['on_headers']($response);
-            } catch (\Exception $e) {
-                $msg = 'An error was encountered during the on_headers event';
-                $response = new RequestException($msg, $request, $response, $e);
-            }
-        }
 
         if (is_callable($response)) {
             $response = call_user_func($response, $request, $options);
@@ -158,7 +145,7 @@ class MockHandler implements \Countable
     /**
      * Get the last received request options.
      *
-     * @return array
+     * @return RequestInterface
      */
     public function getLastOptions()
     {
