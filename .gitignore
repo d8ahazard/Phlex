@@ -4,9 +4,8 @@
 /commands*
 /config*
 /Phlex.log*
+/Phlex_error.log*
 /PhlexREQ.log*
 /composer.lock
 /img/cache/*
-/vendor/*git*
-/.ftpconfig
 /.idea/*

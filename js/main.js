@@ -1,25 +1,24 @@
 var action = "play";
-var token, deviceID, resultDuration, lastUpdate, itemJSON, apiToken, ombi, couch, sonarr, radarr, publicIP, dvr, resolution, bgImg, weatherClass, city, state, weatherHtml;
+var appName, token, deviceID, resultDuration, lastUpdate, itemJSON, apiToken, ombi, couch, sonarr, radarr, sick, publicIP, dvr, resolution, bgImg, weatherClass, city, state, weatherHtml;
 var condition = null;
 
 jQuery(document).ready(function($) {
-	dvr = ($('#plexdvr').attr('enable') == 'true');
+    dvr = $("#plexdvr").attr('enable') === 'true';
 	apiToken = $('#apiTokenData').attr('data');
 	token = $('#tokenData').attr('data');
 	deviceID = $('#deviceID').attr('data');
 	publicIP = $('#publicIP').attr('data');
-	sonarr = ($('#sonarr').attr('enable') == 'true');
-	sick = ($('#sick').attr('enable') == 'true');
-	couch = ($('#couchpotato').attr('enable') == 'true');
-	radarr = ($('#radarr').attr('enable') == 'true');
-	ombi = ($('#ombi').attr('enable') == 'true');
+    sonarr = $('#sonarr').attr('enable') === 'true';
+    sick = $('#sick').attr('enable') === 'true';
+    couch = $('#couchpotato').attr('enable') === 'true';
+    radarr = $('#radarr').attr('enable') === 'true';
+    ombi = $('#ombi').attr('enable') === 'true';
 	$.material.init();
 	var Logdata = $('#logData').attr('data');
-	if (Logdata != "") {
-		Logdata = decodeURIComponent($('#logData').attr('data').replace(/\+/g, '%20'));
+	if (Logdata !== "") {
+		Logdata = decodeURIComponent(Logdata.replace(/\+/g, '%20'));
 		updateCommands(JSON.parse(Logdata),false);
 	}
-	var plexServerURI = $('#serverURI').attr('data');
 	var plexClientURI = $('#clientURI').attr('data');
 	$(".select").dropdown({"optionClass": "withripple"});
 	$('#play').addClass('clicked');
@@ -46,22 +45,22 @@ jQuery(document).ready(function($) {
 			
 	// Handle our input changes and zap them to PHP for immediate saving
 	$("input").change(function(){
+		var id;
 		if ($(this).hasClass("appInput")) {
-			var id = $(this).attr('id');
+			id = $(this).attr('id');
 			var value;
-			if (($(this).attr('type') == 'checkbox') || ($(this).attr('type') == 'radio')) {
+			if (($(this).attr('type') === 'checkbox') || ($(this).attr('type') === 'radio')) {
 				value = $(this).is(':checked');
 			} else {
 				value = $(this).val();
 			}
-			if ($(this).id == 'publicAddress') {
+			if ($(this).id === 'publicAddress') {
 				resetApiUrl($(this).val());
 			}
 			apiToken = $('#apiTokenData').attr('data');
-			var posting = $.get('api.php?apiToken=' + apiToken, {id:id, value:value});
+			$.get('api.php?apiToken=' + apiToken, {id:id, value:value});
 			if ($(this).hasClass("appParam")) {
-				var id = $(this).parent().parent().parent().attr('id');
-				id = id.replace("Group","");
+				id = $(this).parent().parent().parent().attr('id').replace("Group","");
 				$.get('api.php?apiToken=' + apiToken + '&fetchList=' + id, function(data){
 					$('#'+id + 'Profile').html(data);
 				})
@@ -70,40 +69,33 @@ jQuery(document).ready(function($) {
 	});
 	
 	$(".btn").on('click', function() {
+		var value;
 		if ($(this).hasClass("copyInput")) {
-			var value = $(this).val();
+			value = $(this).val();
 			clipboard.copy(value);
-			var options =  {
-				content: "Successfully copied URL", // text of the snackbar
-				style: "centerSnackbar", // add a custom class to your snackbar
-				timeout: 100, // time in milliseconds after the snackbar autohides, 0 is disabled
-				htmlAllowed: true, // allows HTML as content value
-				onClose: function(){ } // callback called when the snackbar gets closed.
-			}
 			$.snackbar({content: "Successfully copied URL."});
 		}
-		
+
 		if ($(this).hasClass("testInput")) {
-			var value = $(this).attr('value');
+			value = $(this).attr('value');
 			apiToken = $('#apiTokenData').attr('data');
 			$.get('api.php?test='+ value+'&apiToken=' + apiToken,function(data) {
 				var dataArray =[data];
-				$.snackbar({content: JSON.stringify(dataArray[0].status).replace(/\"/g, "")});
+				$.snackbar({content: JSON.stringify(dataArray[0].status).replace(/"/g, "")});
 			},dataType="json");
 		}
 		if ($(this).hasClass("resetInput")) {
-			var appName = $(this).attr('value');
+			appName = $(this).attr('value');
 			if (confirm('Are you sure you want to clear settings for ' + appName + '?')) {
-				$('.APIai').val("");
-				$('.APIai').change();
+
 			}  
 		}
 		
 		if ($(this).hasClass("setupInput")) {
-			var appName = $(this).attr('value');
+			appName = $(this).attr('value');
 			apiToken = $('#apiTokenData').attr('data');
 			$.get('api.php?setup&apiToken=' + apiToken,function(data) {
-				$.snackbar({content: JSON.stringify(data).replace(/\"/g, "")});
+				$.snackbar({content: JSON.stringify(data).replace(/"/g, "")});
 			},dataType="json");
 			$.snackbar({content: "Setting up API.ai Bot."});
 		}
@@ -150,7 +142,6 @@ jQuery(document).ready(function($) {
 	$(".profileList").change(function(){
 		var service = $(this).attr('id');
 		var index = $(this).find('option:selected').attr('index');
-		var profile = $(this).find('option:selected').attr('id');
 		apiToken = $('#apiTokenData').attr('data');
 		$.get('api.php?apiToken=' + apiToken, {id:service,value:index});
 	});
@@ -165,9 +156,10 @@ jQuery(document).ready(function($) {
 		apiToken = $('#apiTokenData').attr('data');
 		$.get('api.php?apiToken=' + apiToken, {device:'plexServer',id:serverID,uri:serverUri,name:serverName,token:serverToken,product:serverProduct});
 	});
-		
+
+
 	$(".cmdBtn").click(function() {
-		if ($(this).attr("id") != action) {
+		if ($(this).attr("id") !== action) {
 			action = $(this).attr("id");
 			switch (action) {
 				case "play":
@@ -200,14 +192,9 @@ jQuery(document).ready(function($) {
 	$("#executeButton").click(function() {
 		var command = $('#commandTest').val();
 		command = command.replace(/ /g,"+");
-		if (command != '') {
-			var playUrl, trimUrl, resultLine, statusLine;
+		if (command !== '') {
 			apiToken = $('#apiTokenData').attr('data');
 			var url = 'api.php?' + action + '&command=' + command+'&apiToken=' + apiToken;
-			var items;
-			var d = new Date();
-			var n = d.toLocaleTimeString() + ": ";
-				
 			$.get(url, function(data) {
 				var dataArray =[data];
 				updateCommands(dataArray,true);
@@ -228,7 +215,7 @@ jQuery(document).ready(function($) {
 	
 	
 	$('#commandTest').keypress(function(event){
-		  if(event.keyCode == 13){
+		  if(event.keyCode === 13){
 			$('#executeButton').click();
 		  }
 	});
@@ -289,9 +276,7 @@ jQuery(document).ready(function($) {
 	} else {
 		$('.dvrGroup').hide();
 	}
-	
-	
-	
+
 	$('#plexServerEnabled').change(function() {
 		$('#plexGroup').toggle();
 	});
@@ -406,7 +391,6 @@ function updateStatus() {
 			if (data.playerStatus.status=='playing') {
 				var plexServerURI = data.playerStatus.plexServer;
 				var mr = Object.values(data.playerStatus.mediaResult);
-				console.log("MediaResult: ", mr);
 				if (hasContent(mr)) {
 					var resultTitle = mr[0].title;
 					var resultType = mr[0].type;
@@ -482,25 +466,27 @@ function msToTime(duration) {
 
 function updateCommands(data,prepend) {
 	
-	if (JSON.stringify(lastUpdate) != JSON.stringify(data)) {
+	if (JSON.stringify(lastUpdate) !== JSON.stringify(data)) {
+		console.log("Update data: "+data);
 		lastUpdate = data;
+
 		var username = $('usernameData').attr('data');
 		if (!(prepend)) $('#resultsInner').html("");
 					
 		for (var i in data) {
 			try {
-				var initialCommand = data[i].initialCommand;
-				var parsedCommand = data[i].parsedCommand;
-				var timeStamp = data[i].timestamp;
-				var speech = "";
-				speech = data[i].speech;
-				var status = data[i].mediaStatus;
-				itemJSON = data[i];
+				var int = i;
+				var initialCommand = data[int].initialCommand;
+				var parsedCommand = data[int].parsedCommand;
+				var timeStamp = data[int].timestamp;
+				speech = (data[int].speech ? data[int].speech : "");
+				var status = (data[int].mediaStatus ? data[int].mediaStatus : "");
+				itemJSON = data[int];
 				var resultLine = '<br><b>Initial command:</b> "' + initialCommand + '"<br><b>Parsed command:</b> "' + parsedCommand + '"';
 				var mediaDiv = "";
 				var JSONdiv = '<br><a href="javascript:void(0)" id="JSON'+i+'" class="JSONPop" data="'+encodeURIComponent(JSON.stringify(data[i],null,2))+'" title="Result JSON">{JSON}</a>';
-				
-				if ((data[i].commandType == 'play') || (data[i].commandType == 'control')) {
+
+				if ((data[i].commandType === 'play') || (data[i].commandType === 'control')) {
 					var plexServerURI = data[i].serverURI;
 					var plexClientURI = data[i].clientURI;
 					var plexClientName = data[i].clientName;
@@ -508,8 +494,7 @@ function updateCommands(data,prepend) {
 				}
 			
 				if (data[i].mediaResult) {
-					var errstr = "ERROR";
-					if (status.indexOf(errstr) == -1) {
+					if (status.indexOf("ERROR") === -1) {
 						//Get our general variables about this media object
 						var mr = Object.values(data[i].mediaResult);
 						var resultTitle = mr[0].title;
@@ -534,7 +519,7 @@ function updateCommands(data,prepend) {
 			
 				statusLine = "";
 				statusLine2 = "";
-				if (status.indexOf('Not a media') == -1) {
+				if (status.indexOf('Not a media') === -1) {
 					if(status.indexOf(":") != -1){
 						var statusSplit = status.split(':');
 						statusLine = "<b>Search status: </b>" + statusSplit[1] + "<br>";
@@ -559,7 +544,9 @@ function updateCommands(data,prepend) {
 				} else {
 					speech = "";
 				}
-				var outLine = "<div class='resultDiv card'><div class='card-body'>" + timeStamp + mediaDiv + resultLine + "<br>" + statusLine + statusLine2 + speech + JSONdiv + "</div></div><br>";
+				var num = i;
+				var closeBtn = "<button class='cardClose' id="+num+"><b>x</b></button>";
+				var outLine = "<div class='resultDiv card'><div class='card-body'>" + timeStamp + closeBtn + mediaDiv + resultLine + "<br>" + statusLine + statusLine2 + speech + JSONdiv + "</div></div><br>";
 				
 				if (prepend) {
 					$('#resultsInner').prepend(outLine);		
@@ -586,10 +573,23 @@ function updateCommands(data,prepend) {
 					}]
 					});
 			});
+
+            $('.cardClose').click(function() {
+                var id = $(this).attr("id");
+                console.log("We need to remove card with id of " + id);
+                $(this).parent().parent().slideUp();
+                $.get('api.php?apiToken=' + apiToken + '&card='+id, function(data) {
+                    if (data !== "") {
+                        dataArray = [data];
+                        updateCommands(dataArray,true);
+                    }
+                    if (data === "[]") $('#resultsInner').html("");
+
+                });
+            })
 		}
 		
 	}
-	
 }
 
 
@@ -606,6 +606,8 @@ var userScrolled = false;
 $(window).scroll(function() {
   userScrolled = true;
 });
+
+
 
 setInterval(function() {
   if (userScrolled) {

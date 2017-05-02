@@ -10,6 +10,15 @@ html, body {
 	background: no-repeat center center;
 }
 
+.cardClose {
+	float: right;
+	border: 0;
+	background: #FFF;
+	position: relative;
+	top: -8px;
+	right: -8px;
+}
+
 .login-box {
 	position: relative;
 	top: 50%;

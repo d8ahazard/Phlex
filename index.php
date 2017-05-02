@@ -196,7 +196,7 @@
 									<div class="form-group text-center">
 										<div class="form-group">
 											<label for="linkAccount">Google Action Account Linking:</label><br>
-											<button id="linkAccount" class="btn btn-raised linkBtn btn-primary" type="button"/>Register Server</button>
+											<button id="linkAccount" class="btn btn-raised linkBtn btn-primary">Register Server</button>
 										</div>
 									</div>
 									<div class="text-center">
@@ -215,14 +215,14 @@
 								<h4>Plex</h4>
 									<div class="form-group">
 										<div class="form-group">
-											<label for="sel1">Playback Server:</label>
+											<label for="serverList">Playback Server:</label>
 											<select class="form-control" id="serverList">
 												
 											</select>
 											<br>
 											<div class="togglebutton">
 												<label class="appLabel">Use Cast Devices
-													<input id="useCast" type="checkbox" class="appInput"<?php echo ($_SESSION['use_cast'] ? 'checked' : '') ?>/>
+													<input id="useCast" type="checkbox" class="appInput appToggle"<?php echo ($_SESSION['use_cast'] ? 'checked' : '') ?>/>
 												</label>
 											</div>
 										</div>
@@ -288,7 +288,7 @@
 								<h4>CouchPotato</h4>
 									<div class="togglebutton">
 										<label class="appLabel">Enable
-											<input id="couchEnabled" type="checkbox" class="appInput"/>
+											<input id="couchEnabled" type="checkbox" class="appInput appToggle"/>
 										</label>
 									</div>
 									<div class="form-group" id="couchGroup">
@@ -308,7 +308,7 @@
 											</label>
 										</div>
 										<div class="form-group">
-											<label for="sel1">Quality Profile:</label>
+											<label for="couchProfile">Quality Profile:</label>
 											<select class="form-control profileList" id="couchProfile">
 												<?php echo fetchList("couch") ?>
 											</select>
@@ -328,7 +328,7 @@
 								<h4>Ombi</h4>
 									<div class="togglebutton">
 										<label class="appLabel">Enable
-											<input id="ombiEnabled" type="checkbox" class="appInput"/>
+											<input id="ombiEnabled" type="checkbox" class="appInput appToggle"/>
 										</label>
 									</div>
 									<div class="form-group" id="ombiGroup">
@@ -343,7 +343,7 @@
 											</label>
 										</div>
 										<div class="form-group">
-											<label for="sel1">Quality Profile:</label>
+											<label for="ombi">Quality Profile:</label>
 											<select class="form-control profileList" id="ombi">
 												
 											</select>
@@ -363,7 +363,7 @@
 									<h4>Radarr</h4>
 									<div class="togglebutton">
 										<label class="appLabel">Enable
-											<input id="radarrEnabled" type="checkbox" class="appInput"/>
+											<input id="radarrEnabled" type="checkbox" class="appInput appToggle"/>
 										</label>
 									</div>
 									<div class="form-group" id="radarrGroup">
@@ -383,7 +383,7 @@
 											</label>
 										</div>
 										<div class="form-group">
-											<label for="sel1">Quality Profile:</label>
+											<label for="radarrProfile">Quality Profile:</label>
 											<select class="form-control profileList" id="radarrProfile">
 												<?php echo fetchList("radarr") ?>
 											</select>
@@ -403,7 +403,7 @@
 									<h4>Sickbeard/SickRage</h4>
 									<div class="togglebutton">
 										<label class="appLabel">Enable
-											<input id="sickEnabled" type="checkbox" class="appInput"/>
+											<input id="sickEnabled" type="checkbox" class="appInput appToggle"/>
 										</label>
 									</div>
 									<div class="form-group" id="sickGroup">
@@ -423,7 +423,7 @@
 											</label>
 										</div>
 										<div class="form-group">
-											<label for="sel1">Quality Profile:</label>
+											<label for="sickProfile">Quality Profile:</label>
 											<select class="form-control appInput profileList" id="sickProfile">
 												<?php echo fetchList("sick") ?>
 											</select>
@@ -443,7 +443,7 @@
 									<h4>Sonarr</h4>
 									<div class="togglebutton">
 										<label class="appLabel">Enable
-											<input id="sonarrEnabled" type="checkbox" class="appInput"/>
+											<input id="sonarrEnabled" type="checkbox" class="appInput appToggle"/>
 										</label>
 									</div>
 									<div class="form-group" id="sonarrGroup">
@@ -463,7 +463,7 @@
 											</label>
 										</div>
 										<div class="form-group">
-											<label for="sel1">Quality Profile:</label>
+											<label for="sonarrProfile">Quality Profile:</label>
 											<select class="form-control profileList" id="sonarrProfile">
 												<?php echo fetchList("sonarr") ?>
 											</select>
@@ -495,7 +495,7 @@
 			</div>
 			<div class="nowPlayingFooter">
 				<div class="statusWrapper">
-					<img id="statusImage" src=""></img>
+                    <img id="statusImage" src=""/>
 					<div class="statusText">
 						<h6>Now Playing on <span id="playerName"></span>: </h6>
 						<h4><span id="mediaTitle"></span> (<span id="mediaYear"></span>)</h4>
@@ -513,8 +513,8 @@
                     <div class="ccWrapper cycle-slideshow" data-cycle-fx="fade" data-cycle-timeout="10000" data-cycle-speed=2000 data-cycle-slides="> div">
                         <div class="fade1 ccBackground">
                             <div class="ccTextDiv">
-                                <span class="spacer" ng-if="showWeather">
-                                <span class="tempDiv meta">&ensp;</span>
+                                <span class="spacer" ng-if="showWeather"></span>
+                                <span class="tempDiv meta"></span>
                                 <div class="weatherIcon"></div>
                                 <div class="timeDiv meta"></div>
                                 <div id="metadata-line-1" class="meta"></div>
@@ -525,7 +525,7 @@
                         </div>
                         <div class="fade2 ccBackground">
                             <div class="ccTextDiv">
-                                <span class="spacer" ng-if="showWeather">
+                                <span class="spacer" ng-if="showWeather"></span>
                                 <span class="tempDiv meta">&ensp;</span>
                                 <div class="weatherIcon"></div>
                                 <div class="timeDiv meta"></div>

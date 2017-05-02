@@ -6,9 +6,11 @@
 	function checkSetApiToken($userName) {
 		// Check that we have generated an API token for our user, create and save one if none exists
 		$config = new Config_Lite('config.ini.php');
+		$apiToken = false;
 		foreach ($config as $section => $user) {
-				if (($userName = $user['plexUserName']) && ($section != "general")) {
+				if (($userName == $user['plexUserName']) && ($section != "general")) {
 					$apiToken = ($user['apiToken'] ? $user['apiToken'] : false);
+					break;
 				}
 		}
 		
@@ -44,6 +46,7 @@
 			write_log("Generating using random_bytes.");
 	        return bin2hex(random_bytes($length));
 	    }
+	    return false;
 	}
 	
 	// Generate a timestamp and return it
@@ -134,7 +137,6 @@
 				$tempName = $cacheDir . $cached_filename;
 				file_put_contents($tempName,$image);
 				$imageData = getimagesize($tempName);
-				$mimeType = image_type_to_mime_type($imageData[2]);
 				$extension = image_type_to_extension($imageData[2]);
 				if($extension) {
 					$filenameOut = $cacheDir . $cached_filename . $extension;
@@ -174,8 +176,8 @@
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL,$url);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 1);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 1);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 4);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 3);
 		curl_setopt ($ch, CURLOPT_CAINFO, rtrim(dirname(__FILE__), '/') . "/cert/cacert.pem");
 		if ($headers) curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 		//$result = curl_exec($ch);
@@ -196,8 +198,8 @@
 		curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt ($curl, CURLOPT_CAINFO, dirname(__FILE__) . "/cert/cacert.pem");
 		curl_setopt($curl, CURLOPT_POST, true);
-        curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 1);
-        curl_setopt($curl, CURLOPT_TIMEOUT, 1);
+        curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 4);
+        curl_setopt($curl, CURLOPT_TIMEOUT, 3);
         if ($headers) {
             if ($JSON){
                 $headers = array_merge($headers,array("Content-type: application/json"));
@@ -220,13 +222,13 @@
 	
 	// Write log information to $filename
 	// Auto rotates files larger than 2MB
-	function write_log($text,$level=null,$nocall=null) {
+	function write_log($text,$level=null) {
 		if ($level === null) {
-			$level = 'I';	
+			$level = 'DEBUG';
 		}
-		if(! $nocall) $caller = (string) getCaller();
+		$caller = getCaller();
 		$filename = 'Phlex.log';
-		$text = $level .'/'. date(DATE_RFC2822) . ': '.$caller . ": " . $text . PHP_EOL;
+		$text = date(DATE_RFC2822) . ' [ '.$level.' ] '.$caller . " - " . $text . PHP_EOL;
 		if (!file_exists($filename)) { touch($filename); chmod($filename, 0666); }
 		if (filesize($filename) > 2*1024*1024) {
 			$filename2 = "$filename.old";
@@ -257,7 +259,6 @@
 	// Get the name of the function calling write_log
 	function getCaller() {
 		$trace = debug_backtrace();
-		$count = count($trace);
 		$useNext = false;
 		$caller = false;
 		//write_log("TRACE: ".print_r($trace,true),null,true);
@@ -277,14 +278,49 @@
 		}
 		return $caller;   
 	}
-	
+
+    function startBackgroundProcess(
+        $command,
+        $stdin = null,
+        $redirectStdout = null,
+        $redirectStderr = null,
+        $cwd = null,
+        $env = null,
+        $other_options = null
+    ) {
+        write_log("Function fired, command is ".$command);
+        $descriptorspec = array(
+            1 => is_string($redirectStdout) ? array('file', $redirectStdout, 'w') : array('pipe', 'w'),
+            2 => is_string($redirectStderr) ? array('file', $redirectStderr, 'w') : array('pipe', 'w'),
+        );
+        if (is_string($stdin)) {
+            $descriptorspec[0] = array('pipe', 'r');
+        }
+        $proc = proc_open($command, $descriptorspec, $pipes, $cwd, $env, $other_options);
+        if (!is_resource($proc)) {
+            throw new \Exception("Failed to start background process by command: $command");
+        }
+        if (is_string($stdin)) {
+            fwrite($pipes[0], $stdin);
+            fclose($pipes[0]);
+        }
+        if (!is_string($redirectStdout)) {
+            fclose($pipes[1]);
+        }
+        if (!is_string($redirectStderr)) {
+            fclose($pipes[2]);
+        }
+        write_log("Proc result is ".$proc);
+        return $proc;
+    }
+
 	// Save the specified configuration file using CONFIG_LITE
-	function saveConfig($inConfig) {
+	function saveConfig(Config_Lite $inConfig) {
 		try {
-			$inConfig->save();
+            $inConfig->save();
 		} catch (Config_Lite_Exception $e) {
 			echo "\n" . 'Exception Message: ' . $e->getMessage();
-			write_log('Error saving configuration.','E');
+			write_log('Error saving configuration.','ERROR');
 		}
 		$configFile = dirname(__FILE__) . '/config.ini.php';
 		$cache_new = "'; <?php die('Access denied'); ?>"; // Adds this to the top of the config so that PHP kills the execution if someone tries to request the config-file remotely.
@@ -346,4 +382,15 @@
 		return round($similarity / $max, 2);
 	}
 
-?>
+// Check if we have a running session before trying to start one
+    function is_session_started() {
+        if ( php_sapi_name() !== 'cli' ) {
+            if ( version_compare(phpversion(), '5.4.0', '>=') ) {
+                return session_status() === PHP_SESSION_ACTIVE ? TRUE : FALSE;
+            } else {
+                return session_id() === '' ? FALSE : TRUE;
+            }
+        }
+        return FALSE;
+    }
+
