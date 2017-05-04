@@ -8,10 +8,12 @@
 		$config = new Config_Lite('config.ini.php');
 		$apiToken = false;
 		foreach ($config as $section => $user) {
-				if (($userName == $user['plexUserName']) && ($section != "general")) {
-					$apiToken = ($user['apiToken'] ? $user['apiToken'] : false);
-					break;
-				}
+		    if ($section != "general") {
+                if ($userName == $user['plexUserName']) {
+                    $apiToken = ($user['apiToken'] ? $user['apiToken'] : false);
+                    break;
+                }
+            }
 		}
 		
 		if (! $apiToken) {
@@ -330,27 +332,31 @@
 	}
 	
 	function protectURL($string) {
-		$keys = parse_url($string);
-		$cleaned = str_repeat("X", strlen($keys['host'])); 
-		$string = str_replace($keys['host'],$cleaned,$string);
-		$pairs = array();
-		if($keys['query']) {
-			$params = explode('&',$keys['query']);
-			foreach ($params as $key) {
-				$set = explode('=',$key);
-				if (count($set) == 2) {
-					$pairs[$set[0]] = $set[1];
-				}
-			}
-		}
-		if (! empty($pairs)) {
-			foreach ($pairs as $key=>$value) {
-				if ((preg_match("/token/",$key)) || (preg_match("/Token/",$key)) || (preg_match("/address/",$key))) {
-					$cleaned = str_repeat("X", strlen($value)); 
-					$string = str_replace($value,$cleaned,$string);
-				}
-			}
-		}
+        $config = new Config_Lite('./config.ini.php');
+        $protect = $config->getBool('user-_-'.$_SESSION['username'], 'cleanLogs', true);
+        if ($protect) {
+            $keys = parse_url($string);
+            $cleaned = str_repeat("X", strlen($keys['host']));
+            $string = str_replace($keys['host'], $cleaned, $string);
+            $pairs = array();
+            if ($keys['query']) {
+                $params = explode('&', $keys['query']);
+                foreach ($params as $key) {
+                    $set = explode('=', $key);
+                    if (count($set) == 2) {
+                        $pairs[$set[0]] = $set[1];
+                    }
+                }
+            }
+            if (!empty($pairs)) {
+                foreach ($pairs as $key => $value) {
+                    if ((preg_match("/token/", $key)) || (preg_match("/Token/", $key)) || (preg_match("/address/", $key))) {
+                        $cleaned = str_repeat("X", strlen($value));
+                        $string = str_replace($value, $cleaned, $string);
+                    }
+                }
+            }
+        }
 		return $string;
 	}
 	

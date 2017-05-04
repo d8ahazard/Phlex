@@ -55,6 +55,7 @@
 	$_SESSION['apiai_dev_token'] = $config->get('user-_-'.$_SESSION['username'], 'apiDevToken', '');
 	
 	$_SESSION['use_cast'] = $config->getBool('user-_-'.$_SESSION['username'], 'useCast', false);
+	$_SESSION['clean_logs'] = $config->getBool('user-_-'.$_SESSION['username'], 'cleanLogs', true);
 	
 	$_SESSION['dvr_resolution'] = $config->getBool('user-_-'.$_SESSION['username'], 'dvr_resolution', "0");
 	$_SESSION['dvr_newairings'] = $config->getBool('user-_-'.$_SESSION['username'], 'dvr_newairings', true);
@@ -193,6 +194,11 @@
 											</label>
 										</div>
 									</div>
+                                    <div class="togglebutton">
+                                        <label class="appLabel">Obscure Sensitive Data in Logs
+                                            <input id="cleanLogs" type="checkbox" class="appInput appToggle"<?php echo ($_SESSION['clean_logs'] ? 'checked' : '') ?>/>
+                                        </label>
+                                    </div>
 									<div class="form-group text-center">
 										<div class="form-group">
 											<label for="linkAccount">Google Action Account Linking:</label><br>
@@ -498,7 +504,7 @@
                     <img id="statusImage" src=""/>
 					<div class="statusText">
 						<h6>Now Playing on <span id="playerName"></span>: </h6>
-						<h4><span id="mediaTitle"></span> (<span id="mediaYear"></span>)</h4>
+						<h4><span id="mediaTitle"></span></h4>
 						<span id="mediaSummary"></span>
 						<div id="progressSlider" class="slider shor slider-material-orange"></div>
 					</div>

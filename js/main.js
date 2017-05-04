@@ -387,29 +387,29 @@ function updateStatus() {
 			$('#dvrList').html(data.dvrs);			
 			ddText = $('.dd-selected').text();
 			$('.ddLabel').html(ddText);
+			console.log("Raw Status: " + data.playerStatus);
 			data.playerStatus = JSON.parse(data.playerStatus);
-			if (data.playerStatus.status=='playing') {
-				var plexServerURI = data.playerStatus.plexServer;
-				var mr = Object.values(data.playerStatus.mediaResult);
+			var TitleString;
+			if (data.playerStatus.status === 'playing') {
+                var mr = data.playerStatus.mediaResult;
+                console.log("Mediaresult",mr);
 				if (hasContent(mr)) {
-					var resultTitle = mr[0].title;
-					var resultType = mr[0].type;
-					var resultYear = mr[0].year;
-					var thumbPath = mr[0].thumb;
-					var artPath = mr[0].art;
-					var resultKey = mr[0].key;
-					var resultSummary = mr[0].summary;
+					var resultTitle = mr.title;
+					var resultType = mr.type;
+					var resultYear = mr.year;
+					var thumbPath = mr.thumb;
+					var artPath = mr.art;
+					var resultSummary = mr.summary;
 					var resultOffset = data.playerStatus.time;
-					resultDuration = mr[0].duration;
+					resultDuration = mr.duration;
 					var progressSlider = document.getElementById('progressSlider');
-					if (resultType == "episode") {
-						for(var propName in mr[0]) {
-							propValue = mr[0][propName];
-						}
-						var TitleString = "S" + mr[0].parentIndex + "E"+mr[0].index + " - " + resultTitle;
-					} else {
-						var TitleString = resultTitle;
-					}
+                    console.log("This is a " + resultType);
+                    TitleString = resultTitle + ((resultYear !== '')? "(" + resultYear + ")" : '');
+					if (resultType === "episode") TitleString = "S" + mr.parentIndex + "E"+mr.index + " - " + resultTitle;
+					if (resultType === "track") {
+						console.log("The title should be right, fucker.");
+						TitleString = mr.grandparentTitle + " - " + resultTitle;
+                    }
 					
 					progressSlider.noUiSlider.set((resultOffset/resultDuration)*100);
 					if (thumbPath != false) {
@@ -419,13 +419,11 @@ function updateStatus() {
 						$('#statusImage').hide();
 					}
 					$('#playerName').html($('.ddLabel').html());
-					$('#mediaTitle').html(resultTitle);
+					$('#mediaTitle').html(TitleString);
 					$('#mediaSummary').html(resultSummary);
-					$('#mediaYear').html(resultYear);
 					$('.wrapperArt').css('background-image','url('+artPath+')');
 					$('.castArt').hide();
-					var itemPath = plexServerURI+resultKey+"?X-Plex-Token="+token;
-					if ((!(footer.is(":visible")))&& (!(footer.hasClass('reHide')))) {
+                    if ((!(footer.is(":visible")))&& (!(footer.hasClass('reHide')))) {
 						footer.slideDown();
 						footer.addClass("playing");
 						setTimeout( function(){
@@ -488,9 +486,8 @@ function updateCommands(data,prepend) {
 
 				if ((data[i].commandType === 'play') || (data[i].commandType === 'control')) {
 					var plexServerURI = data[i].serverURI;
-					var plexClientURI = data[i].clientURI;
-					var plexClientName = data[i].clientName;
-					var token = data[i].serverToken;
+                    var plexClientName = data[i].clientName;
+
 				}
 			
 				if (data[i].mediaResult) {
@@ -500,7 +497,8 @@ function updateCommands(data,prepend) {
 						var resultTitle = mr[0].title;
 						var resultYear = mr[0].year;
 						var resultType = mr[0].type;
-						var resultArt = mr[0].art;
+						var resultArt = (resultType !== 'track' ? mr[0].art : mr[0].thumb);
+						console.log("ResultArt for " + resultTitle + " should be " + resultArt);
 						var TitleString = resultTitle;
 						if (resultType == "episode") {
 							var TitleString = "S" + mr[0].parentIndex + "E"+mr[0].index + " - " + resultTitle;
@@ -649,7 +647,6 @@ function preloadall() {
     for (i = 0; i < json.length; i++) {
         images[i] = new Image();
         images[i].src = json[i][0];
-		console.log("Preloading image " + json[i][0]);
     }
 }
 

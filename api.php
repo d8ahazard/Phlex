@@ -408,6 +408,7 @@
 				$GLOBALS['config']->set('user-_-'.$_SESSION['username'],'plexServerUri',$server['uri']);
 				$GLOBALS['config']->set('user-_-'.$_SESSION['username'],'plexServerPublicAddress',$server['publicAddress']);
 				$GLOBALS['config']->set('user-_-'.$_SESSION['username'],'plexServerToken',$server['token']);
+				fetchSections();
 				saveConfig($GLOBALS['config']);
 			}
 		}
@@ -504,6 +505,9 @@
 		$_SESSION['publicAddress_plexserver'] = $GLOBALS['config']->get('user-_-'.$_SESSION['username'],'plexServerPublicAddress',false);
 		$_SESSION['token_plexserver'] = $GLOBALS['config']->get('user-_-'.$_SESSION['username'],'plexServerToken',false);
 
+		// Reload section UUID's
+		if ($_SESSION['uri_plexserver']) fetchSections();
+
 		$_SESSION['id_plexclient'] = $GLOBALS['config']->get('user-_-'.$_SESSION['username'], 'plexClient', false);
 		$_SESSION['name_plexclient'] = $GLOBALS['config']->get('user-_-'.$_SESSION['username'],'plexClientName',false);
 		$_SESSION['uri_plexclient'] = $GLOBALS['config']->get('user-_-'.$_SESSION['username'],'plexClientUri',false);
@@ -527,6 +531,7 @@
 		$_SESSION['fetch_plexserver'] = $GLOBALS['config']->get('user-_-'.$_SESSION['username'],'plexServerFetched',false);
 
 		$_SESSION['use_cast'] = $GLOBALS['config']->getBool('user-_-'.$_SESSION['username'], 'useCast', false);
+        $_SESSION['clean_logs'] = $GLOBALS['config']->getBool('user-_-'.$_SESSION['username'], 'cleanLogs', true);
 		$_SESSION['plexHeader'] = '&X-Plex-Product=Phlex'.
 		'&X-Plex-Version=1.0.0'.
 		'&X-Plex-Client-Identifier='.$_SESSION['deviceID'].
@@ -880,7 +885,7 @@
 	}
 
 	// This is now our one and only handler for searches.
-	function parsePlayCommand($command,$year=false) {
+	function parsePlayCommand($command,$year=false,$artist=false,$type=false) {
 		write_log("################parsePlayCommand_START$##########################");
 		write_log("Function Fired.");
 		write_log("Initial command - ".$command);
@@ -992,6 +997,8 @@
 		}
 		write_log("Resulting string is:".implode(" : ",$commandArray));
 		$mods['target']=implode(" ",$commandArray);
+		if ($artist) $mods['artist']=$artist;
+        if ($type) $mods['type']=$type;
 		$result = fetchInfo($mods); // Returns false if nothing found
 		return $result;
 	}
@@ -1005,6 +1012,7 @@
 		$result = $request["result"];
 		$action = $result['parameters']["action"];
 		$type = $result['parameters']['type'];
+        $artist = (isset($result['parameters']['artist']) ? $result['parameters']['artist'] : false);
 		$rawspeech = (string)$request['originalRequest']['data']['inputs'][0]['raw_inputs'][0]['query'];
 		write_log("Raw speech is ".$rawspeech);
 		$queryOut=array();
@@ -1032,6 +1040,11 @@
 				}
 			}
 
+            if (($artist) && (! $command)) {
+			    $command = $artist;
+			    $artist = false;
+            }
+
 			if (($control == 'play') && ($action == '') && (! $command == '')) {
 				$action = 'play';
 				$control = false;
@@ -1054,7 +1067,6 @@
                         write_log("Re-removing device name from fetch search: ".$client['name']);
                         $playerIn = explode(" ",cleanCommandString($client['name']));
                         array_push($playerIn,"on","in");
-
                     }
                 }
                 if (isset($_SESSION['cleaned_search'])) unset($_SESSION['cleaned_search']);
@@ -1094,7 +1106,7 @@
 			$command = str_replace(' ', '', $control);
 		}
 
-		write_log("Final params should be an action of ".$action.", a command of ".$command.", and a control of ".$control);
+		write_log("Final params should be an action of ".$action.", a command of ".$command.", a type of ".$type.", and a control of ".$control.".");
 
 		// This value tells API.ai that we are done talking.  We set it to a positive value if we need to ask more questions/get more input.
 		$contextName = "yes";
@@ -1237,7 +1249,6 @@
 					write_log("Got a container: ".json_encode($array));
 				}
 			}
-
 		}
 
 		if (($action == 'recent') || ($action == 'ondeck')) {
@@ -1285,8 +1296,8 @@
 
 		// Start handling playback commands now"
 		if (($action == 'play') || ($action == 'playfromlist')) {
-			if (!($command)) {
-				write_log("This does not have a command.  Checking for a different identifier.");
+            if (!($command)) {
+			    write_log("This does not have a command.  Checking for a different identifier.");
 				foreach($request["result"]['parameters'] as $param=>$value) {
 					if ($param == 'type') {
 						$mediaResult = fetchRandomNewMedia($value);
@@ -1323,11 +1334,15 @@
 						die();
 					}
 				} else {
-					$mediaResult = parsePlayCommand(strtolower($command),$year);
+					$mediaResult = parsePlayCommand(strtolower($command),$year,$artist,$type);
 				}
 			}
 			if (isset($mediaResult)) {
 				if (count($mediaResult)==1) {
+				    if (isset($mediaResult[0]['queueID'])) {
+				        write_log("This is a music queue, we need to play it differently.");
+				        $queueID = $mediaResult[0]['queueID'];
+                    }
 					write_log("Got media, sending play command.");
 					$queryOut['mediaResult'] = $mediaResult[0];
 					$searchType = $queryOut['mediaResult']['searchType'];
@@ -1400,7 +1415,10 @@
 					if ($type == 'episode') {
 						$seriesTitle = $queryOut['mediaResult']['grandparentTitle'];
 						$speech = $affirmative. "Playing the episode of ". $seriesTitle ." named ".$title.".";
-					} else {
+					} else if (($type == 'track') || ($type == 'album')) {
+                        $artist = $queryOut['mediaResult']['@attributes']['grandparentTitle'];
+                        $speech = $affirmative. "Playing ".$title. " by ".$artist.".";
+                    } else {
 						$speech = $affirmative. "Playing ".$title . " (".$year.").";
 					}
 					if ($_SESSION['promptfortitle'] == true) {
@@ -1445,10 +1463,9 @@
 					if (isset($_SESSION['mediaList'])) unset($_SESSION['mediaList']);
 					$waitForResponse = true;
 					returnSpeech($speech,$contextName,$waitForResponse);
-					$playResult = playMedia($mediaResult);
 					$queryOut['parsedCommand'] = 'Play a media item named '.$command.'. (Multiple results found)';
 					$queryOut['mediaStatus'] = 'SUCCESS: Multiple Results Found, prompting user for more information';
-					$queryOut['playResult'] = $playResult;
+					$queryOut['playResult'] = "Not a media command.";
 					log_command(json_encode($queryOut));
 					unset($_SESSION['deviceArray']);
 					die();
@@ -1704,8 +1721,9 @@
             write_log('URL is: ' . $url);
             $container = simplexml_load_string(curlGet($url));
             if ($_SESSION['use_cast']) {
-                if (!isset($_SESSION['apiToken'])) $_SESSION['apiToken'] = session_id();
-                $command = 'php device.php ' . $_SESSION['apiToken'];
+                $token = (isset($_SESSION['apiToken']) ? $_SESSION['apiToken'] : session_id());
+                $token = preg_replace('/[^a-z\d]/i', '', $token);
+                $command = 'php device.php ' . $token;
                 startBackgroundProcess($command);
             }
 
@@ -1778,6 +1796,24 @@
 
     }
 
+    // Call this after changing the target server so that we have the section UUID's stored
+
+    function fetchSections() {
+	    write_log("Function fired.");
+	    $sections = [];
+        $url = $_SESSION['uri_plexserver'].'/library/sections?X-Plex-Token='.$_SESSION['token_plexserver'];
+        $results = curlGet($url);
+        if ($results) {
+            $container = new SimpleXMLElement($results);
+            if ($container) {
+                foreach($container->children() as $section) {
+                    array_push($sections,["id"=>(string)$section['key'],"uuid"=>(string)$section['uuid']]);
+                }
+            }
+        }
+        if (count($sections)) $_SESSION['sections'] = $sections;
+        return $sections;
+    }
 
 	/// What used to be a big ugly THING is now just a wrapper and parser of the result of scanDevices
 	function fetchClientList() {
@@ -1880,6 +1916,8 @@
 		$offset = 0;
 		$nums = $matrix['num'];
 		$media = $matrix['media'];
+		$artist = (isset($matrix['artist']) ? $matrix['artist'] : false);
+        $type = (isset($matrix['type']) ? $matrix['type'] : false);
 
 		foreach($matrix as $key=>$mod) {
 			write_log("Mod string: " .$key.": " .implode(", ",$mod));
@@ -1959,7 +1997,7 @@
 
 		checkString: {
 		$winner = false;
-			$results = fetchHubResults(strtolower($title),$type);
+			$results = fetchHubResults(strtolower($title),$type,$artist);
 			if ($results) {
 				if ((count($results)>=2) && (count($matchup))) {
 					write_log("Multiple results found, let's see if there are any mods.");
@@ -2042,14 +2080,14 @@
 	// This is our one-shot search mechanism
 	// It queries the /hubs endpoint, scrapes together a bunch of results, and then decides
 	// how relevant those results are and returns them to our talk-bot
-	function fetchHubResults($title,$type=false) {
+	function fetchHubResults($title,$type=false,$artist=false) {
 		write_log("Function Fired.");
 		write_log("Type is ".$type);
 		$title = cleanCommandString($title);
 		$searchType = '';
 		$url = $_SESSION['uri_plexserver'].'/hubs/search?query='.urlencode($title).'&limit=30&X-Plex-Token='.$_SESSION['token_plexserver'];
 		$searchResult['url'] = $url;
-		$cast = false;
+		$cast = $genre = $music = $queueID = false;
 		write_log('URL is : '.protectURL($url));
 		$result = curlGet($url);
 		if ($result) {
@@ -2057,25 +2095,19 @@
 			$exactResults = array();
 			$fuzzyResults = array();
 			$castResults = array();
-			$genre = false;
-            $nameLocation = 'title';
+			$nameLocation = 'title';
             if (isset($container->Hub)) {
                 foreach($container->Hub as $Hub) {
                     if ($Hub['size'] != "0") {
-                        if (($Hub['type'] == 'show') || ($Hub['type'] == 'movie') || ($Hub['type'] == 'episode')) {
+                        if (($Hub['type'] == 'show') || ($Hub['type'] == 'movie') || ($Hub['type'] == 'episode')|| ($Hub['type'] == 'artist')|| ($Hub['type'] == 'album')|| ($Hub['type'] == 'track')) {
                             $nameLocation = 'title';
-                            write_log("Found search results for a movie, show, or episode.");
                         }
 
-                        if (($Hub['type'] == 'actor') || ($Hub['type'] == 'director')) {
-                            $nameLocation = 'tag';
-                            write_log("Found search results for a actor/director.");
-                        }
+                        if (($Hub['type'] == 'actor') || ($Hub['type'] == 'director')) $nameLocation = 'tag';
 
                         foreach($Hub->children() as $Element) {
-
-                            $elementTitle = strtolower((string)$Element[$nameLocation]);
-                            $titleOut = cleanCommandString($elementTitle);
+                            $skip = false;
+                            $titleOut = cleanCommandString((string)$Element[$nameLocation]);
 
                             if ($titleOut == $title) {
                                 write_log("Title matches exactly: ".$title);
@@ -2083,7 +2115,10 @@
                                 if (($Hub['type'] == 'actor') || ($Hub['type'] == 'director')) {
                                     $searchType = 'by cast';
                                     $cast = true;
+                                    array_push($castResults,$Element);
+                                    break;
                                 }
+
                                 if ($Hub['type'] == 'genre') {
                                     $genre = true;
                                     $searchType = 'by genre';
@@ -2093,6 +2128,7 @@
                                         array_push($exactResults,$result);
                                     }
                                 }
+
                                 if (($Hub['type'] == 'show') || ($Hub['type'] == 'movie') || ($Hub['type'] == 'episode')) {
                                     if ($type) {
                                         if ($Hub['type'] == $type) {
@@ -2102,19 +2138,60 @@
                                         array_push($exactResults,$Element);
                                     }
                                 }
-                            } else {
-                                $weight = similarity($title, $titleOut);
-                                write_log("Weight of ".$title . " vs " . $titleOut . " is ".$weight);
-                                if ($weight >= .36) {
-                                    write_log("Heavy enough, pushing.");
-                                    array_push($fuzzyResults,$Element);
+
+                                if (($Hub['type'] == 'artist') || ($Hub['type'] == 'album') || ($Hub['type'] == 'track')) {
+                                    if ($artist) {
+                                        $foundArtist = (($Hub['type'] == 'track') ? $Element['grandparentTitle'] : $Element['parentTitle']);
+                                        write_log("Artist: ".$foundArtist." Hub JSON: ".json_encode($Element));
+                                        $foundArtist = cleanCommandString($foundArtist);
+                                        write_log("Hub artist should be ".$foundArtist);
+                                        if (cleanCommandString($artist) != $foundArtist) {
+                                            write_log("The ".$Hub['type'].' matches, but the artist does not, skipping result.',"INFO");
+                                            $skip = true;
+                                        }
+                                    }
+
+                                    if ($type) {
+                                        if ($Hub['type'] != $type) $skip = true;
+                                    }
+
+                                    if (! $skip) {
+                                        $music = queueAudio($Element);
+                                        write_log("Returning music queue: " . json_encode($music));
+                                        return [$music];
+                                    }
                                 }
-                                array_push($castResults,$Element);
+
+                            } else {
+                                if ($type) {
+                                    if ($Hub['type'] != $type) $skip = true;
+                                    write_log("Type specified but not matched, skipping.");
+                                }
+                                if ($artist) {
+                                    $foundArtist = (($Hub['type'] == 'track') ? $Element['grandparentTitle'] : $Element['parentTitle']);
+                                    write_log("Artist: ".$foundArtist." Hub JSON: ".json_encode($Element));
+                                    $foundArtist = cleanCommandString($foundArtist);
+                                    write_log("Hub artist should be ".$foundArtist);
+                                    if (cleanCommandString($artist) != $foundArtist) {
+                                        write_log("The ".$Hub['type'].' matches, but the artist does not, skipping result.',"INFO");
+                                        $skip = true;
+                                    }
+                                }
+                                if (! $skip) {
+                                    $weight = similarity($title, $titleOut);
+                                    write_log("Weight of " . $title . " vs " . $titleOut . " is " . $weight);
+                                    if ($weight >= .36) {
+                                        write_log("Heavy enough, pushing.");
+                                        array_push($fuzzyResults, $Element);
+                                    }
+                                }
                             }
                         }
                     }
                 }
             }
+
+
 			if ((count($exactResults)) && (!($cast)) && (!($genre))) {
 				write_log("Exact results found.");
 				$exact = true;
@@ -2294,10 +2371,45 @@
 		}
 		return false;
 
-
 	}
 
+	// Music function(s):
+    function fetchTracks($ratingKey) {
+	    $playlist = $queue = false;
+	    $url = $_SESSION['uri_plexserver'].'/library/metadata/'.$ratingKey.'/allLeaves?X-Plex-Token='.$_SESSION['token_plexserver'];
+	    $result = curlGet($url);
+        $data = [];
+	    if ($result) {
+	        $container = new SimpleXMLElement($result);
+	        foreach($container->children() as $track) {
+                $trackJSON = json_decode(json_encode($track),true);
+	            if (isset($track['ratingCount'])) {
+	                write_log("The track ".$track['title']." has a rating: ".$track['ratingCount']);
+	                if ($track['ratingCount'] >= 1700000) array_push($data,$trackJSON['@attributes']);
+                }
+            }
+        }
+		
+		usort($data, "cmp");
+        write_log("Final array(".count($data)."): ".json_encode($data));
+		foreach($data as $track) {
+		    if (! $queue) {
+		        $queue = queueMedia($track,true);
+            } else {
+		        queueMedia($track,true,$queue);
+            }
+		}
+		write_log("Queue ID is ".$queue);
+        return $playlist;
+    }
 
+	
+	// Compare the ratings of songs and make an ordered list
+	function cmp($a, $b) {
+		if($b['ratingCount']==$a['ratingCount']) return 0;
+		return $b['ratingCount'] > $a['ratingCount']?1:-1;
+        
+	}
 	// TV Functions
 
 
@@ -2519,8 +2631,7 @@
 
 
 	// Send some stuff to a play queue
-	function queueMedia($media) {
-		$queueID = false;
+	function queueMedia($media, $audio=false, $queueID=false) {
 		write_log("Function Fired.");
 		write_log("Media array: ".json_encode($media));
 		$key = $media['key'];
@@ -2539,9 +2650,9 @@
 		$_SESSION['serverHeader'] = '&X-Plex-Client-Identifier='.$_SESSION['id_plexclient'].
 		'&X-Plex-Token='.$_SESSION['plex_token'];
 		write_log("Encoded media URI is " .$uri);
-		$url = $_SESSION['uri_plexserver'].'/playQueues?type=video'.
+		$url = $_SESSION['uri_plexserver'].'/playQueues'.($queueID ? '/'.$queueID : '').'?type='.($audio ? 'audio' : 'video').
 		'&uri='.$uri.
-		'&shuffle=0&repeat=0&includeChapters=1&continuous=1'.
+		'&shuffle=0&repeat=0&includeChapters=1&'.($audio ? 'includeRelated' : 'continuous').'=1'.
 		$_SESSION['plexHeader'];
         $headers = clientHeaders();
         write_log("QueueMedia Url: ".protectURL($url));
@@ -2553,13 +2664,70 @@
 			write_log("Retrieved queue ID of ".$queueID);
 		}
         return $queueID;
-
 	}
 
+	function queueAudio($media) {
+	    write_log("Function fired.");
+	    write_log("MEDIA: ".json_encode($media));
+	    $array = $id = $response = $result = $song = $url = $uuid = false;
+	    $sections = fetchSections();
+	    foreach($sections as $section) if ($section['id'] == "3") $uuid = $section['uuid'];
+	    $ratingKey = (isset($media['ratingKey']) ? urlencode($media['ratingKey']) : false);
+        $key = (isset($media['key']) ? urlencode($media['key']) : false);
+        $uri = urlencode('library://'.$uuid.'/item/'.$key);
+        write_log("Media URI is " .$uri);
+
+        $type = (isset($media['type']) ? $media['type'] : false);
+	    if (($key) && ($type) && ($uuid)) {
+            write_log($type." found for queueing.");
+            $url = $_SESSION['uri_plexserver'] . "/playQueues?type=audio&uri=library%3A%2F%2F".$uuid."%2F";
+	        switch($type) {
+                case 'album':
+                    $url .= "item%2F%252Flibrary%252Fmetadata%252F" . $ratingKey . "&shuffle=0";
+                    break;
+                case 'artist':
+                    $url .= "item%2F%252Flibrary%252Fmetadata%252F" . $ratingKey . "&shuffle=1";
+                    break;
+                case 'track':
+                    $url .= "directory%2F%252Fservices%252Fgracenote%252FsimilarPlaylist%253Fid%253D" . $ratingKey . "&shuffle=0";
+                    break;
+                default:
+                    write_log("NOT A VALID AUDIO ITEM!","ERROR");
+                    $url = false;
+                    break;
+            }
+	    }
+
+	    if ($url) {
+            $url .= "&repeat=0&includeChapters=1&includeRelated=1" . $_SESSION['plexHeader'];
+            write_log("URL is ".protectURL(($url)));
+            $result = curlPost($url);
+        }
+
+        if ($result) {
+            $container = new SimpleXMLElement($result);
+            $array = json_decode(json_encode($container), true);
+            write_log("Queue ID of " . $array['@attributes']['playQueueID']);
+            $id = $array['@attributes']['playQueueID'];
+        }
+        if (($id) && ($array)) {
+            $song = $array['Track'][0];
+            write_log("Song: ".json_encode($song));
+        }
+        if ($id && $song) {
+	        $response = $song;
+	        $response['title'] = $song['@attributes']['title'];
+            $response['parentTitle'] = $song['@attributes']['parentTitle'];
+	        $response['type'] = 'track';
+	        $response['key'] = $response['queueID'] = $id;
+	    }
+	    write_log("Final response: ".json_encode($response));
+        return $response;
+    }
 
 	function playMedia($media) {
 		if (isset($media['key'])) {
-			$clientProduct = $_SESSION['product_plexclient'];
+		    $clientProduct = $_SESSION['product_plexclient'];
 			switch ($clientProduct) {
 				case 'cast':
                     //$child = fopen('http://'.$_SERVER['HTTP_HOST'].'/devices.php?media='.urlencode($media), 'r');
@@ -2568,7 +2736,7 @@
 
 					break;
 				case 'Plex for Android':
-					$result = playMediaDirect($media);
+				    $result = (isset($media['queueID']) ? playMediaQueued($media) : playMediaDirect($media));
 					break;
 				case 'Plex Media Player':
 				case 'Plex Web':
@@ -2620,7 +2788,7 @@
 		$serverIP = $server['host'];
 		$serverPort =$server['port'];
 		$serverID = $_SESSION['id_plexserver'];
-		$queueID = queueMedia($media);
+		$queueID = (isset($media['queueID']) ? $media['queueID'] : queueMedia($media));
 		$transientToken = fetchTransientToken();
 		$_SESSION['counter']++;
 		write_log("Current command ID is " . $_SESSION['counter']);
@@ -2639,7 +2807,7 @@
         $result = curlGet($playUrl,$headers);
 		write_log('Playback URL is ' . protectURL($playUrl));
 		write_log("Result value is ".$result);
-		$status = ((strpos($result,'HTTP/1.1 200 OK')!==false)?'success':'error');
+		$status = (((preg_match("/200/",$result) && (preg_match("/OK/",$result))))?'success':'error');
 		write_log("Result is ".$status);
 		$return['url'] = $playUrl;
 		$return['status'] = $status;
@@ -2658,7 +2826,7 @@
 		$serverIP = $server['host'];
 		$serverPort =$server['port'];
 		$userName = $_SESSION['username'];
-		$queueID = queueMedia($media);
+        $queueID = (isset($media['queueID']) ? $media['queueID'] : queueMedia($media));
         $transientToken = fetchTransientToken();
 
         write_log("Got queued media, continuing.");
@@ -2781,6 +2949,7 @@
 
 	function playerStatus($wait=0) {
 		//status();
+        $art = $thumb = false;
 		if ($_SESSION['product_plexclient'] == 'cast') {
 			return castStatus();
 		} else {
@@ -2805,17 +2974,22 @@
                                 if ($media) {
                                     $mediaContainer = new SimpleXMLElement($media);
 									$MC = json_decode(json_encode($mediaContainer),true);
-									$status['mediaResult'] = $MC['Video'];
-									$thumb = (($MC['Video']['@attributes']['type'] == 'movie') ? $MC['Video']['@attributes']['thumb'] : $MC['Video']['@attributes']['parentThumb']);
-                                    $art = $MC['Video']['@attributes']['art'];
-									$thumb = $_SESSION['uri_plexserver'].$thumb."?X-Plex-Token=".$_SESSION['token_plexserver'];
-									$art = $_SESSION['uri_plexserver'].$art."?X-Plex-Token=".$_SESSION['token_plexserver'];
-									$thumb = cacheImage($thumb);
-									$art = cacheImage($art);
+									$item = (isset($MC['Video']) ? $MC['Video']['@attributes'] : $MC['Track']['@attributes']);
+									$status['mediaResult'] = $item;
+
+									$thumb = (($item['type'] != 'episode') ? $item['thumb'] : $item['parentThumb']);
+                                    $thumb = $_SESSION['uri_plexserver'].$thumb."?X-Plex-Token=".$_SESSION['token_plexserver'];
+                                    $thumb = cacheImage($thumb);
+
+                                    $art = (isset($item['art']) ? $item['art'] : false);
+                                    if ($art) {
+                                        $art = $_SESSION['uri_plexserver'] . $art . "?X-Plex-Token=" . $_SESSION['token_plexserver'];
+                                        $art = cacheImage($art);
+                                        $status['mediaResult']['art'] = $art;
+                                        $status['mediaResult']['@attributes']['art'] = $art;
+                                    }
 									$status['mediaResult']['thumb'] = $thumb;
-									$status['mediaResult']['art'] = $art;
 									$status['mediaResult']['@attributes']['thumb'] = $thumb;
-									$status['mediaResult']['@attributes']['art'] = $art;
                                     $status['status'] = (string)$Timeline['state'];
                                     $status['volume'] = (string)$Timeline['volume'];
                                     if ($Timeline['time']) {
@@ -2832,6 +3006,7 @@
 		if (! $status) {
 			$status['status'] = 'error';
 		}
+		//write_log("Final Status: ".json_encode($status));
 		return json_encode($status);
 	}
 

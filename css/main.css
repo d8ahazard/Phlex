@@ -170,6 +170,8 @@ html, body {
 
 .card-image {
 	text-align: center;
+	max-height:500px;
+	width: auto !important;
 	
 }
 .resultimg {
