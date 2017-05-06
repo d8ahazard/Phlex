@@ -47,7 +47,7 @@ class mDNS {
         $this->querycache = $data;
 		$r = socket_sendto($this->mdnssocket, $data, strlen($data), 0, '224.0.0.251',5353);
         if (! $r) write_log("Error sending to socket.","ERROR");
-        write_log("No data retrieved from query.","ERROR");
+        if ($data == "") write_log("No data retrieved from query.","ERROR");
 	}
         
         public function requery() {
