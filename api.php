@@ -167,8 +167,7 @@
 		$result['commands'] =  urlencode(($contents));
 		$result['players'] = fetchClientList();
 		$result['servers'] = fetchServerList();
-		fetchDVRList();
-		$result['dvrs'] = $_SESSION['list_plexdvr'];
+		$result['dvrs'] = fetchDVRList();
 		header('Content-Type: application/json');
 		echo JSON_ENCODE($result);
 		die();
@@ -1859,7 +1858,7 @@
 	function fetchDVRList() {
         if (!(isset($_GET['pollPlayer']))) write_log("Function fired.");
 		$devices = scanDevices();
-        $current = $GLOBALS['config']->get('user-_-' . $_SESSION['username'], 'plexServer', false);
+        $current = $GLOBALS['config']->get('user-_-' . $_SESSION['username'], 'plexDVR', false);
 		$options = "";
 		if (isset($devices['dvrs'])) {
 			$options = "";
