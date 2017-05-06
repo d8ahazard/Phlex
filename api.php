@@ -58,7 +58,7 @@
 						$_SESSION['plex_token'] = $setting['plexToken'];
 						$valid = true;
 					} else {
-						if (isset($_GET['testclient'])) {
+						if ((isset($_GET['testclient'])) && (! $valid)) {
 							write_log("API Link Test failed, token does not match!");
 							echo 'ERROR: unrecognized API token!';
 							die();
@@ -1058,6 +1058,7 @@
 			if (($context['name'] == 'yes') && ($action=='fetchAPI')) {
 				write_log("Context JSON should be ".json_encode($context));
 				$command = (string)$context['parameters']['command'];
+				$type = (isset($context['parameters']['type']) ? (string) $context['parameters']['type'] : false);
 				$command = cleanCommandString($command);
 				$playerIn = false;
                 foreach($_SESSION['list_plexclient'] as $client) {
@@ -1338,12 +1339,9 @@
 				}
 			}
 			if (isset($mediaResult)) {
+                write_log("Media result retrieved.");
 				if (count($mediaResult)==1) {
-				    if (isset($mediaResult[0]['queueID'])) {
-				        write_log("This is a music queue, we need to play it differently.");
-				        $queueID = $mediaResult[0]['queueID'];
-                    }
-					write_log("Got media, sending play command.");
+				    write_log("Got media, sending play command.");
 					$queryOut['mediaResult'] = $mediaResult[0];
 					$searchType = $queryOut['mediaResult']['searchType'];
 					$title = $queryOut['mediaResult']['title'];
@@ -1470,23 +1468,23 @@
 					unset($_SESSION['deviceArray']);
 					die();
 				}
-
-			} else {
-				$waitForResponse = true;
-				if ($command) {
-                    if (isset($_SESSION['cleaned_search'])) {
-                    	$command = $_SESSION['cleaned_search'];
-                    	unset($_SESSION['cleaned_search']);
+				if (! count($mediaResult)) {
+                    $waitForResponse = true;
+                    if ($command) {
+                        if (isset($_SESSION['cleaned_search'])) {
+                            $command = $_SESSION['cleaned_search'];
+                            unset($_SESSION['cleaned_search']);
+                        }
+                        $speech = "I'm sorry, I was unable to find ".$command." in your library.  Would you like me to add it to your watch list?";
+                        $contextName = 'yes';
+                        returnSpeech($speech,$contextName,$waitForResponse);
+                        $queryOut['parsedCommand'] = "Play a media item with the title of '".$command.".'";
+                        $queryOut['mediaStatus'] = 'ERROR: No results found, prompting to download.';
+                        $queryOut['speech'] = $speech;
+                        log_command(json_encode($queryOut));
+                        die();
                     }
-					$speech = "I'm sorry, I was unable to find ".$command." in your library.  Would you like me to add it to your watch list?";
-                    $contextName = 'yes';
-                    returnSpeech($speech,$contextName,$waitForResponse);
-					$queryOut['parsedCommand'] = "Play a media item with the title of '".$command.".'";
-					$queryOut['mediaStatus'] = 'ERROR: No results found, prompting to download.';
-					$queryOut['speech'] = $speech;
-					log_command(json_encode($queryOut));
-					die();
-				}
+                }
 			}
 		}
 
@@ -2962,21 +2960,22 @@
 			if ($results) {
 				$container = new SimpleXMLElement($results);
 				$array = json_decode(json_encode($container),true);
-				if (count($array)>=1) {
+				if (count($array)) {
 					$status['status'] = 'stopped';
-                    if (isset($container->Timeline)) {
-                        foreach($container->Timeline as $Timeline) {
-                            if($Timeline['key']) {
+                        foreach($array['Timeline'] as $item) {
+                            $Timeline = $item['@attributes'];
+                            if ((($Timeline['state'] == 'playing') || ($Timeline['state'] == 'paused')) && ($Timeline['key'])) {
+                                write_log("Key: ".$Timeline['key']);
+                                write_log("Timeline: ".json_encode($Timeline));
                                 $mediaURL = $_SESSION['uri_plexserver'].$Timeline['key'].
-                                '?checkFiles=1&includeChapters=1'.
-                                '&X-Plex-Token='.$_SESSION['token_plexserver'];
+                                '?X-Plex-Token='.$_SESSION['token_plexserver'];
                                 $media = curlGet($mediaURL);
                                 if ($media) {
                                     $mediaContainer = new SimpleXMLElement($media);
 									$MC = json_decode(json_encode($mediaContainer),true);
+                                    write_log("Media: ".json_encode($MC));
 									$item = (isset($MC['Video']) ? $MC['Video']['@attributes'] : $MC['Track']['@attributes']);
 									$status['mediaResult'] = $item;
-
 									$thumb = (($item['type'] != 'episode') ? $item['thumb'] : $item['parentThumb']);
                                     $thumb = $_SESSION['uri_plexserver'].$thumb."?X-Plex-Token=".$_SESSION['token_plexserver'];
                                     $thumb = cacheImage($thumb);
@@ -2999,7 +2998,7 @@
                                 }
                             }
                         }
-                    }
+
 				}
 			}
 		}

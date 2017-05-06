@@ -390,7 +390,7 @@ function updateStatus() {
 			console.log("Raw Status: " + data.playerStatus);
 			data.playerStatus = JSON.parse(data.playerStatus);
 			var TitleString;
-			if (data.playerStatus.status === 'playing') {
+			if ((data.playerStatus.status === 'playing') || (data.playerStatus.status === 'paused')) {
                 var mr = data.playerStatus.mediaResult;
                 console.log("Mediaresult",mr);
 				if (hasContent(mr)) {
