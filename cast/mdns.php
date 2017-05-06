@@ -47,12 +47,14 @@ class mDNS {
         $this->querycache = $data;
 		$r = socket_sendto($this->mdnssocket, $data, strlen($data), 0, '224.0.0.251',5353);
         if (! $r) write_log("Error sending to socket.","ERROR");
+        if ($r) write_log("Socket result is ".$r);
 	}
         
         public function requery() {
             // resend the last query
             $r = socket_sendto($this->mdnssocket, $this->querycache, strlen($this->querycache), 0, '224.0.0.251',5353);
             if (! $r) write_log("Error sending to socket.","ERROR");
+            if ($r) write_log("Socket result is ".$r);
         }
 	
 	public function readIncoming() {
