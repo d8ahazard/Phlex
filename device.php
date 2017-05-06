@@ -61,6 +61,7 @@
             $deviceOut['uri'] = "https://" . $value['ip'] . ":" . $value['port'];
             array_push($returns, $deviceOut);
         }
+        if ($returns == ["Error"]) $returns = false;
         return $returns;
     }
 
