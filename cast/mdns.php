@@ -43,13 +43,15 @@ class mDNS {
 		for ($x = 0; $x < sizeof($b); $x++) { 
 			$data .= chr($b[$x]);
 		}
-                $this->querycache = $data;
-		$r = socket_sendto($this->mdnssocket, $data, strlen($data), 0, '224.0.0.251',5353);	
+        $this->querycache = $data;
+		$r = socket_sendto($this->mdnssocket, $data, strlen($data), 0, '224.0.0.251',5353);
+        if (! $r) write_log("Error sending to socket.","ERROR");
 	}
         
         public function requery() {
             // resend the last query
             $r = socket_sendto($this->mdnssocket, $this->querycache, strlen($this->querycache), 0, '224.0.0.251',5353);
+            if (! $r) write_log("Error sending to socket.","ERROR");
         }
 	
 	public function readIncoming() {
