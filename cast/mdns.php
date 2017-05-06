@@ -47,14 +47,13 @@ class mDNS {
         $this->querycache = $data;
 		$r = socket_sendto($this->mdnssocket, $data, strlen($data), 0, '224.0.0.251',5353);
         if (! $r) write_log("Error sending to socket.","ERROR");
-        if ($r) write_log("Socket result is ".$r);
+        write_log("No data retrieved from query.","ERROR");
 	}
         
         public function requery() {
             // resend the last query
             $r = socket_sendto($this->mdnssocket, $this->querycache, strlen($this->querycache), 0, '224.0.0.251',5353);
             if (! $r) write_log("Error sending to socket.","ERROR");
-            if ($r) write_log("Socket result is ".$r);
         }
 	
 	public function readIncoming() {
@@ -66,6 +65,7 @@ class mDNS {
 		try {
 			$response = socket_read($this->mdnssocket, 1024, PHP_BINARY_READ);
 		} catch (Exception $e) {
+		    write_log("Exception: ".$e,"ERROR");
 		}
                 if (strlen($response) < 1) { return ""; }
 		// Create an array to represent the bytes
