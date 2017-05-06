@@ -3,6 +3,7 @@
 // Simple MDNS query object
 // Chris Ridings
 // www.chrisridings.com
+require_once dirname(__FILE__) . '/../util.php';
 
 class mDNS {
 	
