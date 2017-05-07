@@ -1734,15 +1734,17 @@
                     $connections = [];
                     foreach ($deviceXML->Connection as $connection) {
                         $con = json_decode(json_encode($connection), true);
-                        if (($device['product'] === 'Plex Media Server') && ($con['@attributes']['local'] == $device['publicAddressMatches'])) $device['uri'] = $con['@attributes']['uri'];
+                        if (($device['product'] === 'Plex Media Server') && ($con['@attributes']['local'] == $device['publicAddressMatches'])) {
+                            if (check_url($con['@attributes']['uri']."?X-Plex-Token=".$device['token'])) $device['uri'] = $con['@attributes']['uri'];
+                        }
                         if (($device['product'] !== 'Plex Media Server') && ($con['@attributes']['local'] == 1)) $device['uri'] = $con['@attributes']['uri'];
                         array_push($connections, (array)$con['@attributes']);
-                    }
+                    }   
                     $device['Connection'] = $connections;
                     if (isset($device['accessToken'])) unset($device['accessToken']);
                     unset($device['clientIdentifier']);
 
-                    if ($device['presence']) {
+                    if (($device['presence']) && (isset($device['uri']))) {
                         if ($device['product'] === 'Plex Media Server') {
                             array_push($servers, $device);
                         } else {

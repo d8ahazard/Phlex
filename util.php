@@ -388,7 +388,7 @@
 		return round($similarity / $max, 2);
 	}
 
-// Check if we have a running session before trying to start one
+    // Check if we have a running session before trying to start one
     function is_session_started() {
         if ( php_sapi_name() !== 'cli' ) {
             if ( version_compare(phpversion(), '5.4.0', '>=') ) {
@@ -398,5 +398,28 @@
             }
         }
         return FALSE;
+    }
+
+    // Check the validity of a URL response
+    function check_url($url, $timeout=1) {
+        write_log("Function fired.");
+        $ch = curl_init($url);
+        curl_setopt($ch,  CURLOPT_RETURNTRANSFER, TRUE);
+        curl_setopt($ch, CURLOPT_TIMEOUT,$timeout);
+        /* Get the HTML or whatever is linked in $url. */
+        $response = curl_exec($ch);
+
+        /* Check for 404 (file not found). */
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        /* If the document has loaded successfully without any redirection or error */
+        if ($httpCode >= 200 && $httpCode < 300) {
+            write_log("Connection is valid: ".$url);
+            return true;
+        } else {
+            write_log("Connection failed with error code ".$httpCode.": ".$url);
+            return false;
+        }
     }
 
