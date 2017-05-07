@@ -1737,9 +1737,11 @@
                         if (($device['product'] === 'Plex Media Server') && ($con['@attributes']['local'] == $device['publicAddressMatches'])) {
                             if (check_url($con['@attributes']['uri']."?X-Plex-Token=".$device['token'])) $device['uri'] = $con['@attributes']['uri'];
                         }
-                        if (($device['product'] !== 'Plex Media Server') && ($con['@attributes']['local'] == 1)) $device['uri'] = $con['@attributes']['uri'];
+                        if (($device['product'] !== 'Plex Media Server') && ($con['@attributes']['local'] == 1)) {
+                            if (check_url($con['@attributes']['uri'].'/resources?X-Plex-Token='.$device['token'])) $device['uri'] = $con['@attributes']['uri'];
+                        }
                         array_push($connections, (array)$con['@attributes']);
-                    }   
+                    }
                     $device['Connection'] = $connections;
                     if (isset($device['accessToken'])) unset($device['accessToken']);
                     unset($device['clientIdentifier']);
@@ -1784,7 +1786,9 @@
             }
 
             if (count($dvrs)) $results['dvrs'] = $dvrs;
-        } else $results = $list;
+        } else {
+            $results = $_SESSION['list_plexdevices'];
+        }
 
         if ($triggered) {
             write_log("Final hooplah is " . json_encode($results));

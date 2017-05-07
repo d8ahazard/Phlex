@@ -206,6 +206,7 @@
             if ($JSON){
                 $headers = array_merge($headers,array("Content-type: application/json"));
             }
+
             curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
         } else {
             if ($JSON){
@@ -401,11 +402,15 @@
     }
 
     // Check the validity of a URL response
-    function check_url($url, $timeout=1) {
+    function check_url($url, $post=false) {
         write_log("Function fired.");
         $ch = curl_init($url);
         curl_setopt($ch,  CURLOPT_RETURNTRANSFER, TRUE);
-        curl_setopt($ch, CURLOPT_TIMEOUT,$timeout);
+        curl_setopt($ch, CURLOPT_TIMEOUT,1);
+        if ($post) {
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $_SESSION['plex_headers']);
+        }
         /* Get the HTML or whatever is linked in $url. */
         $response = curl_exec($ch);
 
@@ -418,7 +423,7 @@
             write_log("Connection is valid: ".$url);
             return true;
         } else {
-            write_log("Connection failed with error code ".$httpCode.": ".$url);
+            write_log("Connection failed with error code ".$httpCode.": ".$url,"ERROR");
             return false;
         }
     }

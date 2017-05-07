@@ -52,7 +52,7 @@ That should be it.  You can now restart the apache service for your webserver, a
 To log in, enter your **Plex** username and password.
 
 
-If you are running Phlex on an existing webserver, Phlex supports PHP versions is 5.6.x and up.  Phlex will also require r/w access to the root of the /Phlex directory for configuration and logging purposes.
+If you are running Phlex on an existing webserver, Phlex PHP version 7.0 and up.  Phlex will also require r/w access to the root of the /Phlex directory for configuration and logging purposes.
 You will also need the CURL and openSSL extensions enabled, and sockets if you have any Cast devices.
 <br><br>
 
@@ -73,7 +73,7 @@ In settings, under the general tab, make sure you fill in the "Public Address" b
 <BR>
 #### For example: ####
 
-    273.482.234.33/Phlex:66678
+    273.482.234.33:66678/Phlex
 
 #### If you've set up a domain with reverse proxy, then just put the url you've setup: ####
 
@@ -105,6 +105,12 @@ When talking with Google Assistant, your speech is parsed using API.ai's natural
     OK Google, Ask Flex TV to play Batman Begins.
 
     OK Google, Tell Flex TV to play the latest episode of Game of Thrones.
+    
+    Ok Google, Ask Flex TV to play Enter Sandman by Metallica.
+    
+    Ok Google, Ask Flex TV to play Eminem.
+    
+    Ok Google, Ask Flex TV to play The Slim Shady LP.
 
     OK Google, Ask Flex TV to pause playback.
 
@@ -135,6 +141,8 @@ When talking with Google Assistant, your speech is parsed using API.ai's natural
     OK Google, Tell Flex TV I want to watch Frozen From 1 Hour and 45 Minutes.
 
     OK Google, Ask Flex TV if I have any new movies.
+    
+    OK Google, Ask Flex TV What's on deck.
 
 <br><br>
 ## Trigger phrases: ##
@@ -255,7 +263,7 @@ Below are all of the recognized trigger phrases for Google Assistant commands.
         "What is this called?",
         "what the name of this"
 
->**"New Media":** Not sure if I implemented or not
+>**"New Media":** 
 	"What new TYPE",
         "have any new TYPE",
         "What's new?",
@@ -264,11 +272,16 @@ Below are all of the recognized trigger phrases for Google Assistant commands.
         "recently added",
         "just added"
 
->**"On Deck Items":** Also forgot if I actually wrote this or not yet
+>**"On Deck Items":**
  	"ondeck",
         "What's on deck",
         "What is on deck",
         "up next"
+        
+>**"DVR Control":**
+    "dvr",
+        "Record Jeopardy",
+        "DVR Family Guy"
 
 
 
