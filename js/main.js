@@ -696,7 +696,7 @@ function formatAMPM() {
 }
 
 function fetchWeather() {
-    $.get("http://freegeoip.net/json/", function (data) {
+    $.get("https://freegeoip.net/json/", function (data) {
         console.log("Caching data");
         city = data.city;
         state = data.region_name;
