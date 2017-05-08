@@ -1730,7 +1730,7 @@
                     $dev = json_decode(json_encode($deviceXML), true);
                     $device = (array)$dev['@attributes'];
                     $device['id'] = $device['clientIdentifier'];
-                    $device['token'] = (($device['accessToken'] == "") ? $_SESSION['plexToken'] : (string)$device['accessToken']);
+                    $device['token'] = (isset($device['accessToken']) ? $_SESSION['plexToken'] : (string)$device['accessToken']);
                     $connections = [];
                     foreach ($deviceXML->Connection as $connection) {
                         $con = json_decode(json_encode($connection), true);
@@ -2643,7 +2643,7 @@
 		write_log("Function Fired.");
 		write_log("Media array: ".json_encode($media));
 		$key = $media['key'];
-		$url = $_SESSION['uri_plexserver'].$key.'?X-Plex-Token='.$_SESSION['plexToken'];
+		$url = $_SESSION['uri_plexserver'].$key.'?X-Plex-Token='.$_SESSION['token_plexserver'];
 		$result = curlGet($url);
 		if ($result) {
 			$container = new SimpleXMLElement($result);
@@ -3124,7 +3124,7 @@
 		write_log("Art Path is ".$artUrl);
 		if (preg_match('/library/',$artUrl)) {
 			write_log("Logged command is from Plex, building cached URL.");
-			$artUrl = $_SESSION['uri_plexserver'].$artUrl.'?X-Plex-Token='.$_SESSION['plexToken'];
+			$artUrl = $_SESSION['uri_plexserver'].$artUrl.'?X-Plex-Token='.$_SESSION['token_plexserver'];
 			write_log("Full art URL is ".$artUrl);
 			$artUrl = cacheImage($artUrl);
 			unset($newCommand['mediaResult']['@attributes']['art']);
@@ -3134,7 +3134,7 @@
 		write_log("Thumb path is ".$thumbUrl);
 		if (preg_match('/library/',$thumbUrl)) {
 			write_log("Logged command is from Plex, building cached URL.");
-			$thumbUrl = $_SESSION['uri_plexserver'].$thumbUrl.'?X-Plex-Token='.$_SESSION['plexToken'];
+			$thumbUrl = $_SESSION['uri_plexserver'].$thumbUrl.'?X-Plex-Token='.$_SESSION['token_plexserver'];
 			$thumbUrl = cacheImage($thumbUrl);
 			write_log("New thumb URL Should be ".$thumbUrl);
 			unset($newCommand['mediaResult']['@attributes']['thumb']);
@@ -3904,7 +3904,7 @@
 				break;
 
 			case "Plex":
-				$url = $_SESSION['uri_plexserver'].'?X-Plex-Token='.$_SESSION['plexToken'];
+				$url = $_SESSION['uri_plexserver'].'?X-Plex-Token='.$_SESSION['token_plexserver'];
 				write_log('URL is: '.protectURL($url));
 				$result = curlGet($url);
 				$result = (($result) ? 'Connection to '.$_SESSION['name_plexserver'].' successful!': 'ERROR: '.$_SESSION['name_plexserver'].' not available.');
