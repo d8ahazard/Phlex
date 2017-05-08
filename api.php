@@ -904,8 +904,7 @@
 		// An array of words that would indicate which specific episode or media we want
 		$numberWordIn = array("first","pilot","second","third","last","final","latest","random");
 
-		foreach($_SESSION['list_plexclient'] as $client) {
-			write_log("I got a client named ".$client['name']);
+		foreach($_SESSION['list_plexdevices']['clients'] as $client) {
 			$clientName = '/'.strtolower($client['name']).'/';
 			if (preg_match($clientName,$command)) {
 				write_log("I was just asked me to play something on a specific device: ".$client['name']);
@@ -1061,8 +1060,7 @@
 				$type = (isset($context['parameters']['type']) ? (string) $context['parameters']['type'] : false);
 				$command = cleanCommandString($command);
 				$playerIn = false;
-                foreach($_SESSION['list_plexclient'] as $client) {
-                    write_log("I got a client named ".$client['name']);
+                foreach($_SESSION['list_plexdevices']['clients'] as $client) {
                     $clientName = '/'.strtolower($client['name']).'/';
                     if (preg_match($clientName,$command)) {
                         write_log("Re-removing device name from fetch search: ".$client['name']);
