@@ -1735,7 +1735,12 @@
                     foreach ($deviceXML->Connection as $connection) {
                         $con = json_decode(json_encode($connection), true);
                         if (($device['product'] === 'Plex Media Server') && ($con['@attributes']['local'] == $device['publicAddressMatches'])) {
-                            if (check_url($con['@attributes']['uri']."?X-Plex-Token=".$device['token'])) $device['uri'] = $con['@attributes']['uri'];
+                            if (check_url($con['@attributes']['uri']."?X-Plex-Token=".$device['token'])) {
+                                $device['uri'] = $con['@attributes']['uri'];
+                            } else {
+                                $fallback = $con['@attributes']['protocol']."://".$con['@attributes']['address'].":".$con['@attributes']['port'];
+                                if (check_url($fallback."?X-Plex-Token=".$device['token'])) $device['uri'] = $fallback;
+                            }
                         }
                         if (($device['product'] !== 'Plex Media Server') && ($con['@attributes']['local'] == 1)) {
                             if (check_url($con['@attributes']['uri'].'/resources?X-Plex-Token='.$device['token'])) $device['uri'] = $con['@attributes']['uri'];

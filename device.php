@@ -35,12 +35,14 @@
     if ($valid) {
         $castDevices = fetchCastDevices();
         $i = 0;
-        foreach($castDevices as $castDevice) {
-            foreach($castDevice as $key=>$value) {
-                $GLOBALS['config']->set('castDevice'.$i,$key, $value);
-                saveConfig($GLOBALS['config']);
+        if ($castDevices) {
+            foreach ($castDevices as $castDevice) {
+                foreach ($castDevice as $key => $value) {
+                    $GLOBALS['config']->set('castDevice' . $i, $key, $value);
+                }
+                $i++;
             }
-         $i++;
+            saveConfig($GLOBALS['config']);
         }
     }
 
