@@ -6,6 +6,7 @@
     use Kryptonit3\Sonarr\Sonarr;
     date_default_timezone_set("America/Chicago");
 	ini_set("log_errors", 1);
+    ini_set('max_execution_time', 300);
 	error_reporting(E_ERROR);
 	$errfilename = 'Phlex_error.log';
 	ini_set("error_log", $errfilename);
