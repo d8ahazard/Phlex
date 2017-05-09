@@ -403,7 +403,6 @@
 
     // Check the validity of a URL response
     function check_url($url, $post=false) {
-        write_log("Function fired.");
         $ch = curl_init($url);
         curl_setopt($ch,  CURLOPT_RETURNTRANSFER, TRUE);
         curl_setopt($ch, CURLOPT_TIMEOUT,1);
