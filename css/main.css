@@ -91,6 +91,10 @@ html, body {
 	z-index: 1000;
 }
 
+.dropdown-item {
+	text-align: center;
+}
+
 #progressSlider {
 	position: absolute;
 	top: -9px;

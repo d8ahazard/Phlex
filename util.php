@@ -282,7 +282,17 @@
 		return $caller;   
 	}
 
-    function startBackgroundProcess(
+function startbackgroundProcess($command) {
+    if (substr(php_uname(), 0, 7) == "Windows"){
+        pclose(popen("start /B ". $command, "r"));
+    }
+    else {
+        exec($command . " > /dev/null &");
+    }
+}
+
+
+function startBackgroundProcess2(
         $command,
         $stdin = null,
         $redirectStdout = null,

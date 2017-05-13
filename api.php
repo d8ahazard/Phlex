@@ -166,9 +166,10 @@
 			$contents .= fgets($handle);
 		}
 		$result['commands'] =  urlencode(($contents));
-		$result['players'] = fetchClientList();
-		$result['servers'] = fetchServerList();
-		$result['dvrs'] = fetchDVRList();
+        $devices = scanDevices();
+		$result['players'] = fetchClientList($devices);
+		$result['servers'] = fetchServerList($devices);
+		$result['dvrs'] = fetchDVRList($devices);
 		header('Content-Type: application/json');
 		echo JSON_ENCODE($result);
 		die();
@@ -212,27 +213,28 @@
 		$name = $_GET['name'];
 		$product = $_GET['product'];
 		write_log('GET: New device selected. Type is ' . $type.". ID is ". $id.". Name is ".$name);
-		if ($type == 'plexServer') {
-			$token = $_GET['token'];
-			$config->set('user-_-'.$_SESSION['username'],$type.'Token',$token);
-		}
-		$config->set('user-_-'.$_SESSION['username'],$type,$id);
-		$config->set('user-_-'.$_SESSION['username'],$type.'Uri',$uri);
-		$config->set('user-_-'.$_SESSION['username'],$type.'Name',$name);
-		$config->set('user-_-'.$_SESSION['username'],$type.'Product',$product);
-		saveConfig($config);
-		setSessionVariables();
-		write_log("Refreshing devices of ".$type);
-		scanDevices(true);
+		if ($id != 'rescan') {
+            if ($type == 'plexServer') {
+                $token = $_GET['token'];
+                $config->set('user-_-' . $_SESSION['username'], $type . 'Token', $token);
+            }
+            $config->set('user-_-' . $_SESSION['username'], $type, $id);
+            $config->set('user-_-' . $_SESSION['username'], $type . 'Uri', $uri);
+            $config->set('user-_-' . $_SESSION['username'], $type . 'Name', $name);
+            $config->set('user-_-' . $_SESSION['username'], $type . 'Product', $product);
+            saveConfig($config);
+            setSessionVariables();
+            write_log("Refreshing devices of " . $type);
+            scanDevices();
+        } else {
+		    scanDevices(true);
+        }
 		die();
 	}
 
 	// If we are changing a setting variable via the web UI.
 	if (isset($_GET['id'])) {
 		$id = $_GET['id'];
-		if (trim($id) == 'useCast') {
-            scanDevices(true);
-		}
 		$value = $_GET['value'];
 		write_log('GET: Setting parameter changed '.$id . ' : ' . $value);
 		if (preg_match("/IP/",$id)) {
@@ -248,6 +250,9 @@
 		}
 		$config->set('user-_-'.$_SESSION['username'],$id,$value);
 		saveConfig($config);
+        if (trim($id) === 'useCast') {
+            scanDevices(true);
+        }
 		reloadVariables();
 		die();
 	}
@@ -276,14 +281,14 @@
 	// Fetches a list of clients
 	if (isset($_GET['clientList'])) {
 		write_log("API: Returning clientList");
-		$devices = fetchClientList();
+		$devices = fetchClientList(scanDevices());
 		echo $devices;
 		die();
 	}
 
 	if (isset($_GET['serverList'])) {
 		write_log("API: Returning serverList");
-		$devices = fetchServerList();
+		$devices = fetchServerList(scanDevices());
 		echo $devices;
 		die();
 	}
@@ -393,7 +398,7 @@
 			$GLOBALS['config']->set('user-_-'.$_SESSION['username'],'publicAddress', $ip);
 			saveConfig($GLOBALS['config']);
 		}
-		$devices = scanDevices();
+        $devices = (isset($_SESSION['list_plexdevices']) ? $_SESSION['list_plexdevices'] : scanDevices());
 		// See if we have a server saved in settings
 		$_SESSION['id_plexserver'] = $GLOBALS['config']->get('user-_-'.$_SESSION['username'], 'plexServer', false);
 		if (!($_SESSION['id_plexserver'])) {
@@ -458,6 +463,7 @@
 		$_SESSION['enable_apiai'] = $GLOBALS['config']->get('user-_-'.$_SESSION['username'], 'apiEnabled', false);
 
 		$_SESSION['returnItems'] = $GLOBALS['config']->get('user-_-'.$_SESSION['username'], 'returnItems', 6);
+        $_SESSION['rescanTime'] = $GLOBALS['config']->get('user-_-'.$_SESSION['username'], 'rescanTime', 8);
 
 		$_SESSION['ip_couch'] = $GLOBALS['config']->get('user-_-'.$_SESSION['username'], 'couchIP', 'http://localhost');
 		$_SESSION['ip_ombi'] = $GLOBALS['config']->get('user-_-'.$_SESSION['username'], 'ombiUrl', 'http://localhost');
@@ -587,10 +593,10 @@
 	*/
 
 
-	function parseFetchCommand($command) {
+	function parseFetchCommand($command,$type=false) {
 		$resultOut = array();
 		write_log("Function Fired.");
-        $episode = $remove = $season = $type = $useNext = false;
+        $episode = $remove = $season = $useNext = false;
         //Sanitize our string and try to rule out synonyms for commands
 		$result['initialCommand'] = $command;
 		$commandArray = explode(' ',$command);
@@ -655,7 +661,7 @@
 					write_log("Result ".json_encode($result));
 
 				} else {
-					$result['status'] = 'no fetcher configured for ' .$type;
+					$result['status'] = 'ERROR: No fetcher configured for ' .$type.'.';
 					write_log("". $result['status']);
 				}
 				break;
@@ -664,7 +670,7 @@
 				if (($_SESSION['enable_couch']) || ($_SESSION['enable_ombi']) || ($_SESSION['enable_radarr'])) {
 					$result = downloadMovie(implode(" ",$commandArray));
 				} else {
-					$result['status'] = 'no fetcher configured for ' .$type;
+					$result['status'] = 'ERROR: No fetcher configured for ' .$type.'.';
 					write_log("". $result['status']);
 				}
 				break;
@@ -679,7 +685,7 @@
 						break;
 					}
 				} else {
-					$result['status'] = 'no fetcher configured for ' .$type;
+					$result['status'] = 'ERROR: No fetcher configured for ' .$type.".";
 					write_log("". $result['status']);
 				}
 				break;
@@ -687,6 +693,7 @@
 		$result['mediaStatus'] = $result['status'];
 		$result['parsedCommand'] = $resultOut['parsedCommand'];
 		$result['initialCommand'] = $command;
+		write_log("Final result: ".json_encode($result));
 		return $result;
 	}
 
@@ -1222,7 +1229,8 @@
 					$player = $_SESSION['name_plexclient'];
 					$thumb = $_SESSION['uri_plexserver']."/photo/:/transcode?width=1024&height=1024&minSize=1&url=".$status['mediaResult']['thumbOG']."&X-Plex-Token=".$_SESSION['token_plexserver'];
 					$title = $status['mediaResult']['title'];
-                    $description = $status['mediaResult']['summary'];
+                    $summary = $status['mediaResult']['summary'];
+                    $tagline = $status['mediaResult']['tagline'];
 					if ($type == 'episode') {
 						$showTitle = $status['mediaResult']['grandparentTitle'];
 						$epNum = $status['mediaResult']['index'];
@@ -1232,7 +1240,7 @@
 					} else {
 						$speech = "Currently, the ".$type." ".$title." is playing on ".$player.".";
 					}
-					$card = ($screen ? ["title"=>$title,"description"=>$description,"image"=>$thumb] : null);
+					$card = ($screen ? ["title"=>$title,"description"=>$tagline,"summary"=>$summary,"image"=>$thumb] : null);
 				} else {
 					$speech = "It doesn't look like there's anything playing right now.";
 				}
@@ -1271,17 +1279,24 @@
 				$speech = (($action=='recent')? "Here's a list of recent ".$type."s: " : "Here's a list of on deck items: ");
 				$i = 1;
 				$count = count($array);
+				$card = [];
 				foreach($array as $result) {
 					$title = $result['@attributes']['title'];
 					$showTitle = $result['@attributes']['grandparentTitle'];
-					$type = trim($result['@attributes']['type']);
+                    $description = $result['@attributes']['summary'];
+                    $thumb = $_SESSION['uri_plexserver']."/photo/:/transcode?width=1024&height=1024&minSize=1&url=".$result['@attributes']['thumb']."&X-Plex-Token=".$_SESSION['token_plexserver'];
+                    $type = trim($result['@attributes']['type']);
 					write_log("Media item ".$title." is a ".$type);
 					if ($type == 'episode') {
 						write_log("This is a show, appending show title.");
 						write_log($showTitle);
 						$title = $showTitle.": ".$title;
 					}
-					if (($i == $count) && ($count >=2)) {
+                    if ($count >=2) {
+                        $item = ($screen ? ["title"=>$title,"description"=>$description,"image"=>$thumb,"command"=>"play"] : null);;
+                        array_push($card,$item);
+                    }
+                    if (($i == $count) && ($count >=2)) {
 						$speech .= "and ". $title.".";
 					} else {
 						$speech .= $title.", ";
@@ -1290,14 +1305,15 @@
 				}
 				$queryOut['mediaStatus'] = 'SUCCESS: Hub array returned';
 				$queryOut['mediaResult'] = $array[0];
-			} else {
-				write_log("Error fetching hub list.","ERROR");
+
+            } else {
+                write_log("Error fetching hub list.","ERROR");
 				$queryOut['mediaStatus'] = "ERROR: Could not fetch hub list.";
 				$speech = "Unfortunately, I wasn't able to find any results for that.  Please try again later.";
 			}
-			$waitForResponse = false;
-			$contextName = 'PlayMedia';
-			returnSpeech($speech,$contextName,$waitForResponse);
+            $waitForResponse = false;
+            $contextName = 'promptfortitle';
+			returnSpeech($speech,$contextName,$waitForResponse, null,$card);
 			$queryOut['parsedCommand'] = "Return a list of ".$action.' '.(($action == 'recent') ? $type : 'items').'.';
 			$queryOut['speech'] = $speech;
 			log_command(json_encode($queryOut));
@@ -1508,7 +1524,7 @@
 			write_log("Got a request to change ".$action);
 			unset($_SESSION['deviceArray']);
 			$type = (($action == 'player') ? 'clients' : 'servers');
-			$list = scanDevices();
+			$list = (isset($_SESSION['list_plexdevices']) ? $_SESSION['list_plexdevices'] : scanDevices());
 			$list = $list[$type];
             $speech = "There was an error retrieving the list of devices, please try again later.";
             $contextName = "yes";
@@ -1559,41 +1575,51 @@
 		if (($action == 'fetch') && ($command)) {
 			$queryOut['parsedCommand'] = 'Fetch the media named '.$command.'.';
 			$waitForResponse = false;
-			$result = parseFetchCommand($command);
-			if ($result['status'] === 'success') {
-				$queryOut['mediaResult'] = $result['mediaResult'];
-				$resultTitle = $result['mediaResult']['@attributes']['title'];
-				$resultYear = $result['mediaResult']['@attributes']['year'];
-				$resultImage = $result['mediaResult']['@attributes']['art'];
-				$resultData['image'] = $resultImage;
-				if ($resultTitle) {
-					$speech = "Okay, I've added ".$resultTitle." (".$resultYear.") to the fetch list.";
-				} else {
-					$speech = "Hmmm, looks like there was an issue understanding '".$command."' as a fetch command.";
-				}
-				returnSpeech($speech,$contextName,$waitForResponse);
-				$queryOut['mediaStatus'] = 'SUCCESS: Media added to fetcher.';
-				$queryOut['speech'] = $speech;
-				log_command(json_encode($queryOut));
-				unset($_SESSION['deviceArray']);
-				die();
-			}
-			if ($result['status'] == 'already in searcher') {
-				$resultTitle = $result['mediaResult']['@attributes']['title'];
-				$resultImage = $result['mediaResult']['@attributes']['art'];
-				$resultData['image'] = $resultImage;
-				$speech = "It looks like ".$resultTitle." is already set to download.";
-				returnSpeech($speech,$contextName,$waitForResponse);
-				$queryOut['mediaStatus'] = 'SUCCESS: Media already in fetcher.';
-				$queryOut['speech'] = $speech;
-				log_command(json_encode($queryOut));
-				unset($_SESSION['deviceArray']);
-				die();
-			}
-			else {
+			$card = null;
+			$result = parseFetchCommand($command,$type);
+			$stats = explode(":",$result['status']);
+			write_log("Stats: ".print_r($stats,true));
+			if ($stats[0] === 'SUCCESS') {
+			    write_log("Should have been successful.");
+                if ($stats[1] != 'Already in searcher.') {
+                    write_log("Success and not in searcher?");
+                    $queryOut['mediaResult'] = $result['mediaResult'];
+                    $resultTitle = $result['mediaResult']['@attributes']['title'];
+                    $resultYear = $result['mediaResult']['@attributes']['year'];
+                    $resultImage = $result['mediaResult']['@attributes']['art'];
+                    $resultThumb = $result['mediaResult']['@attributes']['thumb'];
+                    $resultSummary = $result['mediaResult']['@attributes']['summary'];
+                    $resultData['image'] = $resultImage;
+                    if ($resultTitle) {
+                        $speech = "Okay, I've added " . $resultTitle . " (" . $resultYear . ") to the fetch list.";
+                        $card = ($screen ? ["title"=>$resultTitle." (".$resultYear.")","summary"=>$resultSummary,"image"=>$resultThumb] : null);
+                    } else {
+                        $speech = "Hmmm, looks like there was an issue understanding '" . $command . "' as a fetch command.";
+                    }
+                    returnSpeech($speech, $contextName, $waitForResponse,null,[$card]);
+                    $queryOut['mediaStatus'] = $result['status'];
+                    $queryOut['speech'] = $speech;
+                    log_command(json_encode($queryOut));
+                    unset($_SESSION['deviceArray']);
+                    die();
+                }
+                if ($stats[1] == 'Already in searcher.') {
+                    write_log("Success and in searcher.");
+                    $resultTitle = $result['mediaResult']['@attributes']['title'];
+                    $resultImage = $result['mediaResult']['@attributes']['art'];
+                    $resultData['image'] = $resultImage;
+                    $speech = "It looks like " . $resultTitle . " is already set to download.";
+                    returnSpeech($speech, $contextName, $waitForResponse);
+                    $queryOut['mediaStatus'] = $result['status'];
+                    $queryOut['speech'] = $speech;
+                    log_command(json_encode($queryOut));
+                    unset($_SESSION['deviceArray']);
+                    die();
+                }
+            } else {
 				$speech = "Unfortunately, I was not able to find anything with that title to download.";
 				returnSpeech($speech,$contextName,$waitForResponse);
-				$queryOut['mediaStatus'] = 'ERROR: Nothing found to fetch.';
+				$queryOut['mediaStatus'] = $result['status'];
 				$queryOut['speech'] = $speech;
 				log_command(json_encode($queryOut));
 				unset($_SESSION['deviceArray']);
@@ -1715,18 +1741,16 @@
 	function scanDevices($force=false) {
         //write_log("Function fired");
         $clients = $dvrs = $results = $servers = [];
-        $triggered = false;
         $now = microtime(true);
-        $lastCheck = (isset($_SESSION['last_fetch']) ? $_SESSION['last_fetch'] : ceil(round($now) / 60) - 5);
+        $lastCheck = (isset($_SESSION['last_fetch']) ? $_SESSION['last_fetch'] : ceil(round($now) / 60) - $_SESSION['rescanTime']);
         $list = $_SESSION['list_plexdevices'];
         $diffSeconds = round($now - $lastCheck);
         $diffMinutes = ceil($diffSeconds / 60);
 
         // Set things up to be recached
-        if (($diffMinutes >= 5) || $force || (! isset($list['servers'])) || (! isset($list['clients']))) {
-        	$triggered = true;
+        if (($diffMinutes >= $_SESSION['rescanTime']) || $force || (! count($list['servers']))) {
         	if ($force) write_log("Force-recaching devices.","INFO");
-        	if ($diffMinutes >= 5) write_log("Recaching due to timer.","INFO");
+        	if ($diffMinutes >= $_SESSION['rescanTime']) write_log("Recaching due to timer.","INFO");
         	if ((! isset($list['servers'])) || (! isset($list['clients']))) write_log("Recaching due to missing data.","INFO");
             $_SESSION['last_fetch'] = $now;
             $url = 'https://plex.tv/api/resources?includeHttps=1&X-Plex-Token=' . $_SESSION['plex_token'];
@@ -1735,7 +1759,7 @@
             if ($_SESSION['use_cast']) {
                 $token = (isset($_SESSION['apiToken']) ? $_SESSION['apiToken'] : session_id());
                 $token = preg_replace('/[^a-z\d]/i', '', $token);
-                $command = 'php device.php ' . $token;
+                $command = 'php device.php ' . $token . " CAST=true";
                 startBackgroundProcess($command);
             }
 
@@ -1744,36 +1768,41 @@
                 foreach ($container->children() as $deviceXML) {
                     $dev = json_decode(json_encode($deviceXML), true);
                     $device = (array)$dev['@attributes'];
-                    $device['id'] = $device['clientIdentifier'];
-                    $device['token'] = (isset($device['accessToken']) ? $_SESSION['plexToken'] : (string)$device['accessToken']);
-                    $connections = [];
-                    foreach ($deviceXML->Connection as $connection) {
-                        if (! isset($device['uri'])) {
+                    $present = ($device['presence'] == 1);
+
+                    if ($present) {
+                        $publicMatches = ($device['publicAddressMatches'] === "1");
+                        $device['id'] = $device['clientIdentifier'];
+                        $device['token'] = (isset($device['accessToken']) ? (string)$device['accessToken'] : $_SESSION['plexToken']);
+                        $connections = [];
+                        $conCount = count($deviceXML->Connection);
+                        $i = 1;
+                        write_log("Checking " . $conCount . " connections for " . $device['name']);
+
+                        foreach ($deviceXML->Connection as $connection) {
                             $con = json_decode(json_encode($connection), true);
-                            if (($device['product'] === 'Plex Media Server') && ($con['@attributes']['local'] == $device['publicAddressMatches'])) {
-                                if (check_url($con['@attributes']['uri'] . "?X-Plex-Token=" . $device['token'])) {
-                                    $device['uri'] = $con['@attributes']['uri'];
-                                } else {
-                                    $fallback = $con['@attributes']['protocol'] . "://" . $con['@attributes']['address'] . ":" . $con['@attributes']['port'];
-                                    if (check_url($fallback . "?X-Plex-Token=" . $device['token'])) $device['uri'] = $fallback;
+                            if (!isset($device['uri'])) {
+                                if (($device['product'] === 'Plex Media Server') && ($con['@attributes']['local'] == $device['publicAddressMatches'])) {
+                                    if ((check_url($con['@attributes']['uri'] . "?X-Plex-Token=" . $device['token']))) $device['uri'] = $con['@attributes']['uri'];
+                                    if (($conCount == $i) && (!isset($device['uri']))) {
+                                        $fallback = $con['@attributes']['protocol'] . "://" . $con['@attributes']['address'] . ":" . $con['@attributes']['port'];
+                                        $url = $fallback . "?X-Plex-Token=" . $device['token'];
+                                        write_log("Trying fallback URL: " . protectURL($url));
+                                        if (check_url($url)) $device['uri'] = $fallback;
+                                    }
+                                }
+                                if (($device['product'] !== 'Plex Media Server') && ($con['@attributes']['local'] == 1) && ($publicMatches)) {
+                                    if (check_url($con['@attributes']['uri'] . '/resources?X-Plex-Token=' . $device['token'])) $device['uri'] = $con['@attributes']['uri'];
                                 }
                             }
-                            if (($device['product'] !== 'Plex Media Server') && ($con['@attributes']['local'] == 1)) {
-                                if (check_url($con['@attributes']['uri'] . '/resources?X-Plex-Token=' . $device['token'])) $device['uri'] = $con['@attributes']['uri'];
-                            }
+                            array_push($connections, (array)$con['@attributes']);
+                            $i++;
                         }
-                        array_push($connections, (array)$con['@attributes']);
-                    }
-                    $device['Connection'] = $connections;
-                    if (isset($device['accessToken'])) unset($device['accessToken']);
-                    unset($device['clientIdentifier']);
 
-                    if (($device['presence']) && (isset($device['uri']))) {
-                        if ($device['product'] === 'Plex Media Server') {
-                            array_push($servers, $device);
-                        } else {
-                            if (($device['owned']) && ($device['publicAddressMatches'])) array_push($clients, $device);
-                        }
+                        $device['Connection'] = $connections;
+                        if (isset($device['accessToken'])) unset($device['accessToken']);
+                        if (isset($device['clientIdentifier'])) unset($device['clientIdentifier']);
+                        if (isset($device['uri'])) ($device['product'] === 'Plex Media Server') ? array_push($servers, $device) : array_push($clients, $device);
                     }
                 }
             }
@@ -1786,7 +1815,6 @@
                 }
             }
 
-            // Do a thing with servers
             if (count($servers)) {
                 foreach ($servers as $server) {
                     if (($server['owned']) && ($server['platform'] !== 'Cloud')) {
@@ -1799,30 +1827,21 @@
                         }
                     }
                 }
-                $results['servers'] = $servers;
             }
 
-            // Do a thing with clients
-            if (count($clients)) {
-                $results['clients'] = $clients;
-            }
-
-            if (count($dvrs)) $results['dvrs'] = $dvrs;
-        } else {
-            $results = $_SESSION['list_plexdevices'];
-        }
-
-        if ($triggered) {
-            write_log("Final hooplah is " . json_encode($results));
+            $results['servers'] = $servers;
+            $results['clients'] = $clients;
+            $results['dvrs'] = $dvrs;
             $_SESSION['list_plexdevices'] = $results;
+            write_log("Final hooplah is " . json_encode($results));
+        } else {
+            $results = $list;
         }
 
         return $results;
-
     }
 
     // Call this after changing the target server so that we have the section UUID's stored
-
     function fetchSections() {
 	    write_log("Function fired.");
 	    $sections = [];
@@ -1841,10 +1860,9 @@
     }
 
 	/// What used to be a big ugly THING is now just a wrapper and parser of the result of scanDevices
-	function fetchClientList() {
+	function fetchClientList($devices) {
 		if (!(isset($_GET['pollPlayer']))) write_log("Function Fired.");
-		$devices = scanDevices();
-        $current = $GLOBALS['config']->get('user-_-' . $_SESSION['username'], 'plexClient', false);
+		$current = $GLOBALS['config']->get('user-_-' . $_SESSION['username'], 'plexClient', false);
         $options = "";
 		if (isset($devices['clients'])) {
 			if (!(isset($_GET['pollPlayer']))) write_log("Client list retrieved.");
@@ -1857,16 +1875,16 @@
 				$displayName = $name;
 				$options.='<a class="dropdown-item client-item'.(($selected) ? ' dd-selected':'').'" href="#" product="'.$product.'" value="'.$id.'" name="'.$name.'" uri="'.$uri.'">'.ucwords($displayName).'</a>';
 			}
+			$options.='<a/><a class="dropdown-item client-item" value="rescan"><b>rescan devices</b></a>';
 		}
 		return $options;
 	}
 
 
 	// Fetch a list of servers for playback
-	function fetchServerList() {
+	function fetchServerList($devices) {
 		if (!(isset($_GET['pollPlayer']))) write_log("Function Fired.");
-		$devices = scanDevices();
-        $current = $GLOBALS['config']->get('user-_-' . $_SESSION['username'], 'plexServer', false);
+		$current = $GLOBALS['config']->get('user-_-' . $_SESSION['username'], 'plexServer', false);
 		$options = "";
 		if (isset($devices['servers'])) {
 			foreach($devices['servers'] as $key => $client) {
@@ -1883,10 +1901,9 @@
 		return $options;
 	}
 
-	function fetchDVRList() {
+	function fetchDVRList($devices) {
         if (!(isset($_GET['pollPlayer']))) write_log("Function fired.");
-		$devices = scanDevices();
-        $current = $GLOBALS['config']->get('user-_-' . $_SESSION['username'], 'plexDVR', false);
+		$current = $GLOBALS['config']->get('user-_-' . $_SESSION['username'], 'plexDVR', false);
 		$options = "";
 		if (isset($devices['dvrs'])) {
 			$options = "";
@@ -2973,8 +2990,6 @@
 	}
 
 	function playerStatus($wait=0) {
-		//status();
-        $art = $thumb = false;
 		if ($_SESSION['product_plexclient'] == 'cast') {
 			return castStatus();
 		} else {
@@ -3278,66 +3293,62 @@
 
 	function sickDownload($command,$season=false,$episode=false) {
 		write_log("Function fired");
-		$check = $exists = $resultID = false;
-		$response = [];
+		$check = $exists = $id = $response = $resultID = $results = false;
 		$sickURL = $_SESSION['ip_sick'];
 		$sickApiKey = $_SESSION['auth_sick'];
 		$sickPort = $_SESSION['port_sick'];
 		$sick = new SickRage($sickURL.':'.$sickPort, $sickApiKey);
 		$result = $sick->sbSearchTvdb($command);
-		write_log($result);
+        $highest = 69;
+        $status = "";
+		write_log("TVDB Search result: ".$result);
 		if ($result) {
-			$responseJSON = json_decode($result, true);
-			$highest = 0;
-			foreach ($responseJSON['data']['results'] as $searchResult) {
-				$resultName = (string) $searchResult['name'];
-				$cleaned = cleanCommandString($resultName);
-				write_log("Similarity between results is ".similarity($command, $cleaned) * 100);
-				if ($cleaned == $command) {
-					write_log("This is an exact match.");
-					$result = $searchResult;
-					break;
-				} else {
-					$score = similarity($command,$cleaned) * 100;
-					if ($score > $highest) {
-						write_log("This is the highest matched result so far.");
-						$highest = $score;
-						$result = $searchResult;
-					}
-				}
-			}
+            $responseJSON = json_decode($result, true);
+            $results = $responseJSON['data']['results'];
 
-			if (($result) && is_array($result)) {
-				$resultName = $result['name'];
-				write_log("Got response for search: ".$resultName);
-				$resultID = (string) $result['tvdbid'];
-				$resultDate = (string) $result['first_aired'];
-				$resultDate = explode("-",$resultDate);
-				$resultYear = $resultDate[0];
-                $check = $sick->show($resultID);
-			}
+            // If no results and a success message, it's already in the library.  Get the ID there.
+            if ((!count($results)) && ($responseJSON['result'] == "success")) {
+                write_log("This bitch is already in the library.");
+                $results = json_decode($sick->shows(), true)['data'];
+                $status = "SUCCESS: Already in searcher.";
+                $exists = true;
+            }
+        }
 
-			unset($result);
-			unset($responseJSON);
+        if ($results) {
+            foreach ($results as $searchResult) {
+			    write_log("Search result: ".json_encode($searchResult));
+                $resultName = ($exists ? (string) $searchResult['show_name'] : (string)$searchResult['name']);
+                $cleaned = cleanCommandString($resultName);
+                if ($cleaned == $command) {
+                    $result = $searchResult;
+                    write_log("This is an exact match: ".$resultName);
+                    break;
+                } else {
+                    $score = similarity($command, $cleaned) * 100;
+                    write_log("Similarity between results is " . similarity($command, $cleaned) * 100);
+                    if ($score > $highest) {
+                        write_log("This is the highest matched result so far.");
+                        $highest = $score;
+                        $result = $searchResult;
+                    }
+                }
+            }
 
-			if ($check) {
-				write_log("Check contains ".$check);
-				$responseJSON = json_decode($check,true);
-				write_log("Check result is ".$responseJSON['result']);
-				$result = (string) $responseJSON['result'];
-				$exists = (($result == 'failure') ? false : true);
-			}
+            if ($result) $id = $result['tvdbid'];
 
-			if ((! $exists) && ($resultID)) {
-				write_log("Show not in list, adding.");
-				$result = $sick->showAddNew($resultID);
+            if ((! $exists) && ($result)) {
+                write_log("Show not in list, adding.");
+				$result = $sick->showAddNew($id);
 				$responseJSON = json_decode($result,true);
 				write_log('Fetch result: '.$result);
 				$exists = (($responseJSON['result'] == 'success') ? true : false);
 			}
 
 			if ($exists) {
-				if ($season) {
+			    $tvInfo = fetchTVDBInfo($id);
+			    if ($tvInfo) $responseJSON = array_merge($responseJSON,$tvInfo);
+			   if ($season) {
 					if ($episode) {
 						write_log("And an episode. ".$episode);
 						$result = $sick->episodeSearch($resultID, $season, $episode);
@@ -3353,22 +3364,19 @@
 					}
 				}
 
-				$response['status'] = (isset($responseJSON['message']) ? $responseJSON['message'] : $responseJSON['result']);
-				if (isset($resultName)) $response['mediaResult']['@attributes']['title'] = $resultName;
-                if (isset($resultYear)) $response['mediaResult']['@attributes']['year'] = $resultYear;
+				if (preg_match("/success/",$responseJSON['result'])) $response['status'] = "SUCCESS: Media added successfully.";
 				$artURL = $sickURL.':'.$sickPort.'/api/'.$sickApiKey.'/' . '?cmd=show.getbanner&tvdbid='.$resultID;
-				$responseJSON['art'] = cacheImage($artURL);
+                $responseJSON['art'] = cacheImage($artURL);
 				write_log("Art should be findable at ".$responseJSON['art']);
 				$responseJSON['type'] = 'show';
 				$response['mediaResult']['@attributes'] = $responseJSON;
-				return $response;
-
+                if (isset($resultName)) $response['mediaResult']['@attributes']['title'] = $resultName;
+                if (isset($resultYear)) $response['mediaResult']['@attributes']['year'] = $resultYear;
 			}
 		} else {
-			$response['status'] = 'no results';
-			return $response;
+			$response['status'] = 'ERROR: No results.';
 		}
-		return false;
+		return $response;
 
 
 	}
@@ -3484,14 +3492,15 @@
 				foreach($seriesJSON as $series) {
 					if ($series['title'] == $resultObject['title']) {
 						write_log("Results match: ".$resultObject['title']);
-						$response['status'] = 'already in searcher';
+						$response['status'] = 'SUCCESS: Already in searcher.';
 						$response['mediaResult']['@attributes']['url'] = $putURL;
 						$resultObject['year'] = $year;
 						$resultObject['summary'] = $resultJSON['overview'];
 						$resultObject['type'] = 'show';
 						$artUrl = $sonarrURL.':'.$sonarrPort.'/MediaCover/'. $series['id'] . '/fanart.jpg?apikey='.$sonarrApiKey;
+                        $thumbUrl = $sonarrURL.':'.$sonarrPort.'/MediaCover/'. $series['id'] . '/poster.jpg?apikey='.$sonarrApiKey;
 						$resultObject['art'] = cacheImage($artUrl);
-						$resultObject['thumb'] = cacheImage($artUrl);
+						$resultObject['thumb'] = $thumbUrl;
 						$response['mediaResult']['@attributes'] = $resultObject;
 						$scanURL = $baseURL . "/command/SearchSeries?apikey=".$sonarrApiKey;
 						$searchArray = ['name'=>"SearchSeries",'seriesId'=>$resultObject['tvdbId']];
@@ -3506,7 +3515,7 @@
 				write_log("Add Command Successful!  Response is ".$json_response);
 				$responseJSON = json_decode($json_response, true);
 				if ($responseJSON) {
-					$response['status'] = 'success';
+					$response['status'] = 'SUCCESS: Media added to library.';
 					$response['mediaResult']['@attributes']['url'] = $putURL;
 					$artImage = $sonarrURL.':'.$sonarrPort.'/MediaCover/'. $responseJSON['id'] . '/fanart.jpg?apikey='.$sonarrApiKey;
 					$artImage = cacheImage($artImage);
@@ -3532,7 +3541,7 @@
 					curl_close($curl);
 
 				} else {
-					$response['status'] = 'no results';
+					$response['status'] = 'ERROR: No results.';
 				}
 			}
 		}
@@ -3542,6 +3551,34 @@
         return $response;
 	}
 
+	function fetchTVDBInfo($id) {
+	    $result = false;
+        $apikey = curlPost('https://api.thetvdb.com/login','{"apikey": "19D9A181DA722C87"}',true);
+        if ($apikey) $apikey = json_decode($apikey,true);
+        if (isset($apikey['token'])) {
+            $apikey = $apikey['token'];
+            $url = 'https://api.thetvdb.com/series/'.$id;
+            $show = curlGet($url,['Authorization: Bearer '.$apikey]);
+            $url = 'https://api.thetvdb.com/series/'.$id.'/images/query?keyType=fanart';
+            $images = curlGet($url,['Authorization: Bearer '.$apikey]);
+            if ($show) {
+                $show = json_decode($show,true)['data'];
+                $result['summary'] = $show['overview'];
+                $result['subtitle'] = $show['siteRating']. ' - '.$show['status'];
+                $result['year'] = explode('-',$show['firstAired'])[0];
+            }
+            if ($images) {
+                $score = 0;
+                $images = json_decode($images,true)['data'];
+                foreach($images as $image) {
+                    if ($image['ratingInfo']['average'] >= $score) $result['thumb'] = 'http://thetvdb.com/banners/'.$image['fileName'];
+                }
+            }
+            write_log("Show: ".json_encode($show));
+            write_log("Images: ".json_encode($images));
+        }
+        return $result;
+    }
 
 	// Fetch a movie from CouchPotato
 	function downloadMovie($command) {
@@ -3549,6 +3586,7 @@
 		$enableOmbi = $_SESSION['enable_ombi'];
 		$enableCouch = $_SESSION['enable_couch'];
 		$enableRadarr = $_SESSION['enable_radarr'];
+		$response['status'] = "ERROR: No downloader configured.";
 		if ($enableOmbi == 'true') {
 			write_log("Using Ombi for Movie agent");
 		}
@@ -3556,15 +3594,13 @@
 		if ($enableCouch == 'true') {
 			write_log("Using Couchpotoato for Movie agent");
 			$response = couchDownload($command);
-			return $response;
 		}
 
 		if ($enableRadarr == 'true') {
 			write_log("Using Radarr for Movie agent");
 			$response = radarrDownload($command);
-			return $response;
 		}
-		return "No downloader";
+		return $response;
 	}
 
 	function couchDownload($command) {
@@ -3592,6 +3628,7 @@
 			$title = $body['movies'][0]['titles'][0];
 			$year = $body['movies'][0]['year'];
 			$art = $body['movies'][0]['images']['backdrop_original'][0];
+            $thumb = $body['movies'][0]['images']['poster_original'][0];
 			$art = cacheImage($art);
 			write_log("Art URL should be ".$art);
 			$plot = $body['movies'][0]['plot'];
@@ -3599,18 +3636,18 @@
 			$resultObject['title'] = $title;
 			$resultObject['year'] = $year;
 			$resultObject['art'] = $art;
-			$resultObject['thumb'] = $art;
+			$resultObject['thumb'] = $thumb;
 			$resultObject['summary'] = $plot;
 			$resultObject['type'] = 'movie';
 			$url2 = $couchURL . ":" . $couchPort . "/api/" . $couchApikey . "/movie.add/?identifier=" . $imdbID . "&title=" . urlencode($command).($_SESSION['profile_couch'] ? '&profile_id='.$_SESSION['profile_couch'] : '');
 			write_log("Sending add request to: " . $url2);
 			curlGet($url2);
-			$response['status'] = 'success';
+			$response['status'] = 'SUCCESS: Media added successfully.';
 			$response['mediaResult']['@attributes'] = $resultObject;
 			$response['mediaResult']['@attributes']['url'] = $url2;
 			return $response;
 		} else {
-			$response['status'] = 'no results';
+			$response['status'] = 'ERROR: No results for query.';
 			return $response;
 		}
 	}
@@ -3625,7 +3662,6 @@
 		$searchString = '/movies/lookup?term='.urlencode($command);
 		$authString = '&apikey='.$radarrApiKey;
 		$searchURL = $baseURL.$searchString.$authString;
-		//$defaultProfile =
 		$root = curlGet($baseURL.'/rootfolder?apikey='.$radarrApiKey);
 		if ($root) {
 			$rootPathObj = json_decode($root,true);
@@ -3661,10 +3697,8 @@
 				$resultObject['title'] = (string)$resultJSON['title'];
 				$resultObject['year'] = (string)$resultJSON['year'];
 				$resultObject['tmdbId'] = (string)$resultJSON['tmdbId'];
-				//$resultObject['qualityProfileId'] = 0;
 				$resultObject['profileId'] = ($_SESSION['profile_radarr'] ? $_SESSION['profile_radarr'] : 0);
 				$resultObject['qualityProfileId'] = ($_SESSION['profile_radarr'] ? $_SESSION['profile_radarr'] : 0);
-				//$resultObject['ProfileId'] = 1;
 				$resultObject['titleSlug'] = (string)$resultJSON['titleSlug'];
 				$resultObject['images'] = $resultJSON['images'];
 				$resultObject['monitored'] = true;
@@ -3676,14 +3710,16 @@
 				foreach($movieJSON as $movie) {
 					if ($movie['title'] == $resultObject['title']) {
 						write_log("Results match: ".$resultObject['title']);
-						$response['status'] = 'already in searcher';
+						$response['status'] = 'SUCCESS: Already in searcher.';
 						$response['mediaResult']['@attributes']['url'] = $putURL;
 						$resultObject['year'] = $resultJSON['year'];
 						$resultObject['summary'] = $resultJSON['overview'];
 						$resultObject['type'] = 'movie';
 						$artUrl = $radarrURL.':'.$radarrPort.'/api/MediaCover/'. $movie['id'] . '/banner.jpg?apikey='.$radarrApiKey;
+                        $thumbUrl = $radarrURL.':'.$radarrPort.'/api/MediaCover/'. $movie['id'] . '/poster.jpg?apikey='.$radarrApiKey;
 						write_log("Art URL Should be ".$artUrl);
 						$resultObject['art'] = cacheImage($artUrl);
+						$resultObject['thumb'] = $thumbUrl;
 						$response['mediaResult']['@attributes'] = $resultObject;
 						return $response;
 					}
@@ -3703,7 +3739,7 @@
 				write_log("Add Command Successful!  Response is ".$json_response);
 				$responseJSON = json_decode($json_response, true);
 				if ($responseJSON) {
-					$response['status'] = 'success';
+					$response['status'] = 'SUCCESS: Media added to searcher.';
 					$response['mediaResult']['@attributes']['url'] = $putURL;
 					$artUrl = $radarrURL.':'.$radarrPort.'/api/MediaCover/'. $responseJSON['id'] . '/banner.jpg?apikey='.$radarrApiKey;
 					write_log("Art URL Should be ".$artUrl);
@@ -3725,7 +3761,7 @@
 					curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($fetchMe));
 					curl_exec($curl);
 				} else {
-					$response['status'] = 'no results';
+					$response['status'] = 'ERROR: No results.';
 				}
 			}
 		}
@@ -3972,29 +4008,35 @@
             }
             $output["data"]["google"]["rich_response"]["suggestions"] = $sugs;
         }
-        if (isset($cards)) {
+        if ((isset($cards)) && (json_encode($cards) != "[null]")) {
             write_log("Building card array.");
             $cardArray = [];
             $item['simple_response']['display_text'] = $speech."!";
             $item['simple_response']['text_to_speech'] = $speech;
             array_push($cardArray,$item);
-            $i = 1;
+            $i = 0;
             if (count($cards) >= 2) {
+                $output['data']['google']['system_intent']['intent'] = "actions.intent.OPTION";
+                $carousel = [];
                 foreach ($cards as $card) {
                     $item = [];
-                    $item['basic_card']['image']['url'] = $card['image'];
-                    $item['basic_card']['title'] = $card['title'];
-                    $item['basic_card']['subtitle'] = $card['description'];
-                    $item['basic_card']['option_info']['synonyms'] = [];
-                    $item['option_info']['key'] = cleanCommandString($card['title']);
+                    $item['image']['url'] = $card['image'];
+                    $item['title'] = $card['title'];
+                    $item['description'] = $card['description'];
+                    $item['option_info']['synonyms'] = [];
+                    $item['option_info']['key'] = ((isset($card['command'])) ? (string) $card['command'] . " " : ""). $card['title'];
+                    array_push($carousel,$item);
                     $i++;
                 }
+                $output['data']['google']['system_intent']['spec']['option_value_spec']['list_select']['items'] = $carousel;
+                //$output['data']['google']['rich_response']['items'][1]['carousel_select']['items'] = $carousel;
             } else {
                 write_log("Should be formatting a card here: ".json_encode($cards[0]));
                 $item = [];
                 $item['basic_card']['image']['url'] = $cards[0]['image'];
                 $item['basic_card']['title'] = (string) $cards[0]['title'];
                 $item['basic_card']['subtitle'] = (string) $cards[0]['description'];
+                if (isset($cards[0]['summary'])) $item['basic_card']['formatted_text'] = (string) $cards[0]['summary'];
                 $output["data"]["google"]["rich_response"]["items"][1] = $item;
             }
         }

@@ -21,6 +21,7 @@
 			die();
 		} else {
 			$_SESSION['apiToken'] = $apiToken;
+			scanDevices(true);
 		}
 		
 	
@@ -34,6 +35,7 @@
 	$_SESSION['enable_apiai'] = $config->get('user-_-'.$_SESSION['username'], 'apiEnabled', false);
 	
 	$_SESSION['returnItems'] = $config->get('user-_-'.$_SESSION['username'], 'returnItems', "6");
+	$_SESSION['rescanTime'] = $config->get('user-_-'.$_SESSION['username'], 'rescanTime', "6");
 	
 	$_SESSION['ip_couch'] = $config->get('user-_-'.$_SESSION['username'], 'couchIP', 'localhost');
 	$_SESSION['ip_ombi'] = $config->get('user-_-'.$_SESSION['username'], 'ombiUrl', 'localhost');
@@ -195,8 +197,15 @@
 											</label>
 										</div>
 									</div>
+                                    <div class="form-group">
+                                        <div class="form-group">
+                                            <label for="rescanTime" class="appLabel">Device Rescan Interval (Minutes):
+                                                <input id="rescanTime" class="appInput form-control" type="number" min="5" max="30" value="<?php echo $_SESSION['rescanTime'] ?>" />
+                                            </label>
+                                        </div>
+                                    </div>
                                     <div class="togglebutton">
-                                        <label class="appLabel">Obscure Sensitive Data in Logs
+                                        <label class="appLabel checkLabel">Obscure Sensitive Data in Logs
                                             <input id="cleanLogs" type="checkbox" class="appInput appToggle"<?php echo ($_SESSION['clean_logs'] ? 'checked' : '') ?>/>
                                         </label>
                                     </div>
@@ -214,21 +223,21 @@
 											<button id="fetchURL" class="copyInput btn btn-raised btn-success btn-70" type="button"><i class="material-icons">get_app</i></button>
 										</div>
 									</div>
-									
+
 								</div>
 							</div>
-							<div class="appContainer card">	
+							<div class="appContainer card">
 								<div class="card-body">
 								<h4>Plex</h4>
 									<div class="form-group">
 										<div class="form-group">
 											<label for="serverList">Playback Server:</label>
 											<select class="form-control" id="serverList">
-												
+
 											</select>
 											<br>
 											<div class="togglebutton">
-												<label class="appLabel">Use Cast Devices
+												<label class="appLabel checkLabel">Use Cast Devices
 													<input id="useCast" type="checkbox" class="appInput appToggle"<?php echo ($_SESSION['use_cast'] ? 'checked' : '') ?>/>
 												</label>
 											</div>
@@ -241,14 +250,14 @@
 									</div>
 								</div>
 							</div>
-							<div class="appContainer card dvrGroup">	
+							<div class="appContainer card dvrGroup">
 								<div class="card-body">
 								<h4>Plex DVR</h4>
 									<div class="form-group">
 										<div class="form-group">
 											<label for="dvrList">DVR Server:</label>
 											<select class="form-control" id="dvrList">
-												
+
 											</select>
 										</div>
 										<div class="form-group">
@@ -260,19 +269,19 @@
 										</div>
 										<br>
 										<div class="togglebutton">
-											<label class="appLabel">Record new Airings Only
+											<label class="appLabel checkLabel">Record new Airings Only
 												<input id="dvr_newairings" type="checkbox" class="appInput"<?php echo ($_SESSION['dvr_newairings'] ? 'checked' : '') ?>/>
 											</label>
 										</div>
 										<br>
 										<div class="togglebutton">
-											<label class="appLabel">Replace Lower Quality Recordings
+											<label class="appLabel checkLabel">Replace Lower Quality Recordings
 												<input id="dvr_replacelower" type="checkbox" class="appInput"<?php echo ($_SESSION['dvr_replacelower'] ? 'checked' : '') ?>/>
 											</label>
 										</div>
 										<br>
 										<div class="togglebutton">
-											<label class="appLabel">Record partial episodes
+											<label class="appLabel checkLabel">Record partial episodes
 												<input id="dvr_recordpartials" type="checkbox" class="appInput"<?php echo ($_SESSION['dvr_recordpartials'] ? 'checked' : '') ?>/>
 											</label>
 										</div>
@@ -286,15 +295,15 @@
 												<input id="dvr_endoffset" class="appInput form-control" type="number" min="1" max="30" value="<?php echo $_SESSION['dvr_endoffset'] ?>" />
 											</label>
 										</div>
-										
+
 									</div>
 								</div>
 							</div>
-							<div class="appContainer card">	
+							<div class="appContainer card">
 								<div class="card-body">
 								<h4>CouchPotato</h4>
 									<div class="togglebutton">
-										<label class="appLabel">Enable
+										<label class="appLabel checkLabel">Enable
 											<input id="couchEnabled" type="checkbox" class="appInput appToggle"/>
 										</label>
 									</div>
@@ -329,12 +338,12 @@
 									</div>
 								</div>
 							</div>
-							
-							<div class="appContainer card ombiGroup">	
+
+							<div class="appContainer card ombiGroup">
 								<div class="card-body">
 								<h4>Ombi</h4>
 									<div class="togglebutton">
-										<label class="appLabel">Enable
+										<label class="appLabel checkLabel">Enable
 											<input id="ombiEnabled" type="checkbox" class="appInput appToggle"/>
 										</label>
 									</div>
@@ -352,7 +361,7 @@
 										<div class="form-group">
 											<label for="ombi">Quality Profile:</label>
 											<select class="form-control profileList" id="ombi">
-												
+
 											</select>
 										</div>
 										<div class="text-center">
@@ -364,12 +373,12 @@
 									</div>
 								</div>
 							</div>
-							
-							<div class="appContainer card">	
+
+							<div class="appContainer card">
 								<div class="card-body">
 									<h4>Radarr</h4>
 									<div class="togglebutton">
-										<label class="appLabel">Enable
+										<label class="appLabel checkLabel">Enable
 											<input id="radarrEnabled" type="checkbox" class="appInput appToggle"/>
 										</label>
 									</div>
@@ -404,12 +413,12 @@
 									</div>
 								</div>
 							</div>
-							
-							<div class="appContainer card">	
+
+							<div class="appContainer card">
 								<div class="card-body">
 									<h4>Sickbeard/SickRage</h4>
 									<div class="togglebutton">
-										<label class="appLabel">Enable
+										<label class="appLabel checkLabel">Enable
 											<input id="sickEnabled" type="checkbox" class="appInput appToggle"/>
 										</label>
 									</div>
@@ -444,12 +453,12 @@
 									</div>
 								</div>
 							</div>
-														
-							<div class="appContainer card">	
+
+							<div class="appContainer card">
 								<div class="card-body">
 									<h4>Sonarr</h4>
 									<div class="togglebutton">
-										<label class="appLabel">Enable
+										<label class="appLabel checkLabel">Enable
 											<input id="sonarrEnabled" type="checkbox" class="appInput appToggle"/>
 										</label>
 									</div>

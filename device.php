@@ -7,7 +7,7 @@
     error_reporting(E_ERROR);
     $errfilename = 'Phlex_error.log';
     ini_set("error_log", $errfilename);
-    $valid = false;
+    $checkURL = $fetchCast = $post = $valid = false;
     if ( is_session_started() === FALSE ) {
         if (isset($argv[1])) {
             session_id($argv[1]);
@@ -32,17 +32,33 @@
         die();
     }
 
+    if (isset($argv[2])) {
+        $params = explode("=",$argv[2]);
+        if ($params[0] == 'CAST') $fetchCast = true;
+        if ($params[0] == 'URL') $checkURL = $params[1];
+    }
+
+    if (isset($argv[3])) {
+        $params = explode("=",$argv[3]);
+        if ($params[0] == 'POST') $post = $params[1];
+    }
+
     if ($valid) {
-        $castDevices = fetchCastDevices();
-        $i = 0;
-        if ($castDevices) {
-            foreach ($castDevices as $castDevice) {
-                foreach ($castDevice as $key => $value) {
-                    $GLOBALS['config']->set('castDevice' . $i, $key, $value);
+        if ($fetchCast) {
+            $castDevices = fetchCastDevices();
+            $i = 0;
+            if ($castDevices) {
+                foreach ($castDevices as $castDevice) {
+                    foreach ($castDevice as $key => $value) {
+                        $GLOBALS['config']->set('castDevice' . $i, $key, $value);
+                    }
+                    $i++;
                 }
-                $i++;
+                saveConfig($GLOBALS['config']);
             }
-            saveConfig($GLOBALS['config']);
+        }
+        if ($checkURL) {
+            check_url($checkURL,$post);
         }
     }
 
@@ -65,6 +81,31 @@
         }
         if (json_encode($returns) == "[Error]") $returns = false;
         return $returns;
+    }
+
+    function check_url($url, $post=false) {
+        $ch = curl_init($url);
+        curl_setopt($ch,  CURLOPT_RETURNTRANSFER, TRUE);
+        curl_setopt($ch, CURLOPT_TIMEOUT,1);
+        if ($post) {
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $_SESSION['plex_headers']);
+        }
+        /* Get the HTML or whatever is linked in $url. */
+        $response = curl_exec($ch);
+
+        /* Check for 404 (file not found). */
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        /* If the document has loaded successfully without any redirection or error */
+        if ($httpCode >= 200 && $httpCode < 300) {
+            write_log("Connection is valid: ".$url);
+            return true;
+        } else {
+            write_log("Connection failed with error code ".$httpCode.": ".$url,"ERROR");
+            return false;
+        }
     }
 
 

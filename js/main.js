@@ -33,8 +33,17 @@ jQuery(document).ready(function($) {
 			}
 		});
 		
-	$('.formpop').popover();	
-			
+	$('.formpop').popover();
+
+    $('input[type=checkbox]').each(function(){
+        if ($(this).is(':checked')) {
+            $(this).parent().css("color", "1f50a0 !important");
+        } else {
+            $(this).parent().css("color", "#A1A1A1 !important");
+        }
+
+    })
+
 	progressSlider.noUiSlider.on('end', function(values, handle){
 		var value = values[handle];
 		var newOffset = Math.round((resultDuration * (value * .01)));
@@ -67,7 +76,17 @@ jQuery(document).ready(function($) {
 			}
 		}
 	});
-	
+
+	$("input").click(function(){
+        if ($(this).attr('type') === 'checkbox') {
+            if ($(this).is(':checked')) {
+                $(this).parent().css("color", "1f50a0 !important");
+            } else {
+                $(this).parent().css("color", "#A1A1A1 !important");
+            }
+        }
+	})
+
 	$(".btn").on('click', function() {
 		var value;
 		if ($(this).hasClass("copyInput")) {
@@ -124,8 +143,10 @@ jQuery(document).ready(function($) {
 		$.get('api.php?apiToken=' + apiToken, {device:'plexClient',id:clientID,uri:clientUri,name:clientName,product:clientProduct});
 		$('.ddLabel').html($(this).attr('name'));
 		$('#clientURI').attr('data',decodeURIComponent($(this).attr('uri')));
-		$(this).siblings().removeClass('dd-selected');
-		$(this).addClass('dd-selected');
+		if ($(this).attr('id') !== "rescan") {
+            $(this).siblings().removeClass('dd-selected');
+            $(this).addClass('dd-selected');
+        }
 	});
 	
 	$("#serverList").change(function(){
