@@ -126,7 +126,7 @@ echo '<!doctype html>
 				<label>Welcome to Phlex</label><br>
 				<div class="label-floating form-group loginGroup">
 					<label id="userLabel" for="username" class="control-label">Plex Username</label>
-					<input type="text" class="form-control login-control" id="username" name ="username"/>
+					<input type="text" class="form-control login-control" id="username" name ="username" autofocus/>
 				</div>
 				<div class="label-floating form-group loginGroup">
 					<label id="userLabel" for="password" class="control-label">Plex Password</label>
