@@ -14,12 +14,13 @@
         }
         session_start();
     }
-    if (isset($argv[1])) {
+    if ((isset($argv[1])) || isset($_GET['apiToken'])) {
         $config = new Config_Lite('config.ini.php');
+        $token = (isset($argv[1]) ? $argv[1] : $_GET['apiToken']);
         foreach ($config as $section => $setting) {
             if ($section != "general") {
                 $testToken = $setting['apiToken'];
-                if ($testToken == $argv[1]) {
+                if ($testToken == $token) {
                     write_log("API Token is a match, on to the wizard!");
                     $_SESSION['username'] = $setting['plexUserName'];
                     $valid = true;
@@ -43,6 +44,10 @@
         if ($params[0] == 'POST') $post = $params[1];
     }
 
+    if (isset($_GET['CAST'])) {
+        $fetchCast = true;
+    }
+
     if ($valid) {
         if ($fetchCast) {
             $castDevices = fetchCastDevices();
@@ -56,9 +61,6 @@
                 }
                 saveConfig($GLOBALS['config']);
             }
-        }
-        if ($checkURL) {
-            check_url($checkURL,$post);
         }
     }
 
@@ -83,29 +85,5 @@
         return $returns;
     }
 
-    function check_url($url, $post=false) {
-        $ch = curl_init($url);
-        curl_setopt($ch,  CURLOPT_RETURNTRANSFER, TRUE);
-        curl_setopt($ch, CURLOPT_TIMEOUT,1);
-        if ($post) {
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, $_SESSION['plex_headers']);
-        }
-        /* Get the HTML or whatever is linked in $url. */
-        $response = curl_exec($ch);
-
-        /* Check for 404 (file not found). */
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-
-        /* If the document has loaded successfully without any redirection or error */
-        if ($httpCode >= 200 && $httpCode < 300) {
-            write_log("Connection is valid: ".$url);
-            return true;
-        } else {
-            write_log("Connection failed with error code ".$httpCode.": ".$url,"ERROR");
-            return false;
-        }
-    }
 
 

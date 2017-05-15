@@ -398,7 +398,7 @@
 			$GLOBALS['config']->set('user-_-'.$_SESSION['username'],'publicAddress', $ip);
 			saveConfig($GLOBALS['config']);
 		}
-        $devices = (isset($_SESSION['list_plexdevices']) ? $_SESSION['list_plexdevices'] : scanDevices());
+        $devices = scanDevices();
 		// See if we have a server saved in settings
 		$_SESSION['id_plexserver'] = $GLOBALS['config']->get('user-_-'.$_SESSION['username'], 'plexServer', false);
 		if (!($_SESSION['id_plexserver'])) {
@@ -436,11 +436,11 @@
 
 		$_SESSION['id_plexdvr'] = $GLOBALS['config']->get('user-_-'.$_SESSION['username'], 'plexDVR', false);
 		if (!($_SESSION['id_plexdvr'])) {
-			write_log("No DVR found, checking for them.");
-			$dvrs = (isset($device['dvrs']) ? $device['dvrs'] : []);
-			write_log("Hey, I got somethin... ".json_encode($dvrs));
+			write_log("No DVR found, checking for available devices.");
+			$dvrs = (isset($devices['dvrs']) ? $devices['dvrs'] : []);
 			if (count($dvrs) >= 1) {
-				$dvr = $dvrs[0];
+			    $dvr = $dvrs[0];
+                write_log("DVR Will be set to ".json_encode($dvr));
 				$GLOBALS['config']->set('user-_-'.$_SESSION['username'],'plexDVR',$dvr['id']);
 				$GLOBALS['config']->set('user-_-'.$_SESSION['username'],'plexDVRProduct',$dvr['product']);
 				$GLOBALS['config']->set('user-_-'.$_SESSION['username'],'plexDVRName',$dvr['name']);
@@ -450,7 +450,6 @@
 				saveConfig($GLOBALS['config']);
 			}
 		}
-
 		reloadVariables();
 	}
 
@@ -1760,7 +1759,7 @@
                 $token = (isset($_SESSION['apiToken']) ? $_SESSION['apiToken'] : session_id());
                 $token = preg_replace('/[^a-z\d]/i', '', $token);
                 $command = 'php device.php ' . $token . " CAST=true";
-                startBackgroundProcess($command);
+                startBackgroundProcess($command,$token);
             }
 
             // Split them up

@@ -113,7 +113,7 @@
 	// Grab an image from a server and save it locally
 	function cacheImage($url) {
 		try {
-			$cacheDir = dirname(__FILE__) . '/img/cache/';
+		    $cacheDir = file_build_path(dirname(__FILE__),"img","cache");
             if (!file_exists($cacheDir)) {
                 mkdir($cacheDir, 0777, true);
             }
@@ -174,13 +174,14 @@
 	// Fetch data from a URL using CURL
 	function curlGet($url, $headers=null) {
         //write_log("Function fired");
+        $certPath = file_build_path(dirname(__FILE__),"cert","cacert.pem");
         $mc = JMathai\PhpMultiCurl\MultiCurl::getInstance();
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL,$url);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 4);
         curl_setopt($ch, CURLOPT_TIMEOUT, 3);
-		curl_setopt ($ch, CURLOPT_CAINFO, rtrim(dirname(__FILE__), '/') . "/cert/cacert.pem");
+		curl_setopt ($ch, CURLOPT_CAINFO, $certPath);
 		if ($headers) curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 		//$result = curl_exec($ch);
 		//curl_close ($ch);
@@ -193,12 +194,12 @@
 	
 	
 	function curlPost($url,$content=false,$JSON=false, Array $headers=null) {
-        //write_log("Function fired");
+        $certPath = file_build_path(dirname(__FILE__),"cert","cacert.pem");
         $mc = JMathai\PhpMultiCurl\MultiCurl::getInstance();
         $curl = curl_init($url);
 		curl_setopt($curl, CURLOPT_HEADER, false);
 		curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt ($curl, CURLOPT_CAINFO, dirname(__FILE__) . "/cert/cacert.pem");
+		curl_setopt ($curl, CURLOPT_CAINFO, $certPath);
 		curl_setopt($curl, CURLOPT_POST, true);
         curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 4);
         curl_setopt($curl, CURLOPT_TIMEOUT, 3);
@@ -282,9 +283,11 @@
 		return $caller;   
 	}
 
-function startbackgroundProcess($command) {
+function startbackgroundProcess($command,$token=null) {
     if (substr(php_uname(), 0, 7) == "Windows"){
-        pclose(popen("start /B ". $command, "r"));
+        $url = serverProtocol().'127.0.0.1/device.php?apiToken='.$token.'&CAST=true';
+        write_log("Should be firing for windows here: ".protectURL($url));
+        curlGet($url);
     }
     else {
         exec($command . " > /dev/null &");
@@ -292,7 +295,7 @@ function startbackgroundProcess($command) {
 }
 
 
-function startBackgroundProcess2(
+function startBackgroundProcessWindows(
         $command,
         $stdin = null,
         $redirectStdout = null,
@@ -335,7 +338,7 @@ function startBackgroundProcess2(
 			echo "\n" . 'Exception Message: ' . $e->getMessage();
 			write_log('Error saving configuration.','ERROR');
 		}
-		$configFile = dirname(__FILE__) . '/config.ini.php';
+		$configFile = file_build_path(dirname(__FILE__),"config.ini.php");
 		$cache_new = "'; <?php die('Access denied'); ?>"; // Adds this to the top of the config so that PHP kills the execution if someone tries to request the config-file remotely.
 		$cache_new .= file_get_contents($configFile);
 		file_put_contents($configFile,$cache_new);
@@ -343,7 +346,7 @@ function startBackgroundProcess2(
 	}
 	
 	function protectURL($string) {
-        $config = new Config_Lite('./config.ini.php');
+        $config = new Config_Lite(file_build_path(dirname(__FILE__),"config.ini.php"));
         $protect = $config->getBool('user-_-'.$_SESSION['username'], 'cleanLogs', true);
         if ($protect) {
             $keys = parse_url($string);
@@ -413,9 +416,11 @@ function startBackgroundProcess2(
 
     // Check the validity of a URL response
     function check_url($url, $post=false) {
+        $certPath = file_build_path(dirname(__FILE__),"cert","cacert.pem");
         $ch = curl_init($url);
         curl_setopt($ch,  CURLOPT_RETURNTRANSFER, TRUE);
         curl_setopt($ch, CURLOPT_TIMEOUT,1);
+        curl_setopt ($ch, CURLOPT_CAINFO, $certPath);
         if ($post) {
             curl_setopt($ch, CURLOPT_POST, true);
             curl_setopt($ch, CURLOPT_HTTPHEADER, $_SESSION['plex_headers']);
@@ -435,5 +440,11 @@ function startBackgroundProcess2(
             write_log("Connection failed with error code ".$httpCode.": ".$url,"ERROR");
             return false;
         }
+    }
+
+
+    // Build a path with OS-agnostic separator
+    function file_build_path(...$segments) {
+        return join(DIRECTORY_SEPARATOR, $segments);
     }
 
