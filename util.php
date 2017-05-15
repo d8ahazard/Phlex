@@ -136,12 +136,12 @@
 			}
 			$image = file_get_contents($url);
 			if ($image) {
-				$tempName = $cacheDir . $cached_filename;
+				$tempName = file_build_path($cacheDir , $cached_filename);
 				file_put_contents($tempName,$image);
 				$imageData = getimagesize($tempName);
 				$extension = image_type_to_extension($imageData[2]);
 				if($extension) {
-					$filenameOut = $cacheDir . $cached_filename . $extension;
+					$filenameOut = file_build_path($cacheDir, $cached_filename, $extension);
 					$result = file_put_contents($filenameOut, $image);
 					if ($result) {
 						rename($tempName,$filenameOut);
