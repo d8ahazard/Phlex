@@ -58,12 +58,6 @@
 						$_SESSION['plex_cred'] = $setting['plexCred'];
 						$_SESSION['plex_token'] = $setting['plexToken'];
 						$valid = true;
-					} else {
-						if ((isset($_GET['testclient'])) && (! $valid)) {
-							write_log("API Link Test failed, token does not match!");
-							echo 'ERROR: unrecognized API token!';
-							die();
-						}
 					}
 				}
 			}
