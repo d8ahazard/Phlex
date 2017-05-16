@@ -1,5 +1,6 @@
 <?PHP
 	require_once dirname(__FILE__) . '/vendor/autoload.php';
+    require_once dirname(__FILE__) . '/device.php';
 	
 	// Checks whether an API Token exists for the current user, generates and saves one if none exists.
 	// Returns generated or existing API Token.
@@ -103,7 +104,7 @@
 					$relPath = array_pad($relPath, $padLength, '..');
 					break;
 				} else {
-					$relPath[0] = './' . $relPath[0];
+					$relPath[0] = '/' . $relPath[0];
 				}
 			}
 		}
@@ -112,49 +113,52 @@
 	
 	// Grab an image from a server and save it locally
 	function cacheImage($url) {
+        $path = $url;
 		try {
-		    $cacheDir = file_build_path(dirname(__FILE__),"img","cache");
+		    $URL_REF = 'https://'.$_SERVER['HTTP_HOST'];
+            $cacheDir = file_build_path(dirname(__FILE__),"img","cache");
             if (!file_exists($cacheDir)) {
+                write_log("No cache directory found, creating.","INFO");
                 mkdir($cacheDir, 0777, true);
             }
          	$cached_filename = md5($url);
-			$files = glob($cacheDir . '*.{jpg,jpeg,png,gif}', GLOB_BRACE);
+           $files = glob($cacheDir . '/*.{jpg,jpeg,png,gif}', GLOB_BRACE);
 			$now = time();
-			foreach ($files as $file) {
-				if (is_file($file)) {
-					if ($now - filemtime($file) >= 60 * 60 * 24 * 5) { // 5 days
-						unlink($file);
-					}
-				}
-			}
 			foreach($files as $file) {
-				$fileName = explode('.',basename($file));
-				if ($fileName[0] == $cached_filename) {
-				    $path = getRelativePath(dirname(__FILE__),$file);
-					  return $path;
-				}
+			    $fileName = explode('.',basename($file));
+            	if ($fileName[0] == $cached_filename) {
+                    $path = $URL_REF .getRelativePath(dirname(__FILE__),$file);
+            	} else {
+                    if (is_file($file)) {
+                        if ($now - filemtime($file) >= 60 * 60 * 24 * 5) { // 5 days
+                            unlink($file);
+                        }
+                    }
+                }
 			}
-			$image = file_get_contents($url);
-			if ($image) {
-				$tempName = file_build_path($cacheDir , $cached_filename);
-				file_put_contents($tempName,$image);
-				$imageData = getimagesize($tempName);
-				$extension = image_type_to_extension($imageData[2]);
-				if($extension) {
-					$filenameOut = file_build_path($cacheDir, $cached_filename, $extension);
-					$result = file_put_contents($filenameOut, $image);
-					if ($result) {
-						rename($tempName,$filenameOut);
-						return getRelativePath(dirname(__FILE__),$filenameOut);
-					}
-				} else {
-					unset($tempName);
-				}
-			}
+			if ($path == $url) {
+			    $image = file_get_contents($url);
+                if ($image) {
+                    $tempName = file_build_path($cacheDir, $cached_filename);
+                    file_put_contents($tempName, $image);
+                    $imageData = getimagesize($tempName);
+                    $extension = image_type_to_extension($imageData[2]);
+                    if ($extension) {
+                        $filenameOut = file_build_path($cacheDir, $cached_filename.$extension);
+                        $result = file_put_contents($filenameOut, $image);
+                        if ($result) {
+                            rename($tempName, $filenameOut);
+                            $path = $URL_REF . getRelativePath(dirname(__FILE__), $filenameOut);
+                        }
+                    } else {
+                        unset($tempName);
+                    }
+                }
+            }
 		} catch (\Exception $e) {
 			write_log('Exception: ' . $e->getMessage());
 		}
-		return $url;
+		return $path;
 	}
 	
 	// Check if string is present in an array
@@ -285,50 +289,24 @@
 
 function startbackgroundProcess($command,$token=null) {
     if (substr(php_uname(), 0, 7) == "Windows"){
-        $url = serverProtocol().'127.0.0.1/device.php?apiToken='.$token.'&CAST=true';
-        write_log("Should be firing for windows here: ".protectURL($url));
-        curlGet($url);
+        $castDevices = fetchCastDevices();
+        $config = new Config_Lite('config.ini.php');
+        $i = 0;
+        if ($castDevices) {
+            foreach ($castDevices as $castDevice) {
+                foreach ($castDevice as $key => $value) {
+                    $config->set('castDevice' . $i, $key, $value);
+                }
+                $i++;
+            }
+            saveConfig($config);
+        }
     }
     else {
         exec($command . " > /dev/null &");
     }
 }
 
-
-function startBackgroundProcessWindows(
-        $command,
-        $stdin = null,
-        $redirectStdout = null,
-        $redirectStderr = null,
-        $cwd = null,
-        $env = null,
-        $other_options = null
-    ) {
-        write_log("Function fired, command is ".$command);
-        $descriptorspec = array(
-            1 => is_string($redirectStdout) ? array('file', $redirectStdout, 'w') : array('pipe', 'w'),
-            2 => is_string($redirectStderr) ? array('file', $redirectStderr, 'w') : array('pipe', 'w'),
-        );
-        if (is_string($stdin)) {
-            $descriptorspec[0] = array('pipe', 'r');
-        }
-        $proc = proc_open($command, $descriptorspec, $pipes, $cwd, $env, $other_options);
-        if (!is_resource($proc)) {
-            throw new \Exception("Failed to start background process by command: $command");
-        }
-        if (is_string($stdin)) {
-            fwrite($pipes[0], $stdin);
-            fclose($pipes[0]);
-        }
-        if (!is_string($redirectStdout)) {
-            fclose($pipes[1]);
-        }
-        if (!is_string($redirectStderr)) {
-            fclose($pipes[2]);
-        }
-        write_log("Proc result is ".$proc);
-        return $proc;
-    }
 
 	// Save the specified configuration file using CONFIG_LITE
 	function saveConfig(Config_Lite $inConfig) {
