@@ -1843,6 +1843,7 @@
         if ($results) {
             $container = new SimpleXMLElement($results);
             if ($container) {
+                write_log("Sections: ".json_encode($container));
                 foreach($container->children() as $section) {
                     array_push($sections,["id"=>(string)$section['key'],"uuid"=>(string)$section['uuid']]);
                 }
