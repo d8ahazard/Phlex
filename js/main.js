@@ -153,11 +153,12 @@ jQuery(document).ready(function($) {
 		var serverID = $(this).val();
 		var element = $(this).find('option:selected'); 
 		var serverUri = element.attr('uri');
+        var serverPublicUri = element.attr('publicaddress');
 		var serverName = element.attr('name');
 		var serverToken = element.attr('token');
 		var serverProduct = element.attr('product');
 		apiToken = $('#apiTokenData').attr('data');
-		$.get('api.php?apiToken=' + apiToken, {device:'plexServer',id:serverID,uri:serverUri,name:serverName,token:serverToken,product:serverProduct});
+		$.get('api.php?apiToken=' + apiToken, {device:'plexServer',id:serverID,uri:serverUri,publicUri:serverPublicUri,name:serverName,token:serverToken,product:serverProduct});
 	});
 	
 	$(".profileList").change(function(){
@@ -171,11 +172,12 @@ jQuery(document).ready(function($) {
 		var serverID = $(this).val();
 		var element = $(this).find('option:selected'); 
 		var serverUri = element.attr('uri');
+        var serverPublicUri = element.attr('publicaddress');
 		var serverName = element.attr('name');
 		var serverToken = element.attr('token');
 		var serverProduct = element.attr('product');
 		apiToken = $('#apiTokenData').attr('data');
-		$.get('api.php?apiToken=' + apiToken, {device:'plexServer',id:serverID,uri:serverUri,name:serverName,token:serverToken,product:serverProduct});
+		$.get('api.php?apiToken=' + apiToken, {device:'plexServer',id:serverID,uri:serverUri,publicUri:serverPublicUri,name:serverName,token:serverToken,product:serverProduct});
 	});
 
 
@@ -184,13 +186,13 @@ jQuery(document).ready(function($) {
 			action = $(this).attr("id");
 			switch (action) {
 				case "play":
-					playString = "\"I want to watch\"";
+					playString = "\"Ask Flex TV to play\"";
 					break;
 				case "control":
-					playString = "\"Tell Plex to\"";
+					playString = "\"Tell Flex TV to\"";
 					break;
 				case "fetch":
-					playString = "\"I want to download\"";
+					playString = "\"Ask Flex TV to download\"";
 					break;
 				default: 
 					return;
@@ -408,13 +410,11 @@ function updateStatus() {
 			$('#dvrList').html(data.dvrs);			
 			ddText = $('.dd-selected').text();
 			$('.ddLabel').html(ddText);
-			console.log("Raw Status: " + data.playerStatus);
 			data.playerStatus = JSON.parse(data.playerStatus);
 			var TitleString;
 			if ((data.playerStatus.status === 'playing') || (data.playerStatus.status === 'paused')) {
                 var mr = data.playerStatus.mediaResult;
-                console.log("Mediaresult",mr);
-				if (hasContent(mr)) {
+                if (hasContent(mr)) {
 					var resultTitle = mr.title;
 					var resultType = mr.type;
 					var resultYear = mr.year;
@@ -424,7 +424,6 @@ function updateStatus() {
 					var resultOffset = data.playerStatus.time;
 					resultDuration = mr.duration;
 					var progressSlider = document.getElementById('progressSlider');
-                    console.log("This is a " + resultType);
                     TitleString = resultTitle + ((resultYear !== '')? "(" + resultYear + ")" : '');
 					if (resultType === "episode") TitleString = "S" + mr.parentIndex + "E"+mr.index + " - " + resultTitle;
 					if (resultType === "track") {
@@ -486,21 +485,20 @@ function msToTime(duration) {
 function updateCommands(data,prepend) {
 	
 	if (JSON.stringify(lastUpdate) !== JSON.stringify(data)) {
-		console.log("Update data: "+data);
+		console.log("Update data: ", data);
 		lastUpdate = data;
 
-		var username = $('usernameData').attr('data');
 		if (!(prepend)) $('#resultsInner').html("");
 					
 		for (var i in data) {
 			try {
-				var int = i;
-				var initialCommand = data[int].initialCommand;
-				var parsedCommand = data[int].parsedCommand;
-				var timeStamp = data[int].timestamp;
-				speech = (data[int].speech ? data[int].speech : "");
-				var status = (data[int].mediaStatus ? data[int].mediaStatus : "");
-				itemJSON = data[int];
+
+				var initialCommand = data[i].initialCommand;
+				var parsedCommand = data[i].parsedCommand;
+				var timeStamp = data[i].timestamp;
+				speech = (data[i].speech ? data[i].speech : "");
+				var status = (data[i].mediaStatus ? data[i].mediaStatus : "");
+				itemJSON = data[i];
 				var resultLine = '<br><b>Initial command:</b> "' + initialCommand + '"<br><b>Parsed command:</b> "' + parsedCommand + '"';
 				var mediaDiv = "";
 				var JSONdiv = '<br><a href="javascript:void(0)" id="JSON'+i+'" class="JSONPop" data="'+encodeURIComponent(JSON.stringify(data[i],null,2))+'" title="Result JSON">{JSON}</a>';
@@ -511,25 +509,26 @@ function updateCommands(data,prepend) {
 
 				}
 			
-				if (data[i].mediaResult) {
+				if (typeof data[i].mediaResult !== 'undefined') {
 					if (status.indexOf("ERROR") === -1) {
 						//Get our general variables about this media object
-						var mr = Object.values(data[i].mediaResult);
-						var resultTitle = mr[0].title;
-						var resultYear = mr[0].year;
-						var resultType = mr[0].type;
-						var resultArt = (resultType !== 'track' ? mr[0].art : mr[0].thumb);
+						var mr = data[i].mediaResult;
+						var resultTitle = mr.title;
+						var resultYear = mr.year;
+						var resultType = mr.type;
+						var resultArt = (resultType !== 'track' ? mr.art : mr.thumb);
 						console.log("ResultArt for " + resultTitle + " should be " + resultArt);
 						var TitleString = resultTitle;
 						if (resultType == "episode") {
-							var TitleString = "S" + mr[0].parentIndex + "E"+mr[0].index + " - " + resultTitle;
+							var TitleString = "S" + mr.parentIndex + "E"+mr.index + " - " + resultTitle;
 						}
 						// Determine if we should be using a Plex path, or a full path
 						if (data[i].commandType != 'fetch') {
-							var itemPath = plexServerURI+mr[0].key+"?X-Plex-Token="+token;
+							var itemPath = plexServerURI+mr.key+"?X-Plex-Token="+token;
 						}
 						if (typeof resultArt !== 'undefined') {
-							var mediaDiv = '<a href="'+itemPath+'" target="_blank"><div class="card-image"><img src="' + resultArt + '" alt="Loading image..." class="resultimg"><h4 class="card-image-headline">' + TitleString + '</h4></div></a>';							
+							var mediaDiv = '<a href="' + itemPath + '" target="_blank"><div class="card-image"><img src="' + resultArt + '" alt="Loading image..." class="resultimg"><h4 class="card-image-headline">' + TitleString + '</h4></div></a>';
+
 						} else {
 							var mediaDiv = "";
 						}
