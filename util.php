@@ -1,6 +1,5 @@
 <?PHP
 	require_once dirname(__FILE__) . '/vendor/autoload.php';
-    require_once dirname(__FILE__) . '/device.php';
 	
 	// Checks whether an API Token exists for the current user, generates and saves one if none exists.
 	// Returns generated or existing API Token.
@@ -426,3 +425,23 @@ function startbackgroundProcess($command,$token=null) {
         return join(DIRECTORY_SEPARATOR, $segments);
     }
 
+    function fetchCastDevices() {
+        if (!(isset($_GET['pollPlayer']))) write_log("Function fired.");
+        $result = Chromecast::scan();
+        $returns = array();
+        if (!(isset($_GET['pollPlayer']))) write_log("Returns: ".json_encode($result));
+        foreach ($result as $key=>$value) {
+            $deviceOut = array();
+            $nameString = preg_replace("/\._googlecast.*/","",$key);
+            $nameArray = explode('-',$nameString);
+            $id = array_pop($nameArray);
+            $deviceOut['name'] = $value['friendlyname'];
+            $deviceOut['product'] = 'cast';
+            $deviceOut['id'] = $id;
+            $deviceOut['token'] = 'none';
+            $deviceOut['uri'] = "https://" . $value['ip'] . ":" . $value['port'];
+            array_push($returns, $deviceOut);
+        }
+        if (json_encode($returns) == "[Error]") $returns = false;
+        return $returns;
+    }
