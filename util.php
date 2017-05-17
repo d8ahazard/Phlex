@@ -2,6 +2,7 @@
 	require_once dirname(__FILE__) . '/vendor/autoload.php';
 	
 	// Checks whether an API Token exists for the current user, generates and saves one if none exists.
+    require_once dirname(__FILE__) . '/cast/Chromecast.php';
 	// Returns generated or existing API Token.
 	function checkSetApiToken($userName) {
 		// Check that we have generated an API token for our user, create and save one if none exists
