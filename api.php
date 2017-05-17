@@ -1846,7 +1846,7 @@
             if ($container) {
                 write_log("Sections: ".json_encode($container));
                 foreach($container->children() as $section) {
-                    array_push($sections,["id"=>(string)$section['key'],"uuid"=>(string)$section['uuid']]);
+                    array_push($sections,["id"=>(string)$section['key'],"uuid"=>(string)$section['uuid'],"type"=>$section['type']]);
                 }
             }
         }
@@ -2726,7 +2726,7 @@
 	    write_log("MEDIA: ".json_encode($media));
 	    $array = $id = $response = $result = $song = $url = $uuid = false;
 	    $sections = fetchSections();
-	    foreach($sections as $section) if ($section['id'] == "3") $uuid = $section['uuid'];
+	    foreach($sections as $section) if ($section['type'] == "artist") $uuid = $section['uuid'];
 	    $ratingKey = (isset($media['ratingKey']) ? urlencode($media['ratingKey']) : false);
         $key = (isset($media['key']) ? urlencode($media['key']) : false);
         $uri = urlencode('library://'.$uuid.'/item/'.$key);
