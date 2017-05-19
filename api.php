@@ -457,7 +457,8 @@
 		$_SESSION['enable_sick'] = $GLOBALS['config']->get('user-_-'.$_SESSION['username'], 'sickEnabled', false);
 		$_SESSION['enable_radarr'] = $GLOBALS['config']->get('user-_-'.$_SESSION['username'], 'radarrEnabled', false);
 		$_SESSION['enable_apiai'] = $GLOBALS['config']->get('user-_-'.$_SESSION['username'], 'apiEnabled', false);
-
+        $devices = $GLOBALS['config']->get('user-_-'.$_SESSION['username'], 'dlist', false);
+        if ($devices) $_SESSION['list_plexdevices'] = json_decode(base64_decode($devices),true);
 		$_SESSION['returnItems'] = $GLOBALS['config']->get('user-_-'.$_SESSION['username'], 'returnItems', 6);
         $_SESSION['rescanTime'] = $GLOBALS['config']->get('user-_-'.$_SESSION['username'], 'rescanTime', 8);
 
@@ -1771,7 +1772,7 @@
                                         }
                                     }
                                 }
-                                if (($device['product'] !== 'Plex Media Server') && ($con['@attributes']['local'] == 1) && ($publicMatches)) {
+                                if (($device['product'] !== 'Plex Media Server') && ($con['@attributes']['local'] == 1)) {
                                     if (check_url($con['@attributes']['uri'] . '/resources?X-Plex-Token=' . $device['token'])) $device['uri'] = $con['@attributes']['uri'];
                                 }
                             }
@@ -1816,6 +1817,9 @@
             $results['clients'] = $clients;
             $results['dvrs'] = $dvrs;
             $_SESSION['list_plexdevices'] = $results;
+            $string = base64_encode(json_encode($results));
+            $GLOBALS['config']->set('user-_-'.$_SESSION['username'],'dlist',$string);
+            saveConfig($GLOBALS['config']);
             write_log("Final hooplah is " . json_encode($results));
         } else {
             $results = $list;

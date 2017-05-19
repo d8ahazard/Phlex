@@ -21,7 +21,6 @@
 			die();
 		} else {
 			$_SESSION['apiToken'] = $apiToken;
-			scanDevices(true);
 		}
 		
 	
@@ -88,10 +87,10 @@
 		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<meta name="description" content="Phlex">
-		<link rel="apple-touch-icon" sizes="180x180" href="./img/apple-touch-icon.png">
+		<link rel="apple-touch-icon" sizes="180x180" href="./img/apple-icon.png">
 		<link rel="icon" type="image/png" href="./img/favicon-32x32.png" sizes="32x32">
 		<link rel="icon" type="image/png" href="./img/favicon-16x16.png" sizes="16x16">
-		<link rel="manifest" href="./img/manifest.json">
+		<link rel="manifest" href="./manifest.json">
 		<link rel="mask-icon" href="./img/safari-pinned-tab.svg" color="#5bbad5">
 		<link rel="shortcut icon" href="./img/favicon.ico">
 		<meta name="msapplication-config" content="./img/browserconfig.xml">
