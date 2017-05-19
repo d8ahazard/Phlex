@@ -53,6 +53,12 @@
             $castDevices = fetchCastDevices();
             $i = 0;
             if ($castDevices) {
+                foreach ($GLOBALS['config'] as $section=>$value) {
+                    if (preg_match("/castDevice/",$section)) {
+                        unset($GLOBALS['config'][$section]);
+                        write_log("Unsetting config");
+                    }
+                }
                 foreach ($castDevices as $castDevice) {
                     foreach ($castDevice as $key => $value) {
                         $GLOBALS['config']->set('castDevice' . $i, $key, $value);
