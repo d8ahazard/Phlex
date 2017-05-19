@@ -1,7 +1,7 @@
 <?php
 	require_once dirname(__FILE__) . '/vendor/autoload.php';
 	require_once dirname(__FILE__) . '/cast/Chromecast.php';
-	require_once dirname(__FILE__) . '/util.php';
+    require_once dirname(__FILE__) . '/util.php';
 	use Kryptonit3\SickRage\SickRage;
     use Kryptonit3\Sonarr\Sonarr;
     date_default_timezone_set("America/Chicago");
@@ -116,10 +116,10 @@
 		// This is slightly time-consuming, but necessary.
 
 			if ($_SESSION['plex_cred']) {
-				$token = signIn();
+				$token = signIn($_SESSION['plex_cred']);
 				if ($token) {
-					$_SESSION['plex_token'] = $token;
-				} else {
+					$_SESSION['plex_token'] = $token['authToken'];
+           	} else {
 					write_log("ERROR: Could not sign in to Plex.","ERROR");
 					die();
 				}
@@ -546,7 +546,6 @@
 
 		// Q&D Variable with the plex target client header
 		$_SESSION['plexClientHeader']='&X-Plex-Target-Client-Identifier='.$_SESSION['id_plexclient'];
-
 		// Log our current session variables
 		write_log("-------------Session Variables----------");
 		write_log("DeviceID: ".$_SESSION['deviceID']);
@@ -1124,8 +1123,8 @@
 			$speech = $greetings[array_rand($greetings)];
 			$waitForResponse = true;
 			$contextName = 'PlayMedia';
-			$button = ['title'=>'View Readme','open_url_action'=>'https://github.com/d8ahazard/Phlex/blob/master/readme.md'];
-            $card = ($speech ? [['title'=>"Welcome to Flex TV!",'image'=>['url'=>'https://www.google.com'],'subtitle'=>'']] : false);
+			$linkout = ['destinationName'=>'View Readme','url'=>'https://github.com/d8ahazard/Phlex/blob/master/readme.md'];
+            $card = ($speech ? [['title'=>"Welcome to Flex TV!",'image'=>['url'=>'https://phlexchat.com/img/avatar.png'],'subtitle'=>'','buttons'=>$linkout]] : false);
 			returnSpeech($speech,$contextName,$waitForResponse,false,$card);
 			unset($_SESSION['deviceArray']);
 			die();
@@ -1228,15 +1227,25 @@
 					$title = $status['mediaResult']['title'];
                     $summary = $status['mediaResult']['summary'];
                     $tagline = $status['mediaResult']['tagline'];
+                    $speech = "Currently, the ".$type." ".$title." is playing on ".$player.".";
 					if ($type == 'episode') {
 						$showTitle = $status['mediaResult']['grandparentTitle'];
 						$epNum = $status['mediaResult']['index'];
 						$seasonNum = $status['mediaResult']['parentIndex'];
 						$speech = "Currently, Season ".$seasonNum." episode ". $epNum. " of ".$showTitle." is playing. This episode is named ".$title.".";
-
-					} else {
-						$speech = "Currently, the ".$type." ".$title." is playing on ".$player.".";
 					}
+
+					if ($type == 'track') {
+					    $songtitle = $title;
+					    $artist = $status['mediaResult']['grandparentTitle'];
+					    $album = $status['mediaResult']['parentTitle'];
+					    $year = $status['mediaResult']['year'];
+                        $speech = "It looks like you're listening to ".$songtitle. ' by '.$artist. ' from the album '.$album . '.';
+                        $title = $artist . ' - '.$songtitle;
+					    $tagline = $album. ' ('.$year.')';
+
+                    }
+
 					$card = ($screen ? ["title"=>$title,"subtitle"=>$tagline,"formatted_text"=>$summary,'image'=>['url'=>$thumb]] : false);
 				} else {
 					$speech = "It doesn't look like there's anything playing right now.";
@@ -1506,7 +1515,7 @@
                         }
                         $speech = "I'm sorry, I was unable to find ".$command." in your library.  Would you like me to add it to your watch list?";
                         $contextName = 'yes';
-                        $suggestions = ($screen ? ['Yes','No'] : null);
+                        $suggestions = ($screen ? ['Yes','No'] : false);
                         returnSpeech($speech,$contextName,$waitForResponse,$suggestions);
                         $queryOut['parsedCommand'] = "Play a media item with the title of '".$command.".'";
                         $queryOut['mediaStatus'] = 'ERROR: No results found, prompting to download.';
@@ -1701,36 +1710,14 @@
 	// ############# Client/Server Functions ############
 	//
 
-	// Sign in, get a token if we need it
-
-	function signIn() {
-		$token = $_SESSION['plex_token'];
-		$url = 'https://plex.tv/pms/servers.xml?X-Plex-Token='.$_SESSION['plex_token'];
-		$result=curlGet($url);
-		if (strpos($result,'Please sign in.')){
-			write_log("Test connection to Plex failed, updating token.");
-			$url='https://plex.tv/users/sign_in.xml';
-            $headers = clientHeaders();
-            $result=curlPost($url,false,false,$headers);
-			if ($result) {
-				$container = new SimpleXMLElement($result);
-				$token = (string)$container['authToken'];
-				return $token;
-			}
-			write_log("Valid token could not be found.");
-			return false;
-		}
-		return $token;
-	}
-
 
 	// The process of fetching and storing devices is too damned tedious.
 	// This aims to address that.
 
 	function scanDevices($force=false) {
-        //write_log("Function fired");
-        $clients = $dvrs = $results = $servers = [];
+	    $clients = $dvrs = $results = $servers = [];
         $now = microtime(true);
+        $rescanTime = $_SESSION['rescanTime'];
         $lastCheck = (isset($_SESSION['last_fetch']) ? $_SESSION['last_fetch'] : ceil(round($now) / 60) - $_SESSION['rescanTime']);
         $list = $_SESSION['list_plexdevices'];
         $diffSeconds = round($now - $lastCheck);
@@ -1738,19 +1725,21 @@
 
         // Set things up to be recached
         if (($diffMinutes >= $_SESSION['rescanTime']) || $force || (! count($list['servers']))) {
-        	if ($force) write_log("Force-recaching devices.","INFO");
-        	if ($diffMinutes >= $_SESSION['rescanTime']) write_log("Recaching due to timer.","INFO");
-        	if ((! isset($list['servers'])) || (! isset($list['clients']))) write_log("Recaching due to missing data.","INFO");
-            $_SESSION['last_fetch'] = $now;
-            $url = 'https://plex.tv/api/resources?includeHttps=1&X-Plex-Token=' . $_SESSION['plex_token'];
-            write_log('URL is: ' . $url);
-            $container = simplexml_load_string(curlGet($url));
+           if ($force) write_log("Force-recaching devices.","INFO");
+        	if ($diffMinutes >= $_SESSION['rescanTime']) write_log("Recaching due to timer: ".$diffMinutes." versus ".$_SESSION['rescanTime'],"INFO");
+        	if (! count($list['servers'])) write_log("Recaching due to missing servers");
+        	$_SESSION['last_fetch'] = $now;
+
             if ($_SESSION['use_cast']) {
                 $token = (isset($_SESSION['apiToken']) ? $_SESSION['apiToken'] : session_id());
                 $token = preg_replace('/[^a-z\d]/i', '', $token);
                 $command = 'device.php ' . $token . " CAST=true";
                 startBackgroundProcess($command,$token);
             }
+
+            $url = 'https://plex.tv/api/resources?includeHttps=1&X-Plex-Token=' . $_SESSION['plex_token'];
+            write_log('URL is: ' . protectURL($url));
+            $container = simplexml_load_string(curlGet($url));
 
             // Split them up
             if ($container) {
@@ -1846,7 +1835,7 @@
             if ($container) {
                 write_log("Sections: ".json_encode($container));
                 foreach($container->children() as $section) {
-                    array_push($sections,["id"=>(string)$section['key'],"uuid"=>(string)$section['uuid'],"type"=>$section['type']]);
+                    array_push($sections,["id"=>(string)$section['key'],"uuid"=>(string)$section['uuid'],"type"=>(string)$section['type']]);
                 }
             }
         }
@@ -2881,6 +2870,7 @@
 		$serverIP = $server['host'];
 		$serverPort =$server['port'];
 		$userName = $_SESSION['username'];
+		$transcoderVideo = ($media['@attributes']['type'] != 'track');
         $queueID = (isset($media['queueID']) ? $media['queueID'] : queueMedia($media));
         $transientToken = fetchTransientToken();
 
@@ -2898,7 +2888,7 @@
 			'media' => [
 				'contentId' => (string)$key,
 				'streamType' => 'BUFFERED',
-				'contentType' => 'video',
+				'contentType' => ($transcoderVideo ? 'video' : 'audio'),
 				'customData' => [
 					'offset' => (array_key_exists('viewOffset',$media) ? $media['viewOffset']:0),
 					'directPlay' => true,
@@ -2907,7 +2897,7 @@
 					'audioBoost' => 100,
 					'server' => [
 						'machineIdentifier' => $machineIdentifier,
-						'transcoderVideo' => true,
+						'transcoderVideo' => $transcoderVideo,
 						'transcoderVideoRemuxOnly' => false,
 						'transcoderAudio' => true,
 						'version' => '1.4.3.3433',
@@ -3955,10 +3945,9 @@
  // Push API.ai bot to other's account.  This can go after Google approval
 
 	// Returns a speech object to be read by Assistant
-	function returnSpeech($speech, $contextName, $waitForResponse, $suggestions=false, $cards=false) {
+	function returnSpeech($speech, $contextName, $waitForResponse=false, $suggestions=false, $cards=false,$linkout=false) {
 		write_log("Final Speech should be: ".$speech);
 		if (! $cards) write_log("Card array is ".json_encode($cards));
-		$waitForResponse = ($waitForResponse ? $waitForResponse : false);
 		header('Content-Type: application/json');
 		ob_start();
 		$output["speech"] = $speech;
@@ -3987,6 +3976,7 @@
             }
             $output["data"]["google"]["rich_response"]["suggestions"] = $sugs;
         }
+        if ($linkout) $output['data']['google']['rich_response']['linkOutSuggestion'] = $linkout;
         if ($cards) {
             write_log("Building card array.");
             $cardArray = [];
@@ -4001,11 +3991,13 @@
                     $item['image'] = $card['image'];
                     $item['title'] = $card['title'];
                     $item['description'] = $card['summary'];
-                    $item['option_info']['synonyms'] = [];
-                    $item['option_info']['key'] = $card['title'];
+                    $item['option_info']['key'] = 'play' . $card['title'];
                     array_push($carousel,$item);
                 }
-                $output['data']['google']['system_intent']['spec']['option_value_spec']['list_select']['items'] = $carousel;
+                $output['data']['google']['expectedInputs'][0]['possibleIntents'][0]['inputValueData']['carouselSelect']['items'] = $carousel;
+                $output['data']['google']['expectedInputs'][0]['possibleIntents'][0]['inputValueData']['@type'] = "type.googleapis.com/google.actions.v2.OptionValueSpec";
+                $output['data']['google']['expectedInputs'][0]['possibleIntents'][0]['intent'] = "actions.intent.OPTION";
+                //$output['data']['google']['system_intent']['spec']['option_value_spec']['list_select']['items'] = $carousel;
             } else {
                 write_log("Should be formatting a BasicCard here: ".json_encode($cards[0]));
                 $item = [];

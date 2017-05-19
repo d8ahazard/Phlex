@@ -252,7 +252,7 @@
 
 	function clientHeaders() {
         return array(
-            'X-Plex-Client-Identifier:' . $_SESSION['deviceID'],
+            'X-Plex-Client-Identifier:' . checkSetDeviceID(),
             'X-Plex-Target-Client-Identifier:' . $_SESSION['id_plexclient'],
             'X-Plex-Device:PhlexWeb',
             'X-Plex-Device-Name:Phlex',
@@ -263,6 +263,8 @@
             'X-Plex-Version:1.0.0'
         );
     }
+
+
 
 	// Get the name of the function calling write_log
 	function getCaller() {
@@ -287,25 +289,46 @@
 		return $caller;   
 	}
 
-function startbackgroundProcess($command,$token=null) {
-    if (substr(php_uname(), 0, 7) == "Windows"){
-        $castDevices = fetchCastDevices();
-        $config = new Config_Lite('config.ini.php');
-        $i = 0;
-        if ($castDevices) {
-            foreach ($castDevices as $castDevice) {
-                foreach ($castDevice as $key => $value) {
-                    $config->set('castDevice' . $i, $key, $value);
+    function startbackgroundProcess($command,$token=null) {
+
+        if (substr(php_uname(), 0, 7) == "Windows"){
+
+            // Write a method here that determines where PHP could be?
+            $php_path = (isset($_SESSION['php_path'])) ? $_SESSION['php_path'] : 'C:\xampp\php\php-win.exe';
+            $handle = popen($php_path, "r");
+            write_log("Handle: ".$handle);
+            $read = fread($handle, 2096);
+            write_log("Read: ". $read);
+            pclose($handle);
+            if (! preg_match("/is not recognized/",$read)) {
+                $cmd = $php_path . " " . $command;
+                pclose(popen("start /B " . $cmd, "a"));  // mode = "a" since I had some logs to edit
+            } else {
+                $config = new Config_Lite('config.ini.php');
+                $castDevices = fetchCastDevices2();
+                $i = 0;
+                if ($castDevices) {
+                    foreach ($config as $section=>$value) {
+                        if (preg_match("/castDevice/",$section)) {
+                            unset($config[$section]);
+                            write_log("Unsetting config");
+                        }
+                    }
+                    foreach ($castDevices as $castDevice) {
+                        foreach ($castDevice as $key => $value) {
+                            $config->set('castDevice' . $i, $key, $value);
+                        }
+                        $i++;
+                    }
+                    saveConfig($config);
                 }
-                $i++;
             }
-            saveConfig($config);
+        } else {
+            $cmd = 'php '. $command . " > /dev/null &";
+            write_log("Firing background command: ".$cmd);
+            exec($cmd);
         }
     }
-    else {
-        exec($command . " > /dev/null &");
-    }
-}
 
 
 	// Save the specified configuration file using CONFIG_LITE
@@ -426,7 +449,7 @@ function startbackgroundProcess($command,$token=null) {
         return join(DIRECTORY_SEPARATOR, $segments);
     }
 
-    function fetchCastDevices() {
+    function fetchCastDevices2() {
         if (!(isset($_GET['pollPlayer']))) write_log("Function fired.");
         $result = Chromecast::scan();
         $returns = array();
@@ -446,3 +469,55 @@ function startbackgroundProcess($command,$token=null) {
         if (json_encode($returns) == "[Error]") $returns = false;
         return $returns;
     }
+
+// Sign in, get a token if we need it
+
+function signIn($credString) {
+    $token = (isset($_SESSION['plex_token']) ? $_SESSION['plex_token'] : false);
+    if ($token) {
+        $url = 'https://plex.tv/pms/servers.xml?X-Plex-Token=' . $token;
+        $result = curlGet($url);
+        if (strpos($result, 'Please sign in.')) {
+            write_log("Token invalid, signing in.");
+            $token = false;
+        } else {
+            unset($token);
+            $token['authToken'] = $_SESSION['plex_token'];
+        }
+    }
+    if (! $token) {
+        write_log("No token or not signed in, signing into Plex.");
+        $url='https://plex.tv/users/sign_in.xml';
+        $headers = [
+            'X-Plex-Client-Identifier: '.checkSetDeviceID(),
+            'X-Plex-Device:PhlexWeb',
+            'X-Plex-Device-Screen-Resolution:1520x707,1680x1050,1920x1080',
+            'X-Plex-Device-Name:Phlex',
+            'X-Plex-Platform:Web',
+            'X-Plex-Platform-Version:1.0.0',
+            'X-Plex-Product:Phlex',
+            'X-Plex-Version:1.0.0',
+            'X-Plex-Provides:player,controller,sync-target,pubsub-player',
+            'Authorization:Basic '.$credString
+        ];
+        $result=curlPost($url,false,false,$headers);
+        if ($result) {
+            $container = new SimpleXMLElement($result);
+            $container = json_decode(json_encode($container),true)['@attributes'];
+            write_log("Container: ".json_encode($container));
+            $token = $container;
+        }
+    }
+    return $token;
+}
+
+function checkSetDeviceID() {
+    $config = new Config_Lite('config.ini.php');
+    $deviceID = $config->get('general', 'deviceID', false);
+    if (! $deviceID) {
+        $deviceID = randomToken(12);
+        $config->set("general","deviceID",$deviceID);
+        saveConfig($config);
+    }
+    return $deviceID;
+}

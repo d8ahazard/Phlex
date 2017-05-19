@@ -297,7 +297,7 @@ class DNSPacket {
 				$this->offset++;
 			}
 			if ($firstreset <> 0) { $resetoffsetto = $firstreset; }
-			if ($resetoffseto <> 0) { $offset = $resetoffsetto + 1; }
+			if ($resetoffsetto <> 0) { $offset = $resetoffsetto + 1; }
 			$datadecode = substr($datadecode, 0, strlen($datadecode)-1);
 			$ddata = array();
 			for ($x = 0; $x < strlen($datadecode); $x++) {

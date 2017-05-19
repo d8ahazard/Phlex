@@ -81,6 +81,10 @@ html, body {
   }
 }
 
+.cardHeader {
+	text-align: center;
+}
+
 @media only screen and (max-width: 1024px) {
 	.ccTextDiv {
 		display: none;
@@ -298,6 +302,46 @@ input[type=checkbox] {
 
 .appLabel {
 	width: 100%;
+	text-align: center;
+}
+
+option {
+	text-align: center;
+}
+
+select{
+	text-align-last:center;
+	direction: rtl;
+}
+
+.userGroup {
+	width: 50%;
+	margin: 0 auto;
+}
+
+haa {
+	font-size: 2.0rem;
+}
+
+hab {
+	font-size: -0.5rem;
+}
+
+hac {
+	font-size: 1.5rem;
+}
+
+.avatar {
+	float: left;
+	margin-right: 15px;
+}
+
+.appInput:NOT(checkbox) {
+	text-align: center;
+}
+
+.checkLabel {
+	text-align: left;
 }
 
 .toggle {

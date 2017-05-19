@@ -27,14 +27,17 @@
 	
 	// Check our config file exists
 	
+    $_SESSION['plexAvatar'] = $config->get('user-_-'.$_SESSION['username'], 'plexAvatar', false);
+    $_SESSION['plexEmail'] = $config->get('user-_-'.$_SESSION['username'], 'plexEmail', false);
+
 	$_SESSION['enable_couch'] = $config->get('user-_-'.$_SESSION['username'], 'couchEnabled', false);
 	$_SESSION['enable_ombi'] = $config->get('user-_-'.$_SESSION['username'], 'ombiEnabled', false);
 	$_SESSION['enable_sonarr'] = $config->get('user-_-'.$_SESSION['username'], 'sonarrEnabled', false);
 	$_SESSION['enable_sick'] = $config->get('user-_-'.$_SESSION['username'], 'sickEnabled', false);
 	$_SESSION['enable_radarr'] = $config->get('user-_-'.$_SESSION['username'], 'radarrEnabled', false);
 	$_SESSION['enable_apiai'] = $config->get('user-_-'.$_SESSION['username'], 'apiEnabled', false);
-	
-	$_SESSION['returnItems'] = $config->get('user-_-'.$_SESSION['username'], 'returnItems', "6");
+
+    $_SESSION['returnItems'] = $config->get('user-_-'.$_SESSION['username'], 'returnItems', "6");
 	$_SESSION['rescanTime'] = $config->get('user-_-'.$_SESSION['username'], 'rescanTime', "6");
 	
 	$_SESSION['ip_couch'] = $config->get('user-_-'.$_SESSION['username'], 'couchIP', 'localhost');
@@ -167,15 +170,22 @@
 				<div class="modal-dialog" role="document">
 					<div class="modal-content">
 						<div class="modal-header">
-							<h5 class="modal-title">Settings</h5>
-							<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-								<span aria-hidden="true">&times;</span>
-							</button>
+							<hac class="modal-title">Settings</hac>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                            <br>
+                            <div class="userGroup">
+                                <img class="avatar" src="<?php echo $_SESSION['plexAvatar']?>"/>
+                                <haa><?php echo ucfirst($_SESSION['username'])?></haa><br>
+                                <hab><?php echo $_SESSION['plexEmail']?></hab>
+                            </div>
+
 						</div>
 						<div class="modal-body">
 							<div class="appContainer card">	
 								<div class="card-body">
-								<h4>General</h4>
+								<h4 class="cardHeader">General</h4>
 									<div class="form-group">
 										<div class="form-group">
 											<label for="apiToken" class="appLabel">API Key:
@@ -190,7 +200,7 @@
 											</label>
 										</div>
 									</div>
-									<div class="form-group">
+                                    <div class="form-group">
 										<div class="form-group">
 											<label for="returnItems" class="appLabel">Number of On-Deck/Recent Items to Return:
 												<input id="returnItems" class="appInput form-control" type="number" min="1" max="20" value="<?php echo $_SESSION['returnItems'] ?>" />
@@ -205,7 +215,7 @@
                                         </div>
                                     </div>
                                     <div class="togglebutton">
-                                        <label class="appLabel checkLabel">Obscure Sensitive Data in Logs
+                                        <label for="cleanLogs" class="appLabel checkLabel">Obscure Sensitive Data in Logs
                                             <input id="cleanLogs" type="checkbox" class="appInput appToggle"<?php echo ($_SESSION['clean_logs'] ? 'checked' : '') ?>/>
                                         </label>
                                     </div>
@@ -228,16 +238,16 @@
 							</div>
 							<div class="appContainer card">
 								<div class="card-body">
-								<h4>Plex</h4>
+								<h4 class="cardHeader">Plex</h4>
 									<div class="form-group">
-										<div class="form-group">
-											<label for="serverList">Playback Server:</label>
+                                        <div class="form-group">
+											<label class="appLabel" for="serverList">Playback Server:</label>
 											<select class="form-control" id="serverList">
 
 											</select>
 											<br>
 											<div class="togglebutton">
-												<label class="appLabel checkLabel">Use Cast Devices
+												<label for="useCast" class="appLabel checkLabel">Use Cast Devices
 													<input id="useCast" type="checkbox" class="appInput appToggle"<?php echo ($_SESSION['use_cast'] ? 'checked' : '') ?>/>
 												</label>
 											</div>
@@ -252,16 +262,16 @@
 							</div>
 							<div class="appContainer card dvrGroup">
 								<div class="card-body">
-								<h4>Plex DVR</h4>
+								<h4 class="cardHeader">Plex DVR</h4>
 									<div class="form-group">
 										<div class="form-group">
-											<label for="dvrList">DVR Server:</label>
+											<label class="appLabel" for="dvrList">DVR Server:</label>
 											<select class="form-control" id="dvrList">
 
 											</select>
 										</div>
 										<div class="form-group">
-											<label for="resolution">Resolution:</label>
+											<label class="appLabel" for="resolution">Resolution:</label>
 											<select class="form-control appInput" id="resolution">
 												<option value="0" <?php echo ($_SESSION['resolution'] == 0 ? 'selected' : '') ?>>Any</option>
 												<option value="720" <?php echo ($_SESSION['resolution'] == 720 ? 'selected' : '') ?>>High-Definition</option>
@@ -269,19 +279,19 @@
 										</div>
 										<br>
 										<div class="togglebutton">
-											<label class="appLabel checkLabel">Record new Airings Only
+											<label for="dvr_newairings" class="appLabel checkLabel">Record new Airings Only
 												<input id="dvr_newairings" type="checkbox" class="appInput"<?php echo ($_SESSION['dvr_newairings'] ? 'checked' : '') ?>/>
 											</label>
 										</div>
 										<br>
 										<div class="togglebutton">
-											<label class="appLabel checkLabel">Replace Lower Quality Recordings
+											<label for="dvr_replacelower" class="appLabel checkLabel">Replace Lower Quality Recordings
 												<input id="dvr_replacelower" type="checkbox" class="appInput"<?php echo ($_SESSION['dvr_replacelower'] ? 'checked' : '') ?>/>
 											</label>
 										</div>
 										<br>
 										<div class="togglebutton">
-											<label class="appLabel checkLabel">Record partial episodes
+											<label for="dvr_recordpartials" class="appLabel checkLabel">Record partial episodes
 												<input id="dvr_recordpartials" type="checkbox" class="appInput"<?php echo ($_SESSION['dvr_recordpartials'] ? 'checked' : '') ?>/>
 											</label>
 										</div>
@@ -301,9 +311,9 @@
 							</div>
 							<div class="appContainer card">
 								<div class="card-body">
-								<h4>CouchPotato</h4>
+								<h4 class="cardHeader">CouchPotato</h4>
 									<div class="togglebutton">
-										<label class="appLabel checkLabel">Enable
+										<label for="couchEnabled" class="appLabel checkLabel">Enable
 											<input id="couchEnabled" type="checkbox" class="appInput appToggle"/>
 										</label>
 									</div>
@@ -324,7 +334,7 @@
 											</label>
 										</div>
 										<div class="form-group">
-											<label for="couchProfile">Quality Profile:</label>
+											<label class="appLabel" for="couchProfile">Quality Profile:</label>
 											<select class="form-control profileList" id="couchProfile">
 												<?php echo fetchList("couch") ?>
 											</select>
@@ -341,9 +351,9 @@
 
 							<div class="appContainer card ombiGroup">
 								<div class="card-body">
-								<h4>Ombi</h4>
+								<h4 class="cardHeader">Ombi</h4>
 									<div class="togglebutton">
-										<label class="appLabel checkLabel">Enable
+										<label for="ombiEnabled" class="appLabel checkLabel">Enable
 											<input id="ombiEnabled" type="checkbox" class="appInput appToggle"/>
 										</label>
 									</div>
@@ -359,7 +369,7 @@
 											</label>
 										</div>
 										<div class="form-group">
-											<label for="ombi">Quality Profile:</label>
+											<label class="appLabel" for="ombi">Quality Profile:</label>
 											<select class="form-control profileList" id="ombi">
 
 											</select>
@@ -376,9 +386,9 @@
 
 							<div class="appContainer card">
 								<div class="card-body">
-									<h4>Radarr</h4>
+									<h4 class="cardHeader">Radarr</h4>
 									<div class="togglebutton">
-										<label class="appLabel checkLabel">Enable
+										<label for="radarrEnabled" class="appLabel checkLabel">Enable
 											<input id="radarrEnabled" type="checkbox" class="appInput appToggle"/>
 										</label>
 									</div>
@@ -399,7 +409,7 @@
 											</label>
 										</div>
 										<div class="form-group">
-											<label for="radarrProfile">Quality Profile:</label>
+											<label class="appLabel" for="radarrProfile">Quality Profile:</label>
 											<select class="form-control profileList" id="radarrProfile">
 												<?php echo fetchList("radarr") ?>
 											</select>
@@ -416,9 +426,9 @@
 
 							<div class="appContainer card">
 								<div class="card-body">
-									<h4>Sickbeard/SickRage</h4>
+									<h4 class="cardHeader">Sickbeard/SickRage</h4>
 									<div class="togglebutton">
-										<label class="appLabel checkLabel">Enable
+										<label for="sickEnabled" class="appLabel checkLabel">Enable
 											<input id="sickEnabled" type="checkbox" class="appInput appToggle"/>
 										</label>
 									</div>
@@ -439,7 +449,7 @@
 											</label>
 										</div>
 										<div class="form-group">
-											<label for="sickProfile">Quality Profile:</label>
+											<label class="appLabel" for="sickProfile">Quality Profile:</label>
 											<select class="form-control appInput profileList" id="sickProfile">
 												<?php echo fetchList("sick") ?>
 											</select>
@@ -456,9 +466,9 @@
 
 							<div class="appContainer card">
 								<div class="card-body">
-									<h4>Sonarr</h4>
+									<h4 class="cardHeader">Sonarr</h4>
 									<div class="togglebutton">
-										<label class="appLabel checkLabel">Enable
+										<label for="sonarrEnabled" class="appLabel checkLabel">Enable
 											<input id="sonarrEnabled" type="checkbox" class="appInput appToggle"/>
 										</label>
 									</div>
@@ -479,7 +489,7 @@
 											</label>
 										</div>
 										<div class="form-group">
-											<label for="sonarrProfile">Quality Profile:</label>
+											<label class="appLabel" for="sonarrProfile">Quality Profile:</label>
 											<select class="form-control profileList" id="sonarrProfile">
 												<?php echo fetchList("sonarr") ?>
 											</select>

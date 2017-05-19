@@ -35,16 +35,7 @@ jQuery(document).ready(function($) {
 		
 	$('.formpop').popover();
 
-    $('input[type=checkbox]').each(function(){
-        if ($(this).is(':checked')) {
-            $(this).parent().css("color", "1f50a0 !important");
-        } else {
-            $(this).parent().css("color", "#A1A1A1 !important");
-        }
-
-    })
-
-	progressSlider.noUiSlider.on('end', function(values, handle){
+    progressSlider.noUiSlider.on('end', function(values, handle){
 		var value = values[handle];
 		var newOffset = Math.round((resultDuration * (value * .01)));
 		apiToken = $('#apiTokenData').attr('data');
@@ -77,15 +68,16 @@ jQuery(document).ready(function($) {
 		}
 	});
 
-	$("input").click(function(){
-        if ($(this).attr('type') === 'checkbox') {
-            if ($(this).is(':checked')) {
-                $(this).parent().css("color", "1f50a0 !important");
+    $(':checkbox').change(function() {
+    	var label = $("label[for='"+$(this).attr('id')+"']");
+           if ($(this).is(':checked')) {
+           		label.css("color", "#003792");
             } else {
-                $(this).parent().css("color", "#A1A1A1 !important");
+                label.css("color", "#A1A1A1");
             }
-        }
-	})
+    });
+
+
 
 	$(".btn").on('click', function() {
 		var value;
@@ -327,7 +319,16 @@ jQuery(document).ready(function($) {
 	$('#radarrEnabled').change(function() {
 		$('#radarrGroup').toggle();
 	});
-	
+
+    $(':checkbox').each(function(){
+        var label = $("label[for='"+$(this).attr('id')+"']");
+        if ($(this).is(':checked')) {
+            label.css("color", "#003792");
+        } else {
+            label.css("color", "#A1A1A1");
+        }
+    })
+
 	$('#resolution').change(function() {
 		apiToken = $('#apiTokenData').attr('data');
 		var res = $(this).find('option:selected').attr('value');
