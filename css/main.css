@@ -31,6 +31,7 @@ html, body {
 
 
 .loginBox {
+	display:none;
 	width: 100%;
 	height: 100%;
 	overflow: hidden;
@@ -38,6 +39,17 @@ html, body {
 
 	
 	
+}
+
+#bg {
+	display:none;
+	width: 100%;
+	height: 100%;
+	position: fixed;
+	top: 0;
+	left: 0;
+	z-index: -50;
+	background-image:url("https://unsplash.it/1920/1080?random");
 }
 
 .btnAdd {

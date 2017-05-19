@@ -119,7 +119,8 @@ echo '<!doctype html>
 		<![endif]-->
 		
 	</head>
-	<body background="https://unsplash.it/1920/1080?random">
+	<body style="background-color:black">
+	<div id="bg"></div>
 	<div class="loginBox">
 		<div class="login-box">
 		<div class="card loginCard">
@@ -157,6 +158,14 @@ echo '<!doctype html>
 		<script type="text/javascript" src="./js/material.min.js"></script>
 		<script type="text/javascript" src="./js/ripples.min.js"></script>
 		<script type="text/javascript" src="./js/main.js"></script>
+		<script type="text/javascript">
+		jQuery(function($) {
+            $(\'#bg\').fadeIn(2000);
+            $(\'.loginBox\').fadeIn(2100);
+        });
+        </script>
+		
+		
 		
 	</body>
 </html>';
