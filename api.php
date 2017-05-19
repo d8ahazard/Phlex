@@ -1143,7 +1143,7 @@
 					$type = $result['type'];
 					$queryOut['parsedCommand'] = 'Add the '.$type.' named '.$title.' ('.$year.') to the recording schedule.';
 					$speech = "Hey, look at that.  I've added the ".$type." named ".$title." (".$year.") to the recording schedule.";
-					$card = ($speech ? ['title'=>$title,'image'=>['url'=>$result['thumb']],'subtitle'=>''] : false);
+					$card = ($speech ? [['title'=>$title,'image'=>['url'=>$result['thumb']],'subtitle'=>'']] : false);
 					$results['url'] = $result['url'];
 					$results['status'] = "Success.";
 					$queryOut['mediaResult'] = $result;
@@ -1160,7 +1160,7 @@
 				$speech = "I'm sorry, but I didn't find any instances of Plex DVR to use.";
 				$card = false;
 			}
-			returnSpeech($speech,$contextName,$waitForResponse,false,[$card]);
+			returnSpeech($speech,$contextName,$waitForResponse,false,$card);
 			$queryOut['speech'] = $speech;
 			log_command(json_encode($queryOut));
 			die();
@@ -1247,13 +1247,13 @@
 
                     }
 
-					$card = ($screen ? ["title"=>$title,"subtitle"=>$tagline,"formatted_text"=>$summary,'image'=>['url'=>$thumb]] : false);
+					$card = ($screen ? [["title"=>$title,"subtitle"=>$tagline,"formatted_text"=>$summary,'image'=>['url'=>$thumb]]] : false);
 				} else {
 					$speech = "It doesn't look like there's anything playing right now.";
 				}
 				$waitForResponse = false;
 				$contextName = 'PlayMedia';
-				returnSpeech($speech,$contextName,$waitForResponse,false,[$card]);
+				returnSpeech($speech,$contextName,$waitForResponse,false,$card);
 				$queryOut['parsedCommand'] = "Report player status";
 				$queryOut['speech'] = $speech;
 				$queryOut['mediaStatus'] = "Success: Player status retrieved";
@@ -1300,7 +1300,7 @@
 						$title = $showTitle.": ".$title;
 					}
                     if ($count >=2) {
-                        $item = ($screen ? ["title"=>$title,"summary"=>$summary,'image'=>['url'=>$thumb],"command"=>"play"] : false);;
+                        $item = ($screen ? ["title"=>$title,"summary"=>$summary,'image'=>['url'=>$thumb],"command"=>"play"] : false);
                         //array_push($card,$item);
                     }
                     if (($i == $count) && ($count >=2)) {
@@ -1460,10 +1460,11 @@
 						$_SESSION['promptfortitle'] = false;
 					}
 					$waitForResponse = false;
+					write_log("Screen: ".$screen);
 					write_log("MediaresultJSON: ".json_encode($queryOut['mediaResult']));
-                    $card = ($screen ? ["title"=>$title." (".$year.")","subtitle"=>$tagline,'image'=>['url'=>$thumb]] : false);
+                    $card = ($screen ? [["title"=>$title." (".$year.")","subtitle"=>$tagline,'image'=>['url'=>$thumb]]] : false);
                     if (($summary) && ($screen)) $card['formatted_text'] = $summary;
-					returnSpeech($speech,$contextName,$waitForResponse,false,[$card]);
+					returnSpeech($speech,$contextName,$waitForResponse,false,$card);
 					$playResult = playMedia($mediaResult[0]);
 					$exact = $mediaResult[0]['@attributes']['exact'];
 					$queryOut['speech'] = $speech;
@@ -3981,8 +3982,8 @@
             }
             $output["data"]["google"]["rich_response"]["suggestions"] = $sugs;
         }
-        if ($linkout) $output['data']['google']['rich_response']['linkOutSuggestion'] = $linkout;
-        if ($cards) {
+        //if ($linkout) $output['data']['google']['rich_response']['linkOutSuggestion'] = $linkout;
+        if (($cards != false) && ($cards[0])) {
             write_log("Building card array.");
             $cardArray = [];
             $item['simple_response']['display_text'] = $speech."!";
