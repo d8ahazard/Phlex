@@ -1124,8 +1124,8 @@
 			$speech = $greetings[array_rand($greetings)];
 			$waitForResponse = true;
 			$contextName = 'PlayMedia';
-			$linkout = ['destinationName'=>'View Readme','url'=>'https://github.com/d8ahazard/Phlex/blob/master/readme.md'];
-            $card = ($speech ? [['title'=>"Welcome to Flex TV!",'image'=>['url'=>'https://phlexchat.com/img/avatar.png'],'subtitle'=>'','buttons'=>$linkout]] : false);
+			//$linkout = ['destinationName'=>'View Readme','url'=>'https://github.com/d8ahazard/Phlex/blob/master/readme.md'];
+            $card = ($speech ? [['title'=>"Welcome to Flex TV!",'image'=>['url'=>'https://phlexchat.com/img/avatar.png'],'subtitle'=>'']] : false);
 			returnSpeech($speech,$contextName,$waitForResponse,false,$card);
 			unset($_SESSION['deviceArray']);
 			die();
@@ -1286,7 +1286,7 @@
 				$speech = (($action=='recent')? "Here's a list of recent ".$type."s: " : "Here's a list of on deck items: ");
 				$i = 1;
 				$count = count($array);
-				$card = [];
+				//$card = [];
 				foreach($array as $result) {
 					$title = $result['title'];
 					$showTitle = $result['grandparentTitle'];
@@ -1301,7 +1301,7 @@
 					}
                     if ($count >=2) {
                         $item = ($screen ? ["title"=>$title,"summary"=>$summary,'image'=>['url'=>$thumb],"command"=>"play"] : false);;
-                        array_push($card,$item);
+                        //array_push($card,$item);
                     }
                     if (($i == $count) && ($count >=2)) {
 						$speech .= "and ". $title.".";
@@ -3949,9 +3949,10 @@
  // Push API.ai bot to other's account.  This can go after Google approval
 
 	// Returns a speech object to be read by Assistant
-	function returnSpeech($speech, $contextName, $waitForResponse=false, $suggestions=false, $cards=false,$linkout=false) {
+	function returnSpeech($speech, $contextName, $waitForResponse, $suggestions=false, $cards=false) {
 		write_log("Final Speech should be: ".$speech);
 		if (! $cards) write_log("Card array is ".json_encode($cards));
+		$waitForResponse = ($waitForResponse ? $waitForResponse : false);
 		header('Content-Type: application/json');
 		ob_start();
 		$output["speech"] = $speech;
@@ -3995,13 +3996,11 @@
                     $item['image'] = $card['image'];
                     $item['title'] = $card['title'];
                     $item['description'] = $card['summary'];
-                    $item['option_info']['key'] = 'play' . $card['title'];
+                    $item['option_info']['synonyms'] = [];
+                    $item['option_info']['key'] = $card['title'];
                     array_push($carousel,$item);
                 }
-                $output['data']['google']['expectedInputs'][0]['possibleIntents'][0]['inputValueData']['carouselSelect']['items'] = $carousel;
-                $output['data']['google']['expectedInputs'][0]['possibleIntents'][0]['inputValueData']['@type'] = "type.googleapis.com/google.actions.v2.OptionValueSpec";
-                $output['data']['google']['expectedInputs'][0]['possibleIntents'][0]['intent'] = "actions.intent.OPTION";
-                //$output['data']['google']['system_intent']['spec']['option_value_spec']['list_select']['items'] = $carousel;
+                $output['data']['google']['system_intent']['spec']['option_value_spec']['list_select']['items'] = $carousel;
             } else {
                 write_log("Should be formatting a BasicCard here: ".json_encode($cards[0]));
                 $item = [];
