@@ -2,6 +2,7 @@
 	require_once dirname(__FILE__) . '/vendor/autoload.php';
 	require_once dirname(__FILE__) . '/cast/Chromecast.php';
     require_once dirname(__FILE__) . '/util.php';
+    require_once dirname(__FILE__) . '/body.php';
 	use Kryptonit3\SickRage\SickRage;
     use Kryptonit3\Sonarr\Sonarr;
     date_default_timezone_set("America/Chicago");
@@ -10,6 +11,72 @@
 	error_reporting(E_ERROR);
 	$errfilename = 'Phlex_error.log';
 	ini_set("error_log", $errfilename);
+    $config = new Config_Lite('config.ini.php');
+	if (isset($_POST['username']) && isset($_POST['password'])) {
+	    write_log("Got a new-fangled login request here.");
+        $userpass = base64_encode($_POST['username'] . ":" . $_POST['password']);
+        write_log("Userpass: ".$userpass);
+        $token = signIn($userpass);
+        write_log("LOGIN.PHP: received Token is " . json_encode($token));
+        if ($token) {
+            $username = urlencode($token['username']);
+            $userString = "user-_-" . $username;
+            $authToken = $token['authToken'];
+            $email = $token['email'];
+            $avatar = $token['thumb'];
+            $apiToken = checkSetApiToken($username);
+            write_log("Still alive.");
+            if (!$apiToken) {
+                echo "Unable to set API Token, please check write access to Phlex root and try again.";
+                die();
+            } else {
+                write_log("Still alive2.");
+                write_log("ApiTokenz is " . $apiToken);
+                $_SESSION['apiToken'] = $apiToken;
+                $_SESSION['username'] = $username;
+                $_SESSION['plex_token'] = $authToken;
+                // This is our user's first logon.  Let's make some files and an API key for them.
+                $config->set($userString, "plexToken", $authToken);
+                $config->set($userString, "plexEmail", $email);
+                $config->set($userString, "plexAvatar", $avatar);
+                $config->set($userString, "plexCred", $userpass);
+                $config->set($userString, "plexUserName", $username);
+                $config->set($userString, "apiToken", $apiToken);
+                saveConfig($config);
+                write_log("Still alivesave.");
+            }
+            write_log("Still alive.");
+            $url = '';
+            if (isset($_SESSION['url'])) {
+                $url = $_SESSION['url']; // holds url for last page visited.
+            } else {
+                $url = "login.php"; // default page for
+            }
+            write_log("Still alive33.");
+            //header("Location:.");
+            write_log('Successfully logged in.');
+            define('LOGGED_IN', true);
+            echo makeBody();
+            die();
+            //exit();
+        } else {
+            echo 'ERROR';
+            $_SESSION['username'] = '';
+            if (isset($_SERVER['HTTP_COOKIE'])) {
+                $cookies = explode(';', $_SERVER['HTTP_COOKIE']);
+                foreach ($cookies as $cookie) {
+                    $parts = explode('=', $cookie);
+                    $name = trim($parts[0]);
+                    setcookie($name, '', time() - 1000);
+                    setcookie($name, '', time() - 1000, '/');
+                }
+            }
+            $has_session = session_status() == PHP_SESSION_ACTIVE;
+            if ($has_session) session_destroy();
+            die();
+        }
+
+    }
 	if ( is_session_started() === FALSE ) {
 		if (isset($_GET['apiToken'])) {
 			session_id($_GET['apiToken']);
@@ -21,7 +88,7 @@
 		session_start();
 	}
 	// Define our config globally
-	$config = new Config_Lite('config.ini.php');
+
 	$_SESSION['mc'] = initMCurl();
 	// Fetch our Plex device ID, create one if it does not exist
 	$_SESSION['deviceID'] = $config->get('general','deviceID','');
@@ -1015,8 +1082,9 @@
 		$action = $result['parameters']["action"];
 		$type = $result['parameters']['type'];
 		$capabilities = $request['originalRequest']['data']['surface']['capabilities'];
+        $GLOBALS['screen'] = false;
 		foreach ($capabilities as $capability) {
-		    if ($capability['name'] == "actions.capability.SCREEN_OUTPUT") $screen = true;
+            if ($capability['name'] == "actions.capability.SCREEN_OUTPUT") $GLOBALS['screen'] = true;
         }
         $artist = (isset($result['parameters']['artist']) ? $result['parameters']['artist'] : false);
 		$rawspeech = (string)$request['originalRequest']['data']['inputs'][0]['raw_inputs'][0]['query'];
@@ -1122,18 +1190,16 @@
 		if ($greeting) {
 			$greetings = array("Hi, I'm Flex TV.  What can I do for you today?","Greetings! How can I help you?","Hello there. Try asking me to play a movie or show.'");
 			$speech = $greetings[array_rand($greetings)];
-			$waitForResponse = true;
 			$contextName = 'PlayMedia';
 			//$linkout = ['destinationName'=>'View Readme','url'=>'https://github.com/d8ahazard/Phlex/blob/master/readme.md'];
-            $card = ($speech ? [['title'=>"Welcome to Flex TV!",'image'=>['url'=>'https://phlexchat.com/img/avatar.png'],'subtitle'=>'']] : false);
-			returnSpeech($speech,$contextName,$waitForResponse,false,$card);
+            $card = [['title'=>"Welcome to Flex TV!",'image'=>['url'=>'https://phlexchat.com/img/avatar.png'],'subtitle'=>'']];
+			returnSpeech($speech,$contextName,$card,true);
 			unset($_SESSION['deviceArray']);
 			die();
 		}
 
 		if (($action == 'record') && ($command)) {
 			write_log("Got a record command.");
-			$waitForResponse = false;
 			$contextName = 'waitforplayer';
 			if($_SESSION['uri_plexdvr']) {
 				$result = parseRecordCommand($command);
@@ -1143,10 +1209,11 @@
 					$type = $result['type'];
 					$queryOut['parsedCommand'] = 'Add the '.$type.' named '.$title.' ('.$year.') to the recording schedule.';
 					$speech = "Hey, look at that.  I've added the ".$type." named ".$title." (".$year.") to the recording schedule.";
-					$card = ($speech ? [['title'=>$title,'image'=>['url'=>$result['thumb']],'subtitle'=>'']] : false);
+					$card = [['title'=>$title,'image'=>['url'=>$result['thumb']],'subtitle'=>'']];
 					$results['url'] = $result['url'];
 					$results['status'] = "Success.";
 					$queryOut['mediaResult'] = $result;
+					$queryOut['card'] = $card;
 					$queryOut['mediaStatus'] = 'SUCCESS: Not a media command';
 					$queryOut['commandType'] = 'dvr';
 				} else {
@@ -1160,7 +1227,7 @@
 				$speech = "I'm sorry, but I didn't find any instances of Plex DVR to use.";
 				$card = false;
 			}
-			returnSpeech($speech,$contextName,$waitForResponse,false,$card);
+			returnSpeech($speech,$contextName,$card);
 			$queryOut['speech'] = $speech;
 			log_command(json_encode($queryOut));
 			die();
@@ -1185,9 +1252,8 @@
                 write_log("Result should be " . json_encode($result));
                 if ($result) {
                     $speech = "Okay, I've switched the " . $typeString . " to " . $command . ".";
-                    $waitForResponse = false;
                     $contextName = 'waitforplayer';
-                    returnSpeech($speech, $contextName, $waitForResponse);
+                    returnSpeech($speech, $contextName);
                     write_log("Still alive.");
                     $name = (($result['product'] == 'Plex Media Server') ? 'plexServer' : 'plexClient');
                     $GLOBALS['config']->set('user-_-' . $_SESSION['username'], $name, $result['id']);
@@ -1200,9 +1266,8 @@
                     $queryOut['playResult']['status'] = 'SUCCESS: ' . $typeString . ' changed to ' . $command . '.';
                 } else {
                     $speech = "I'm sorry, but I couldn't find " . $command . " in the device list.";
-                    $waitForResponse = false;
                     $contextName = 'waitforplayer';
-                    returnSpeech($speech, $contextName, $waitForResponse);
+                    returnSpeech($speech, $contextName);
                     $queryOut['playResult']['status'] = 'ERROR: No device to select.';
                 }
                 $queryOut['parsedCommand'] = "Change ".$typeString." to " . $command . ".";
@@ -1247,13 +1312,13 @@
 
                     }
 
-					$card = ($screen ? [["title"=>$title,"subtitle"=>$tagline,"formatted_text"=>$summary,'image'=>['url'=>$thumb]]] : false);
+					$card = [["title"=>$title,"subtitle"=>$tagline,"formatted_text"=>$summary,'image'=>['url'=>$thumb]]];
+                    $queryOut['card'] = $card;
 				} else {
 					$speech = "It doesn't look like there's anything playing right now.";
 				}
-				$waitForResponse = false;
 				$contextName = 'PlayMedia';
-				returnSpeech($speech,$contextName,$waitForResponse,false,$card);
+				returnSpeech($speech,$contextName,$card);
 				$queryOut['parsedCommand'] = "Report player status";
 				$queryOut['speech'] = $speech;
 				$queryOut['mediaStatus'] = "Success: Player status retrieved";
@@ -1286,7 +1351,7 @@
 				$speech = (($action=='recent')? "Here's a list of recent ".$type."s: " : "Here's a list of on deck items: ");
 				$i = 1;
 				$count = count($array);
-				//$card = [];
+
 				foreach($array as $result) {
 					$title = $result['title'];
 					$showTitle = $result['grandparentTitle'];
@@ -1300,8 +1365,9 @@
 						$title = $showTitle.": ".$title;
 					}
                     if ($count >=2) {
-                        $item = ($screen ? ["title"=>$title,"summary"=>$summary,'image'=>['url'=>$thumb],"command"=>"play"] : false);
-                        //array_push($card,$item);
+                        $card = [];
+                        $item = ["title"=>$title,"summary"=>$summary,'image'=>['url'=>$thumb],"command"=>"play"];
+                        array_push($card,$item);
                     }
                     if (($i == $count) && ($count >=2)) {
 						$speech .= "and ". $title.".";
@@ -1310,6 +1376,7 @@
 					}
 					$i++;
 				}
+				if (count($card)) $queryOut['card'] = $card;
 				$queryOut['mediaStatus'] = 'SUCCESS: Hub array returned';
 				$queryOut['mediaResult'] = $array[0];
 
@@ -1318,9 +1385,8 @@
 				$queryOut['mediaStatus'] = "ERROR: Could not fetch hub list.";
 				$speech = "Unfortunately, I wasn't able to find any results for that.  Please try again later.";
 			}
-            $waitForResponse = false;
             $contextName = 'promptfortitle';
-			returnSpeech($speech,$contextName,$waitForResponse, false,$card);
+			returnSpeech($speech,$contextName);
 			$queryOut['parsedCommand'] = "Return a list of ".$action.' '.(($action == 'recent') ? $type : 'items').'.';
 			$queryOut['speech'] = $speech;
 			log_command(json_encode($queryOut));
@@ -1363,8 +1429,7 @@
 						} else {
 							$speech = "I'm sorry, but '".$rawspeech."' doesn't seem to match anything I just said.";
 						}
-						$waitForResponse = false;
-						returnSpeech($speech,$contextName,$waitForResponse);
+						returnSpeech($speech,$contextName);
 						die();
 					}
 				} else {
@@ -1459,15 +1524,15 @@
 						$contextName = 'promptfortitle';
 						$_SESSION['promptfortitle'] = false;
 					}
-					$waitForResponse = false;
 					write_log("Screen: ".$screen);
 					write_log("MediaresultJSON: ".json_encode($queryOut['mediaResult']));
-                    $card = ($screen ? [["title"=>$title." (".$year.")","subtitle"=>$tagline,'image'=>['url'=>$thumb]]] : false);
-                    if (($summary) && ($screen)) $card['formatted_text'] = $summary;
-					returnSpeech($speech,$contextName,$waitForResponse,false,$card);
+                    $card = [["title"=>$title." (".$year.")","subtitle"=>$tagline,'image'=>['url'=>$thumb]]];
+                    if ($summary) $card['formatted_text'] = $summary;
+					returnSpeech($speech,$contextName,$card);
 					$playResult = playMedia($mediaResult[0]);
 					$exact = $mediaResult[0]['@attributes']['exact'];
 					$queryOut['speech'] = $speech;
+                    $queryOut['card'] = $card;
 					$queryOut['mediaStatus'] = "SUCCESS: ".($exact ? 'Exact' : 'Fuzzy' )." result found";
 					$queryOut['playResult'] = $playResult;
 					write_log("Type and stuff: ".$type. " and ".$title);
@@ -1485,22 +1550,31 @@
 					$GLOBALS['config']->set('user-_-'.$_SESSION['username'],'mlist',base64_encode(json_encode($mediaResult)));
 					saveConfig($GLOBALS['config']);
 					write_log("MR: ".print_r($_SESSION['mediaList'],true));
+					$cards = [];
 					foreach($mediaResult as $Media) {
-						$count++;
+                        $title = $Media['title'];
+                        $year = $Media['year'];
+                        $tagline = (isset($Media['tagline']) ? $Media['tagline'] : $Media['summary']);
+                        $thumb = $Media['art'];
+
+                        $count++;
 						write_log("Counting: ".$count. " and ". count($mediaResult));
 						if ($count == count($mediaResult)) {
-							$speechString .= " or ".$Media['title']." ".$Media['year'].".";
+							$speechString .= " or ".$title." ".$year.".";
 						} else {
-							$speechString .= " ".$Media['title']." ".$Media['year'].",";
+							$speechString .= " ".$title." ".$year.",";
 						}
-						array_push($resultTitles,$Media['title']." ".$Media['year']);
+						array_push($resultTitles,$title." ".$year);
+                        $card = ["title"=>$title,"description"=>$tagline,'image'=>['url'=>$thumb],"key"=>"play ".$title];
+						array_push($cards,$card);
 					}
+                    $queryOut['card'] = $cards;
 					$speech = "I found several possible results for that, which one was it?  ". $speechString;
 					$contextName = "promptfortitle";
 					$_SESSION['promptfortitle'] = true;
 					if (isset($_SESSION['mediaList'])) unset($_SESSION['mediaList']);
-					$waitForResponse = true;
-					returnSpeech($speech,$contextName,$waitForResponse);
+					//TODO - enable card when fixed
+					returnSpeech($speech,$contextName,false,true);
 					$queryOut['parsedCommand'] = 'Play a media item named '.$command.'. (Multiple results found)';
 					$queryOut['mediaStatus'] = 'SUCCESS: Multiple Results Found, prompting user for more information';
 					$queryOut['playResult'] = "Not a media command.";
@@ -1509,7 +1583,6 @@
 					die();
 				}
 				if (! count($mediaResult)) {
-                    $waitForResponse = true;
                     if ($command) {
                         if (isset($_SESSION['cleaned_search'])) {
                             $command = $_SESSION['cleaned_search'];
@@ -1517,8 +1590,8 @@
                         }
                         $speech = "I'm sorry, I was unable to find ".$command." in your library.  Would you like me to add it to your watch list?";
                         $contextName = 'yes';
-                        $suggestions = ($screen ? ['Yes','No'] : false);
-                        returnSpeech($speech,$contextName,$waitForResponse,$suggestions);
+                        $suggestions = ['Yes','No'];
+                        returnSpeech($speech,$contextName,false,true,$suggestions);
                         $queryOut['parsedCommand'] = "Play a media item with the title of '".$command.".'";
                         $queryOut['mediaStatus'] = 'ERROR: No results found, prompting to download.';
                         $queryOut['speech'] = $speech;
@@ -1541,10 +1614,12 @@
             $contextName = "yes";
             $waitForResponse = false;
 			if (count($list) >=2) {
+                $suggestions = [];
 				$_SESSION['deviceArray'] = $list;
 				$_SESSION['type'] = $action;
 				$count = 0;
 				foreach($list as $device) {
+				    array_push($suggestions, $device['name']);
 					$count++;
 					if ($count == count($list)) {
 						$speechString .= " or ".$device['name'].".";
@@ -1557,11 +1632,12 @@
 				$waitForResponse = true;
 			}
 			if (count($list) == 1) {
+			    $suggestions = false;
 				$speech = "I'd like to help you with that, but I only see one ".$action." that I can currently talk to.";
 				$contextName = "waitforplayer";
 				$waitForResponse = false;
 			}
-			returnSpeech($speech,$contextName,$waitForResponse);
+			returnSpeech($speech,$contextName,false,$waitForResponse,$suggestions);
 			$queryOut['parsedCommand'] = 'Switch '.$action.'.';
 			$queryOut['mediaStatus'] = 'Not a media command.';
 			$queryOut['speech'] = $speech;
@@ -1577,22 +1653,18 @@
 				$action = 'fetch';
 			} else {
 				$speech = "Okay, let me know if you change your mind.";
-				$waitForResponse = false;
-				returnSpeech($speech,$contextName,$waitForResponse);
+				returnSpeech($speech,$contextName);
 				die();
 			}
 		}
 
 		if (($action == 'fetch') && ($command)) {
 			$queryOut['parsedCommand'] = 'Fetch the media named '.$command.'.';
-			$waitForResponse = false;
-			$card = false;
 			$result = parseFetchCommand($command,$type);
 			$media = $result['mediaResult'];
 			$stats = explode(":",$result['status']);
 			write_log("MediaResult: ".json_encode($result));
 			if ($stats[0] === 'SUCCESS') {
-                $resultTitle = $media['title'];
                 $queryOut['mediaResult'] = $media;
                 $resultTitle = $media['title'];
                 $resultYear = $media['year'];
@@ -1609,16 +1681,17 @@
                     write_log("Success and not in searcher?");
                     $speech = "Okay, I've added " . $resultTitle . " (" . $resultYear . ") to the fetch list.";
                 }
-                $card = ($screen ? [["title" => $resultTitle . " (" . $resultYear . ")", "subtitle" => $resultSubtitle, "formatted_text" => $resultSummary, 'image' => ['url' => $resultThumb]]] : false);
-                returnSpeech($speech, $contextName, $waitForResponse, false, $card);
+                $card = [["title" => $resultTitle . " (" . $resultYear . ")", "subtitle" => $resultSubtitle, "formatted_text" => $resultSummary, 'image' => ['url' => $resultThumb]]];
+                returnSpeech($speech, $contextName, $card);
                 $queryOut['mediaStatus'] = $result['status'];
+                $queryOut['card'] = $card;
                 $queryOut['speech'] = $speech;
                 log_command(json_encode($queryOut));
                 unset($_SESSION['deviceArray']);
                 die();
             } else {
 				$speech = "Unfortunately, I was not able to find anything with that title to download.";
-				returnSpeech($speech,$contextName,$waitForResponse);
+				returnSpeech($speech,$contextName);
 				$queryOut['mediaStatus'] = $result['status'];
 				$queryOut['speech'] = $speech;
 				log_command(json_encode($queryOut));
@@ -1630,7 +1703,6 @@
 		if (($action == 'control') || ($control != '')) {
 			if ($action == '') $command = cleanCommandString($control);
             $speech = 'Sending a command to '.$command;
-			$waitForResponse = false;
 			if (preg_match("/volume/",$command)) {
 				$int = strtolower($request["result"]["parameters"]["percentage"]);
 				if ($int != '') {
@@ -1678,7 +1750,7 @@
 				}
 			}
 			$queryOut['speech'] = $speech;
-			returnSpeech($speech,$contextName,$waitForResponse);
+			returnSpeech($speech,$contextName);
 			if ($command == 'jump to') {
 				write_log("This is a jump command, raw speech was ".$rawspeech);
 			}
@@ -1696,9 +1768,8 @@
 			// Say SOMETHING if we don't undersand the request.
 		$unsureAtives = array("I'm afraid I don't understand what you mean by ".$rawspeech.".","Unfortunately, I couldn't figure out to do when you said '".$rawspeech."'.","Danger Will Robinson!  Command '".$rawspeech."' not understood!","I'm sorry, your request of '".$rawspeech."' does not compute.");
 		$speech = $unsureAtives[array_rand($unsureAtives)];
-		$waitForResponse = false;
 		$contextName = 'playmedia';
-		returnSpeech($speech,$contextName,$waitForResponse);
+		returnSpeech($speech,$contextName);
 		$queryOut['parsedCommand'] = 'Command not recognized.';
 		$queryOut['mediaStatus'] = 'ERROR: Command not recognized.';
 		$queryOut['speech'] = $speech;
@@ -1719,7 +1790,6 @@
 	function scanDevices($force=false) {
 	    $clients = $dvrs = $results = $servers = [];
         $now = microtime(true);
-        $rescanTime = $_SESSION['rescanTime'];
         $lastCheck = (isset($_SESSION['last_fetch']) ? $_SESSION['last_fetch'] : ceil(round($now) / 60) - $_SESSION['rescanTime']);
         $list = $_SESSION['list_plexdevices'];
         $diffSeconds = round($now - $lastCheck);
@@ -1904,7 +1974,7 @@
 				$token = $client['token'];
 				$product = $client['product'];
                 $publicAddress = (isset($client['publicURI']) ? " publicAddress='".$client['publicURI']."'" : "");
-				$options .= '<option type="plexDVR"'. $publicAddress .' product="'.$product.'" value="'.$id.'" uri="'.$uri.'" name="'.$name.'" token="'.$token.'" '.($selected ? ' selected':'').'>'.ucwords($name).'</option>';
+				$options .= '<option type="plexDVR" '. $publicAddress .' product="'.$product.'" value="'.$id.'" uri="'.$uri.'" name="'.$name.'" token="'.$token.'" '.($selected ? ' selected':'').'>'.ucwords($name).'</option>';
 			}
 		}
 		return $options;
@@ -2417,8 +2487,9 @@
             $item = json_decode(json_encode($winner),true)['@attributes'];
             $item['thumb'] = $_SESSION['uri_plexserver_public'].$winner['thumb']."?X-Plex-Token=".$_SESSION['token_plexserver'];
             $item['art'] = $_SESSION['uri_plexserver_public'].$winner['art']."?X-Plex-Token=".$_SESSION['token_plexserver'];
+            $winner = [$item];
         }
-		return [$item];
+		return $winner;
 
 	}
 
@@ -3290,7 +3361,6 @@
 
 		if (! $result) {
             write_log("Not in library, searching TVDB.");
-            $results = false;
             $results = $sick->sbSearchTvdb($command);
             $responseJSON = json_decode($results, true);
             $results = $responseJSON['data']['results'];
@@ -3331,7 +3401,6 @@
             $responseJSON = json_decode($result, true);
             write_log('Fetch result: ' . $result);
             $status = strtoupper($responseJSON['result']).': '.$responseJSON['message'];
-            $exists = (($responseJSON['result'] == 'success') ? true : false);
         }
 
         if ($season) {
@@ -3950,10 +4019,9 @@
  // Push API.ai bot to other's account.  This can go after Google approval
 
 	// Returns a speech object to be read by Assistant
-	function returnSpeech($speech, $contextName, $waitForResponse, $suggestions=false, $cards=false) {
+	function returnSpeech($speech, $contextName, $cards=false, $waitForResponse=false, $suggestions=false) {
 		write_log("Final Speech should be: ".$speech);
 		if (! $cards) write_log("Card array is ".json_encode($cards));
-		$waitForResponse = ($waitForResponse ? $waitForResponse : false);
 		header('Content-Type: application/json');
 		ob_start();
 		$output["speech"] = $speech;
@@ -3975,38 +4043,40 @@
 		$output["data"]["google"]["expect_user_response"] = $waitForResponse;
         $output["data"]["google"]["rich_response"]["items"][0]['simple_response']['display_text'] = $speech;
         $output["data"]["google"]["rich_response"]["items"][0]['simple_response']['text_to_speech'] = $speech;
-        if ($suggestions) {
-            $sugs = [];
-            foreach ($suggestions as $suggestion) {
-                array_push($sugs,["title"=>$suggestion]);
-            }
-            $output["data"]["google"]["rich_response"]["suggestions"] = $sugs;
-        }
-        //if ($linkout) $output['data']['google']['rich_response']['linkOutSuggestion'] = $linkout;
-        if (($cards != false) && ($cards[0])) {
-            write_log("Building card array.");
-            $cardArray = [];
-            $item['simple_response']['display_text'] = $speech."!";
-            $item['simple_response']['text_to_speech'] = $speech;
-            array_push($cardArray,$item);
-            if (count($cards) >= 2) {
-                $output['data']['google']['system_intent']['intent'] = "actions.intent.OPTION";
-                $carousel = [];
-                foreach ($cards as $card) {
-                    $item = [];
-                    $item['image'] = $card['image'];
-                    $item['title'] = $card['title'];
-                    $item['description'] = $card['summary'];
-                    $item['option_info']['synonyms'] = [];
-                    $item['option_info']['key'] = $card['title'];
-                    array_push($carousel,$item);
+        if ($GLOBALS['screen']) {
+            if (is_array($suggestions)) {
+                $sugs = [];
+                foreach ($suggestions as $suggestion) {
+                    array_push($sugs, ["title" => $suggestion]);
                 }
-                $output['data']['google']['system_intent']['spec']['option_value_spec']['list_select']['items'] = $carousel;
-            } else {
-                write_log("Should be formatting a BasicCard here: ".json_encode($cards[0]));
-                $item = [];
-                $item['basic_card'] = $cards[0];
-                $output["data"]["google"]["rich_response"]["items"][1] = $item;
+                $output["data"]["google"]["rich_response"]["suggestions"] = $sugs;
+            }
+            //if ($linkout) $output['data']['google']['rich_response']['linkOutSuggestion'] = $linkout;
+            if (is_array($cards)) {
+                write_log("Building card array.");
+                $cardArray = [];
+                $item['simple_response']['display_text'] = $speech . "!";
+                $item['simple_response']['text_to_speech'] = $speech;
+                array_push($cardArray, $item);
+                if (count($cards) >= 2) {
+                    $output['data']['google']['system_intent']['intent'] = "actions.intent.OPTION";
+                    $carousel = [];
+                    foreach ($cards as $card) {
+                        $item = [];
+                        $item['image'] = $card['image'];
+                        $item['title'] = $card['title'];
+                        $item['description'] = $card['summary'];
+                        $item['option_info']['synonyms'] = [];
+                        $item['option_info']['key'] = $card['title'];
+                        array_push($carousel, $item);
+                    }
+                    $output['data']['google']['system_intent']['spec']['option_value_spec']['list_select']['items'] = $carousel;
+                } else {
+                    write_log("Should be formatting a BasicCard here: " . json_encode($cards[0]));
+                    $item = [];
+                    $item['basic_card'] = $cards[0];
+                    $output["data"]["google"]["rich_response"]["items"][1] = $item;
+                }
             }
         }
 		//$output["data"] = $resultData;
@@ -4040,12 +4110,3 @@
 
 
 
-	function cleanCommandString($string) {
-		$string = trim(strtolower($string));
-		$string = preg_replace("#[[:punct:]]#", "", $string);
-		$stringArray = explode(" "	,$string);
-		$stripIn = array("of","the","an","a","at","th","nd","in","it","from","and");
-		$stringArray = array_diff($stringArray,array_intersect($stringArray,$stripIn));
-		$result = implode(" ",$stringArray);
-		return $result;
-	}

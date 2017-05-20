@@ -1,9 +1,6 @@
 <?PHP
-	require_once dirname(__FILE__) . '/vendor/autoload.php';
-	
 	// Checks whether an API Token exists for the current user, generates and saves one if none exists.
-    require_once dirname(__FILE__) . '/cast/Chromecast.php';
-	// Returns generated or existing API Token.
+    // Returns generated or existing API Token.
 	function checkSetApiToken($userName) {
 		// Check that we have generated an API token for our user, create and save one if none exists
 		$config = new Config_Lite('config.ini.php');
@@ -18,19 +15,28 @@
 		}
 		
 		if (! $apiToken) {
-			write_log("NO API TOKEN FOUND, generating one for ".$_SESSION['username']);
+			write_log("NO API TOKEN FOUND, generating one for ".$userName,"INFO");
 			$apiToken = randomToken(21);
 			$cleaned = str_repeat("X", strlen($apiToken)); 
 			write_log("API token created ".$cleaned);
-			$config->set('user-_-'.$_SESSION['username'],'apiToken',$apiToken);
+			$config->set('user-_-'.$userName,'apiToken',$apiToken);
 			saveConfig($config);
-		} else {
-			write_log("Found an existing token, returning it.");
 		}
 		return $apiToken;
 	}
-	
-	// Generate a random token using the first available PHP function
+
+    function cleanCommandString($string) {
+        $string = trim(strtolower($string));
+        $string = preg_replace("#[[:punct:]]#", "", $string);
+        $stringArray = explode(" "	,$string);
+        $stripIn = array("of","the","an","a","at","th","nd","in","it","from","and");
+        $stringArray = array_diff($stringArray,array_intersect($stringArray,$stripIn));
+        $result = implode(" ",$stringArray);
+        return $result;
+    }
+
+
+// Generate a random token using the first available PHP function
     function randomToken($length = 32){
 		write_log("Function fired.");
 	    if(!isset($length) || intval($length) <= 8 ){
