@@ -13,7 +13,7 @@ jQuery(document).ready(function($) {
     loginForm.submit(function(e) {
         e.preventDefault();
         $.post("api.php", loginForm.serialize(), function(data) {
-            if (data != 'ERROR') {
+            if (data !== 'ERROR') {
                 console.log("successful!");
                 var html = body.html();
                 body.html(data + html);

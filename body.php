@@ -3,23 +3,12 @@ require_once dirname(__FILE__) . '/vendor/autoload.php';
 require_once dirname(__FILE__) . '/cast/Chromecast.php';
 require_once dirname(__FILE__) . '/util.php';
 require_once dirname(__FILE__) . '/api.php';
-/*
-session_start();
-ini_set("log_errors", 1);
-ini_set('max_execution_time', 300);
-$errfilename = 'Phlex_error.log';
-ini_set("error_log", $errfilename);
-date_default_timezone_set("America/Chicago");
-write_log("Body loaded!");
-if (!defined('LOGGED_IN')) {
-    write_log("Dying because not logged in?");
-    die();
-}
-
-*/
-
 
 function makeBody() {
+    if (!defined('LOGGED_IN')) {
+        write_log("Dying because not logged in?","ERROR");
+        die();
+    }
     $config = new Config_Lite('config.ini.php');
     // Check our config file exists
     $_SESSION['apiToken'] = $config->get('user-_-'.$_SESSION['username'], 'apiToken', checkSetApiToken($_SESSION['username']));
@@ -87,21 +76,11 @@ function makeBody() {
                         <div class="btn btn-primary" id="executeButton"><i class="material-icons sendBtn">message</i></div>
                     </div>
                     <div class="queryGroup form-group label-floating col-xs-9 col-md-10 col-lg-5 col-xl-6">
-                        <label id="actionLabel" for="commandTest" class="control-label">"I want to watch"</label>
+                        <label id="actionLabel" for="commandTest" class="control-label">Hi, I\'m Flex TV.  What can I do for you?</label>
                         <input type="text" class="form-control" id="commandTest">
                     </div>
                     <div class="queryBtnWrap">
                         <div class="queryBtnGrp">
-                            <div class="dropdown show btn btn-sm" id="cmdDD">
-                                <a class="dropdown-toggle" href="" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    <i class="material-icons barBtn" id="commandIcon">queue_play_next</i>
-                                </a>
-                                <div class="dropdown-menu"  id="plexServerClient" aria-labelledby="dropdownMenuButton">
-                                    <a href="javascript:void(0)" id="play" class="btn btn-sm cmdBtn"><i class="material-icons barBtn">queue_play_next</i></a>
-                                    <a href="javascript:void(0)" id="control" class="btn btn-sm cmdBtn"><i class="material-icons barBtn">settings_remote</i></a>
-                                    <a href="javascript:void(0)" id="fetch" class="btn btn-sm cmdBtn"><i class="material-icons barBtn">get_app</i></a>
-                                </div>
-                            </div>
                             <div class="dropdown show btn btn-sm" id="castDD">
                                 <i class="ddLabel"> </i><br>
                                 <a class="dropdown-toggle clientMenu" href="javascript:void(0)" id="client" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -187,12 +166,8 @@ function makeBody() {
                                 </div>
                             </div>
                             <div class="text-center">
-                                <div class="form-group btn-group">
-                                    <label for="sel1">Click to copy IFTTT URL:</label><br>
-                                    <button id="playURL" class="copyInput btn btn-raised btn-primary btn-70" type="button"><i class="material-icons">queue_play_next</i></button>
-                                    <button id="controlURL" class="copyInput btn btn-raised btn-info btn-70" type="button"><i class="material-icons">settings_remote</i></button>
-                                    <button id="fetchURL" class="copyInput btn btn-raised btn-success btn-70" type="button"><i class="material-icons">get_app</i></button>
-                                </div>
+                                <label for="sel1">Click to copy IFTTT URL:</label><br>
+                                <button id="sayURL" class="copyInput btn btn-raised btn-primary btn-70" type="button"><i class="material-icons">message</i></button>
                             </div>
 
                         </div>
@@ -516,9 +491,8 @@ function makeBody() {
     </div>
 
     <div id="metaTags">
-    <meta id="apiTokenData" data="' . $_SESSION["apiToken"] . '"></meta>' . metaTags() . '</div>
-<script type="text/javascript" src="./js/main.js"></script>
-<script type="text/javascript" src="./js/jquery.cycle2.min.js"></script>';
+    <meta id="apiTokenData" data="' . $_SESSION["apiToken"] . '" property="" content=""/>' . metaTags() . '</div>
+    <script type="text/javascript" src="./js/main.js"></script>';
 return $bodyText;
 }
 

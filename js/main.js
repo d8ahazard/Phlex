@@ -1,5 +1,5 @@
 var action = "play";
-var appName, token, deviceID, resultDuration, lastUpdate, itemJSON, apiToken, ombi, couch, sonarr, radarr, sick, publicIP, dvr, resolution, bgImg, weatherClass, city, state, weatherHtml;
+var appName, token, deviceID, resultDuration, lastUpdate, itemJSON, apiToken, ombi, couch, sonarr, radarr, sick, publicIP, dvr, resolution, weatherClass, city, state, weatherHtml;
 var condition = null;
 
 jQuery(document).ready(function($) {
@@ -190,48 +190,17 @@ jQuery(document).ready(function($) {
 	});
 
 
-	$(".cmdBtn").click(function() {
-		if ($(this).attr("id") !== action) {
-			action = $(this).attr("id");
-			switch (action) {
-				case "play":
-					playString = "\"Ask Flex TV to play\"";
-					break;
-				case "control":
-					playString = "\"Tell Flex TV to\"";
-					break;
-				case "fetch":
-					playString = "\"Ask Flex TV to download\"";
-					break;
-				default: 
-					return;
-			}
-			$('#commandIcon').text($(this).text());
-			$('#control').removeClass('clicked');
-			$('#play').removeClass('clicked');
-			$('#fetch').removeClass('clicked');
-			$(this).addClass('clicked');
-			$('#settings').removeClass('clicked');
-			var playString;
-			
-			$('#commandTest').val('');
-			$('#actionLabel').html(playString);
-		}
-	});
-	
-	
 	// This handles sending and parsing our result for the web UI.
 	$("#executeButton").click(function() {
-		var command = $('#commandTest').val();
-		command = command.replace(/ /g,"+");
+        var command = $('#commandTest').val();
 		if (command !== '') {
+            command = command.replace(/ /g,"+");
 			apiToken = $('#apiTokenData').attr('data');
-			var url = 'api.php?' + action + '&command=' + command+'&apiToken=' + apiToken;
+			var url = 'api.php?say&command=' + command+'&apiToken=' + apiToken;
 			$.get(url, function(data) {
 				var dataArray =[data];
 				updateCommands(dataArray,true);
 			},dataType="json");
-			
 		}
 		
 	});
@@ -345,14 +314,9 @@ jQuery(document).ready(function($) {
 	if (IPString.substring(0,4) !== 'http') {
 		IPString = document.location.protocol + '//' + IPString;
 	}
-	var playString = IPString + "play&apiToken="+apiToken+"&command={{TextField}}";
-	var controlString = IPString + "control&apiToken="+apiToken+"&command={{TextField}}";
-	var fetchString = IPString + "fetch&apiToken="+apiToken+"&command={{TextField}}";
+	var sayString = IPString + "say&apiToken="+apiToken+"&command={{TextField}}";
 	var apiString = publicIP + "/api.php";
-	$('#playURL').val(playString);
-	$('#controlURL').val(controlString);
-	$('#fetchURL').val(fetchString);
-	$('#apiURL').val(apiString);
+	$('#sayURL').val(sayString);
 
 	var clientList = $.get('api.php?clientList&apiToken=' + apiToken,function(clientData) {
 		$('#clientWrapper').html(clientData);
@@ -383,11 +347,10 @@ function setBackground() {
     setTimeout(
         function()
         {
-            bgs.first().fadeOut(1000);
+        	console.log("Removing first background");
+            bgs.first().fadeOut(1000).remove();
 
-            bgs.first().remove();
-
-        }, 5000);
+        }, 1000);
 
 }
 
@@ -442,7 +405,7 @@ function updateStatus() {
                     }
 					
 					progressSlider.noUiSlider.set((resultOffset/resultDuration)*100);
-					if (thumbPath != false) {
+					if (thumbPath !== false) {
 						$('#statusImage').attr('src',thumbPath).show();
 					} else {
 						$('#statusImage').hide();
@@ -498,57 +461,43 @@ function updateCommands(data,prepend) {
 					
 		for (var i in data) {
 			try {
-
 				var initialCommand = data[i].initialCommand;
 				var parsedCommand = data[i].parsedCommand;
 				var timeStamp = data[i].timestamp;
 				speech = (data[i].speech ? data[i].speech : "");
 				var status = (data[i].mediaStatus ? data[i].mediaStatus : "");
 				itemJSON = data[i];
-				var resultLine = '<br><b>Initial command:</b> "' + initialCommand + '"<br><b>Parsed command:</b> "' + parsedCommand + '"';
-				var mediaDiv = "";
-				var JSONdiv = '<br><a href="javascript:void(0)" id="JSON'+i+'" class="JSONPop" data="'+encodeURIComponent(JSON.stringify(data[i],null,2))+'" title="Result JSON">{JSON}</a>';
+				var resultLine = '<li class="list-group-item"><b>Parsed command:</b> "' + parsedCommand + '"</li>';
+				var JSONdiv = '<li class="list-group-item"><a href="javascript:void(0)" id="JSON'+i+'" class="JSONPop" data="'+encodeURIComponent(JSON.stringify(data[i],null,2))+'" title="Result JSON">{JSON}</a></li>';
 
-				if ((data[i].commandType === 'play') || (data[i].commandType === 'control')) {
-					var plexServerURI = data[i].serverURI;
-                    var plexClientName = data[i].clientName;
-
-				}
-			
-				if (typeof data[i].mediaResult !== 'undefined') {
-					if (status.indexOf("ERROR") === -1) {
-						//Get our general variables about this media object
-						var mr = data[i].mediaResult;
-						var resultTitle = mr.title;
-						var resultYear = mr.year;
-						var resultType = mr.type;
-						var resultArt = (resultType !== 'track' ? mr.art : mr.thumb);
-						console.log("ResultArt for " + resultTitle + " should be " + resultArt);
-						var TitleString = resultTitle;
-						if (resultType == "episode") {
-							var TitleString = "S" + mr.parentIndex + "E"+mr.index + " - " + resultTitle;
-						}
-						// Determine if we should be using a Plex path, or a full path
-						if (data[i].commandType != 'fetch') {
-							var itemPath = plexServerURI+mr.key+"?X-Plex-Token="+token;
-						}
-						if (typeof resultArt !== 'undefined') {
-							var mediaDiv = '<a href="' + itemPath + '" target="_blank"><div class="card-image"><img src="' + resultArt + '" alt="Loading image..." class="resultimg"><h4 class="card-image-headline">' + TitleString + '</h4></div></a>';
-
-						} else {
-							var mediaDiv = "";
-						}
-					}
-				}
-			
+				// Build our card
+				var mediaDiv = "<br>";
+				var timeLine = "";
+				if(data[i].hasOwnProperty('card')) {
+                	console.log("We got a card here...");
+					//Get our general variables about this media object
+					if (data[i].card.length === 1) {
+                        var card = data[i].card[0];
+                        // Determine if we should be using a Plex path, or a full path
+                        mediaDiv = '' +
+                            '<a href="" target="_blank">' +
+                            '<img src="' + card.image.url + '" alt="'+timeStamp+'" class="card-img-top">' +
+                            '</a>' +
+                            '<div class="card-block">' +
+								'<p class="card-subtitle">' + timeStamp + '</p>' +
+                            	'<h4 class="card-title">' + card.title + '</h4>' +
+								'<p class="card-text">' + card.subtitle + '</p>' +
+                            '</div>';
+                    }
+				} else timeLine = '<li class="list-group-item">' + timeStamp + '</li>';
 				statusLine = "";
 				statusLine2 = "";
 				if (status.indexOf('Not a media') === -1) {
 					if(status.indexOf(":") != -1){
 						var statusSplit = status.split(':');
-						statusLine = "<b>Search status: </b>" + statusSplit[1] + "<br>";
+						statusLine = "<li class='list-group-item'><b>Search status: </b>" + statusSplit[1] + "<br></li>";
 					} else {	
-						statusLine = "<b>Search status: </b>" + status + "<br>";
+						statusLine = "<li class='list-group-item'><b>Search status: </b>" + status + "<br></li>";
 					}
 				}
 				if ((typeof data[i].playResult !== 'undefined') && (data[i].commandType == 'play') && (status.indexOf('SUCCESS') != -1)) {	
@@ -558,19 +507,32 @@ function updateCommands(data,prepend) {
 						var trimUrl = playUrl.replace(token,"XXXXXXXXXXXXXXXXXXXX");
 						var trimUrl = trimUrl.substring(0,60) + "...";
 					}
-					statusLine2 = "<b>Playback URL:  </b><i><a href=\"" + playUrl + "\">"+trimUrl+"</a></i><br><b>Playback status:  </b>" + playStatus + "";
+					statusLine2 = "<li class='list-group-item'><b>Playback URL:  </b><i><a href=\"" + playUrl + "\">"+trimUrl+"</a></i></li>" +
+						"<li class='list-group-item'><b>Playback status:  </b>" + playStatus + "</li>";
 				}
 				if (status.indexOf('Not a media') != -1) {
-					statusLine2 = "<b>Command status:  </b>Success";
+					statusLine2 = "<li class='list-group-item'><b>Command status:  </b>Success</li>";
 				}
 				if (speech != null) {
-					speech = "<br><b>Speech Response:</b>  " +speech;
+					speech = "<li class='list-group-item'><br><b>Speech Response:</b>  " +speech +"</li>";
 				} else {
 					speech = "";
 				}
 				var num = i;
 				var closeBtn = "<button class='cardClose' id="+num+"><b>x</b></button>";
-				var outLine = "<div class='resultDiv card hiddenCard'><div class='card-body'>" + timeStamp + closeBtn + mediaDiv + resultLine + "<br>" + statusLine + statusLine2 + speech + JSONdiv + "</div></div><br>";
+				var outLine =
+						"<div class='resultDiv card hiddenCard'>" +
+                        	mediaDiv +
+							'<ul class="list-group list-group-flush">' +
+                        	'<li class="list-group-item">' + timeLine +
+								'<li class="list-group-item"><b>Initial Command: </b>"' + ucFirst(initialCommand) + '."</li>' +
+								resultLine +
+								statusLine +
+								statusLine2 +
+								speech +
+								JSONdiv +
+							'</ul><br>' +
+						"</div><br>";
 				
 				if (prepend) {
 					$('#resultsInner').prepend(outLine);

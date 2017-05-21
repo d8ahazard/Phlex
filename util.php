@@ -527,3 +527,12 @@ function checkSetDeviceID() {
     }
     return $deviceID;
 }
+
+function setDefaults() {
+    ini_set("log_errors", 1);
+    ini_set('max_execution_time', 300);
+    error_reporting(E_ERROR);
+    $errfilename = 'Phlex_error.log';
+    ini_set("error_log", $errfilename);
+    date_default_timezone_set((date_default_timezone_get() ? date_default_timezone_get() : "America/Chicago"));
+}

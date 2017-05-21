@@ -2,6 +2,15 @@ html, body {
 	height:100%;
 	width:100%;
 }
+html {
+	overflow: scroll;
+	overflow-x: hidden;
+}
+::-webkit-scrollbar {
+	width: 0px;  /* remove scrollbar space */
+	background: transparent;  /* optional: just make scrollbar invisible */
+}
+
 
 .background {
 	height: 100%;
@@ -195,13 +204,11 @@ html, body {
 	color: #003792;
 }
 
-
-.card-image {
-	text-align: center;
-	max-height:500px;
-	width: auto !important;
-	
+.card-img-top {
+	width:100%;
 }
+
+
 .resultimg {
 	
 	
@@ -305,7 +312,9 @@ html, body {
 .barBtn {
 	margin-top: 8px;
 	height: 100%;
+	color: #003E96;
 }
+
 .searchPick {
 	position: absolute;
 	width: 100%;

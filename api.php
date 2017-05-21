@@ -5,14 +5,11 @@
     require_once dirname(__FILE__) . '/body.php';
 	use Kryptonit3\SickRage\SickRage;
     use Kryptonit3\Sonarr\Sonarr;
-    date_default_timezone_set("America/Chicago");
-	ini_set("log_errors", 1);
-    ini_set('max_execution_time', 300);
-	error_reporting(E_ERROR);
-	$errfilename = 'Phlex_error.log';
-	ini_set("error_log", $errfilename);
+    setDefaults();
     $config = new Config_Lite('config.ini.php');
-	if (isset($_POST['username']) && isset($_POST['password'])) {
+    $deviceID = checkSetDeviceID();
+
+    if (isset($_POST['username']) && isset($_POST['password'])) {
 	    write_log("Got a new-fangled login request here.");
         $userpass = base64_encode($_POST['username'] . ":" . $_POST['password']);
         write_log("Userpass: ".$userpass);
@@ -364,6 +361,23 @@
 		die();
 	}
 
+	if ((isset($_GET['say'])) && (isset($_GET['command']))) {
+	    write_log("New play command caught");
+        $apiaikey = '65654f820d4647ab9cf7eddddbba6e02';
+        $_SESSION['counter2'] = (isset($_SESSION['counter2']) ? $_SESSION['counter2']++ : 0);
+        try {
+            $url = 'https://api.api.ai/v1/query?v=20150910&query='.urlencode($_GET['command']).'&lang=en&sessionId='.$_SESSION['token_plexserver'].$_SESSION['counter2'];
+            $response = curlGet($url,['Authorization: Bearer '.$apiaikey]);
+            write_log("Result: ".json_encode(json_decode($response,true)));
+            $request = json_decode($response, true);
+            $request = array_filter_recursive($request);
+            $request['originalRequest']['data']['inputs'][0]['raw_inputs'][0]['query']= $request['result']['resolvedQuery'];
+            parseApiCommand($request);
+            die();
+        } catch (\Exception $error) {
+            write_log(json_encode($error->getMessage()));
+        }
+    }
 
 	// This tells the api to parse our command with the plex "play" parser
 	if (isset($_GET['play'])) {
