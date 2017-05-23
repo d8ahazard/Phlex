@@ -5,6 +5,7 @@ require_once dirname(__FILE__) . '/util.php';
 require_once dirname(__FILE__) . '/api.php';
 
 function makeBody() {
+    write_log("Function fired.");
     if (!defined('LOGGED_IN')) {
         write_log("Dying because not logged in?","ERROR");
         die();
@@ -47,6 +48,7 @@ function makeBody() {
 
     $_SESSION['use_cast'] = $config->getBool('user-_-'.$_SESSION['username'], 'useCast', false);
     $_SESSION['clean_logs'] = $config->getBool('user-_-'.$_SESSION['username'], 'cleanLogs', true);
+    $_SESSION['darkTheme'] = $config->getBool('user-_-'.$_SESSION['username'], 'darkTheme', false);
 
     $_SESSION['dvr_resolution'] = $config->getBool('user-_-'.$_SESSION['username'], 'dvr_resolution', "0");
     $_SESSION['dvr_newairings'] = $config->getBool('user-_-'.$_SESSION['username'], 'dvr_newairings', true);
@@ -65,17 +67,17 @@ function makeBody() {
     curl_close ($ch);
     $ipString = (((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')	|| $_SERVER['SERVER_PORT'] == 443) ? 'https://' : 'http://') . $realIP . '/Phlex';
     $_SESSION['publicAddress'] = $config->get('user-_-'.$_SESSION['username'], 'publicAddress', $ipString);
-
-    $bodyText = '
-<div class="wrapper" id="mainwrap">
+    write_log("Reloaded, dark theme is ".($_SESSION['darkTheme'] ? 'enabled.' : 'disabled.'));
+    $bodyText = ($_SESSION['darkTheme'] ? '<link href="./css/dark.css" rel="stylesheet">' : '') .
+'<div id="body"><div class="wrapper" id="mainwrap">
     <div class="queryWrap col-xs-12">
-        <div class="col-xs-12 col-md-8 col-md-offset-1 query">
+        <div class="col-xs-12 col-md-8 col-lg-6 col-md-offset-1 query">
             <div class="card">
                 <div class="btn-toolbar">
                     <div class="col-xs-2 col-sm-1">
                         <div class="btn btn-primary" id="executeButton"><i class="material-icons sendBtn">message</i></div>
                     </div>
-                    <div class="queryGroup form-group label-floating col-xs-9 col-md-10 col-lg-5 col-xl-6">
+                    <div class="queryGroup form-group label-floating col-xs-9 col-md-10 col-lg-5">
                         <label id="actionLabel" for="commandTest" class="control-label">Hi, I\'m Flex TV.  What can I do for you?</label>
                         <input type="text" class="form-control" id="commandTest">
                     </div>
@@ -104,7 +106,7 @@ function makeBody() {
         </div>
     </div>
     <div id="results" class="queryWrap col-xs-12">
-        <div id="resultsInner"  class="col-xs-8 col-xs-offset-1 query"></div>
+        <div id="resultsInner"  class="col-xs-8 col-lg-6 col-xs-offset-1 query"></div>
     </div>
     <div class="modal fade" id="settingsModal">
         <div class="modal-dialog" role="document">
@@ -159,10 +161,15 @@ function makeBody() {
                                     <input id="cleanLogs" type="checkbox" class="appInput appToggle" ' . ($_SESSION["clean_logs"] ? "checked" : "") . '/>
                                 </label>
                             </div>
+                            <div class="togglebutton">
+                                <label for="darkTheme" class="appLabel checkLabel">Use Dark Theme
+                                    <input id="darkTheme" class="appInput" type="checkbox" ' . ($_SESSION["darkTheme"] ? "checked" : "") . '/>
+                                </label>
+                            </div>
                             <div class="form-group text-center">
                                 <div class="form-group">
                                     <label for="linkAccount">Google Action Account Linking:</label><br>
-                                    <button id="linkAccount" class="btn btn-raised linkBtn btn-primary">Register Server</button>
+                                    <button id="linkAccount" class="btn btn-raised linkBtn btn-info">Register Server</button>
                                 </div>
                             </div>
                             <div class="text-center">
@@ -492,7 +499,7 @@ function makeBody() {
 
     <div id="metaTags">
     <meta id="apiTokenData" data="' . $_SESSION["apiToken"] . '" property="" content=""/>' . metaTags() . '</div>
-    <script type="text/javascript" src="./js/main.js"></script>';
+    <script type="text/javascript" src="./js/main.js"></script></div>';
 return $bodyText;
 }
 

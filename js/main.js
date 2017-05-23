@@ -72,6 +72,7 @@ jQuery(document).ready(function($) {
 					$('#'+id + 'Profile').html(data);
 				})
 			}
+			if ($(this).attr('id')==='darkTheme') location.reload();
 		}
 	});
 
@@ -332,6 +333,7 @@ jQuery(document).ready(function($) {
     	setWeather();
     }, 30000);
 
+
 });
 
 function setBackground() {
@@ -340,7 +342,7 @@ function setBackground() {
     bgs = $('.bg');
     bgs.after(bgString);
     bgs = $('.bg');
-    var urls = "https://unsplash.it/1920/1080?image=" + (Math.floor(Math.random()*(1084)));
+    var urls = "https://unsplash.it/1920/1080?random&v=" + (Math.floor(Math.random()*(1084)));
     bgs.last().css('background-image','url('+urls+')');
     bgs.last().fadeIn(1000);
 
@@ -350,7 +352,7 @@ function setBackground() {
         	console.log("Removing first background");
             bgs.first().fadeOut(1000).remove();
 
-        }, 1000);
+        }, 1500);
 
 }
 
@@ -458,89 +460,51 @@ function updateCommands(data,prepend) {
 		lastUpdate = data;
 
 		if (!(prepend)) $('#resultsInner').html("");
-					
-		for (var i in data) {
-			try {
-				var initialCommand = data[i].initialCommand;
-				var parsedCommand = data[i].parsedCommand;
-				var timeStamp = data[i].timestamp;
-				speech = (data[i].speech ? data[i].speech : "");
-				var status = (data[i].mediaStatus ? data[i].mediaStatus : "");
-				itemJSON = data[i];
-				var resultLine = '<li class="list-group-item"><b>Parsed command:</b> "' + parsedCommand + '"</li>';
-				var JSONdiv = '<li class="list-group-item"><a href="javascript:void(0)" id="JSON'+i+'" class="JSONPop" data="'+encodeURIComponent(JSON.stringify(data[i],null,2))+'" title="Result JSON">{JSON}</a></li>';
 
+        $.each(data, function(i, value) {
+            try {
+				var initialCommand = ucFirst(value.initialCommand);
+				var timeStamp = ($.inArray('timeStamp',value) ? $.trim(value.timestamp) : '');
+				console.log("Got an item: ", value);
+				speech = (value.speech ? value.speech : "");
+				var status = (value.mediaStatus ? value.mediaStatus : "");
+				itemJSON = value;
+				var JSONdiv = '<a href="javascript:void(0)" id="JSON'+i+'" class="JSONPop" data="'+encodeURIComponent(JSON.stringify(value,null,2))+'" title="Result JSON">{JSON}</a>';
+				var mediaDiv = false;
 				// Build our card
-				var mediaDiv = "<br>";
-				var timeLine = "";
-				if(data[i].hasOwnProperty('card')) {
-                	console.log("We got a card here...");
-					//Get our general variables about this media object
-					if (data[i].card.length === 1) {
-                        var card = data[i].card[0];
-                        // Determine if we should be using a Plex path, or a full path
-                        mediaDiv = '' +
-                            '<a href="" target="_blank">' +
-                            '<img src="' + card.image.url + '" alt="'+timeStamp+'" class="card-img-top">' +
-                            '</a>' +
-                            '<div class="card-block">' +
-								'<p class="card-subtitle">' + timeStamp + '</p>' +
-                            	'<h4 class="card-title">' + card.title + '</h4>' +
-								'<p class="card-text">' + card.subtitle + '</p>' +
-                            '</div>';
-                    }
-				} else timeLine = '<li class="list-group-item">' + timeStamp + '</li>';
-				statusLine = "";
-				statusLine2 = "";
-				if (status.indexOf('Not a media') === -1) {
-					if(status.indexOf(":") != -1){
-						var statusSplit = status.split(':');
-						statusLine = "<li class='list-group-item'><b>Search status: </b>" + statusSplit[1] + "<br></li>";
-					} else {	
-						statusLine = "<li class='list-group-item'><b>Search status: </b>" + status + "<br></li>";
+				if (value.hasOwnProperty('card')) {
+					console.log("I think it has a card?");
+					if (($.inArray('card',value)) && (value.card !== 'false')) {
+						console.log("Yeah, it definitely has a card.");
+						mediaDiv = buildCards(value,i);
 					}
 				}
-				if ((typeof data[i].playResult !== 'undefined') && (data[i].commandType == 'play') && (status.indexOf('SUCCESS') != -1)) {	
-					var playUrl = data[i].playResult.url;
-					var playStatus = data[i].playResult.status;
-					if (typeof playUrl !== 'undefined') {
-						var trimUrl = playUrl.replace(token,"XXXXXXXXXXXXXXXXXXXX");
-						var trimUrl = trimUrl.substring(0,60) + "...";
-					}
-					statusLine2 = "<li class='list-group-item'><b>Playback URL:  </b><i><a href=\"" + playUrl + "\">"+trimUrl+"</a></i></li>" +
-						"<li class='list-group-item'><b>Playback status:  </b>" + playStatus + "</li>";
-				}
-				if (status.indexOf('Not a media') != -1) {
-					statusLine2 = "<li class='list-group-item'><b>Command status:  </b>Success</li>";
-				}
-				if (speech != null) {
-					speech = "<li class='list-group-item'><br><b>Speech Response:</b>  " +speech +"</li>";
-				} else {
-					speech = "";
-				}
-				var num = i;
-				var closeBtn = "<button class='cardClose' id="+num+"><b>x</b></button>";
+				if (! mediaDiv) {
+					timeLine = '<li class="list-group-item">' + timeStamp + '</li><br>';
+					mediaDiv = '<ul class="list-group list-group-flush">' +
+                    '<li class="list-group-item">' + timeLine + '</li>' +
+                    '<li class="list-group-item"><b>You said: </b>"' + initialCommand + '."</li>' +
+					'<li class="list-group-item"><b>My reply:</b> "' +speech + '</li><br>' +
+					'<li class="list-group-item">' + JSONdiv + '</li>' +
+                    '</ul><br>';
+                }
+
+
 				var outLine =
 						"<div class='resultDiv card hiddenCard'>" +
                         	mediaDiv +
-							'<ul class="list-group list-group-flush">' +
-                        	'<li class="list-group-item">' + timeLine +
-								'<li class="list-group-item"><b>Initial Command: </b>"' + ucFirst(initialCommand) + '."</li>' +
-								resultLine +
-								statusLine +
-								statusLine2 +
-								speech +
-								JSONdiv +
-							'</ul><br>' +
 						"</div><br>";
 				
 				if (prepend) {
 					$('#resultsInner').prepend(outLine);
+                    $('.hiddenCard').show("slide", { direction: "up" }, 500);
+                    $('.hiddenCard').removeClass('hiddenCard');
 				} else {
-					$('#resultsInner').append(outLine);		
+					$('#resultsInner').append(outLine);
+                    $('.hiddenCard').show();
+                    $('.hiddenCard').removeClass('hiddenCard');
 				}
-                $('.hiddenCard').show("slide", { direction: "up" }, 1750)
-                $('.hiddenCard').removeClass('hiddenCard');
+
 			} catch(e) {
 				console.error(e, e.stack);
 			}
@@ -562,6 +526,8 @@ function updateCommands(data,prepend) {
 					});
 			});
 
+
+
             $('.cardClose').click(function() {
                 var id = $(this).attr("id");
                 console.log("We need to remove card with id of " + id);
@@ -575,7 +541,7 @@ function updateCommands(data,prepend) {
 
                 });
             })
-		}
+		})
 		
 	}
 }
@@ -614,7 +580,80 @@ setInterval(function() {
     userScrolled = false;
   }
 }, 50);
-	
+
+function buildCards(value,i) {
+    var initialCommand = ucFirst(value.initialCommand);
+    var timeStamp = ($.inArray('timeStamp',value) ? $.trim(value.timestamp) : '');
+    console.log("Got an item: ", value);
+    speech = (value.speech ? value.speech : "");
+    var status = (value.mediaStatus ? value.mediaStatus : "");
+    itemJSON = value;
+    var JSONdiv = '<a href="javascript:void(0)" id="JSON'+i+'" class="JSONPop" data="'+encodeURIComponent(JSON.stringify(value,null,2))+'" title="Result JSON">{JSON}</a>';
+    console.log("We got a card here...");
+    var cardDiv = '';
+    var cardArray = value.card;
+    //Get our general variables about this media object
+    if (cardArray.length === 1) {
+        var card = cardArray[0];
+        // Determine if we should be using a Plex path, or a full path
+        subtitle = ((card.hasOwnProperty('subtitle')) ? '<h6 class="card-subtitle text-muted cardtagline">' + card.subtitle + '</h6>' : '');
+        formatted_text = ((card.hasOwnProperty('formatted_text')) ? '<br><p class="card-text cardsummary">' + card.formatted_text + '</p>' : '');
+        cardDiv = '' +
+            '<img src="' + card.image.url + '" class="card-img-top"/>' +
+            '<div class="card-img-overlay card-inverse">' +
+            '<p class="card-subtitle">' + $.trim(timeStamp) + '</p>' +
+            '<h4 class="card-title">' + card.title + '</h4>' +
+            subtitle +
+            formatted_text+
+            '<p class="card-text card-base">' +
+            '<b>You said: </b>"' + initialCommand + '"' +
+            '<br><b>My reply: </b>"' + speech + '"<br><br>' +
+            JSONdiv +
+            '</p><br>' +
+            '</div>';
+    }
+    if (cardArray.length >= 2) {
+        cardDiv = '<div class="card-img-top">';
+        var count = cardArray.length;
+        $.each(cardArray, function(l, subCard) {
+            var newLine = '';
+            var width = '';
+            console.log("Counter: "+ l);
+            if (count >= 2) width = '50%';
+            if (count >= 6) width = '33.3%';
+
+            if (((count === 4 || count === 5) && (l===1)) || ((count >= 6) && ((l===2) || (l===5)))) newLine='<br>';
+
+            cardDiv += '<img class="card-imgs-top"  style="width:' + width + '" src="' + subCard.image.url + '" alt="' + subCard.title + '"></img>' +
+                newLine;
+
+            if ((count === 2 || count === 3) && (l ===1)) {
+                return false;
+            }
+            if ((count === 4 || count === 5) && (l ===3)) {
+                return false;
+            }
+            if ((count >= 6 && count <= 8) && (l ===5)) {
+                return false;
+            }
+            if ((count >= 9) && (l ===8)) {
+                return false;
+            }
+        })
+
+        cardDiv += '</div><div class="card-img-overlay card-inverse">' +
+            '<p class="card-subtitle">' + $.trim(timeStamp) + '</p>' +
+            '<p class="card-text card-base">' +
+            '<b>You said: </b>"' + initialCommand + '"' +
+            '<br><b>My reply: </b>"' + speech + '"<br><br>' +
+            JSONdiv +
+            '</p><br>' +
+            '</div>';
+        console.log("Two cards?");
+    }
+    return cardDiv;
+}
+
 function hasContent(obj) {
     for(var key in obj) {
         if(obj.hasOwnProperty(key))
@@ -624,7 +663,11 @@ function hasContent(obj) {
 }
 
 function ucFirst(string) {
-    return string.charAt(0).toUpperCase() + string.slice(1);
+	if (string != '') {
+        return string.charAt(0).toUpperCase() + string.slice(1);
+    } else {
+		return '';
+	}
 }
 
 function notify() {

@@ -1,0 +1,79 @@
+.card, .dropdown-menu, .modal-title {
+    background:#000;
+    color:#fff;
+}
+
+.dropdown-item {
+    color: #aaa;
+}
+
+
+.barBtn, .clientIcon, .sendBtn, #actionLabel, .dd-selected, a, .appLabel, label {
+    color:#3277d8 !important;
+}
+
+.ddLabel {
+    color: rgba(204, 204, 204, 0.87);
+}
+
+#commandTest {
+    color: #afafaf;
+}
+
+.modal-body, .modal-header, .modal-footer {
+    background:#000;
+}
+
+.card-img-overlay {
+    background:radial-gradient(rgba(0, 0, 0, 0.2), black);
+    overflow:hidden;
+}
+
+.appContainer {
+    border: 1px solid #8e8e8e;
+}
+
+.userGroup * {
+    color: #8e8e8e;
+}
+
+.btn-primary:hover {
+    background-color: #4285f4;
+}
+
+.btn-info {
+    background-color: #416df4 !important;
+}
+
+.btn-info:hover {
+    background-color: #748dff !important;
+}
+
+.form-control {
+    color: #9ba0a5;
+}
+
+.card-inverse .card-subtitle, .card-inverse .card-text {
+    color: #fff;
+}
+
+.card-inverse .card-blockquote, .card-inverse .card-footer, .card-inverse .card-header, .card-inverse .card-title {
+    color: #fff;
+}
+
+.text-muted {
+    color: #818a91!important;
+}
+
+.nowPlayingFooter {
+    background-color: rgba(214, 214, 214, 0.92);
+}
+
+.nowPlayingFooter * {
+    color:#000;
+}
+
+.snackbar {
+    background-color: rgba(214, 214, 214, 0.92);
+    color:#000;
+}

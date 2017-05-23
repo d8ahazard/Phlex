@@ -29,7 +29,7 @@
         $string = trim(strtolower($string));
         $string = preg_replace("#[[:punct:]]#", "", $string);
         $stringArray = explode(" "	,$string);
-        $stripIn = array("of","the","an","a","at","th","nd","in","it","from","and");
+        $stripIn = array("of","the","an","a","at","th","nd","in","from","and");
         $stringArray = array_diff($stringArray,array_intersect($stringArray,$stripIn));
         $result = implode(" ",$stringArray);
         return $result;
@@ -182,15 +182,15 @@
     }
  
 	// Fetch data from a URL using CURL
-	function curlGet($url, $headers=null) {
+	function curlGet($url, $headers=null,$timeout=4) {
         //write_log("Function fired");
         $certPath = file_build_path(dirname(__FILE__),"cert","cacert.pem");
         $mc = JMathai\PhpMultiCurl\MultiCurl::getInstance();
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL,$url);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 4);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 3);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $timeout);
+        curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
 		curl_setopt ($ch, CURLOPT_CAINFO, $certPath);
 		if ($headers) curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 		//$result = curl_exec($ch);
@@ -330,7 +330,7 @@
                 }
             }
         } else {
-            $cmd = 'php '. $command . " > /dev/null &";
+            $cmd = 'php '. $command . " > /dev/null 2>/dev/null &";
             write_log("Firing background command: ".$cmd);
             exec($cmd);
         }
@@ -423,6 +423,7 @@
 
     // Check the validity of a URL response
     function check_url($url, $post=false) {
+        write_log("Checking URL: ".$url);
         $certPath = file_build_path(dirname(__FILE__),"cert","cacert.pem");
         $ch = curl_init($url);
         curl_setopt($ch,  CURLOPT_RETURNTRANSFER, TRUE);
@@ -535,4 +536,30 @@ function setDefaults() {
     $errfilename = 'Phlex_error.log';
     ini_set("error_log", $errfilename);
     date_default_timezone_set((date_default_timezone_get() ? date_default_timezone_get() : "America/Chicago"));
+}
+
+function checkFiles() {
+    $files = ['Phlex.log','Phlex_error.log','config.ini.php','commands.php'];
+    foreach ($files as $file) {
+        if (!file_exists($file)) {
+            touch($file);
+            chmod($file, 0777);
+        }
+
+        if ((file_exists($file) && (!is_writable(dirname($file)) || !is_writable($file))) || !is_writable(dirname($file))) { // If file exists, check both file and directory writeable, else check that the directory is writeable.
+            $message = 'Either the file '. $file .' and/or it\'s parent directory is not writable by the PHP process. Check the permissions & ownership and try again.';
+            if (PHP_SHLIB_SUFFIX === "so") { //Check for POSIX systems.
+                $message .= "  Current permission mode of ". $file. " is " .decoct(fileperms($file) & 0777);
+                $message .= "  Current owner of " . $file . " is ". posix_getpwuid(fileowner($file))['name'];
+                $message .= "  Refer to the README on instructions how to change permissions on the aforementioned files.";
+            } else if (PHP_SHLIB_SUFFIX === "dll") {
+                $message .= "  Detected Windows system, refer to guides on how to set appropriate permissions."; //Can't get fileowner in a trivial manner.
+            }
+
+            $scriptBlock = "<script language='javascript'>alert(\"" . $message . "\");</script>";
+            echo $scriptBlock;
+            die();
+        }
+    }
+    return null;
 }

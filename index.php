@@ -2,6 +2,7 @@
     require_once dirname(__FILE__) . '/vendor/autoload.php';
     require_once dirname(__FILE__) . '/util.php';
     session_start();
+    checkFiles();
     setDefaults();
     $config = new Config_Lite('config.ini.php');
 ?>
@@ -58,7 +59,7 @@
 
     <body style="background-color:black">
         <div id="bgwrap">
-            <div class="bg"></div>
+            <div class="bg bgLoaded"></div>
         </div>
         <?php
             if (isset($_GET['logout'])) {

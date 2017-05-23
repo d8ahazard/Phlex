@@ -22,6 +22,7 @@ jQuery(document).ready(function($) {
                 if (loginBox.css('display') !== 'none') {
                     console.log("Hiding login box.");
                     loginBox.hide("slide", {direction: "up"}, 1000);
+                    loginBox.remove();
                 }
             }
         });

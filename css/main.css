@@ -80,6 +80,25 @@ html {
 	text-align: center;
 }
 
+@media only screen and (max-width: 374px) {
+	.JSONPop {
+		display:none;
+	}
+}
+
+@media only screen and (max-width: 400px) {
+
+	.cardtagline {
+		display:none;
+	}
+
+}
+
+@media only screen and (max-width: 700px) {
+	.cardsummary {
+		display:none;
+	}
+}
 
 @media only screen and (max-width: 768px) {
   select:focus,
@@ -208,6 +227,26 @@ html {
 	width:100%;
 }
 
+.list-group {
+	padding-top: 1.25rem;
+}
+
+.list-group-item {
+	max-height:24px;
+}
+
+.card-img-overlay {
+	background:radial-gradient(rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.75));
+	overflow:hidden;
+}
+
+.card-img-overlay > * {
+	color:#000;
+}
+
+.card-subtitle-small {
+	margin-right:0;
+}
 
 .resultimg {
 	
@@ -374,7 +413,7 @@ select{
 }
 
 .loginLabel.card-title {
-	color: #0062ec;
+	color: #3277d8;
 	font-weight:300;
 }
 
@@ -446,6 +485,24 @@ hac {
     white-space: -pre-wrap; /* Opera 4-6 */    
     white-space: -o-pre-wrap; /* Opera 7 */    
     word-wrap: break-word; /* Internet Explorer 5.5+ */
+}
+
+.resultDiv.card {
+	border:0;
+}
+
+.card-base {
+	vertical-align: bottom;
+	position: absolute;
+	bottom: 0px;
+}
+
+.cardsummary {
+	text-overflow: ellipsis;
+	word-wrap: break-word;
+	overflow: hidden;
+	max-height: 9em;
+	line-height: 1.5em;
 }
 
 #results {
@@ -648,3 +705,14 @@ hac {
 	font: 300 30px/1 'Roboto'
 }
 
+.card-inverse .card-subtitle, .card-inverse .card-text {
+	color: #000;
+}
+
+.card-inverse .card-blockquote, .card-inverse .card-footer, .card-inverse .card-header, .card-inverse .card-title {
+	color: #000;
+}
+
+.text-muted {
+	color: #424950 !important;
+}
