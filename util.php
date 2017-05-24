@@ -271,7 +271,6 @@
     }
 
 
-
 	// Get the name of the function calling write_log
 	function getCaller() {
 		$trace = debug_backtrace();
@@ -296,41 +295,23 @@
 	}
 
     function startbackgroundProcess($command,$token=null) {
-
+        $config = new Config_Lite('config.ini.php');
         if (substr(php_uname(), 0, 7) == "Windows"){
 
-            // Write a method here that determines where PHP could be?
-            $php_path = (isset($_SESSION['php_path'])) ? $_SESSION['php_path'] : 'C:\xampp\php\php-win.exe';
-            $handle = popen($php_path, "r");
-            write_log("Handle: ".$handle);
-            $read = fread($handle, 2096);
-            write_log("Read: ". $read);
-            pclose($handle);
-            if (! preg_match("/is not recognized/",$read)) {
-                $cmd = $php_path . " " . $command;
-                pclose(popen("start /B " . $cmd, "a"));  // mode = "a" since I had some logs to edit
+            $phpPath = $config->get('user-_-'.$_SESSION['username'], 'phpPath', '');
+            $phpValid = $config->getBool('user-_-'.$_SESSION['username'], 'phpValid', false);
+            if ($phpValid) {
+                write_log("PHP path should be valid, executing like a grownup.");
+                $cmd = "start /B ".$phpPath . ' ' . $command;
+                write_log("Command is gonna be: ".$cmd);
+                pclose(popen($cmd,'r'));
             } else {
-                $config = new Config_Lite('config.ini.php');
-                $castDevices = fetchCastDevices2();
-                $i = 0;
-                if ($castDevices) {
-                    foreach ($config as $section=>$value) {
-                        if (preg_match("/castDevice/",$section)) {
-                            unset($config[$section]);
-                            write_log("Unsetting config");
-                        }
-                    }
-                    foreach ($castDevices as $castDevice) {
-                        foreach ($castDevice as $key => $value) {
-                            $config->set('castDevice' . $i, $key, $value);
-                        }
-                        $i++;
-                    }
-                    saveConfig($config);
-                }
+                write_log("PHP Path is not valid, fetching cast devices the hard way.");
+                fetchCastDevices2();
             }
+
         } else {
-            $cmd = 'php '. $command . " > /dev/null 2>/dev/null &";
+            $cmd = 'php '. $command . " > /dev/null &";
             write_log("Firing background command: ".$cmd);
             exec($cmd);
         }
@@ -457,6 +438,7 @@
     }
 
     function fetchCastDevices2() {
+        $config = new Config_Lite('config.ini.php');
         if (!(isset($_GET['pollPlayer']))) write_log("Function fired.");
         $result = Chromecast::scan();
         $returns = array();
@@ -474,6 +456,22 @@
             array_push($returns, $deviceOut);
         }
         if (json_encode($returns) == "[Error]") $returns = false;
+        if ($returns) {
+            foreach ($config as $section=>$value) {
+                if (preg_match("/castDevice/",$section)) {
+                    unset($config[$section]);
+                    write_log("Unsetting config");
+                }
+            }
+            $i = 0;
+            foreach ($returns as $castDevice) {
+                foreach ($castDevice as $key => $value) {
+                    $config->set('castDevice' . $i, $key, $value);
+                }
+                $i++;
+            }
+            saveConfig($config);
+        }
         return $returns;
     }
 
@@ -545,7 +543,6 @@ function checkFiles() {
             touch($file);
             chmod($file, 0777);
         }
-
         if ((file_exists($file) && (!is_writable(dirname($file)) || !is_writable($file))) || !is_writable(dirname($file))) { // If file exists, check both file and directory writeable, else check that the directory is writeable.
             $message = 'Either the file '. $file .' and/or it\'s parent directory is not writable by the PHP process. Check the permissions & ownership and try again.';
             if (PHP_SHLIB_SUFFIX === "so") { //Check for POSIX systems.
@@ -555,11 +552,26 @@ function checkFiles() {
             } else if (PHP_SHLIB_SUFFIX === "dll") {
                 $message .= "  Detected Windows system, refer to guides on how to set appropriate permissions."; //Can't get fileowner in a trivial manner.
             }
-
-            $scriptBlock = "<script language='javascript'>alert(\"" . $message . "\");</script>";
-            echo $scriptBlock;
+            //$scriptBlock = "<script language='javascript'>alert(\"" . $message . "\");</script>";
+            //echo $scriptBlock;
+            return $message;
             die();
         }
     }
-    return null;
+    $extensions = ['sockets','curl'];
+    foreach ($extensions as $extension) {
+        if (! extension_loaded($extension)) {
+            $message = "The ". $extension . " PHP extension, which is required for Phlex to work correctly, is not loaded." .
+                "Please enable it in php.ini, restart your webserver, and then reload this page to continue.";
+            return $message;
+        }
+    }
+    try {$config = new Config_Lite('config.ini.php');} catch (Config_Lite_Exception_Runtime $e) {
+        $message = "An exception occurred trying to load config.ini.php.  Please check that the directory and file are writeable by your webserver application and try again.";
+        //$scriptBlock = "<script language='javascript'>alert(\"" . $message . "\");</script>";
+        //echo $scriptBlock;
+        return $message;
+        die();
+    };
+    return false;
 }

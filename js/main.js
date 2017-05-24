@@ -64,15 +64,29 @@ jQuery(document).ready(function($) {
 			if ($(this).id === 'publicAddress') {
 				resetApiUrl($(this).val());
 			}
+
 			apiToken = $('#apiTokenData').attr('data');
-			$.get('api.php?apiToken=' + apiToken, {id:id, value:value});
+			$.get('api.php?apiToken=' + apiToken, {id:id, value:value}, function(data) {
+                if (id==='darkTheme') setTimeout( function() { location.reload(); }, 200);
+                if (((id === 'useCast') && (value==true)) || (id ==='phpPath')) {
+                	if (data === 'NOPHP') {
+                		showMessage("Invalid PHP Path","Unfortunately, the path you've specified for PHP is invalid.  Cast discovery will still work, but it may be a little slower.");
+                    }
+                    if (data === 'PHPFOUND') {
+                        $.snackbar({content: "PHP Path is valid!"});
+					}
+
+                }
+			});
 			if ($(this).hasClass("appParam")) {
 				id = $(this).parent().parent().parent().attr('id').replace("Group","");
 				$.get('api.php?apiToken=' + apiToken + '&fetchList=' + id, function(data){
 					$('#'+id + 'Profile').html(data);
 				})
 			}
-			if ($(this).attr('id')==='darkTheme') location.reload();
+
+
+
 		}
 	});
 
@@ -193,6 +207,7 @@ jQuery(document).ready(function($) {
 
 	// This handles sending and parsing our result for the web UI.
 	$("#executeButton").click(function() {
+		console.log("Execute clicked!");
         var command = $('#commandTest').val();
 		if (command !== '') {
             command = command.replace(/ /g,"+");
@@ -353,8 +368,9 @@ function setBackground() {
             bgs.first().fadeOut(1000).remove();
 
         }, 1500);
-
 }
+
+
 
 function resetApiUrl(newUrl) {
 	if (newUrl.substring(0,4) !== 'http') {
@@ -594,7 +610,7 @@ function buildCards(value,i) {
     var cardArray = value.card;
     //Get our general variables about this media object
     if (cardArray.length === 1) {
-        var card = cardArray[0];
+    	var card = cardArray[0];
         // Determine if we should be using a Plex path, or a full path
         subtitle = ((card.hasOwnProperty('subtitle')) ? '<h6 class="card-subtitle text-muted cardtagline">' + card.subtitle + '</h6>' : '');
         formatted_text = ((card.hasOwnProperty('formatted_text')) ? '<br><p class="card-text cardsummary">' + card.formatted_text + '</p>' : '');
@@ -674,7 +690,11 @@ function notify() {
     console.log("Image loaded: ".imgUrl);
 }
 
-
+function showMessage(title,message) {
+	$('#alertTitle').text(title);
+    $('#alertBody p').text(message);
+    $('#alertModal').modal('show');
+}
 
 
 function formatAMPM() {

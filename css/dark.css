@@ -77,3 +77,23 @@
     background-color: rgba(214, 214, 214, 0.92);
     color:#000;
 }
+
+.bootstrap-dialog-message {
+    color:#FFF;
+}
+
+.slider {
+    background: #000000;
+}
+
+.noUi-base {
+    color:#000;
+}
+
+#alertBody {
+    color: #c1c1c1;
+}
+
+.modal-backdrop {
+    background: rgb(255, 255, 255);
+}

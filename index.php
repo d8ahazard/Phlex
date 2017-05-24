@@ -1,13 +1,10 @@
 <?php
     require_once dirname(__FILE__) . '/vendor/autoload.php';
     require_once dirname(__FILE__) . '/util.php';
-    session_start();
-    checkFiles();
-    setDefaults();
-    $config = new Config_Lite('config.ini.php');
 ?>
 
 <!doctype html>
+<html>
     <head>
         <meta charset="UTF-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
@@ -58,10 +55,41 @@
     </head>
 
     <body style="background-color:black">
+    <div class="modal fade" id="alertModal">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="alertTitle">Modal title</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="alertBody">
+                    <p>Modal body text goes here.</p>
+                </div>
+
+            </div>
+        </div>
+    </div>
         <div id="bgwrap">
             <div class="bg bgLoaded"></div>
         </div>
         <?php
+        $message = checkFiles();
+        if ($message) {
+            $scriptBlock = "<script language='javascript'>
+                showMessage('ERROR','" . $message . "');
+                function showMessage(title,message) {
+                    $('#alertTitle').text(title);
+                    $('#alertBody p').text(message);
+                    $('#alertModal').modal('show');
+                }
+                </script>";
+            echo $scriptBlock;
+        }
+        session_start();
+        setDefaults();
+        $config = new Config_Lite('config.ini.php');
             if (isset($_GET['logout'])) {
                 $_SESSION['username'] = '';
                 if (isset($_SERVER['HTTP_COOKIE'])) {
@@ -75,7 +103,7 @@
                 }
                 $has_session = session_status() == PHP_SESSION_ACTIVE;
                 if ($has_session) session_destroy();
-                header('Location:  /index.php');
+                header('Location:  .');
             }
             if (! isset($_SESSION['plex_token'])) {
                 echo '
@@ -115,5 +143,6 @@
                 echo makeBody();
             }
         ?>
-    </body>
 
+    </body>
+</html>

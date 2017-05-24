@@ -47,6 +47,7 @@ function makeBody() {
     $_SESSION['apiai_dev_token'] = $config->get('user-_-'.$_SESSION['username'], 'apiDevToken', '');
 
     $_SESSION['use_cast'] = $config->getBool('user-_-'.$_SESSION['username'], 'useCast', false);
+    $_SESSION['phpPath'] = $config->get('user-_-'.$_SESSION['username'], 'phpPath', '');
     $_SESSION['clean_logs'] = $config->getBool('user-_-'.$_SESSION['username'], 'cleanLogs', true);
     $_SESSION['darkTheme'] = $config->getBool('user-_-'.$_SESSION['username'], 'darkTheme', false);
 
@@ -74,13 +75,12 @@ function makeBody() {
         <div class="col-xs-12 col-md-8 col-lg-6 col-md-offset-1 query">
             <div class="card">
                 <div class="btn-toolbar">
-                    <div class="col-xs-2 col-sm-1">
-                        <div class="btn btn-primary" id="executeButton"><i class="material-icons sendBtn">message</i></div>
-                    </div>
-                    <div class="queryGroup form-group label-floating col-xs-9 col-md-10 col-lg-5">
+                    <div class="queryGroup form-group label-floating col-xs-9 col-md-7 col-lg-7">
+                        <span class="material-icons sendBtn" id="executeButton">message</span>
                         <label id="actionLabel" for="commandTest" class="control-label">Hi, I\'m Flex TV.  What can I do for you?</label>
                         <input type="text" class="form-control" id="commandTest">
                     </div>
+                
                     <div class="queryBtnWrap">
                         <div class="queryBtnGrp">
                             <div class="dropdown show btn btn-sm" id="castDD">
@@ -139,6 +139,7 @@ function makeBody() {
                                 <div class="form-group">
                                     <label for="publicAddress" class="appLabel">Public Address:
                                         <input id="publicAddress" class="appInput form-control formpop" type="text" value="' . $_SESSION["publicAddress"] . '" />
+                                        <span class="bmd-help">Make sure this works from a cellphone with wifi turned off.</span>
                                     </label>
                                 </div>
                             </div>
@@ -185,7 +186,7 @@ function makeBody() {
                             <div class="form-group">
                                 <div class="form-group">
                                     <label class="appLabel" for="serverList">Playback Server:</label>
-                                    <select class="form-control" id="serverList">
+                                    <select class="form-control custom-select" id="serverList">
 
                                     </select>
                                     <br>
@@ -193,6 +194,14 @@ function makeBody() {
                                         <label for="useCast" class="appLabel checkLabel">Use Cast Devices
                                             <input id="useCast" type="checkbox" class="appInput appToggle" ' . ($_SESSION["use_cast"] ? "checked" : "") . '/>
                                         </label>
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="form-group"'.((substr(php_uname(), 0, 7) != "Windows") ? 'style="display:none"' : '').'>
+                                            <label for="phpPath" class="appLabel">PHP Executable path:
+                                                <input id="phpPath" class="appInput form-control" type="text" value="' . $_SESSION["phpPath"] . '"/>
+                                                <span class="bmd-help">Enter the full path to php-cgi.exe used by your webserver.</span>
+                                            </label>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="text-center">
@@ -209,7 +218,7 @@ function makeBody() {
                             <div class="form-group">
                                 <div class="form-group">
                                     <label class="appLabel" for="dvrList">DVR Server:</label>
-                                    <select class="form-control" id="dvrList">
+                                    <select class="form-control custom-select" id="dvrList">
 
                                     </select>
                                 </div>
@@ -496,7 +505,6 @@ function makeBody() {
             </div>
         </div>
     </div>
-
     <div id="metaTags">
     <meta id="apiTokenData" data="' . $_SESSION["apiToken"] . '" property="" content=""/>' . metaTags() . '</div>
     <script type="text/javascript" src="./js/main.js"></script></div>';
