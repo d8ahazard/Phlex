@@ -624,7 +624,7 @@
 		$_SESSION['id_plexserver'] = $GLOBALS['config']->get('user-_-'.$_SESSION['username'], 'plexServer', false);
 		$_SESSION['name_plexserver'] = $GLOBALS['config']->get('user-_-'.$_SESSION['username'],'plexServerName',false);
 		$_SESSION['uri_plexserver'] = $GLOBALS['config']->get('user-_-'.$_SESSION['username'],'plexServerUri',false);
-        $_SESSION['uri_plexserver_public'] = $GLOBALS['config']->get('user-_-'.$_SESSION['username'],'plexServerpublicUri',false);
+        $_SESSION['uri_plexserver_public'] = $GLOBALS['config']->get('user-_-'.$_SESSION['username'],'plexServerPublicUri',false);
 		$_SESSION['token_plexserver'] = $GLOBALS['config']->get('user-_-'.$_SESSION['username'],'plexServerToken',false);
 
 		// Reload section UUID's
