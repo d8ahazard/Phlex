@@ -199,7 +199,7 @@ function makeBody() {
                                         <div class="form-group"'.((substr(php_uname(), 0, 7) != "Windows") ? 'style="display:none"' : '').'>
                                             <label for="phpPath" class="appLabel">PHP Executable path:
                                                 <input id="phpPath" class="appInput form-control" type="text" value="' . $_SESSION["phpPath"] . '"/>
-                                                <span class="bmd-help">Enter the full path to php-cgi.exe used by your webserver.</span>
+                                                <span class="bmd-help">Enter the full path to php.exe used by your webserver.</span>
                                             </label>
                                         </div>
                                     </div>
