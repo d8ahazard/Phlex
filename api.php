@@ -2442,7 +2442,7 @@
 		}
 		if ($section == 'ondeck') {
 			write_log("Fetching on-deck list");
-			$url = $baseUrl . '/hubs/home/recentlyAdded?type=1';
+			$url = $baseUrl . '/hubs/home/onDeck?X-Plex-Container-Start=0';
 		}
 		if ($url) {
 			$url = $url."&X-Plex-Token=".$_SESSION['token_plexserver']."&X-Plex-Container-Start=0&X-Plex-Container-Size=".$_SESSION['returnItems'];
