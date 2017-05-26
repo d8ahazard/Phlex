@@ -2923,7 +2923,7 @@
         }
         if ($id && $song) {
 	        $response = $song;
-	        $response['key'] = $response['queueID'] = $id;
+	        $response['queueID'] = $id;
             $response['art'] = $_SESSION['uri_plexserver_public']."/photo/:/transcode?width=1920&height=1920&minSize=1&url=".$response['art']."&X-Plex-Token=".$_SESSION['token_plexserver'];
 	    }
 	    write_log("Final response: ".json_encode($response));
@@ -3040,7 +3040,7 @@
 		$serverIP = $server['host'];
 		$serverPort =$server['port'];
 		$userName = $_SESSION['username'];
-		$transcoderVideo = ($media['@attributes']['type'] != 'track');
+		$transcoderVideo = ($media['type'] != 'track');
         $queueID = (isset($media['queueID']) ? $media['queueID'] : queueMedia($media));
         $transientToken = fetchTransientToken();
 
@@ -3058,7 +3058,7 @@
 			'media' => [
 				'contentId' => (string)$key,
 				'streamType' => 'BUFFERED',
-				'contentType' => ($transcoderVideo ? 'video' : 'audio'),
+				'contentType' => ($transcoderVideo ? 'video' : 'music'),
 				'customData' => [
 					'offset' => (array_key_exists('viewOffset',$media) ? $media['viewOffset']:0),
 					'directPlay' => true,
