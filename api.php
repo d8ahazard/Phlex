@@ -1479,11 +1479,12 @@
 					write_log("So, we have a list to play from, neat.");
 					foreach($_SESSION['mediaList'] as $mediaItem) {
 						write_log("MediaItemJSON: ".json_encode($mediaItem));
-						$title = cleanCommandString($mediaItem['@attributes']['title']);
-						if ($age) $title .= " ".$mediaItem['@attributes']['year'];
+						$title = cleanCommandString($mediaItem['title']);
+						if ($age) $title .= " ".$mediaItem['year'];
 						$weight = similarity($title,$cleanedRaw);
+						$sameYear = (trim($command) === trim($mediaItem['year']));
 						write_log("Weight of ".$title." versus ".$cleanedRaw." is ".$weight.".");
-						if ($weight >=.8) {
+						if (($weight >=.8) || $sameYear) {
 							$mediaResult = [$mediaItem];
 							break;
 						}
