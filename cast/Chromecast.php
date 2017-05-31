@@ -87,7 +87,7 @@ class Chromecast {
 				if ($lastpackettime <> -1) {
 					// If we get to here then we have a valid last packet time
 					$timesincelastpacket = round(microtime(true) * 1000) - $lastpackettime;
-					if ($timesincelastpacket > ($firstresponsetime * 5) && $firstreponsetime != -1) {
+					if ($timesincelastpacket > ($firstresponsetime * 5) && $firstresponsetime != -1) {
 						return $chromecasts;
 					}
 				}
