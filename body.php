@@ -149,6 +149,7 @@ function makeBody() {
                                 <div class="form-group">
                                     <label for="rescanTime" class="appLabel">Device Rescan Interval (Minutes):
                                         <input id="rescanTime" class="appInput form-control" type="number" min="5" max="30" value="' . $_SESSION["rescanTime"] . '" />
+                                        <span class="bmd-help">How frequently to re-cache devices.</span>
                                     </label>
                                 </div>
                             </div>
@@ -387,6 +388,7 @@ function makeBody() {
                                 <div class="form-group">
                                     <label for="sickPort" class="appLabel">Sick Port:
                                         <input id="sickPort" class="appInput form-control Sick appParam" type="text" value="' . $_SESSION["port_sick"] . '"/>
+                                        <span class="bmd-help">8085/8081</span>
                                     </label>
                                 </div>
                                 <div class="form-group">
