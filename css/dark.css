@@ -1,5 +1,5 @@
 .card, .dropdown-menu, .modal-title {
-    background:#000;
+    background: rgba(0, 0, 0, 0.88);
     color:#fff;
 }
 
@@ -8,7 +8,7 @@
 }
 
 
-.barBtn, .clientIcon, .sendBtn, #actionLabel, .dd-selected, a, .appLabel, label {
+.barBtn, .clientBtn, .sendBtn, #actionLabel, .dd-selected, a, .appLabel, label {
     color:#3277d8 !important;
 }
 

@@ -91,21 +91,13 @@
         setDefaults();
         $config = new Config_Lite('config.ini.php');
             if (isset($_GET['logout'])) {
-                $_SESSION['username'] = '';
-                if (isset($_SERVER['HTTP_COOKIE'])) {
-                    $cookies = explode(';', $_SERVER['HTTP_COOKIE']);
-                    foreach ($cookies as $cookie) {
-                        $parts = explode('=', $cookie);
-                        $name = trim($parts[0]);
-                        setcookie($name, '', time() - 1000);
-                        setcookie($name, '', time() - 1000, '/');
-                    }
-                }
+                $_SESSION['plexUserName'] = '';
+                clearSession();
                 $has_session = session_status() == PHP_SESSION_ACTIVE;
                 if ($has_session) session_destroy();
                 header('Location:  .');
             }
-            if (! isset($_SESSION['plex_token'])) {
+            if (! isset($_SESSION['plexToken'])) {
                 echo '
                     <div class="loginBox">
                         <div class="login-box">

@@ -220,6 +220,21 @@ jQuery(document).ready(function($) {
 		}
 		
 	});
+
+	$('#client').click(function() {
+		console.log("CLICKED CLIENT!");
+        var pos = $('#client').position();
+        var width = $('#client').outerWidth();
+
+        //show the menu directly over the placeholder
+        $("#plexClient").css({
+            position: "absolute",
+            top: pos.bottom + "px",
+            left: (pos.left - width) + "px"
+        });
+	})
+
+
 	
 	$(".expandWrap").click(function() {
 		$(this).children('.expand').slideToggle();
@@ -615,7 +630,7 @@ function buildCards(value,i) {
         subtitle = ((card.hasOwnProperty('subtitle')) ? '<h6 class="card-subtitle text-muted cardtagline">' + card.subtitle + '</h6>' : '');
         formatted_text = ((card.hasOwnProperty('formatted_text')) ? '<br><p class="card-text cardsummary">' + card.formatted_text + '</p>' : '');
         cardDiv = '' +
-            '<img src="' + card.image.url + '" class="card-img-top"/>' +
+            '<img src="' + card.image.url + '" onerror="imgError(this);" class="card-img-top"/>' +
             '<div class="card-img-overlay card-inverse">' +
             '<p class="card-subtitle">' + $.trim(timeStamp) + '</p>' +
             '<h4 class="card-title">' + card.title + '</h4>' +
@@ -640,7 +655,7 @@ function buildCards(value,i) {
 
             if (((count === 4 || count === 5) && (l===1)) || ((count >= 6) && ((l===2) || (l===5)))) newLine='<br>';
 
-            cardDiv += '<img class="card-imgs-top"  style="width:' + width + '" src="' + subCard.image.url + '" alt="' + subCard.title + '"></img>' +
+            cardDiv += '<img class="card-imgs-top" onerror="imgError(this);"  style="width:' + width + '" src="' + subCard.image.url + '" alt="' + subCard.title + '"></img>' +
                 newLine;
 
             if ((count === 2 || count === 3) && (l ===1)) {
@@ -825,4 +840,10 @@ function setWeather() {
     $('.weatherIcon').html('<span class="weather '+weatherClass+'"> </span>');
     $(".timeDiv").text(formatAMPM());
     $(".tempDiv").text(weatherHtml);
+}
+
+function imgError(image) {
+    image.onerror = "";
+    image.src = "https://unsplash.it/1920/1080?random&v=" + (Math.floor(Math.random()*(1084)));
+    return true;
 }

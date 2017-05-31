@@ -7,8 +7,9 @@
 		$apiToken = false;
 		foreach ($config as $section => $user) {
 		    if ($section != "general") {
-                if ($userName == $user['plexUserName']) {
-                    $apiToken = ($user['apiToken'] ? $user['apiToken'] : false);
+		    	if (($userName == urlencode($user['plexUserName'])) || ($userName == urlencode($user['email']))) {
+		    		write_log("Found matching token for user ".$user['plexUserName']);
+                    $apiToken = $user['apiToken'] ?? false;
                     break;
                 }
             }
@@ -166,7 +167,19 @@
 		}
 		return $path;
 	}
-	
+
+	function transcodeImage($path,$uri=false,$token=false) {
+    	$server = $uri ?? $_SESSION['uri_plexserver_public'];
+    	$token = $token ?? $_SESSION['token_plexserver'];
+    	write_log("Function fired");
+		$image = $server."/photo/:/transcode?width=1920&height=1920&minSize=1&url=".$path."&X-Plex-Token=".$token;
+		write_log("Image path: ".$image);
+		if (is_file($image) && file_exists($image)) return $image;
+		$path = $_SESSION['uri_plexserver'].$path."?X-Plex-Token=".$_SESSION['token_plexserver'];
+		write_log("Couldn't transcode image, returning direct path: ".$path);
+		return $path;
+	}
+
 	// Check if string is present in an array
 	function arrayContains($str, array $arr)	{
 		//write_log("Function Fired.");
@@ -237,6 +250,7 @@
 	// Write log information to $filename
 	// Auto rotates files larger than 2MB
 	function write_log($text,$level=null) {
+		if (isset($_GET['pollPlayer'])) return;
 		if ($level === null) {
 			$level = 'DEBUG';
 		}
@@ -307,7 +321,7 @@
                 pclose(popen($cmd,'r'));
             } else {
                 write_log("PHP Path is not valid, fetching cast devices the hard way.");
-                fetchCastDevices2();
+                fetchCastDevices();
             }
 
         } else {
@@ -334,9 +348,7 @@
 	}
 	
 	function protectURL($string) {
-        $config = new Config_Lite(file_build_path(dirname(__FILE__),"config.ini.php"));
-        $protect = $config->getBool('user-_-'.$_SESSION['username'], 'cleanLogs', true);
-        if ($protect) {
+        if ($_SESSION['clean_logs']) {
             $keys = parse_url($string);
             $cleaned = str_repeat("X", strlen($keys['host']));
             $string = str_replace($keys['host'], $cleaned, $string);
@@ -391,7 +403,7 @@
 	}
 
     // Check if we have a running session before trying to start one
-    function is_session_started() {
+    function session_started() {
         if ( php_sapi_name() !== 'cli' ) {
             if ( version_compare(phpversion(), '5.4.0', '>=') ) {
                 return session_status() === PHP_SESSION_ACTIVE ? TRUE : FALSE;
@@ -408,7 +420,7 @@
         $certPath = file_build_path(dirname(__FILE__),"cert","cacert.pem");
         $ch = curl_init($url);
         curl_setopt($ch,  CURLOPT_RETURNTRANSFER, TRUE);
-        curl_setopt($ch, CURLOPT_TIMEOUT,1);
+        curl_setopt($ch, CURLOPT_TIMEOUT,2);
         curl_setopt ($ch, CURLOPT_CAINFO, $certPath);
         if ($post) {
             curl_setopt($ch, CURLOPT_POST, true);
@@ -437,12 +449,13 @@
         return join(DIRECTORY_SEPARATOR, $segments);
     }
 
-    function fetchCastDevices2() {
-        $config = new Config_Lite('config.ini.php');
-        if (!(isset($_GET['pollPlayer']))) write_log("Function fired.");
+    function fetchCastDevices() {
+        $returns = false;
+    	if (!(isset($_GET['pollPlayer']))) write_log("Function fired.");
         $result = Chromecast::scan();
-        $returns = array();
-        if (!(isset($_GET['pollPlayer']))) write_log("Returns: ".json_encode($result));
+        if ($result) $returns = array();
+		if (!(isset($_GET['pollPlayer']))) write_log("Returns: ".json_encode($result));
+		if ($result[0] == "Error") return false;
         foreach ($result as $key=>$value) {
             $deviceOut = array();
             $nameString = preg_replace("/\._googlecast.*/","",$key);
@@ -455,30 +468,14 @@
             $deviceOut['uri'] = "https://" . $value['ip'] . ":" . $value['port'];
             array_push($returns, $deviceOut);
         }
-        if (json_encode($returns) == "[Error]") $returns = false;
-        if ($returns) {
-            foreach ($config as $section=>$value) {
-                if (preg_match("/castDevice/",$section)) {
-                    unset($config[$section]);
-                    write_log("Unsetting config");
-                }
-            }
-            $i = 0;
-            foreach ($returns as $castDevice) {
-                foreach ($castDevice as $key => $value) {
-                    $config->set('castDevice' . $i, $key, $value);
-                }
-                $i++;
-            }
-            saveConfig($config);
-        }
+
         return $returns;
     }
 
 // Sign in, get a token if we need it
 
 function signIn($credString) {
-    $token = (isset($_SESSION['plex_token']) ? $_SESSION['plex_token'] : false);
+    $token = $_SESSION['plex_token'] ?? false;
     if ($token) {
         $url = 'https://plex.tv/pms/servers.xml?X-Plex-Token=' . $token;
         $result = curlGet($url);
@@ -534,6 +531,7 @@ function setDefaults() {
     $errfilename = 'Phlex_error.log';
     ini_set("error_log", $errfilename);
     date_default_timezone_set((date_default_timezone_get() ? date_default_timezone_get() : "America/Chicago"));
+    checkFiles();
 }
 
 function checkFiles() {
@@ -554,6 +552,7 @@ function checkFiles() {
             }
             //$scriptBlock = "<script language='javascript'>alert(\"" . $message . "\");</script>";
             //echo $scriptBlock;
+	        write_log($message,"ERROR");
             return $message;
             die();
         }
@@ -563,15 +562,37 @@ function checkFiles() {
         if (! extension_loaded($extension)) {
             $message = "The ". $extension . " PHP extension, which is required for Phlex to work correctly, is not loaded." .
                 "Please enable it in php.ini, restart your webserver, and then reload this page to continue.";
+	        write_log($message,"ERROR");
             return $message;
         }
     }
     try {$config = new Config_Lite('config.ini.php');} catch (Config_Lite_Exception_Runtime $e) {
-        $message = "An exception occurred trying to load config.ini.php.  Please check that the directory and file are writeable by your webserver application and try again.";
+        $message = "An exception occurred trying to load config.ini.php.  Please check that the directory and file are writeable by your webserver application and try again: ".$e;
         //$scriptBlock = "<script language='javascript'>alert(\"" . $message . "\");</script>";
         //echo $scriptBlock;
+	    write_log($message,"ERROR");
         return $message;
         die();
     };
     return false;
 }
+
+function clearSession() {
+	write_log("Function fired");
+	if (! session_started()) session_start();
+	if (isset($_SERVER['HTTP_COOKIE'])) {
+		write_log("Cookies found, unsetting.");
+		$cookies = explode(';', $_SERVER['HTTP_COOKIE']);
+		foreach($cookies as $cookie) {
+			$parts = explode('=', $cookie);
+			$name = trim($parts[0]);
+			write_log("Cookie: ".$name);
+			setcookie($name, '', time()-1000);
+			setcookie($name, '', time()-1000, '/');
+		}
+	}
+	session_destroy();
+	header('Location: ./index.php');
+	die();
+}
+

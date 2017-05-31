@@ -12,52 +12,52 @@ function makeBody() {
     }
     $config = new Config_Lite('config.ini.php');
     // Check our config file exists
-    $_SESSION['apiToken'] = $config->get('user-_-'.$_SESSION['username'], 'apiToken', checkSetApiToken($_SESSION['username']));
-    $_SESSION['plexAvatar'] = $config->get('user-_-'.$_SESSION['username'], 'plexAvatar', false);
-    $_SESSION['plexEmail'] = $config->get('user-_-'.$_SESSION['username'], 'plexEmail', false);
+    $_SESSION['apiToken'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'apiToken', checkSetApiToken($_SESSION['plexUserName']));
+    $_SESSION['plexAvatar'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'plexAvatar', false);
+    $_SESSION['plexEmail'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'plexEmail', false);
 
-    $_SESSION['enable_couch'] = $config->get('user-_-'.$_SESSION['username'], 'couchEnabled', false);
-    $_SESSION['enable_ombi'] = $config->get('user-_-'.$_SESSION['username'], 'ombiEnabled', false);
-    $_SESSION['enable_sonarr'] = $config->get('user-_-'.$_SESSION['username'], 'sonarrEnabled', false);
-    $_SESSION['enable_sick'] = $config->get('user-_-'.$_SESSION['username'], 'sickEnabled', false);
-    $_SESSION['enable_radarr'] = $config->get('user-_-'.$_SESSION['username'], 'radarrEnabled', false);
-    $_SESSION['enable_apiai'] = $config->get('user-_-'.$_SESSION['username'], 'apiEnabled', false);
+    $_SESSION['enable_couch'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'couchEnabled', false);
+    $_SESSION['enable_ombi'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'ombiEnabled', false);
+    $_SESSION['enable_sonarr'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'sonarrEnabled', false);
+    $_SESSION['enable_sick'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'sickEnabled', false);
+    $_SESSION['enable_radarr'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'radarrEnabled', false);
+    $_SESSION['enable_apiai'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'apiEnabled', false);
 
-    $_SESSION['returnItems'] = $config->get('user-_-'.$_SESSION['username'], 'returnItems', "6");
-    $_SESSION['rescanTime'] = $config->get('user-_-'.$_SESSION['username'], 'rescanTime', "6");
+    $_SESSION['returnItems'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'returnItems', "6");
+    $_SESSION['rescanTime'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'rescanTime', "6");
 
-    $_SESSION['ip_couch'] = $config->get('user-_-'.$_SESSION['username'], 'couchIP', 'localhost');
-    $_SESSION['ip_ombi'] = $config->get('user-_-'.$_SESSION['username'], 'ombiUrl', 'localhost');
-    $_SESSION['ip_sonarr'] = $config->get('user-_-'.$_SESSION['username'], 'sonarrIP', 'localhost');
-    $_SESSION['ip_sick'] = $config->get('user-_-'.$_SESSION['username'], 'sickIP', 'localhost');
-    $_SESSION['ip_radarr'] = $config->get('user-_-'.$_SESSION['username'], 'radarrIP', 'localhost');
+    $_SESSION['ip_couch'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'couchIP', 'localhost');
+    $_SESSION['ip_ombi'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'ombiUrl', 'localhost');
+    $_SESSION['ip_sonarr'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'sonarrIP', 'localhost');
+    $_SESSION['ip_sick'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'sickIP', 'localhost');
+    $_SESSION['ip_radarr'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'radarrIP', 'localhost');
 
-    $_SESSION['port_couch'] = $config->get('user-_-'.$_SESSION['username'], 'couchPort', '5050');
-    $_SESSION['port_ombi'] = $config->get('user-_-'.$_SESSION['username'], 'ombiPort', '3579');
-    $_SESSION['port_sonarr'] = $config->get('user-_-'.$_SESSION['username'], 'sonarrPort', '8989');
-    $_SESSION['port_sick'] = $config->get('user-_-'.$_SESSION['username'], 'sickPort', '8083');
-    $_SESSION['port_radarr'] = $config->get('user-_-'.$_SESSION['username'], 'radarrPort', '7878');
+    $_SESSION['port_couch'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'couchPort', '5050');
+    $_SESSION['port_ombi'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'ombiPort', '3579');
+    $_SESSION['port_sonarr'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'sonarrPort', '8989');
+    $_SESSION['port_sick'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'sickPort', '8083');
+    $_SESSION['port_radarr'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'radarrPort', '7878');
 
-    $_SESSION['auth_couch'] = $config->get('user-_-'.$_SESSION['username'], 'couchAuth', '');
-    $_SESSION['auth_sonarr'] = $config->get('user-_-'.$_SESSION['username'], 'sonarrAuth', '');
-    $_SESSION['auth_sick'] = $config->get('user-_-'.$_SESSION['username'], 'sickAuth', '');
-    $_SESSION['auth_radarr'] = $config->get('user-_-'.$_SESSION['username'], 'radarrAuth', '');
+    $_SESSION['auth_couch'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'couchAuth', '');
+    $_SESSION['auth_sonarr'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'sonarrAuth', '');
+    $_SESSION['auth_sick'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'sickAuth', '');
+    $_SESSION['auth_radarr'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'radarrAuth', '');
 
-    $_SESSION['apiai_client_token'] = $config->get('user-_-'.$_SESSION['username'], 'apiClientToken', '');
-    $_SESSION['apiai_dev_token'] = $config->get('user-_-'.$_SESSION['username'], 'apiDevToken', '');
+    $_SESSION['apiai_client_token'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'apiClientToken', '');
+    $_SESSION['apiai_dev_token'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'apiDevToken', '');
 
-    $_SESSION['use_cast'] = $config->getBool('user-_-'.$_SESSION['username'], 'useCast', false);
-    $_SESSION['phpPath'] = $config->get('user-_-'.$_SESSION['username'], 'phpPath', '');
-    $_SESSION['clean_logs'] = $config->getBool('user-_-'.$_SESSION['username'], 'cleanLogs', true);
-    $_SESSION['darkTheme'] = $config->getBool('user-_-'.$_SESSION['username'], 'darkTheme', false);
+    $_SESSION['use_cast'] = $config->getBool('user-_-'.$_SESSION['plexUserName'], 'useCast', false);
+    $_SESSION['phpPath'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'phpPath', '');
+    $_SESSION['clean_logs'] = $config->getBool('user-_-'.$_SESSION['plexUserName'], 'cleanLogs', true);
+    $_SESSION['darkTheme'] = $config->getBool('user-_-'.$_SESSION['plexUserName'], 'darkTheme', false);
 
-    $_SESSION['dvr_resolution'] = $config->getBool('user-_-'.$_SESSION['username'], 'dvr_resolution', "0");
-    $_SESSION['dvr_newairings'] = $config->getBool('user-_-'.$_SESSION['username'], 'dvr_newairings', true);
-    $_SESSION['dvr_replacelower'] = $config->getBool('user-_-'.$_SESSION['username'], 'dvr_replacelower', true);
-    $_SESSION['dvr_recordpartials'] = $config->getBool('user-_-'.$_SESSION['username'], 'dvr_recordpartials', false);
-    $_SESSION['dvr_startoffset'] = $config->get('user-_-'.$_SESSION['username'], 'dvr_startoffset', 2);
-    $_SESSION['dvr_endoffset'] = $config->get('user-_-'.$_SESSION['username'], 'dvr_endoffset', 2);
-    $_SESSION['resolution'] = $config->get('user-_-'.$_SESSION['username'], 'resolution', 0);
+    $_SESSION['dvr_resolution'] = $config->getBool('user-_-'.$_SESSION['plexUserName'], 'dvr_resolution', "0");
+    $_SESSION['dvr_newairings'] = $config->getBool('user-_-'.$_SESSION['plexUserName'], 'dvr_newairings', true);
+    $_SESSION['dvr_replacelower'] = $config->getBool('user-_-'.$_SESSION['plexUserName'], 'dvr_replacelower', true);
+    $_SESSION['dvr_recordpartials'] = $config->getBool('user-_-'.$_SESSION['plexUserName'], 'dvr_recordpartials', false);
+    $_SESSION['dvr_startoffset'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'dvr_startoffset', 2);
+    $_SESSION['dvr_endoffset'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'dvr_endoffset', 2);
+    $_SESSION['resolution'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'resolution', 0);
 
     $url = 'https://plex.tv/pms/:/ip';
     $ch = curl_init();
@@ -67,7 +67,7 @@ function makeBody() {
     $realIP = curl_exec($ch);
     curl_close ($ch);
     $ipString = (((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')	|| $_SERVER['SERVER_PORT'] == 443) ? 'https://' : 'http://') . $realIP . '/Phlex';
-    $_SESSION['publicAddress'] = $config->get('user-_-'.$_SESSION['username'], 'publicAddress', $ipString);
+    $_SESSION['publicAddress'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'publicAddress', $ipString);
     write_log("Reloaded, dark theme is ".($_SESSION['darkTheme'] ? 'enabled.' : 'disabled.'));
     $bodyText = ($_SESSION['darkTheme'] ? '<link href="./css/dark.css" rel="stylesheet">' : '') .
 '<div id="body"><div class="wrapper" id="mainwrap">
@@ -75,29 +75,24 @@ function makeBody() {
         <div class="col-xs-12 col-md-8 col-lg-6 col-md-offset-1 query">
             <div class="card">
                 <div class="btn-toolbar">
-                    <div class="queryGroup form-group label-floating col-xs-9 col-md-7 col-lg-7">
-                        <span class="material-icons sendBtn" id="executeButton">message</span>
+                    <div class="queryGroup form-group label-floating col-xs-10 col-md-7 col-lg-7">
+                        <div class="material-icons sendBtn" id="executeButton">message</div>
                         <label id="actionLabel" for="commandTest" class="control-label">Hi, I\'m Flex TV.  What can I do for you?</label>
                         <input type="text" class="form-control" id="commandTest">
                     </div>
-                
                     <div class="queryBtnWrap">
                         <div class="queryBtnGrp">
-                            <div class="dropdown show btn btn-sm" id="castDD">
-                                <i class="ddLabel"> </i><br>
-                                <a class="dropdown-toggle clientMenu" href="javascript:void(0)" id="client" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    <i class="material-icons barBtn clientIcon">cast</i>
-                                </a>
-
-                                <div class="dropdown-menu" id="plexClient" aria-labelledby="dropdownMenuLink">
-                                    <h6 class="dropdown-header">Select a player to control.</h6>
-                                    <div id="clientWrapper">
-
-                                    </div>
+                            <div class="btn btn-sm dropdown-toggle barBtn" href="javascript:void(0)" id="client" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <div class="ddLabel"></div><br>
+                                <i class="material-icons barIcon clientBtn">cast</i>
+                            </div>
+                            <div class="dropdown-menu" id="plexClient" aria-labelledby="dropdownMenuLink">
+                                <h6 class="dropdown-header">Select a player to control.</h6>
+                                <div id="clientWrapper">
                                 </div>
                             </div>
-                            <a href="" id="settings" class="btn btn-sm" data-toggle="modal" data-target="#settingsModal"><i class="material-icons barBtn">settings</i></a>
-                            <a href="?logout" id="logout" class="btn btn-sm"><i class="material-icons barBtn">power_settings_new</i></a>
+                            <a href="" id="settings" class="btn btn-sm barBtn" data-toggle="modal" data-target="#settingsModal"><i class="material-icons barIcon">settings</i></a>
+                            <a href="?logout" id="logout" class="btn btn-sm barBtn"><i class="material-icons barIcon">power_settings_new</i></a>
 
                         </div>
                     </div>
@@ -187,9 +182,8 @@ function makeBody() {
                                 <div class="form-group">
                                     <label class="appLabel" for="serverList">Playback Server:</label>
                                     <select class="form-control custom-select" id="serverList">
-
                                     </select>
-                                    <br>
+                                    <br><br>
                                     <div class="togglebutton">
                                         <label for="useCast" class="appLabel checkLabel">Use Cast Devices
                                             <input id="useCast" type="checkbox" class="appInput appToggle" ' . ($_SESSION["use_cast"] ? "checked" : "") . '/>

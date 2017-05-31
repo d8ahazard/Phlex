@@ -74,6 +74,7 @@ html {
 	top: -5px;
 	padding-left: 34px;
 	padding-right: 34px;
+	color: #3277d8;
 
 }
 
@@ -152,6 +153,7 @@ html {
 
 .dropdown-menu, .dropdown-header, #clientWrapper {
 	z-index: 1000;
+	text-transform: uppercase;
 }
 
 .dropdown-item {
@@ -224,16 +226,21 @@ html {
 
 .card {
 	z-index: 10;
+	background: rgba(255, 255, 255, 0.88);
 
 }
 
+.bootstrap-dialog.type-primary .modal-header {
+	background-color: #306abd !important;
+}
+
 .login-box label {
-	color: #306abd!important;
+	color: #306abd !important;
 }
 
 
 .form-group label {
-	color: #003792;
+	color: #306abd;
 }
 
 .card-img-top {
@@ -278,17 +285,24 @@ html {
     padding-right: 0;
 }
 
-.ddLabel {
-	position: relative;
-	font-size: 7px;
-	top: -3px;
+#client {
 	text-align:center;
+	padding:0;
 }
 
+.ddLabel {
+	font-size: 7px;
+	display: inline-block;
+}
 
 .clientMenu {
 	position: relative;
 	top: -14px;
+}
+
+.dropdown-toggle::after {
+	margin-left: 2.5em;
+	margin-top: 2px;
 }
 
 .query {
@@ -311,8 +325,12 @@ html {
 }
 
 #castDD {
-	padding: 5px 15px;
-	max-height: 44px;
+	padding-top: 5px;
+	padding-right: 15px;
+	padding-bottom: 8px;
+	padding-left: 15px;
+	max-height: 50px;
+	max-width:64px;
 	
 }
 
@@ -324,6 +342,7 @@ html {
 	margin-top: 20px;
 	margin-bottom: 20px;
 	margin-left: 20px;
+	margin-right:20px;
 	max-height: 20px;
 }
 
@@ -346,7 +365,7 @@ html {
 	margin-top: 6px;
 	padding-right: 10px;
 	height:100%;
-	color: #003E96;
+	color: #3277d8;
 	cursor: pointer;
 	z-index:100;
 	pointer-events:all;
@@ -379,10 +398,22 @@ html {
 	
 }
 
-.barBtn {
+.barIcon {
 	margin-top: 8px;
-	height: 100%;
-	color: #003E96;
+	color: #3277d8;
+}
+
+.barBtn {
+	height: 50px;
+	width: 64px;
+	max-height: 50px;
+	max-width:64px;
+}
+
+.clientBtn {
+	top: 5px;
+	left: 14px;
+	position: absolute;
 }
 
 .searchPick {
@@ -738,6 +769,8 @@ hac {
 
 .card-inverse .card-subtitle, .card-inverse .card-text {
 	color: #000;
+	text-align: justify;
+	padding-right: 21px;
 }
 
 .card-inverse .card-blockquote, .card-inverse .card-footer, .card-inverse .card-header, .card-inverse .card-title {
