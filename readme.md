@@ -307,7 +307,14 @@ Below are all of the recognized trigger phrases for Google Assistant commands.
         "Record Jeopardy",
         "DVR Family Guy"
 
+>**"What's airing":**
+    "What's on TV tonight?",
+    "What's airing on Friday?",
+    "What's dvred this weekend?",
+    "What's recorded tomorrow?",
+    "What's scheduled on Sunday?"
 
+>(Note - What's airing commands work with Plex DVR, Sonarr, and Sickrage)
 
 ## Setting up IFTTT With Phlex (UPDATED)
 
