@@ -213,9 +213,15 @@ jQuery(document).ready(function($) {
             command = command.replace(/ /g,"+");
 			apiToken = $('#apiTokenData').attr('data');
 			var url = 'api.php?say&command=' + command+'&apiToken=' + apiToken;
-			$.get(url, function(data) {
-				var dataArray =[data];
-				updateCommands(dataArray,true);
+			$.get(url, function() {
+                $('.cssload-thecube').show();
+			})
+			.done(function(data) {
+				var dataArray = [data];
+				updateCommands(dataArray, true);
+			})
+			.always(function() {
+				$('.cssload-thecube').hide();
 			},dataType="json");
 		}
 		

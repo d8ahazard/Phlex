@@ -3,6 +3,18 @@
     color:#fff;
 }
 
+.close {
+    color:#fff;
+    text-shadow: 0 1px 0 #868686;
+    opacity: .7;
+}
+
+.close:hover {
+    color:#fff;
+    text-shadow: 0 1px 0 #868686;
+    opacity: .5;
+}
+
 .dropdown-item {
     color: #aaa;
 }

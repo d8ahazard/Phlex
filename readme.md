@@ -1,6 +1,6 @@
-# **README** #
+# **README**
 
-## Introduction: ##
+## Introduction:
 <BR>
 <B> What is Phlex?</B>  Phlex stands for <B>P</B>ersonal <B>H</B>ome <B>L</B>anguage <B>EX</B>tension.  I mean, I guess.  I literally just made that up.  Also, it sounds cool.  
 
@@ -24,10 +24,10 @@ alt="Phlex Demo #2" width="480" height="360" border="10" /></a>
 <a href="http://s803.photobucket.com/user/d8ahazard/media/ccbg4.png.html" target="_blank"><img src="http://i803.photobucket.com/albums/yy318/d8ahazard/ccbg4.png" border="0" alt=" photo ccbg4.png"/></a>
 <a href="http://s803.photobucket.com/user/d8ahazard/media/Phlex/6.png.html" target="_blank"><img src="http://i803.photobucket.com/albums/yy318/d8ahazard/Phlex/6.png" border="0" alt=" photo 6.png"/></a>
 
-## Installation: ##
+## Installation:
 <BR>
 
-Phlex requires a webserver and PHP with CURL/SSH enabled in order to work correctly.
+Phlex requires a webserver and PHP 7.0+ with CURL and SSH enabled in order to work correctly.
 
 **For Cast Device Control, you will also need to enable the Sockets module.**
 
@@ -41,7 +41,7 @@ XAMPP is a free, cross-platform web server package, and can be found here:
 When installing XAMPP, we only require the PHP and Apache features.  You can uncheck the rest of the options in installation if you have no need for them:
 
 
-MySQL, FileZilla FTP Server, Mercury Mail Server, Tomcat, Perl, phpMyAdmin, Webalizer, Fake Sendmail
+MySQL, FileZilla FTP Server, Mercury Mail Server, Tomcat, Perl, phpMyAdmin, Webalizer, Fake Sendmail...ain't nobody got time fo dat.
 
 
 Once installed, clone or download the Phlex directory to the root web directory of XAMPP, which should be the /htdocs folder.  When done, the path should be something like C:\xampp\htdocs\phlex (windows) or usr/home/xampp/htdocs/phlex (linux).  
@@ -56,14 +56,36 @@ If you are running Phlex on an existing webserver, Phlex PHP version 7.0 and up.
 You will also need the CURL and openSSL extensions enabled, and sockets if you have any Cast devices.
 <br><br>
 
-## Post-Installation (Network Stuff): ##
-<br>
+
+## Updating:
+
+If you cloned Phlex using .git, simply do a git pull, your configuration files will remain untouched.  If you installed via .zip, you should be able to download the latest copy and extract it in-place.  
+
+However you update, it is important to not delete config.ini.php, as this is where your server's API token is stored, which is used to associate your local Phlex client with your Google account.
+<br><br>
+
+## Post-Installation (Network Stuff):
+#### Port forwarding
 First, you'll need to forward IP traffic to port 80 on the computer where Phlex is running.  You do not have to forward port 80 to port 80, you can choose any open port you like.
+<br><br>
 
 If you wish to change the listening port for Phlex to something other than 80, you can do so in the Xampp control panel by clicking the "config" button next to Apache, and then opening httpd.conf.
 
 In httpd.conf, you will see a line that reads "Listen 80".  Change 80 to whichever port you want.  Restart apache, and forward to that port.  If you are on Windows, you will need to make a rule in Windows Firewall to allow that port's traffic as well.
 <br><br>
+#### MDNS/Multicast/Cast Discovery
+Chromecasts are fun devices.  They're fun for this project because they use Multicast DNS (Aka Bonjour, Aka Avahii, Aka Zeroconf) in order to talk to one another on a home network.  
+
+On a very basic home network with just one router and everything connected via wifi, MDNS usually just works.  *Usually.*
+
+However, there are thousands of different router manufactureres, and thousands of different network configurations that could play a part in how well your cast devices will talk with Phlex.
+
+If you are experiencing issues with cast devices not showing up in Phlex, you should first verify that the php sockets module is installed and enabled.  If you used XAMPP, it should be included, you just need to edit your php.ini file to enable it.  
+
+If you used an alternative webserver option, google it.  
+
+
+If sockets are enabled and you STILL can't see all of your cast devices, I would suggest looking in the web UI for your router and looking for any setting related to "multicast filtering", "bonjour","or MDNS discovery".  Most of them should support it, it may just need to be enabled.
 
 ## Setting it up with Google Assistant: ##
 <br>
@@ -83,7 +105,9 @@ In settings, under the general tab, make sure you fill in the "Public Address" b
 
     phlex.my.domain.com
 
-<br><br>
+<br>
+
+**It is important to try the URL you are providing for "public address" before attempting to link your Google account.  If the address is not accessible via a device that is not on your local network (your cell phone with the wifi turned off), then I can't talk to your Phlex client, and the server will refuse to link your account.** 
 
 Once you've got the address entered, click the "register server" button.  Your server address will be sent to the Phlex Mothership and verified, and if I determine your client is set up correctly for communication, will register you with the db and forward you to google to link your account.
 
@@ -285,7 +309,7 @@ Below are all of the recognized trigger phrases for Google Assistant commands.
 
 
 
-## Setting up IFTTT With Phlex ##
+## Setting up IFTTT With Phlex (UPDATED)
 
 1.  Head on over to https://ifttt.com/ and create an account.
 2.  Go to the "applets" page.
@@ -294,15 +318,14 @@ Below are all of the recognized trigger phrases for Google Assistant commands.
 5.  search for "Assistant".
 6.  "Say a phrase with a Text Ingredient".
 7.  What do you want to say:
-  * Depends on the command you want to use.  I use "I want to watch", "Tell Plex to", and I want to download" for playback, control, and fetch commands respectively.
-
-  * You can use whatever you want, but some triggers are reserved - these should work.
-
-  * Put the $ sign where the thing you're sending to Phlex goes.
-
-  * >"I want to watch $"
-
-  * > Start playing $
+      * Language parsing has been updated to use API.ai for all commands, so no need for separate URL's for separate commands.
+      * Depends on the command you want to use.  I use "Tell Plex to", "I want to watch", and I want to download" for playback, control, and fetch commands respectively.
+    
+      * You can mostly use whatever you want, but some triggers are reserved - these should work.
+    
+      * Put the $ sign where the thing you're sending to Phlex goes.
+    
+      * > "Tell plex to $"
 
 8.  Save it.
 
@@ -312,15 +335,18 @@ Below are all of the recognized trigger phrases for Google Assistant commands.
 
 11.  Pick "Make a web request", the only option.
 
-12.  The URLs can be found in settings.
+12.  Open the Phlex web UI, click the button under "Click to copy IFTTT URL:".  The URL should be copied to your clipboard, and look something like this:
 
-13.  Click "Create Action", test it out.
+       * http://{YOUR_SERVER_ADDRESS}/Phlex/api.php?**say**&apiToken=asdfaksdfjasae670a877d1a1e5931f5cbf326c&command={{TextField}}
+        
+13.  The "say" paramater tells Phlex to parse the command with API.ai, giving your greater flexibility over your commands.  If you wish to use the "legacy" paramaters, you can replace 'say' with either 'play','control', or 'fetch' to create specific commands for those triggers.
 
-14.  Repeat for a download and "control playback" command.
+14.  Click "Create Action", test it out.
+
+15.  Repeat for a download and "control playback" command.
 <br><br>
 
 ## SUPPORT ##
-<br>
 For general help with installation, setup, or questions, head on over to the Plex forums and drop me a line.
 <br><br>
  https://forums.plex.tv/discussion/252910/phlex-google-home-plex-integration-with-support-for-sonarr-couchpotato-etc-now-live/
@@ -339,7 +365,6 @@ If you think you've found a bug or would like to make a feature request, feel fr
 <br><br>
 
 ### DONATIONS ###
-<br>
 If you really really like this project and want to thank me for sharing it with the world, you can send money via paypal to ** donate.to.digitalhigh@gmail.com **.  
 
 This is a donate-only address, support requests will not be answered.

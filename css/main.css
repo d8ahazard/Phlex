@@ -7,7 +7,7 @@ html {
 	overflow-x: hidden;
 }
 ::-webkit-scrollbar {
-	width: 0px;  /* remove scrollbar space */
+	width: 0;  /* remove scrollbar space */
 	background: transparent;  /* optional: just make scrollbar invisible */
 }
 
@@ -70,8 +70,6 @@ html {
 }
 
 #commandTest {
-	position: absolute;
-	top: -5px;
 	padding-left: 34px;
 	padding-right: 34px;
 	color: #3277d8;
@@ -129,14 +127,14 @@ html {
 
 
   .query {
-	  padding: 0px;
+	  padding: 0;
 	  width: 100%;
-	  min-width: 0px !important;
+	  min-width: 0 !important;
   }
   
   .queryWrap {
-		margin-top: 0px !important;
-		padding: 0px;
+		margin-top: 0 !important;
+		padding: 0;
 		
   }
 }
@@ -325,10 +323,7 @@ html {
 }
 
 #castDD {
-	padding-top: 5px;
-	padding-right: 15px;
-	padding-bottom: 8px;
-	padding-left: 15px;
+	padding: 5px 15px 8px;
 	max-height: 50px;
 	max-width:64px;
 	
@@ -339,11 +334,9 @@ html {
 }
 
 .queryGroup {
-	margin-top: 20px;
-	margin-bottom: 20px;
-	margin-left: 20px;
-	margin-right:20px;
+	margin: 20px;
 	max-height: 20px;
+	display:block;
 }
 
 .queryBtnWrap {
@@ -361,18 +354,30 @@ html {
 	background-color: #4285f4;
 }
 
+#actionLabel {
+	position: absolute;
+	left: 50px;
+	top: -13px;
+
+}
+
 .sendBtn {
-	margin-top: 6px;
-	padding-right: 10px;
-	height:100%;
 	color: #3277d8;
+	height: 34px;
+	width: 34px;
+	line-height: 34px;
 	cursor: pointer;
-	z-index:100;
-	pointer-events:all;
+	position: absolute;
+	top: -1px;
+}
+
+.inputWrap {
+	display:block;
 }
 
 .queryGroup.is-focused label, .form-group.label-floating:not(.is-empty) label {
-	left: 50px !important;
+	top: -25px !important;
+	left: 16px !important;
 }
 
 .queryGroup.label-floating label.control-label, .form-group.label-placeholder label.control-label {
@@ -469,9 +474,10 @@ select{
 
 .loginLogo {
 	width: 100px;
-	height: 100px;
+	height: 110px;
 	margin: 0 auto;
 	display: block;
+	padding: 10px;
 }
 
 .loginLabel.card-title {
@@ -491,18 +497,6 @@ select{
 	margin: 0 auto;
 }
 
-haa {
-	font-size: 2.0rem;
-}
-
-hab {
-	font-size: -0.5rem;
-}
-
-hac {
-	font-size: 1.5rem;
-}
-
 .avatar {
 	float: left;
 	margin-right: 15px;
@@ -519,13 +513,6 @@ hac {
 
 .toggle {
 	float: right;
-}
-
-
-
-#results {
-	/*height: calc(100% - 40px);*/
-	
 }
 
 #resultsInner {
@@ -556,7 +543,7 @@ hac {
 .card-base {
 	vertical-align: bottom;
 	position: absolute;
-	bottom: 0px;
+	bottom: 0;
 }
 
 .cardsummary {
@@ -604,8 +591,7 @@ hac {
 	height: 100%;
 	width: 100%;
 	background-size: cover;
-	background-repeat: no-repeat;
-	background-position: center center;
+	background: no-repeat center center;
 }
 
 .ccTextDiv {
@@ -631,7 +617,7 @@ hac {
 
 .ng-binding {
 	position: relative;
-	right: 0px;
+	right: 0;
 	text-align: right;
 	bottom: -39px;
 }
@@ -664,8 +650,7 @@ hac {
 	position: fixed;
 	right: 25px;
 	background-size: 100% 100%;
-	background-repeat: no-repeat;
-	background-position: center center;
+	background: no-repeat center center;
 }
 
 .weather_sunny {
@@ -804,9 +789,7 @@ hac {
 	border-radius: 4px;
 	box-shadow: inset 0 0 0 1px #CCCCCC;
 	background: #FFFFFF;
-	padding: 0;
-	padding-right: 33px;
-	padding-left: 41px;
+	padding: 0 33px 0 41px;
 	width: 100%;
 	height: 100%;
 	vertical-align: middle;
@@ -951,5 +934,187 @@ hac {
 		-webkit-transform: none;
 		transform: none;
 		opacity: 1;
+	}
+}
+
+.cssload-thecube {
+	width: 11px;
+	height: 11px;
+	display: none;
+	margin: 7px auto 0;
+	top: 3px;
+	left: 22px;
+	position: absolute;
+	transform: rotateZ(45deg);
+	-o-transform: rotateZ(45deg);
+	-ms-transform: rotateZ(45deg);
+	-webkit-transform: rotateZ(45deg);
+	-moz-transform: rotateZ(45deg);
+}
+.cssload-thecube .cssload-cube {
+	position: relative;
+	transform: rotateZ(45deg);
+	-o-transform: rotateZ(45deg);
+	-ms-transform: rotateZ(45deg);
+	-webkit-transform: rotateZ(45deg);
+	-moz-transform: rotateZ(45deg);
+}
+.cssload-thecube .cssload-cube {
+	float: left;
+	width: 50%;
+	height: 50%;
+	position: relative;
+	transform: scale(1.1);
+	-o-transform: scale(1.1);
+	-ms-transform: scale(1.1);
+	-webkit-transform: scale(1.1);
+	-moz-transform: scale(1.1);
+}
+.cssload-thecube .cssload-cube:before {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-color: rgb(43,160,199);
+	animation: cssload-fold-thecube 2.76s infinite linear both;
+	-o-animation: cssload-fold-thecube 2.76s infinite linear both;
+	-ms-animation: cssload-fold-thecube 2.76s infinite linear both;
+	-webkit-animation: cssload-fold-thecube 2.76s infinite linear both;
+	-moz-animation: cssload-fold-thecube 2.76s infinite linear both;
+	transform-origin: 100% 100%;
+	-o-transform-origin: 100% 100%;
+	-ms-transform-origin: 100% 100%;
+	-webkit-transform-origin: 100% 100%;
+	-moz-transform-origin: 100% 100%;
+}
+.cssload-thecube .cssload-c2 {
+	transform: scale(1.1) rotateZ(90deg);
+	-o-transform: scale(1.1) rotateZ(90deg);
+	-ms-transform: scale(1.1) rotateZ(90deg);
+	-webkit-transform: scale(1.1) rotateZ(90deg);
+	-moz-transform: scale(1.1) rotateZ(90deg);
+}
+.cssload-thecube .cssload-c3 {
+	transform: scale(1.1) rotateZ(180deg);
+	-o-transform: scale(1.1) rotateZ(180deg);
+	-ms-transform: scale(1.1) rotateZ(180deg);
+	-webkit-transform: scale(1.1) rotateZ(180deg);
+	-moz-transform: scale(1.1) rotateZ(180deg);
+}
+.cssload-thecube .cssload-c4 {
+	transform: scale(1.1) rotateZ(270deg);
+	-o-transform: scale(1.1) rotateZ(270deg);
+	-ms-transform: scale(1.1) rotateZ(270deg);
+	-webkit-transform: scale(1.1) rotateZ(270deg);
+	-moz-transform: scale(1.1) rotateZ(270deg);
+}
+.cssload-thecube .cssload-c2:before {
+	animation-delay: 0.35s;
+	-o-animation-delay: 0.35s;
+	-ms-animation-delay: 0.35s;
+	-webkit-animation-delay: 0.35s;
+	-moz-animation-delay: 0.35s;
+}
+.cssload-thecube .cssload-c3:before {
+	animation-delay: 0.69s;
+	-o-animation-delay: 0.69s;
+	-ms-animation-delay: 0.69s;
+	-webkit-animation-delay: 0.69s;
+	-moz-animation-delay: 0.69s;
+}
+.cssload-thecube .cssload-c4:before {
+	animation-delay: 1.04s;
+	-o-animation-delay: 1.04s;
+	-ms-animation-delay: 1.04s;
+	-webkit-animation-delay: 1.04s;
+	-moz-animation-delay: 1.04s;
+}
+
+
+
+@keyframes cssload-fold-thecube {
+	0%, 10% {
+		transform: perspective(21px) rotateX(-180deg);
+		opacity: 0;
+	}
+	25%,
+	75% {
+		transform: perspective(21px) rotateX(0deg);
+		opacity: 1;
+	}
+	90%,
+	100% {
+		transform: perspective(21px) rotateY(180deg);
+		opacity: 0;
+	}
+}
+
+@-o-keyframes cssload-fold-thecube {
+	0%, 10% {
+		-o-transform: perspective(21px) rotateX(-180deg);
+		opacity: 0;
+	}
+	25%,
+	75% {
+		-o-transform: perspective(21px) rotateX(0deg);
+		opacity: 1;
+	}
+	90%,
+	100% {
+		-o-transform: perspective(21px) rotateY(180deg);
+		opacity: 0;
+	}
+}
+
+@-ms-keyframes cssload-fold-thecube {
+	0%, 10% {
+		-ms-transform: perspective(21px) rotateX(-180deg);
+		opacity: 0;
+	}
+	25%,
+	75% {
+		-ms-transform: perspective(21px) rotateX(0deg);
+		opacity: 1;
+	}
+	90%,
+	100% {
+		-ms-transform: perspective(21px) rotateY(180deg);
+		opacity: 0;
+	}
+}
+
+@-webkit-keyframes cssload-fold-thecube {
+	0%, 10% {
+		-webkit-transform: perspective(21px) rotateX(-180deg);
+		opacity: 0;
+	}
+	25%,
+	75% {
+		-webkit-transform: perspective(21px) rotateX(0deg);
+		opacity: 1;
+	}
+	90%,
+	100% {
+		-webkit-transform: perspective(21px) rotateY(180deg);
+		opacity: 0;
+	}
+}
+
+@-moz-keyframes cssload-fold-thecube {
+	0%, 10% {
+		-moz-transform: perspective(21px) rotateX(-180deg);
+		opacity: 0;
+	}
+	25%,
+	75% {
+		-moz-transform: perspective(21px) rotateX(0deg);
+		opacity: 1;
+	}
+	90%,
+	100% {
+		-moz-transform: perspective(21px) rotateY(180deg);
+		opacity: 0;
 	}
 }

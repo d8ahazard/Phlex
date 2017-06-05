@@ -104,7 +104,7 @@
                         <div class="card loginCard">
                             <div class="card-block">
                                 <b><h3 class="loginLabel card-title">Welcome to Phlex!</h3></b>
-                                <img class="loginLogo" src="./img/phlex_logo.png" alt="Card image">
+                                <img class="loginLogo" src="./img/phlex.png" alt="Card image">
                                 <h6 class="loginLabel card-subtitle text-muted">Please log in below to begin.</h6>
                             </div>
                             

@@ -76,9 +76,17 @@ function makeBody() {
             <div class="card">
                 <div class="btn-toolbar">
                     <div class="queryGroup form-group label-floating col-xs-10 col-md-7 col-lg-7">
-                        <div class="material-icons sendBtn" id="executeButton">message</div>
-                        <label id="actionLabel" for="commandTest" class="control-label">Hi, I\'m Flex TV.  What can I do for you?</label>
-                        <input type="text" class="form-control" id="commandTest">
+                        <div class="inputWrap">
+	                        <div class="cssload-thecube">
+								<div class="cssload-cube cssload-c1"></div>
+								<div class="cssload-cube cssload-c2"></div>
+								<div class="cssload-cube cssload-c4"></div>
+								<div class="cssload-cube cssload-c3"></div>
+							</div>
+                        	<label id="actionLabel" for="commandTest" class="control-label">Hi, I\'m Flex TV.  What can I do for you?</label>
+	                        <input type="text" class="form-control" id="commandTest"/>
+	                        <a class="material-icons sendBtn" id="executeButton">message</a>
+                        </div>
                     </div>
                     <div class="queryBtnWrap">
                         <div class="queryBtnGrp">
@@ -452,9 +460,6 @@ function makeBody() {
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                </div>
             </div>
         </div>
     </div>
@@ -501,6 +506,7 @@ function makeBody() {
             </div>
         </div>
     </div>
+    
     <div id="metaTags">
     <meta id="apiTokenData" data="' . $_SESSION["apiToken"] . '" property="" content=""/>' . metaTags() . '</div>
     <script type="text/javascript" src="./js/main.js"></script></div>';
