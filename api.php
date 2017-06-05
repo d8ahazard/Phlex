@@ -1316,7 +1316,7 @@
 				if ((preg_match("/day/",$days)) || ($days == 'tomorrow') || ($days == 'weekend')) $tail= " scheduled.";
 				$speech .= $tail;
 			} else {
-				$speech = "You haven't programmed that yet, smart guy.";
+				$speech = "Sorry, it doesn't look you have any scheduled recordings for that day.";
 			}
 			returnSpeech($speech,$contextName,false,false);
 			$queryOut['speech'] = $speech;
