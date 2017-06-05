@@ -2234,6 +2234,12 @@
                                         $skip = true;
                                     }
                                 }
+                                if ($cast) {
+                                	if ($type) {
+                                		if ($Hub['type'] == $type) array_push($castResults,$Element);
+	                                } else array_push($castResults,$Element);
+                                }
+
                                 if (! $skip) {
                                     $weight = similarity($title, $titleOut);
                                     write_log("Weight of " . $title . " vs " . $titleOut . " is " . $weight);
@@ -2261,7 +2267,7 @@
 
 			if ($genre) {
 				write_log("Detected override for ".($cast ? 'cast' : 'genre').".");
-				$size = sizeof($exactResults)-1;
+				$size = count($exactResults)-1;
 				$random = rand(0,$size);
 				$winner = array($exactResults[$random]);
 				write_log("Result from ".($cast ? 'cast' : 'genre'). " search is ".print_r($winner,true));
@@ -2270,11 +2276,11 @@
 			}
 
 			if ($cast) {
-				write_log("Detected override for ".($cast ? 'cast' : 'genre').".");
-				$size = sizeof($castResults)-1;
+				write_log("Detected override for a search by castmember.","INFO");
+				$size = count($castResults)-1;
 				$random = rand(0,$size);
 				$winner = array($castResults[$random]);
-				write_log("Result from ".($cast ? 'cast' : 'genre'). " search is ".print_r($winner,true));
+				write_log("Result from cast search is ".json_encode($winner));
 				unset($finalResults);
 				$finalResults=$winner;
 			}

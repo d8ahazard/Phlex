@@ -278,7 +278,6 @@ Below are all of the recognized trigger phrases for Google Assistant commands.
         "What is playing?",
         "What is on?",
         "What am I watching?",
-        "What is on TV?",
         "What movie is on?",
         "What show is on?",
         "Am I watching something?",
