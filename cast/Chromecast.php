@@ -34,9 +34,9 @@ class Chromecast {
 		$contextOptions = ['ssl' => ['verify_peer' => false, 'verify_peer_name' => false,]];
 		$context = stream_context_create($contextOptions);
 
-		if ($this->socket = stream_socket_client('ssl://' . $ip . ":" . $port, $errno, $errstr, 5, STREAM_CLIENT_CONNECT, $context)) {
+		if ($this->socket = stream_socket_client('ssl://' . $ip . ":" . $port, $errno, $errstr, 15, STREAM_CLIENT_CONNECT, $context)) {
 		} else {
-			write_log("Failed to connect to remote Chromecast", "ERROR");
+			write_log("Failed to connect to remote Chromecast: ".$errstr, "ERROR");
 			die();
 		}
 
