@@ -20,11 +20,21 @@ class mDNS {
 		error_reporting(E_ERROR | E_PARSE);
 		// Create $mdnssocket, bind to 5353 and join multicast group 224.0.0.251
 		$this->mdnssocket = socket_create(AF_INET, SOCK_DGRAM, SOL_UDP);
+		if ($this->mdnssocket === false) {
+			$errorcode = socket_last_error();
+			$errormsg = socket_strerror($errorcode);
+			write_log("Couldn't create socket: [$errorcode] $errormsg","ERROR");
+		}
 		socket_set_option($this->mdnssocket,SOL_SOCKET,SO_REUSEADDR, 1);
 		//socket_set_option($this->mdnssocket, SOL_SOCKET, SO_BROADCAST, 1);
 		socket_set_option($this->mdnssocket, IPPROTO_IP, MCAST_JOIN_GROUP, array('group'=>'224.0.0.251', 'interface'=>0));
 		socket_set_option($this->mdnssocket, SOL_SOCKET,SO_RCVTIMEO,array("sec"=>1,"usec"=>0));
 		$bind = socket_bind($this->mdnssocket, "0.0.0.0", 5353);
+		if (! $bind) {
+			$errorcode = socket_last_error();
+			$errormsg = socket_strerror($errorcode);
+			write_log("Couldn't bind socket: [$errorcode] $errormsg","ERROR");
+		}
 	}
 	
 	public function query($name, $qclass, $qtype, $data="") {
