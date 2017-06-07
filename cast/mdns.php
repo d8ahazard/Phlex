@@ -25,7 +25,11 @@ class mDNS {
 			$errormsg = socket_strerror($errorcode);
 			write_log("Couldn't create socket: [$errorcode] $errormsg","ERROR");
 		}
-		socket_set_option($this->mdnssocket,SOL_SOCKET,SO_REUSEADDR, 1);
+		if ((preg_match("/OSX/",PHP_OS)) || (preg_match("/BSD/",PHP_OS))) {
+			socket_set_option($this->mdnssocket, SOL_SOCKET, SO_REUSEPORT, 1);
+		} else {
+			socket_set_option($this->mdnssocket,SOL_SOCKET,SO_REUSEADDR, 1);
+		}
 		//socket_set_option($this->mdnssocket, SOL_SOCKET, SO_BROADCAST, 1);
 		socket_set_option($this->mdnssocket, IPPROTO_IP, MCAST_JOIN_GROUP, array('group'=>'224.0.0.251', 'interface'=>0));
 		socket_set_option($this->mdnssocket, SOL_SOCKET,SO_RCVTIMEO,array("sec"=>1,"usec"=>0));
