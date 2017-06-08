@@ -1,5 +1,9 @@
 {
- "name": "Phlex",
+ "name": "Phlex Web",
+ "short_name": "Phlex",
+ "display": "standalone",
+ "theme_color":"#3277d8",
+ "background_color":"#ffffff",
  "icons": [
   {
    "src": ".\/img\/android-icon-36x36.png",
