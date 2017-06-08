@@ -21,7 +21,6 @@ class CCPlexPlayer extends CCBaseSender
 		while (!preg_match("/\"playerState\":\"PAUSED\"/",$r)) {
 			$r = $this->chromecast->getCastMessage();
 			write_log("R is ".$r);
-                        //echo $r . "\n";
 			sleep(1);
 		}
 		// Grab the mediaSessionId
@@ -34,9 +33,12 @@ class CCPlexPlayer extends CCBaseSender
         write_log("Function fired.");
 		// Launch the player or connect to an existing instance if one is already running
 		// First connect to the chromecast
+		write_log("Launching.");
 		$this->chromecast->transportid = "";
 		$this->chromecast->cc_connect(0);
+		write_log("TransportID: ". $this->chromecast->transportid);
 		// This never returns
+		write_log("Gettingstatus 1");
 		$s = $this->chromecast->getStatus();
 		// Grab the appid
 		preg_match("/\"appId\":\"([^\"]*)/",$s,$m);
@@ -44,7 +46,8 @@ class CCPlexPlayer extends CCBaseSender
 		if ($appid == $this->appid) {
 			// Default Media Receiver is live
 			$this->chromecast->getStatus();
-			write_log($this->transportid);
+			write_log("Gettingstatus 2");
+			write_log($this->chromecast->transportid);
 			$this->chromecast->connect(0);
 		} else {
 			// Default Media Receiver is not currently live, start it.
@@ -53,8 +56,7 @@ class CCPlexPlayer extends CCBaseSender
 			$r = "";
 			while (!preg_match("/Plex/",$r) && !preg_match("/Default Media Receiver/",$r)) {
 				$r = $this->chromecast->getStatus();
-                $response = $r;
-				sleep(1);
+				write_log("Gettingstatus 3");
 			}
 			$this->chromecast->connect(0);
 		}

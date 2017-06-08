@@ -34,15 +34,14 @@ class Chromecast {
 		$contextOptions = ['ssl' => ['verify_peer' => false, 'verify_peer_name' => false,]];
 		$context = stream_context_create($contextOptions);
 
-		if ($this->socket = stream_socket_client('ssl://' . $ip . ":" . $port, $errno, $errstr, 15, STREAM_CLIENT_CONNECT, $context)) {
+		if ($this->socket = stream_socket_client('ssl://' . $ip . ":" . $port, $errno, $errstr, 5, STREAM_CLIENT_CONNECT, $context)) {
 		} else {
-			write_log("Failed to connect to remote Chromecast: ".$errstr, "ERROR");
+		 	write_log("Failed to connect to remote Chromecast: ".$errstr, "ERROR");
 			die();
 		}
 
 		$this->lastip = $ip;
 		$this->lastport = $port;
-
 		$this->lastactivetime = time();
 
 		// Create an instance of the DMP for this CCDefaultMediaPlayer
@@ -268,10 +267,12 @@ class Chromecast {
 		write_log("Function fired.");
 		// If there is a difference of 10 seconds or more between $this->lastactivetime and the current time, then we've been kicked off and need to reconnect
 		if ($this->lastip == "") {
+			write_log("No last IP, returning.");
 			return;
 		}
 		$diff = time() - $this->lastactivetime;
 		if ($diff > 9) {
+			write_log("Time is greater than last active, reconnecting.");
 			// Reconnect
 			$contextOptions = ['ssl' => ['verify_peer' => false, 'verify_peer_name' => false,]];
 			$context = stream_context_create($contextOptions);
@@ -330,7 +331,7 @@ class Chromecast {
 		$oldtransportid = $this->transportid;
 		while ($this->transportid == "" || $this->transportid == $oldtransportid) {
 			$r = $this->getCastMessage();
-			sleep(1);
+			write_log("Looking for a cast message: ".$r);
 		}
 	}
 
@@ -351,8 +352,15 @@ class Chromecast {
 		$this->lastactivetime = time();
 		$this->requestId++;
 		$r = "";
+
 		while ($this->transportid == "") {
 			$r = $this->getCastMessage();
+			if (preg_match("/controlType\"\:\"master\"/",$r) && !preg_match("/transportId/",$r)) {
+				// Assume this is nvidia shield.
+				$this->transportid = "generic-cast";
+				$this->sessionid = 0;
+			}
+			write_log("Looping for R: ".$r);
 		}
 		return $r;
 	}
@@ -383,23 +391,32 @@ class Chromecast {
 		// but for now all we need is the transport id  and session id if it is
 		// in the packet and we can read that directly.
 		$this->testLive();
+		//stream_set_timeout($this->socket,1);
 		$response = fread($this->socket, 2000);
+		$pongcount = 0;
 		while (preg_match("/urn:x-cast:com.google.cast.tp.heartbeat/", $response) && preg_match("/\"PING\"/", $response)) {
-			$this->pong();
-			sleep(3);
+			if ($response != "") { $this->pong(); }
 			$response = fread($this->socket, 2000);
-			// Wait infinitely for a packet.
+			write_log("Response: ".$response);
+			if ($response == "" || preg_match("/\"PING\"/",$response)) {
+				$pongcount++;
+				write_log("Pongcount: ".$pongcount);
+			}
+			if ($pongcount == 2) { break; }
 			set_time_limit(30);
 		}
 		if (preg_match("/transportId/s", $response)) {
+			write_log("Found a match for tID: ".$response);
 			preg_match("/transportId\"\:\"([^\"]*)/", $response, $matches);
 			$matches = $matches[1];
 			$this->transportid = $matches;
 		}
 		if (preg_match("/sessionId/s", $response)) {
+			write_log("Found a match for sID: ".$response);
 			preg_match("/\"sessionId\"\:\"([^\"]*)/", $response, $r);
 			$this->sessionid = $r[1];
 		}
+		$this->lastactivetime = time();
 		return $response;
 	}
 
@@ -461,7 +478,6 @@ class Chromecast {
 		$this->lastactivetime = time();
 		$this->requestId++;
 	}
-
 }
 
 ?>
