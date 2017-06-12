@@ -3,6 +3,7 @@
 	require_once dirname(__FILE__) . '/cast/Chromecast.php';
     require_once dirname(__FILE__) . '/util.php';
     require_once dirname(__FILE__) . '/body.php';
+	require_once dirname(__FILE__) . '/new_body.php';
 
 	use Kryptonit3\SickRage\SickRage;
     use Kryptonit3\Sonarr\Sonarr;
@@ -116,8 +117,8 @@
 	    if (isset($_GET['device'])) {
 	    	write_log("SETTING DEVICE HERE");
 		    write_log("SETTING DEVICE HERE");
-		    foreach($_GET as $param) {
-		    	write_log("Device Param: ".$param);
+		    foreach($_GET as $name=>$param) {
+		    	write_log("Device Param ".$name.": ".$param);
 		    }
 		    $type = $_GET['device'];
 		    $id = $_GET['id'];
@@ -132,6 +133,7 @@
 				    $GLOBALS['config']->set('user-_-' . $_SESSION['plexUserName'], $type . 'Token', $token);
 			    }
 			    $GLOBALS['config']->set('user-_-' . $_SESSION['plexUserName'], $type, $id);
+			    $GLOBALS['config']->set('user-_-' . $_SESSION['plexUserName'], $type. 'Id', $id);
 			    $GLOBALS['config']->set('user-_-' . $_SESSION['plexUserName'], $type . 'Uri', $uri);
 			    $GLOBALS['config']->set('user-_-' . $_SESSION['plexUserName'], $type . 'publicUri', $publicUri);
 			    $GLOBALS['config']->set('user-_-' . $_SESSION['plexUserName'], $type . 'Name', $name);
@@ -1834,12 +1836,12 @@
 	/// What used to be a big ugly THING is now just a wrapper and parser of the result of scanDevices
 	function fetchClientList($devices) {
 		write_log("Function Fired.");
-		$current = $GLOBALS['config']->get('user-_-' . $_SESSION['plexUserName'], 'plexClientId', false);
-        $options = "";
+		$options = "";
 		if (isset($devices['clients'])) {
 			if (!(isset($_GET['pollPlayer']))) write_log("Client list retrieved.");
 			foreach($devices['clients'] as $key => $client) {
-                $selected = ($current ? (trim($client['id']) == trim($current)) : $key===0);
+                $selected = (trim($client['id']) == trim($_SESSION['plexClientId']));
+                if ($selected) write_log("This device is selected: ".$client['name']);
 				$id = $client['id'];
 				$name = $client['name'];
 				$uri = $client['uri'];
@@ -4168,6 +4170,7 @@
                     $output['data']['google']['expectedInputs'][0]['possibleIntents'][0]['inputValueData']['@type'] = "type.googleapis.com/google.actions.v2.OptionValueSpec";
                     $output['data']['google']['expectedInputs'][0]['possibleIntents'][0]['intent'] = "actions.intent.OPTION";
                 } else {
+	                $cards[0]['image']['accessibility_text']="Sweet picture you can't see.";
                     write_log("Should be formatting a BasicCard here: " . json_encode($cards[0]));
                     array_push($items,['basic_card'=>$cards[0]]);
                 }
@@ -4193,6 +4196,61 @@
 		write_log("JSON out is ".json_encode($output));
 	}
 
+function returnSpeechv2($speech, $contextName, $cards=false, $waitForResponse=false, $suggestions=false) {
+	$suggestions = false; //TODO: Remove this whenever google gets me documentation
+	write_log("Final Speech should be: ".$speech);
+	if (! $cards) write_log("Card array is ".json_encode($cards));
+	header('Content-Type: application/json');
+	ob_start();
+	$cardArray = $items = $richResponse = $sugs = [];
+	$output["speech"] = $speech;
+	$output["contextOut"][0] = ["name"=>$contextName,"lifespan"=>2,"parameters"=>[]];
+	$output["data"]["google"]["expect_user_response"] = boolval($waitForResponse);
+	$output["data"]["google"]["isSsml"] = false;
+	$output["data"]["google"]["noInputPrompts"] = [];
+	$items[0] = ['simple_response'=>['text_to_speech'=>$speech,'display_text'=>$speech]];
+
+	if (is_array($cards)) {
+		write_log("Building card array.");
+		if (count($cards) == 1) {
+			write_log("Should be formatting a BasicCard here: " . json_encode($cards[0]));
+			array_push($items, ['basic_card' => $cards[0]]);
+		} else {
+			$carousel = [];
+			foreach ($cards as $card) {
+				$item = [];
+				$item['image'] = transcodeImage($card['image']);
+				$item['image']['accessibilityText'] = $card['title'];
+				$item['title'] = $card['title'];
+				$item['description'] = $card['summary'];
+				$item['option_info']['key'] = 'play '.$card['title'];
+				array_push($carousel, $item);
+			}
+			$output['data']['google']['systemIntent']['intent'] = 'actions.intent.OPTION';
+			$output['data']['google']['systemIntent']['data']['@type'] = 'type.googleapis.com/google.actions.v2.OptionValueSpec';
+			$output['data']['google']['systemIntent']['data']['listSelect']['items'] = $carousel;
+			//$output['data']['google']['system_intent']['spec']['option_value_spec']['list_select']['items'] = $carousel;
+			$output['data']['google']['expectedInputs'][0]['possibleIntents'][0]['inputValueData']['@type'] = "type.googleapis.com/google.actions.v2.OptionValueSpec";
+			$output['data']['google']['expectedInputs'][0]['possibleIntents'][0]['intent'] = "actions.intent.OPTION";
+
+		}
+	}
+
+	$output['data']['google']['richResponse']['items'] = $items;
+
+	if (is_array($suggestions)) {
+		$sugs = [];
+		foreach ($suggestions as $suggestion) {
+			array_push($sugs, ["title" => $suggestion]);
+		}
+	}
+
+	$output['data']['google']['richResponse']['suggestions'] = $sugs;
+
+	ob_end_clean();
+	echo json_encode($output);
+	write_log("JSON out is ".json_encode($output));
+}
 
 
 
