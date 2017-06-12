@@ -26,11 +26,11 @@ function makeBody() {
     $_SESSION['returnItems'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'returnItems', "6");
     $_SESSION['rescanTime'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'rescanTime', "6");
 
-    $_SESSION['ip_couch'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'couchIP', 'localhost');
-    $_SESSION['ip_ombi'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'ombiUrl', 'localhost');
-    $_SESSION['ip_sonarr'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'sonarrIP', 'localhost');
-    $_SESSION['ip_sick'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'sickIP', 'localhost');
-    $_SESSION['ip_radarr'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'radarrIP', 'localhost');
+    $_SESSION['ip_couch'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'couchIP', 'http://localhost');
+    $_SESSION['ip_ombi'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'ombiUrl', 'http://localhost');
+    $_SESSION['ip_sonarr'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'sonarrIP', 'http://localhost');
+    $_SESSION['ip_sick'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'sickIP', 'http://localhost');
+    $_SESSION['ip_radarr'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'radarrIP', 'http://localhost');
 
     $_SESSION['port_couch'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'couchPort', '5050');
     $_SESSION['port_ombi'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'ombiPort', '3579');

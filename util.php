@@ -20,7 +20,9 @@
 			$apiToken = randomToken(21);
 			$cleaned = str_repeat("X", strlen($apiToken)); 
 			write_log("API token created ".$cleaned);
-			$config->set('user-_-'.$userName,'apiToken',$apiToken);
+			$userString = 'user-_-'.$userName;
+			$config->set('user-_-'.$userString,'apiToken',$apiToken);
+			write_log("Setting some other values.");
 			saveConfig($config);
 		}
 		return $apiToken;
@@ -120,20 +122,22 @@
 	
 	// Grab an image from a server and save it locally
 	function cacheImage($url) {
+    	write_log("Function fired, caching ".$url);
         $path = $url;
 		try {
-		    $URL_REF = 'https://'.$_SERVER['HTTP_HOST'];
+		    $URL_REF = $_SESSION['publicAddress'] ?? 'https://'.$_SERVER['HTTP_HOST'];
             $cacheDir = file_build_path(dirname(__FILE__),"img","cache");
             if (!file_exists($cacheDir)) {
                 write_log("No cache directory found, creating.","INFO");
                 mkdir($cacheDir, 0777, true);
             }
          	$cached_filename = md5($url);
-           $files = glob($cacheDir . '/*.{jpg,jpeg,png,gif}', GLOB_BRACE);
+			$files = glob($cacheDir . '/*.{jpg,jpeg,png,gif}', GLOB_BRACE);
 			$now = time();
 			foreach($files as $file) {
 			    $fileName = explode('.',basename($file));
             	if ($fileName[0] == $cached_filename) {
+            		write_log("File is already cached.");
                     $path = $URL_REF .getRelativePath(dirname(__FILE__),$file);
             	} else {
                     if (is_file($file)) {
@@ -144,18 +148,22 @@
                 }
 			}
 			if ($path == $url) {
+				write_log("Caching file.");
 			    $image = file_get_contents($url);
                 if ($image) {
+                	write_log("Image retrieved successfully!");
                     $tempName = file_build_path($cacheDir, $cached_filename);
                     file_put_contents($tempName, $image);
                     $imageData = getimagesize($tempName);
                     $extension = image_type_to_extension($imageData[2]);
                     if ($extension) {
+                    	write_log("Extension detected successfully!");
                         $filenameOut = file_build_path($cacheDir, $cached_filename.$extension);
                         $result = file_put_contents($filenameOut, $image);
                         if ($result) {
                             rename($tempName, $filenameOut);
                             $path = $URL_REF . getRelativePath(dirname(__FILE__), $filenameOut);
+                            write_log("Success, returning cached URL: ".$path);
                         }
                     } else {
                         unset($tempName);
@@ -169,13 +177,13 @@
 	}
 
 	function transcodeImage($path,$uri=false,$token=false) {
-    	$server = $uri ?? $_SESSION['uri_plexserver_public'];
-    	$token = $token ?? $_SESSION['token_plexserver'];
+    	$server = $uri ?? $_SESSION['plexServerPublicUri'];
+    	$token = $token ?? $_SESSION['plexServerToken'];
     	write_log("Function fired");
 		$image = $server."/photo/:/transcode?width=1920&height=1920&minSize=1&url=".$path."&X-Plex-Token=".$token;
 		write_log("Image path: ".$image);
 		if (is_file($image) && file_exists($image)) return $image;
-		$path = $_SESSION['uri_plexserver'].$path."?X-Plex-Token=".$_SESSION['token_plexserver'];
+		$path = $_SESSION['plexServerUri'].$path."?X-Plex-Token=".$_SESSION['plexServerToken'];
 		write_log("Couldn't transcode image, returning direct path: ".$path);
 		return $path;
 	}
@@ -273,7 +281,7 @@
 	function clientHeaders() {
         return array(
             'X-Plex-Client-Identifier:' . checkSetDeviceID(),
-            'X-Plex-Target-Client-Identifier:' . $_SESSION['id_plexclient'],
+            'X-Plex-Target-Client-Identifier:' . $_SESSION['plexClientId'],
             'X-Plex-Device:PhlexWeb',
             'X-Plex-Device-Name:Phlex',
             'X-Plex-Device-Screen-Resolution:1520x707,1680x1050,1920x1080',
@@ -592,7 +600,13 @@ function clearSession() {
 		}
 	}
 	session_destroy();
-	header('Location: ./index.php');
-	die();
+	header('Location: '.$_SERVER['PHP_SELF']);
+	die;
+}
+
+function addScheme($url, $scheme = 'http://')
+{
+	return parse_url($url, PHP_URL_SCHEME) === null ?
+		$scheme . $url : $url;
 }
 

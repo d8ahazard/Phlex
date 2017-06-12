@@ -1,26 +1,37 @@
 var action = "play";
-var appName, token, deviceID, resultDuration, lastUpdate, itemJSON, apiToken, ombi, couch, sonarr, radarr, sick, publicIP, dvr, resolution, weatherClass, city, state, weatherHtml;
+var appName, token, deviceID, resultDuration, lastUpdate, itemJSON, apiToken, ombi, couch, hook, hooks, hookCustom, sonarr, radarr, sick, publicIP, dvr, resolution, weatherClass, city, state, weatherHtml;
 var condition = null;
 
 jQuery(document).ready(function($) {
+
+    var loginBox = $('.loginBox');
+    if (loginBox.css('display') !== 'none') {
+        console.log("Hiding login box.");
+        loginBox.hide("slide", {direction: "up"}, 1000);
+        loginBox.remove();
+    }
     var bgDiv = $('.bg');
     if (bgDiv.css('display') === 'none') {
         bgDiv.fadeIn(2000);
     }
     $('#mainwrap').show("slide", { direction: "up" }, 750);
     $('.castArt').fadeIn(2000);
-    dvr = $("#plexdvr").attr('enable') === 'true';
+
+    dvr = $("#plexDvr").attr('enable') === 'true';
 	apiToken = $('#apiTokenData').attr('data');
 	token = $('#tokenData').attr('data');
 	deviceID = $('#deviceID').attr('data');
 	publicIP = $('#publicIP').attr('data');
     sonarr = $('#sonarr').attr('enable') === 'true';
-    sick = $('#sick').attr('enable') === 'true';
+    hook = $('#hook').attr('enable') === 'true';
+    hooks = $('#hookSplit').attr('enable') === 'true';
+    hookCustom = $('#hookCustom').attr('enable') === 'true';
+	sick = $('#sick').attr('enable') === 'true';
     couch = $('#couchpotato').attr('enable') === 'true';
     radarr = $('#radarr').attr('enable') === 'true';
     ombi = $('#ombi').attr('enable') === 'true';
 	$.material.init();
-    var Logdata = $('#logData').attr('data');
+	var Logdata = $('#logData').attr('data');
 	if (Logdata !== "") {
 		Logdata = decodeURIComponent(Logdata.replace(/\+/g, '%20'));
 		updateCommands(JSON.parse(Logdata),false);
@@ -263,15 +274,19 @@ jQuery(document).ready(function($) {
 	var sonarrEnabled = $('#sonarrEnabled');
 	var sickEnabled = $('#sickEnabled');
 	var radarrEnabled = $('#radarrEnabled');
-	
-	ombiEnabled.prop("checked",ombi);
+    var hookEnabled = $('#hookEnabled');
+    var hookSplit = $('#hookSplit');
+
+    ombiEnabled.prop("checked",ombi);
 	couchEnabled.prop("checked",couch);
 	sonarrEnabled.prop("checked",sonarr);
 	sickEnabled.prop("checked",sick);
 	radarrEnabled.prop("checked",radarr);
-	
-	
-	if (ombiEnabled.is(':checked')) {
+    hookSplit.prop("checked",hooks);
+    hookEnabled.prop("checked",hook);
+    $('#hookCustom').prop("checked",hookCustom);
+
+    if (ombiEnabled.is(':checked')) {
 		$('#ombiGroup').show();
 	} else {
 		$('#ombiGroup').hide();
@@ -299,6 +314,26 @@ jQuery(document).ready(function($) {
 		$('#radarrGroup').show();
 	} else {
 		$('#radarrGroup').hide();
+	}
+
+    if (hookEnabled.is(':checked')) {
+        $('#hookGroup').show();
+    } else {
+        $('#hookGroup').hide();
+    }
+
+    if (hookSplit.is(':checked')) {
+        $('#hookUrlGroup').hide();
+        $('.hookLabel').show();
+    } else {
+        $('#hookUrlGroup').show();
+        $('.hookLabel').hide();
+    }
+
+    if ($('#hookCustom').is(':checked')) {
+		$('#hookCustomPhraseGroup').show();
+	} else {
+        $('#hookCustomPhraseGroup').hide();
 	}
 
 	if (dvr) {
@@ -335,10 +370,25 @@ jQuery(document).ready(function($) {
 		$('#radarrGroup').toggle();
 	});
 
+    hookEnabled.change(function() {
+        $('#hookGroup').toggle();
+    });
+
+    hookSplit.change(function() {
+        $('#hookUrlGroup').toggle();
+        $('.hookLabel').toggle();
+    });
+
+    $('#hookCustom').change(function() {
+        $('#hookCustomPhraseGroup').toggle();
+    });
+
+
+
     $('#resolution').change(function() {
 		apiToken = $('#apiTokenData').attr('data');
 		var res = $(this).find('option:selected').attr('value');
-		$.get('api.php?apiToken=' + apiToken, {id:'resolution', value:res});
+		$.get('api.php?apiToken=' + apiToken, {id:'plexDvrResolution', value:res});
 	});
 	
 	
@@ -368,7 +418,6 @@ jQuery(document).ready(function($) {
     setInterval(function() {
     	setWeather();
     }, 30000);
-
 
 });
 
@@ -502,7 +551,6 @@ function updateCommands(data,prepend) {
             try {
 				var initialCommand = ucFirst(value.initialCommand);
 				var timeStamp = ($.inArray('timeStamp',value) ? $.trim(value.timestamp) : '');
-				console.log("Got an item: ", value);
 				speech = (value.speech ? value.speech : "");
 				var status = (value.mediaStatus ? value.mediaStatus : "");
 				itemJSON = value;
@@ -510,9 +558,7 @@ function updateCommands(data,prepend) {
 				var mediaDiv = false;
 				// Build our card
 				if (value.hasOwnProperty('card')) {
-					console.log("I think it has a card?");
 					if (($.inArray('card',value)) && (value.card !== 'false')) {
-						console.log("Yeah, it definitely has a card.");
 						mediaDiv = buildCards(value,i);
 					}
 				}
@@ -563,9 +609,8 @@ function updateCommands(data,prepend) {
 					});
 			});
 
-
-
             $('.cardClose').click(function() {
+            	$(this).open();
                 var id = $(this).attr("id");
                 console.log("We need to remove card with id of " + id);
                 $(this).parent().parent().slideUp();
@@ -578,6 +623,13 @@ function updateCommands(data,prepend) {
 
                 });
             })
+            Swiped.init({
+                query: '.resultDiv',
+                left: 1000,
+                onOpen: function() {
+                    this.destroy(true)
+                }
+            });
 		})
 		
 	}
@@ -621,7 +673,6 @@ setInterval(function() {
 function buildCards(value,i) {
     var initialCommand = ucFirst(value.initialCommand);
     var timeStamp = ($.inArray('timeStamp',value) ? $.trim(value.timestamp) : '');
-    console.log("Got an item: ", value);
     speech = (value.speech ? value.speech : "");
     var status = (value.mediaStatus ? value.mediaStatus : "");
     itemJSON = value;
@@ -633,7 +684,7 @@ function buildCards(value,i) {
     if (cardArray.length === 1) {
     	var card = cardArray[0];
         // Determine if we should be using a Plex path, or a full path
-        subtitle = ((card.hasOwnProperty('subtitle')) ? '<h6 class="card-subtitle text-muted cardtagline">' + card.subtitle + '</h6>' : '');
+        subtitle = ((card.hasOwnProperty('subtitle') && (card.subtitle != null)) ? '<h6 class="card-subtitle text-muted cardtagline">' + card.subtitle + '</h6>' : '');
         formatted_text = ((card.hasOwnProperty('formatted_text')) ? '<br><p class="card-text cardsummary">' + card.formatted_text + '</p>' : '');
         cardDiv = '' +
             '<img src="' + card.image.url + '" onerror="imgError(this);" class="card-img-top"/>' +
@@ -732,7 +783,6 @@ function formatAMPM() {
 
 function fetchWeather() {
     $.get("https://freegeoip.net/json/", function (data) {
-        console.log("Caching data");
         city = data.city;
         state = data.region_name;
         console.log("Data: ", data + "City: "+ city + " State: " + state);
@@ -741,8 +791,7 @@ function fetchWeather() {
             woeid: '',
             unit: 'f',
             success: function (weather) {
-            	console.log("Success");
-                weatherHtml = weather.temp + String.fromCharCode(176) + weather.units.temp;
+            	weatherHtml = weather.temp + String.fromCharCode(176) + weather.units.temp;
                 condition = weather.code;
                 console.log("Setting weather for " + city + ", "+state+" of " + condition + " and description " + weatherHtml);
             },

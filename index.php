@@ -6,6 +6,7 @@
 <!doctype html>
 <html>
     <head>
+        <title>Phlex Web</title>
         <meta charset="UTF-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -32,7 +33,6 @@
         <link href="./css/main.css" rel="stylesheet">
         <link href="./css/jquery-ui.min.css" rel="stylesheet">
 
-
         <!--[if lt IE 9]>
         <link href="/css/bootstrap-ie8.css" rel="stylesheet">
         <script src="https://cdn.jsdelivr.net/g/html5shiv@3.7.3,respond@1.4.2"></script>
@@ -50,27 +50,25 @@
         <script type="text/javascript" src="./js/material.min.js"></script>
         <script type="text/javascript" src="./js/ripples.min.js"></script>
         <script type="text/javascript" src="./js/nouislider.min.js"></script>
-
-
+        <script type="text/javascript" src="./js/swiped.min.js"></script>
     </head>
 
     <body style="background-color:black">
-    <div class="modal fade" id="alertModal">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="alertTitle">Modal title</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+        <div class="modal fade" id="alertModal">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="alertTitle">Modal title</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body" id="alertBody">
+                        <p>Modal body text goes here.</p>
+                    </div>
                 </div>
-                <div class="modal-body" id="alertBody">
-                    <p>Modal body text goes here.</p>
-                </div>
-
             </div>
         </div>
-    </div>
         <div id="bgwrap">
             <div class="bg bgLoaded"></div>
         </div>
@@ -101,13 +99,12 @@
                 echo '
                     <div class="loginBox">
                         <div class="login-box">
-                        <div class="card loginCard">
+                            <div class="card loginCard">
                             <div class="card-block">
                                 <b><h3 class="loginLabel card-title">Welcome to Phlex!</h3></b>
                                 <img class="loginLogo" src="./img/phlex.png" alt="Card image">
                                 <h6 class="loginLabel card-subtitle text-muted">Please log in below to begin.</h6>
                             </div>
-                            
                             <div class="card-block">
                                 <form id="loginForm" method="post">
                                     <div class="label-static form-group loginGroup">
@@ -130,7 +127,7 @@
                     <script type="text/javascript" src="./js/login.js"></script>';
                 die();
             } else {
-                define('LOGGED_IN', true);
+	            define('LOGGED_IN', true);
                 require_once dirname(__FILE__) . '/body.php';
                 echo makeBody();
             }
