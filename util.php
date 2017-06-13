@@ -204,7 +204,6 @@
  
 	// Fetch data from a URL using CURL
 	function curlGet($url, $headers=null,$timeout=4) {
-        //write_log("Function fired");
         $certPath = file_build_path(dirname(__FILE__),"cert","cacert.pem");
         $mc = JMathai\PhpMultiCurl\MultiCurl::getInstance();
 		$ch = curl_init();
@@ -214,12 +213,9 @@
         curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
 		curl_setopt ($ch, CURLOPT_CAINFO, $certPath);
 		if ($headers) curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-		//$result = curl_exec($ch);
-		//curl_close ($ch);
-        $call = $mc->addCurl($ch);
+		$call = $mc->addCurl($ch);
         // Access response(s) from your cURL calls.
         $result = $call->response;
-		//write_log("URL is ".$url.". Result is ".$result);
 		return $result;
 	}
 	

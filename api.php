@@ -1711,8 +1711,8 @@
                         $protocol = ($device['httpsRequired'] === "1") ? 'https' : 'http';
                         foreach ($deviceXML->Connection as $connection) {
                             $con = json_decode(json_encode($connection), true);
-                            if (filter_var($con['@attributes']['address'], FILTER_VALIDATE_IP,
-	                            FILTER_FLAG_NO_RES_RANGE)) {
+                            if ((filter_var($con['@attributes']['address'], FILTER_VALIDATE_IP,
+	                            FILTER_FLAG_NO_RES_RANGE)) || (preg_match("/plex.services/",$con['@attributes']['address']))) {
 	                            if ((isset($list['servers'])) && ($device['product'] === 'Plex Media Server')) {
 		                            foreach ($list['servers'] as $server) {
 			                            if ($server['id'] === $device['id']) {
