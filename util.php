@@ -177,6 +177,7 @@
 	}
 
 	function transcodeImage($path,$uri=false,$token=false) {
+    	if (! $uri) $uri = $_SESSION['plexServerUri'];
     	$server = $uri ?? $_SESSION['plexServerPublicUri'];
     	$token = $token ?? $_SESSION['plexServerToken'];
     	write_log("Function fired");
@@ -201,7 +202,7 @@
         $mc = JMathai\PhpMultiCurl\MultiCurl::getInstance();
         return $mc;
     }
- 
+
 	// Fetch data from a URL using CURL
 	function curlGet($url, $headers=null,$timeout=4) {
         $certPath = file_build_path(dirname(__FILE__),"cert","cacert.pem");
