@@ -123,7 +123,7 @@
 	// Grab an image from a server and save it locally
 	function cacheImage($url) {
     	write_log("Function fired, caching ".$url);
-        $path = $url;
+        $path = '';
 		try {
 		    $URL_REF = $_SESSION['publicAddress'] ?? 'https://'.$_SERVER['HTTP_HOST'];
             $cacheDir = file_build_path(dirname(__FILE__),"img","cache");
@@ -177,21 +177,24 @@
 	}
 
 	function transcodeImage($path,$uri=false,$token=false) {
-    	$server = $uri ?? $_SESSION['plexServerPublicUri'] ?? $_SESSION['plexServerUri'] ?? false;
-    	$token = $token ?? $_SESSION['plexServerToken'];
-    	write_log("Function fired");
-    	if ($uri) {
+		write_log("Function fired");
+    	$addr = [$uri,$_SESSION['plexServerUri'],$_SESSION['plexServerPublicUri']];
+    	foreach($addr as $foo) write_log("URI: ".$foo);
+    	write_log("Path: ".$path);
+    	if ($uri) $server = $uri;
+    	$server = $server ?? $_SESSION['plexServerPublicUri'] ?? $_SESSION['plexServerUri'] ?? false;
+    	if ($token) $serverToken = $token;
+    	$token = $serverToken ?? $_SESSION['plexServerToken'];
+    	if ($server) {
 		    $image = $server . "/photo/:/transcode?width=1920&height=1920&minSize=1&url=" . $path . "&X-Plex-Token=" . $token;
 		    write_log("Image path: " . $image);
-		    if (is_file($image) && file_exists($image)) return $image;
-	    }
-	    if (isset($_SESSION['plexServerUri'])) {
-		    $path = $_SESSION['plexServerUri'] . $path . "?X-Plex-Token=" . $_SESSION['plexServerToken'];
-		    write_log("Couldn't transcode image, returning direct path: " . $path);
+		    if (file_get_contents($image)) {
+		    	write_log("Image valid, returning");
+		    	return $image;
+		    }
 	    } else {
-    		write_log("No server URI, can't transcode image!","ERROR");
-    		return false;
-	    }
+		    $path = cacheImage($_SESSION['plexServerUri'] . $path . "?X-Plex-Token=" . $_SESSION['plexServerToken']);
+		}
 		return $path;
 	}
 

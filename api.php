@@ -9,7 +9,6 @@
     use Kryptonit3\Sonarr\Sonarr;
 
 	$config = new Config_Lite('config.ini.php');
-
 	setDefaults();
     checkSignIn();
     $user = validateCredentials();
@@ -123,7 +122,7 @@
 		    $type = $_GET['device'];
 		    $id = $_GET['id'];
 		    $uri = $_GET['uri'];
-		    $publicUri = $_GET['publicUri'] ?? $uri;
+		    $publicUri = $_GET['publicuri'] ?? $uri;
 		    $name = $_GET['name'];
 		    $product = $_GET['product'];
 		    write_log('GET: New device selected. Type is ' . $type . ". ID is " . $id . ". Name is " . $name);
@@ -1868,7 +1867,7 @@
 				$uri = $client['uri'];
 				$token = $client['token'];
 				$product = $client['product'];
-				$publicAddress = (isset($client['publicUri']) ? " publicAddress='".$client['publicUri']."'" : "");
+				$publicAddress = $client['publicUri'] ?? "";
                 $options .= '<option type="plexServerId" publicUri="'. $publicAddress .'" product="'.$product.'" value="'
 	                .$id
 	                .'" uri="'.$uri.'" name="'.$name.'" '.' token="'.$token.'" '.($selected ? ' selected':'').'>'.ucwords($name).'</option>';
@@ -3058,12 +3057,11 @@
                                         $seriesThumb = (isset($item['parentThumb']) ? $item['parentThumb'] : $item['grandparentThumb']);
                                         $thumb = (($item['type'] === 'episode') ? $seriesThumb : $item['thumb']);
                                         #TODO: Get the public address of the server it's playing on, not the one we have selected.
-	                                    $thumb = $uri."/photo/:/transcode?width=1920&height=1920&minSize=1&url=".$thumb."&X-Plex-Token=".$token;
-                                        //write_log("ThumbURL: ".$thumb);
+	                                    $thumb = transcodeImage($thumb,$uri,$token);
                                         $status['mediaResult']['thumb'] = $thumb;
                                         $art = (isset($item['art']) ? $item['art'] : false);
                                         if ($art) {
-                                            $art = $uri."/photo/:/transcode?width=1920&height=1920&minSize=1&url=".$art."&X-Plex-Token=".$token;
+                                            $art = transcodeImage($art,$uri,$token);
                                             $status['mediaResult']['art'] = $art;
                                         }
                                         $status['status'] = (string)$Timeline['state'];
