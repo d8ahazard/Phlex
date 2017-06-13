@@ -329,7 +329,8 @@ class Chromecast {
 		$this->requestId++;
 
 		$oldtransportid = $this->transportid;
-		while ($this->transportid == "" || $this->transportid == $oldtransportid) {
+		$count = 0;
+		while (($this->transportid == "" || $this->transportid == $oldtransportid) && ($count < 5))  {
 			$r = $this->getCastMessage();
 			write_log("Looking for a cast message: ".$r);
 		}
@@ -352,8 +353,8 @@ class Chromecast {
 		$this->lastactivetime = time();
 		$this->requestId++;
 		$r = "";
-
-		while ($this->transportid == "") {
+		$count = 0;
+		while (($this->transportid == "") && ($count < 10)) {
 			$r = $this->getCastMessage();
 			if (preg_match("/controlType\"\:\"master\"/",$r) && !preg_match("/transportId/",$r)) {
 				// Assume this is nvidia shield.
@@ -361,6 +362,7 @@ class Chromecast {
 				$this->sessionid = 0;
 			}
 			write_log("Looping for R: ".$r);
+			$count++;
 		}
 		return $r;
 	}

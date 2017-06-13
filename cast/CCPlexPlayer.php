@@ -18,10 +18,12 @@ class CCPlexPlayer extends CCBaseSender
                 
 		$this->chromecast->sendMessage("urn:x-cast:com.google.cast.media", $json);
 		$r = "";
-		while (!preg_match("/\"playerState\":\"PAUSED\"/",$r)) {
+		$count = 0;
+		while ((!preg_match("/\"playerState\":\"PAUSED\"/",$r)) && ($count < 5)) {
 			$r = $this->chromecast->getCastMessage();
 			write_log("R is ".$r);
 			sleep(1);
+			if ($r = "") $count++;
 		}
 		// Grab the mediaSessionId
 		preg_match("/\"mediaSessionId\":([^\,]*)/",$r,$m);
@@ -54,9 +56,11 @@ class CCPlexPlayer extends CCBaseSender
 			$this->chromecast->launch($this->appid);
 			$this->chromecast->transportid = "";
 			$r = "";
-			while (!preg_match("/Plex/",$r) && !preg_match("/Default Media Receiver/",$r)) {
+			$count = 0;
+			while ((!preg_match("/Plex/",$r) && !preg_match("/Default Media Receiver/",$r)) && ($count < 5)) {
 				$r = $this->chromecast->getStatus();
 				write_log("Gettingstatus 3");
+				if ($r = "") $count++;
 			}
 			$this->chromecast->connect(0);
 		}
