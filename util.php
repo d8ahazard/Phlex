@@ -177,15 +177,21 @@
 	}
 
 	function transcodeImage($path,$uri=false,$token=false) {
-    	if (! $uri) $uri = $_SESSION['plexServerUri'];
-    	$server = $uri ?? $_SESSION['plexServerPublicUri'];
+    	$server = $uri ?? $_SESSION['plexServerPublicUri'] ?? $_SESSION['plexServerUri'] ?? false;
     	$token = $token ?? $_SESSION['plexServerToken'];
     	write_log("Function fired");
-		$image = $server."/photo/:/transcode?width=1920&height=1920&minSize=1&url=".$path."&X-Plex-Token=".$token;
-		write_log("Image path: ".$image);
-		if (is_file($image) && file_exists($image)) return $image;
-		$path = $_SESSION['plexServerUri'].$path."?X-Plex-Token=".$_SESSION['plexServerToken'];
-		write_log("Couldn't transcode image, returning direct path: ".$path);
+    	if ($uri) {
+		    $image = $server . "/photo/:/transcode?width=1920&height=1920&minSize=1&url=" . $path . "&X-Plex-Token=" . $token;
+		    write_log("Image path: " . $image);
+		    if (is_file($image) && file_exists($image)) return $image;
+	    }
+	    if (isset($_SESSION['plexServerUri'])) {
+		    $path = $_SESSION['plexServerUri'] . $path . "?X-Plex-Token=" . $_SESSION['plexServerToken'];
+		    write_log("Couldn't transcode image, returning direct path: " . $path);
+	    } else {
+    		write_log("No server URI, can't transcode image!","ERROR");
+    		return false;
+	    }
 		return $path;
 	}
 

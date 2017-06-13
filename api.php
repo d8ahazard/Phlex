@@ -357,7 +357,7 @@
 				$GLOBALS['config']->set('user-_-'.$_SESSION['plexUserName'],'plexServerProduct',$server['product']);
 				$GLOBALS['config']->set('user-_-'.$_SESSION['plexUserName'],'plexServerName',$server['name']);
 				$GLOBALS['config']->set('user-_-'.$_SESSION['plexUserName'],'plexServerUri',$server['uri']);
-				$GLOBALS['config']->set('user-_-'.$_SESSION['plexUserName'],'plexServerPublicUri',$server['publicURI']);
+				$GLOBALS['config']->set('user-_-'.$_SESSION['plexUserName'],'plexServerPublicUri',$server['publicUri']);
 				$GLOBALS['config']->set('user-_-'.$_SESSION['plexUserName'],'plexServerPublicAddress',$server['publicAddress']);
 				$GLOBALS['config']->set('user-_-'.$_SESSION['plexUserName'],'plexServerToken',$server['token']);
 				fetchSections();
@@ -1740,7 +1740,7 @@
 		                            }
 	                            }
 	                            if ($con['@attributes']['local'] == 0) {
-		                            $device['publicURI'] = $protocol . "://" . $con['@attributes']['address'] . ":" . $con['@attributes']['port'];
+		                            $device['publicUri'] = $protocol . "://" . $con['@attributes']['address'] . ":" . $con['@attributes']['port'];
 	                            }
 	                            array_push($connections, (array)$con['@attributes']);
                             } else write_log("IP is loopback, filtering: ".$con['@attributes']['address']);
@@ -1868,7 +1868,7 @@
 				$uri = $client['uri'];
 				$token = $client['token'];
 				$product = $client['product'];
-				$publicAddress = (isset($client['publicURI']) ? " publicAddress='".$client['publicURI']."'" : "");
+				$publicAddress = (isset($client['publicUri']) ? " publicAddress='".$client['publicUri']."'" : "");
                 $options .= '<option type="plexServerId" publicUri="'. $publicAddress .'" product="'.$product.'" value="'
 	                .$id
 	                .'" uri="'.$uri.'" name="'.$name.'" '.' token="'.$token.'" '.($selected ? ' selected':'').'>'.ucwords($name).'</option>';
@@ -1890,7 +1890,7 @@
 				$uri = $client['uri'];
 				$token = $client['token'];
 				$product = $client['product'];
-                $publicAddress = (isset($client['publicURI']) ? " publicAddress='".$client['publicURI']."'" : "");
+                $publicAddress = (isset($client['publicUri']) ? " publicAddress='".$client['publicUri']."'" : "");
 				$options .= '<option type="plexDvr" '. $publicAddress .' product="'.$product.'" value="'.$id.'" uri="'.$uri.'" name="'.$name.'" token="'.$token.'" '.($selected ? ' selected':'').'>'.ucwords($name).'</option>';
 			}
 		}
