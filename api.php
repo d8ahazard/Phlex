@@ -3,7 +3,7 @@
 	require_once dirname(__FILE__) . '/cast/Chromecast.php';
     require_once dirname(__FILE__) . '/util.php';
     require_once dirname(__FILE__) . '/body.php';
-	require_once dirname(__FILE__) . '/new_body.php';
+	//require_once dirname(__FILE__) . '/new_body.php';
 
 	use Kryptonit3\SickRage\SickRage;
     use Kryptonit3\Sonarr\Sonarr;
