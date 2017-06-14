@@ -1259,6 +1259,7 @@
 				} else $speech .= $names[0];
 				$tail = ".";
 				if ($days == 'now') $tail = " is on the schedule.";
+				if ((preg_match("/day/",$days)) || ($days == 'tomorrow') || ($days == 'weekend')) $tail= " on the schedule.";
 				$speech .= $tail;
 			} else {
 				$speech = "Sorry, it doesn't look you have any scheduled recordings for that day.";
@@ -2320,7 +2321,7 @@
 		return false;
 	}
 
-	function fetchMediaExtra($ratingKey) {
+	function fetchMediaExtra($ratingKey,$returnAll) {
         $extraURL = $_SESSION['plexServerUri'] . "/library/metadata/" . $ratingKey . "?X-Plex-Token=" . $_SESSION['plexServerToken'];
         write_log("Extras URL is " . $extraURL);
         $extra = curlGet($extraURL);
@@ -2328,8 +2329,10 @@
             $extra = new SimpleXMLElement($extra);
             write_log("Media Extra: " . json_encode($extra));
             $extras =json_decode(json_encode($extra),true);
+            if ($returnAll) return $extras;
             $extra = $extras['Video']['@attributes'] ?? $extras['Directory']['@attributes'];
-            return $extra;
+	        write_log("Media Extra: " . json_encode($extra));
+	        return $extra;
         }
         return false;
     }
