@@ -1258,8 +1258,7 @@
 					}
 				} else $speech .= $names[0];
 				$tail = ".";
-				if ($days == 'now') $tail = " is scheduled.";
-				if ((preg_match("/day/",$days)) || ($days == 'tomorrow') || ($days == 'weekend')) $tail= " scheduled.";
+				if ($days == 'now') $tail = " is on the schedule.";
 				$speech .= $tail;
 			} else {
 				$speech = "Sorry, it doesn't look you have any scheduled recordings for that day.";
@@ -3442,12 +3441,15 @@
 				foreach($scheduled as $showItem) {
 					if ($showItem['@attributes']['status']==='scheduled') {
 						$show = $showItem['Video']['@attributes'];
-						$date = $showItem['Video']['Media']['@attributes']['beginsAt'];
-						$airDate = new DateTime("@$date");
-						if ($airDate >= $startDate && $airDate <= $endDate) {
-							$item = ['title' => $show['grandparentTitle'], 'summary' => $show['summary'], 'year' => $show['year'], 'thumb' => $show['grandparentThumb'], 'airdate' => $date];
-							array_push($list, $item);
-						}
+						$date = (isset($showItem['Video']['Media'][0]['@attributes']['beginsAt']) ? $showItem['Video']['Media'][0]['@attributes']['beginsAt'] : false);
+						if (! $date) $date = (isset($showItem['Video']['Media']['@attributes']['beginsAt']) ? $showItem['Video']['Media']['@attributes']['beginsAt'] : false);
+						if ($date) {
+							$airDate = new DateTime("@$date");
+							if ($airDate >= $startDate && $airDate <= $endDate) {
+								$item = ['title' => $show['grandparentTitle'], 'summary' => $show['summary'], 'year' => $show['year'], 'thumb' => $show['grandparentThumb'], 'airdate' => $date];
+								array_push($list, $item);
+							}
+						} else write_log("Unable to parse media date, tell your developer.","ERROR");
 					}
 				}
 				write_log("DVR Scheduled: ".json_encode($scheduled));
