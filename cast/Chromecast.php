@@ -23,8 +23,9 @@ class Chromecast {
 	public $lastip = ""; // Store the last connected IP
 	public $lastport; // Store the last connected port
 	public $lastactivetime; // store the time we last did something
+	public $breakout; // A limiter for while loops
 
-	public function __construct($ip, $port) {
+	public function __construct($ip, $port,$breakout=5) {
 		write_log("Function fired.");
 		// Establish Chromecast connection
 
@@ -34,7 +35,7 @@ class Chromecast {
 		$contextOptions = ['ssl' => ['verify_peer' => false, 'verify_peer_name' => false,]];
 		$context = stream_context_create($contextOptions);
 
-		if ($this->socket = stream_socket_client('ssl://' . $ip . ":" . $port, $errno, $errstr, 5, STREAM_CLIENT_CONNECT, $context)) {
+		if ($this->socket = stream_socket_client('ssl://' . $ip . ":" . $port, $errno, $errstr, $breakout, STREAM_CLIENT_CONNECT, $context)) {
 		} else {
 		 	write_log("Failed to connect to remote Chromecast: ".$errstr, "ERROR");
 			die();
@@ -42,6 +43,8 @@ class Chromecast {
 
 		$this->lastip = $ip;
 		$this->lastport = $port;
+		$this->breakout = $breakout;
+
 		$this->lastactivetime = time();
 
 		// Create an instance of the DMP for this CCDefaultMediaPlayer
@@ -330,7 +333,7 @@ class Chromecast {
 
 		$oldtransportid = $this->transportid;
 		$count = 0;
-		while (($this->transportid == "" || $this->transportid == $oldtransportid) && ($count < 5))  {
+		while (($this->transportid == "" || $this->transportid == $oldtransportid) && ($count < $this->breakout))  {
 			$r = $this->getCastMessage();
 			write_log("Looking for a cast message: ".$r);
 		}
@@ -354,7 +357,7 @@ class Chromecast {
 		$this->requestId++;
 		$r = "";
 		$count = 0;
-		while (($this->transportid == "") && ($count < 20)) {
+		while (($this->transportid == "") && ($count < $this->breakout * 4)) {
 			$r = $this->getCastMessage();
 			if (preg_match("/controlType\"\:\"master\"/",$r) && !preg_match("/transportId/",$r)) {
 				// Assume this is nvidia shield.
