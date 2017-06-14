@@ -19,11 +19,11 @@ class CCPlexPlayer extends CCBaseSender
 		$this->chromecast->sendMessage("urn:x-cast:com.google.cast.media", $json);
 		$r = "";
 		$count = 0;
-		while ((!preg_match("/\"playerState\":\"PAUSED\"/",$r)) && ($count < 5)) {
+		while ((!preg_match("/\"playerState\":\"PAUSED\"/",$r)) && ($count < 10)) {
 			$r = $this->chromecast->getCastMessage();
 			write_log("R is ".$r);
 			sleep(1);
-			if ($r = "") $count++;
+			$count++;
 		}
 		// Grab the mediaSessionId
 		preg_match("/\"mediaSessionId\":([^\,]*)/",$r,$m);
@@ -108,11 +108,11 @@ class CCPlexPlayer extends CCBaseSender
         
         public function plexStatus() {
             write_log("Function fired.");
-                $this->launch();
-		$this->chromecast->sendMessage("urn:x-cast:com.google.cast.media",'{"type":"GET_STATUS", "requestId":1}');
-		$r = $this->chromecast->getCastMessage();
-                $r = substr($r, strpos($r,'{"type'),50000);
-                return json_encode($r);
+			$this->launch();
+			$this->chromecast->sendMessage("urn:x-cast:com.google.cast.media",'{"type":"GET_STATUS", "requestId":1}');
+			$r = $this->chromecast->getCastMessage();
+			$r = substr($r, strpos($r,'{"type'),50000);
+			return $r;
         }
         
 	public function Mute() {

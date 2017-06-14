@@ -354,7 +354,7 @@ class Chromecast {
 		$this->requestId++;
 		$r = "";
 		$count = 0;
-		while (($this->transportid == "") && ($count < 10)) {
+		while (($this->transportid == "") && ($count < 20)) {
 			$r = $this->getCastMessage();
 			if (preg_match("/controlType\"\:\"master\"/",$r) && !preg_match("/transportId/",$r)) {
 				// Assume this is nvidia shield.
@@ -394,11 +394,11 @@ class Chromecast {
 		// in the packet and we can read that directly.
 		$this->testLive();
 		//stream_set_timeout($this->socket,1);
-		$response = fread($this->socket, 2000);
+		$response = fread($this->socket, 10000);
 		$pongcount = 0;
 		while (preg_match("/urn:x-cast:com.google.cast.tp.heartbeat/", $response) && preg_match("/\"PING\"/", $response)) {
 			if ($response != "") { $this->pong(); }
-			$response = fread($this->socket, 2000);
+			$response = fread($this->socket, 10000);
 			write_log("Response: ".$response);
 			if ($response == "" || preg_match("/\"PING\"/",$response)) {
 				$pongcount++;
