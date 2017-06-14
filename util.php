@@ -298,6 +298,18 @@
         );
     }
 
+function clientString() {
+	return '&X-Plex-Client-Identifier=' . checkSetDeviceID().
+		'&X-Plex-Target-Client-Identifier=' . $_SESSION['plexClientId'].
+		'&X-Plex-Device=PhlexWeb'.
+		'&X-Plex-Device-Name=Phlex'.
+		'&X-Plex-Device-Screen-Resolution=1520x707,1680x1050,1920x1080'.
+		'&X-Plex-Platform=Web'.
+		'&X-Plex-Platform-Version=1.0.0'.
+		'&X-Plex-Product=Phlex'.
+		'&X-Plex-Version=1.0.0';
+}
+
 
 	// Get the name of the function calling write_log
 	function getCaller() {
@@ -362,7 +374,8 @@
 	}
 	
 	function protectURL($string) {
-        if ($_SESSION['clean_logs']) {
+    	write_log("CleanLogs: ".(($_SESSION['cleanLogs'] == "true") ? 'ON' : 'OFF'));
+        if ($_SESSION['cleanLogs'] == "true") {
             $keys = parse_url($string);
             $cleaned = str_repeat("X", strlen($keys['host']));
             $string = str_replace($keys['host'], $cleaned, $string);

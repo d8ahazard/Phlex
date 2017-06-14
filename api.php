@@ -169,6 +169,9 @@
 			    $_SESSION['useCast'] = $value;
 			    scanDevices(true);
 		    }
+		    if (trim($id) === 'cleanLogs') {
+			    $_SESSION['cleanLogs'] = $value;
+		    }
 
 		    if (trim($id) === 'darkTheme') {
 			    write_log("API: Re-generating body.");
@@ -2813,6 +2816,9 @@
                     $result = playMediaCast($media);
 
 					break;
+				case 'PlexKodiConnect':
+					$result = playMediaRelayed($media);
+					break;
 				case 'Plex for Android':
 				    $result = (isset($media['queueID']) ? playMediaQueued($media) : playMediaDirect($media));
 					break;
@@ -2856,6 +2862,41 @@
 		$result['url'] = $playUrl;
 		$result['status'] = $status['status'];
 		return $result;
+	}
+
+	function playMediaRelayed($media) {
+		write_log("Function Fired.");
+		$server = parse_url($_SESSION['plexServerUri']);
+		$serverProtocol = $server['scheme'];
+		$serverIP = $server['host'];
+		$serverPort =$server['port'];
+		$serverID = $_SESSION['plexServerId'];
+		$queueID = (isset($media['queueID']) ? $media['queueID'] : queueMedia($media));
+		$transientToken = fetchTransientToken();
+		$_SESSION['counter']++;
+		write_log("Current command ID is " . $_SESSION['counter']);
+		write_log("Queue Token is ".$queueID);
+		$playUrl = $_SESSION['plexServerUri'].'/player/playback/playMedia'.
+			'?key='.urlencode($media['key']) .
+			'&offset='.($media['viewOffset']?$media['viewOffset']:0).
+			'&machineIdentifier=' .$serverID.
+			'&protocol='.$serverProtocol.
+			'&address=' .$serverIP.
+			'&port=' .$serverPort.
+			'&containerKey=%2FplayQueues%2F'.$queueID.'%3Fown%3D1%26window%3D200'.
+			'&token=' .$transientToken.
+			clientString().
+			'&X-Plex-Token=' .$_SESSION['plexServerToken'].
+			'&commandID='.$_SESSION['counter'];
+		$headers = clientHeaders();
+		$result = curlGet($playUrl,$headers);
+		write_log('Playback URL is ' . protectURL($playUrl));
+		write_log("Result value is ".$result);
+		$status = (((preg_match("/200/",$result) && (preg_match("/OK/",$result))))?'success':'error');
+		write_log("Result is ".$status);
+		$return['url'] = $playUrl;
+		$return['status'] = $status;
+		return $return;
 	}
 
 
@@ -3091,6 +3132,9 @@
 				case 'cast':
 					$result = castCommand($cmd);
 					break;
+				case 'PlexKodiConnect':
+					$result = relayCommand($cmd);
+					break;
 				default:
 					$url = $_SESSION['plexClientUri'].'/player/playback/'. $cmd . ((strstr($cmd, '?')) ? "&" : "?").'X-Plex-Token=' .$_SESSION['plexToken'];
 					$result = playerCommand($url);
@@ -3100,6 +3144,16 @@
 			return $result;
 	}
 
+	function relayCommand($cmd) {
+		write_log("Function fired");
+		$url = $_SESSION['plexServerUri'].'/player/playback/'.$cmd.'?type=video&commandID='.$_SESSION['counter'].
+			clientString().'&X-Plex-Token='.$_SESSION['plexServerToken'];
+		write_log("Relay URL: ".$url);
+		$result = curlGet($url);
+		write_log("Result: ".$result);
+
+		return $result;
+	}
 
 	function playerCommand($url) {
 		if (!(preg_match('/http/',$url))) $url = $_SESSION['plexClientUri'].$url;
