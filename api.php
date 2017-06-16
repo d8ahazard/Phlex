@@ -1745,7 +1745,7 @@
 		                            $device['publicUri'] = $protocol . "://" . $con['@attributes']['address'] . ":" . $con['@attributes']['port'];
 	                            }
 	                            array_push($connections, (array)$con['@attributes']);
-                            } else write_log("IP is loopback, filtering: ".$con['@attributes']['address']);
+                            } else write_log("IP is loopback, filtering: ".$con['@attributes']['address'],"INFO");
                         }
                         $device['Connection'] = $connections;
 
@@ -1755,7 +1755,34 @@
                         }
                         if (isset($device['accessToken'])) unset($device['accessToken']);
                         if (isset($device['clientIdentifier'])) unset($device['clientIdentifier']);
-                        if (isset($device['uri'])) ($device['product'] === 'Plex Media Server') ? array_push($servers, $device) : array_push($clients, $device);
+                        if (isset($device['uri'])) {
+	                        if ($device['product'] === 'Plex Media Server') {
+		                        $i=2;
+		                        foreach($servers as $check) {
+			                        $dname = preg_replace("/[^a-zA-Z]/", "", $device['name']);
+			                        $cname = preg_replace("/[^a-zA-Z]/", "", $check['name']);
+			                        write_log("Checking ".$check['name']. " versus ".$device['name']);
+			                        if ($dname == $cname) {
+				                        $device['name'] .= " ($i)";
+				                        $i++;
+			                        }
+		                        }
+		                        array_push($servers, $device);
+	                        } else {
+	                        	write_log("This should be a client?  ".json_encode($device));
+		                        $i=2;
+		                        foreach($clients as $check) {
+			                        $dname = preg_replace("/[^a-zA-Z]/", "", $device['name']);
+			                        $cname = preg_replace("/[^a-zA-Z]/", "", $check['name']);
+			                        write_log("Checking ".$check['name']. " versus ".$device['name']);
+			                        if ($dname == $cname) {
+				                        $device['name'] .= " ($i)";
+				                        $i++;
+			                        }
+		                        }
+		                        array_push($clients, $device);
+	                        }
+                        }
                     }
                 }
             }
@@ -1794,6 +1821,16 @@
 			if ($castDevices) {
 				write_log("Found cast devices here...");
 				foreach($castDevices as $device) {
+					$i=2;
+					foreach($clients as $check) {
+						$dname = preg_replace("/[^a-zA-Z]/", "", $device['name']);
+						$cname = preg_replace("/[^a-zA-Z]/", "", $check['name']);
+						write_log("Checking ".$check['name']. " versus ".$device['name']);
+						if ($dname == $cname) {
+							$device['name'] .= " ($i)";
+							$i++;
+						}
+					}
 					write_log("Cast device: ".json_encode($device));
 					array_push($clients,$device);
 				}
