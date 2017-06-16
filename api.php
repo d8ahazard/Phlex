@@ -1970,7 +1970,7 @@
 		$episode = $epNum = $num = $preFilter = $season = $selector = $type = $winner = $year = false;
 		$title = $matrix['target'];
 		unset($matrix['target']);
-		$offset = 0;
+		$offset = 'foo';
 		$nums = $matrix['num'];
 		$media = $matrix['media'];
 		$artist = $matrix['artist'] ?? false;
@@ -2018,7 +2018,12 @@
 
 		if (count($matchup)) {
 			foreach($matchup as $key=>$mod) {
-				write_log("Mod string: " .$key.": " .$mod);
+				write_log("Mod string: " . $key . ": " . $mod);
+				if (($key == 'offset') || ($key == 'hh') || ($key == 'mm') || ($key == 'ss')) {
+					$offset = 0;
+				}
+			}
+			foreach($matchup as $key=>$mod) {
 				switch ($key) {
 					case 'hh':
 						$offset += $mod*60*60*1000;
@@ -2050,7 +2055,7 @@
 			}
 		}
 
-		if ($offset !== 0) write_log("Offset has been set to ".$offset);
+		if ($offset !== 'foo') write_log("Offset has been set to ".$offset);
 
 		checkString: {
 		$winner = false;
@@ -2125,7 +2130,7 @@
 
 			$winner['art'] = transcodeImage($winner['art']);
 			$winner['thumb'] = transcodeImage($winner['thumb']);
-			if (($offset != -1) && ($offset != 0)) {
+			if (($offset !== 'foo') && ($offset != -1)) {
                 write_log("Appending offset for ".$winner['title']. ' to '.$winner['viewOffset']);
                 $winner['viewOffset']=$offset;
             }
@@ -2358,7 +2363,7 @@
 		return false;
 	}
 
-	function fetchMediaExtra($ratingKey,$returnAll) {
+	function fetchMediaExtra($ratingKey,$returnAll=false) {
         $extraURL = $_SESSION['plexServerUri'] . "/library/metadata/" . $ratingKey . "?X-Plex-Token=" . $_SESSION['plexServerToken'];
         write_log("Extras URL is " . $extraURL);
         $extra = curlGet($extraURL);
@@ -2780,7 +2785,7 @@
 	function queueAudio($media) {
 	    write_log("Function fired.");
 	    write_log("MEDIA: ".json_encode($media));
-	    $array = $id = $response = $result = $song = $url = $uuid = false;
+	    $array = $artistKey = $id = $response = $result = $song = $url = $uuid = false;
 	    $sections = fetchSections();
 	    foreach($sections as $section) if ($section['type'] == "artist") $uuid = $section['uuid'];
 	    $ratingKey = (isset($media['ratingKey']) ? urlencode($media['ratingKey']) : false);
@@ -2807,7 +2812,6 @@
                     break;
                 default:
                     write_log("NOT A VALID AUDIO ITEM!","ERROR");
-                    $url = false;
                     return false;
             }
 	    }
@@ -2833,15 +2837,17 @@
 	        $response['queueID'] = $id;
 	    }
 	    write_log("Final response: ".json_encode($response));
-        $extraURL = $_SESSION['plexServerUri'].'/library/metadata/'.$artistKey."?X-Plex-Token=".$_SESSION['plexServerToken'];
-        write_log("Extras URL is ".$extraURL);
-        $extra = curlGet($extraURL);
-        if ($extra) {
-            $extra = new SimpleXMLElement($extra);
-            $extra =json_decode(json_encode($extra),true)['Directory']['@attributes'];
-            $response['summary'] = $extra['summary'];
-            write_log("Media Extra: ".json_encode($extra));
-        }
+	    if ($artistKey) {
+		    $extraURL = $_SESSION['plexServerUri'] . '/library/metadata/' . $artistKey . "?X-Plex-Token=" . $_SESSION['plexServerToken'];
+		    write_log("Extras URL is " . $extraURL);
+		    $extra = curlGet($extraURL);
+		    if ($extra) {
+			    $extra = new SimpleXMLElement($extra);
+			    $extra = json_decode(json_encode($extra), true)['Directory']['@attributes'];
+			    $response['summary'] = $extra['summary'];
+			    write_log("Media Extra: " . json_encode($extra));
+		    }
+	    }
         return $response;
     }
 
