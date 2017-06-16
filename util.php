@@ -178,24 +178,43 @@
 
 	function transcodeImage($path,$uri=false,$token=false) {
 		write_log("Function fired");
-    	$addr = [$uri,$_SESSION['plexServerUri'],$_SESSION['plexServerPublicUri']];
-    	foreach($addr as $foo) write_log("URI: ".$foo);
     	write_log("Path: ".$path);
     	if ($uri) $server = $uri;
-    	$server = $server ?? $_SESSION['plexServerPublicUri'] ?? $_SESSION['plexServerUri'] ?? false;
+    	$server = $server ?? $_SESSION['plexServerUri'] ?? $_SESSION['plexServerPublicUri'] ?? false;
     	if ($token) $serverToken = $token;
     	$token = $serverToken ?? $_SESSION['plexServerToken'];
     	if ($server) {
-		    $image = $server . "/photo/:/transcode?width=1920&height=1920&minSize=1&url=" . $path . "&X-Plex-Token=" . $token;
+		    $image = $server . "/photo/:/transcode?width=1920&height=1920&minSize=1&url=" . urlencode($path) . "%3FX-Plex-Token%3D".$token."&X-Plex-Token=" . $token;
 		    write_log("Image path: " . $image);
-		    if (file_get_contents($image)) {
+		    if (checkRemoteFile($image)) {
 		    	write_log("Image valid, returning");
 		    	return $image;
 		    }
 	    } else {
-		    $path = cacheImage($_SESSION['plexServerUri'] . $path . "?X-Plex-Token=" . $_SESSION['plexServerToken']);
+		    $path = cacheImage($uri . $path . "?X-Plex-Token=" . $token);
 		}
 		return $path;
+	}
+
+	function checkRemoteFile($url) {
+    	write_log("Function fired");
+		$certPath = file_build_path(dirname(__FILE__),"cert","cacert.pem");
+		$ch = curl_init();
+		curl_setopt($ch, CURLOPT_URL,$url);
+		curl_setopt ($ch, CURLOPT_CAINFO, $certPath);
+		curl_setopt($ch, CURLOPT_NOBODY, 1);
+		curl_setopt($ch, CURLOPT_FAILONERROR, 1);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+		if(curl_exec($ch)!==FALSE)
+		{
+			write_log("Success.");
+			return true;
+		}
+		else
+		{
+			write_log("Fail");
+			return false;
+		}
 	}
 
 	// Check if string is present in an array
@@ -334,31 +353,7 @@ function clientString() {
 		return $caller;   
 	}
 
-    function startbackgroundProcess($command,$token=null) {
-        $config = new Config_Lite('config.ini.php');
-        if (substr(php_uname(), 0, 7) == "Windows"){
-
-            $phpPath = $config->get('user-_-'.$_SESSION['username'], 'phpPath', '');
-            $phpValid = $config->getBool('user-_-'.$_SESSION['username'], 'phpValid', false);
-            if ($phpValid) {
-                write_log("PHP path should be valid, executing like a grownup.");
-                $cmd = "start /B ".$phpPath . ' ' . $command;
-                write_log("Command is gonna be: ".$cmd);
-                pclose(popen($cmd,'r'));
-            } else {
-                write_log("PHP Path is not valid, fetching cast devices the hard way.");
-                fetchCastDevices();
-            }
-
-        } else {
-            $cmd = 'php '. $command . " > /dev/null &";
-            write_log("Firing background command: ".$cmd);
-            exec($cmd);
-        }
-    }
-
-
-	// Save the specified configuration file using CONFIG_LITE
+    // Save the specified configuration file using CONFIG_LITE
 	function saveConfig(Config_Lite $inConfig) {
 		try {
             $inConfig->save();

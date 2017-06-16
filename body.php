@@ -47,7 +47,6 @@ function makeBody() {
     $_SESSION['apiai_dev_token'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'apiDevToken', '');
 
     $_SESSION['use_cast'] = $config->getBool('user-_-'.$_SESSION['plexUserName'], 'useCast', false);
-    $_SESSION['phpPath'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'phpPath', '');
     $_SESSION['clean_logs'] = $config->getBool('user-_-'.$_SESSION['plexUserName'], 'cleanLogs', true);
     $_SESSION['darkTheme'] = $config->getBool('user-_-'.$_SESSION['plexUserName'], 'darkTheme', false);
 
@@ -197,14 +196,6 @@ function makeBody() {
                                         <label for="useCast" class="appLabel checkLabel">Use Cast Devices
                                             <input id="useCast" type="checkbox" class="appInput appToggle" ' . ($_SESSION["use_cast"] ? "checked" : "") . '/>
                                         </label>
-                                    </div>
-                                    <div class="form-group">
-                                        <div class="form-group"'.((substr(php_uname(), 0, 7) != "Windows") ? 'style="display:none"' : '').'>
-                                            <label for="phpPath" class="appLabel">PHP Executable path:
-                                                <input id="phpPath" class="appInput form-control" type="text" value="' . $_SESSION["phpPath"] . '"/>
-                                                <span class="bmd-help">Enter the full path to php.exe used by your webserver.</span>
-                                            </label>
-                                        </div>
                                     </div>
                                 </div>
                                 <div class="text-center">

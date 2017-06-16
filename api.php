@@ -66,7 +66,7 @@
 		    $file = 'commands.php';
 		    $handle = fopen($file, "r");
 		    //Read first line, but do nothing with it
-		    $foo = fgets($handle);
+		    fgets($handle);
 		    $contents = '[';
 		    //now read the rest of the file line by line, and explode data
 		    while (!feof($handle)) {
@@ -154,7 +154,6 @@
 		    $value = $_GET['value'];
 		    write_log('GET: Setting parameter changed ' . $id . ' : ' . $value);
 		    if (preg_match("/IP/", $id)) {
-			    $url = parse_url($value);
 			    write_log("Got a URL: " . $value);
 			    $value = addScheme($value);
 		    }
@@ -611,7 +610,7 @@
 		$queryOut['parsedCommand'] = "";
 		$commandArray = array("play","pause","stop","skipNext","stepForward","stepBack","skipPrevious","volume");
 		if (strpos($command,"volume")) {
-				write_log("Should be a volume command.");
+			write_log("Should be a volume command: ".$int);
 				$int = filter_var($command, FILTER_SANITIZE_NUMBER_INT);
 				if (! $int) {
 					if (preg_match("/UP/",$command)) {
@@ -624,11 +623,18 @@
 						$int = -10;
 					}
 					if ($adjust) {
+						write_log("This should be an adjust command");
 						$status = playerStatus();
 						$status = json_decode($status,true);
+						$type = $status['type'] ?? false;
+						write_log("Status: ".json_encode($status));
 						$volume = $status['volume'];
 						if ($volume) {
+							if ($type) $volume = $volume * 100;
 							$int = $volume + $int;
+							if ($type) $int = $int/100;
+							write_log("Old volume should be ".$volume);
+							write_log("New volume should be ".$int);
 						}
 					}
 				}
@@ -1030,7 +1036,7 @@
 			$contextName = 'PlayMedia';
 			//$linkout = ['destinationName'=>'View Readme','url'=>'https://github
 			//.com/d8ahazard/Phlex/blob/master/readme.md'];
-			$button = [['title'=>'View Readme','openUrlAction'=>['url'=>'https://github.com/d8ahazard/Phlex/blob/master/readme.md']]];
+			//$button = [['title'=>'View Readme','openUrlAction'=>['url'=>'https://github.com/d8ahazard/Phlex/blob/master/readme.md']]];
 			//$card = [['title'=>"Welcome to Flex TV!",'formattedText'=>'','image'=>['url'=>'https://phlexchat.com/img/avatar.png','accessibilityText'=>'Phlex logo image'],'buttons'=>$button]];
 			$card = [['title'=>"Welcome to Flex TV!",'image'=>['url'=>'https://phlexchat.com/img/avatar.png'],'subtitle'=>'']];
             $queryOut['card'] = $card;
@@ -1666,7 +1672,7 @@
 	// This aims to address that.
 
 	function scanDevices($force=false) {
-	    $clients = $dvrs = $results = $servers = [];
+	    $castDevices = $clients = $dvrs = $results = $servers = [];
 	    $localContainer = false;
         $now = microtime(true);
         $rescanTime = $_SESSION['rescanTime'] ?? 8;
@@ -1751,7 +1757,7 @@
 
                         if ((! isset($device['uri'])) && ($device['product'] === 'Plex Media Server')) {
                             write_log("Trying fallback URL for ".$device['name'].": " . protectURL($url));
-                            if (check_url($url)) $device['uri'] = $fallback;
+                            if (check_url($url)) $device['uri'] = $fallback ?? false;
                         }
                         if (isset($device['accessToken'])) unset($device['accessToken']);
                         if (isset($device['clientIdentifier'])) unset($device['clientIdentifier']);
@@ -2803,7 +2809,7 @@
                     $artistKey = $media['parentRatingKey'];
                     break;
                 case 'artist':
-                    $url .= "item%2F%252Flibrary%252Fmetadata%252F" . $ratingKey . "&shuffle=1";
+                    $url .= "item%2F%252Flibrary%252Fmetadata%252F" . $ratingKey . "&shuffle=0";
                     $artistKey = $media['ratingKey'];
                     break;
                 case 'track':
@@ -2826,10 +2832,19 @@
             $container = new SimpleXMLElement($result);
             $array = json_decode(json_encode($container), true);
             write_log("Queue ID of " . $array['@attributes']['playQueueID']);
-            $id = $array['@attributes']['playQueueID'];
+            $id = $array['@attributes']['playQueueID'] ?? false;
+            if (($id) && isset($_SESSION['queueID'])) {
+            	write_log("We have an ID and save queueID: ".$id." versus ".$_SESSION['queueID']);
+            	if ($id == $_SESSION['queueID']) {
+		            $url = $_SESSION['plexServerUri'] . '/player/playback/refreshPlayQueue?playQueueID=' . $id . '&X-Plex-Token=' . $_SESSION['plexServerToken'];
+		            $result = curlGet($url);
+		            write_log("RefreshResult: " . $result);
+	            }
+            }
         }
+        if ($id) $_SESSION['queueID'] = $id;
         if (($id) && ($array)) {
-            $song = $array['Track'][0]['@attributes'] ?? false;
+	    	$song = $array['Track'][0]['@attributes'] ?? false;
             write_log("Song: ".json_encode($song));
         }
         if ($id && $song) {
@@ -2856,11 +2871,9 @@
 		    $clientProduct = $_SESSION['plexClientProduct'];
 			switch ($clientProduct) {
 				case 'cast':
-                    //$child = fopen('http://'.$_SERVER['HTTP_HOST'].'/devices.php?media='.urlencode($media), 'r');
-                    //$result = stream_get_contents($child);
                     $result = playMediaCast($media);
-
 					break;
+				case (preg_match('/Roku/', $clientProduct) ? $clientProduct : !$clientProduct):
 				case 'PlexKodiConnect':
 					$result = playMediaRelayed($media);
 					break;
@@ -3000,58 +3013,21 @@
 		$client = parse_url($_SESSION['plexClientUri']);
 		write_log("Client: ".json_encode($client));
 		$cc = new Chromecast($client['host'],$client['port']);
-		write_log("We have a CC");
-		// Build JSON
-		$result = [
-			'type' => 'LOAD',
-			'requestId' => $cc->requestId,
-			'media' => [
-				'contentId' => (string)$key,
-				'streamType' => 'BUFFERED',
-				'contentType' => ($transcoderVideo ? 'video' : 'music'),
-				'customData' => [
-					'offset' => ($media['viewOffset'] ?? 0),
-					'directPlay' => true,
-					'directStream' => true,
-					'subtitleSize' => 100,
-					'audioBoost' => 100,
-					'server' => [
-						'machineIdentifier' => $machineIdentifier,
-						'transcoderVideo' => $transcoderVideo,
-						'transcoderVideoRemuxOnly' => false,
-						'transcoderAudio' => true,
-						'version' => '1.4.3.3433',
-						'myPlexSubscription' => true,
-						'isVerifiedHostname' => true,
-						'protocol' => $serverProtocol,
-						'address' => $serverIP,
-						'port' => $serverPort,
-						'accessToken' => $transientToken,
-						'user' => [
-							'username' => $userName,
-						],
-						'containerKey' => $queueID . '?own=1&window=200',
-					],
-					'autoplay' => true,
-					'currentTime' => 0,
-				]
-			]
-		];
-
-                
-		// Launch and play on Plex
-		write_log("CASTJSONPLAY: " . json_encode($result));
-        //$cc->Plex = new CCPlexPlayer($cc);
-		//$cc->Plex->launch();
-		$cc->Plex->play(json_encode($result));
-		write_log("Sent play request.");
-		sleep(1);
-		fclose($cc->socket);
-		sleep(1);
-
-
-		$return['url'] = 'chromecast://'.$client['host'].':'.$client['port'];
-		$return['status'] = 'success';
+		if ($cc) {
+			write_log("We have a CC");
+			// Build JSON
+			$result = ['type' => 'LOAD', 'requestId' => $cc->requestId, 'media' => ['contentId' => (string)$key, 'streamType' => 'BUFFERED', 'contentType' => ($transcoderVideo ? 'video' : 'music'), 'customData' => ['offset' => ($media['viewOffset'] ?? 0), 'directPlay' => true, 'directStream' => true, 'subtitleSize' => 100, 'audioBoost' => 100, 'server' => ['machineIdentifier' => $machineIdentifier, 'transcoderVideo' => $transcoderVideo, 'transcoderVideoRemuxOnly' => false, 'transcoderAudio' => true, 'version' => '1.4.3.3433', 'myPlexSubscription' => true, 'isVerifiedHostname' => true, 'protocol' => $serverProtocol, 'address' => $serverIP, 'port' => $serverPort, 'accessToken' => $transientToken, 'user' => ['username' => $userName,], 'containerKey' => $queueID . '?own=1&window=200',], 'autoplay' => true, 'currentTime' => 0,]]];
+			// Launch and play on Plex
+			write_log("JSON Message: " . json_encode($result));
+			$cc->Plex->play(json_encode($result));
+			write_log("Sent play request.");
+			sleep(1);
+			fclose($cc->socket);
+			$return['status'] = 'success';
+		} else {
+			$return['status'] = 'error';
+		}
+		$return['url'] = 'chromecast://' . $client['host'] . ':' . $client['port'];
 		write_log("Returning something: ".json_encode($return));
 		return $return;
 
@@ -3177,6 +3153,7 @@
 				case 'cast':
 					$result = castCommand($cmd);
 					break;
+				case (preg_match('/Roku/', $clientProduct) ? $clientProduct : !$clientProduct):
 				case 'PlexKodiConnect':
 					$result = relayCommand($cmd);
 					break;
@@ -3228,16 +3205,17 @@
 	    write_log("Function fired.");
 		$int = 100;
 		// Set up our cast device
-		if (preg_match("/volume/s", $cmd)) {
-                    write_log("::::" . $cmd);
-			$int = filter_var($cmd, FILTER_SANITIZE_NUMBER_INT);
+		if (preg_match("/volume/", $cmd)) {
+			write_log("Precommand: " . $cmd);
+			$int = filter_var($cmd, FILTER_SANITIZE_NUMBER_FLOAT,FILTER_FLAG_ALLOW_FRACTION);
 			$cmd = "volume";
+			write_log("Post: ".$cmd." Int: ".$int);
 		}
 		$client = parse_url($_SESSION['plexClientUri']);
 		$cc = new Chromecast($client['host'],$client['port']);
 
 		$valid = true;
-		write_log("Received CAST COmmand: " . $cmd);
+		write_log("Received CAST Command: " . $cmd);
 		switch ($cmd) {
 			case "play":
 				$cc->Plex->restart();
@@ -3397,7 +3375,6 @@
 		while (!feof($handle)) {
 			$contents .= fgets($handle);
 		}
-		$dvr = ($_SESSION['plexDvrUri'] ? "true" : "");
 		if ($contents == '[') $contents = '';
 		$commandData = urlencode($contents);
 		return '<meta id="logData" data="' . $commandData . '"/>';
@@ -3526,7 +3503,7 @@
 
 	function sickDownload($command,$season=false,$episode=false) {
 		write_log("Function fired");
-		$exists = $id = $response = $responseJSON = $resultID = $status = $results = $result = false;
+		$exists = $id = $response = $responseJSON = $resultID = $resultYear = $status = $results = $result = $show = false;
 		$sickURL = $_SESSION['sickIP'];
 		$sickApiKey = $_SESSION['auth_sick'];
 		$sickPort = $_SESSION['sickPort'];
@@ -3596,7 +3573,6 @@
                     unset($responseJSON);
                     write_log("Episode search worked, result is " . $result);
                     $responseJSON = json_decode($result, true);
-                    $resultName = (string)$responseJSON['data']['name'];
                     $resultYear = (string)$responseJSON['data']['airdate'];
                     $resultYearArray = explode("-", $resultYear);
                     $resultYear = $resultYearArray[0];
@@ -3606,6 +3582,7 @@
         write_log("Show so far: ".json_encode($show));
         $response['status'] = $status;
         $response['mediaResult'] = $show;
+        if ($resultYear) $response['mediaResult']['year'] = $resultYear;
 		return $response;
 	}
 
@@ -3640,7 +3617,7 @@
                 if ($similarity > .7) $show = $series;
             }
             // If we found something to download and don't have it, add it.
-            if ($show) {
+            if (is_array($show)) {
                 $show['qualityProfileId'] = ($_SESSION['sonarrProfile'] ? $_SESSION['sonarrProfile'] : 0);
                 $show['rootFolderPath'] = $root;
                 write_log("Attempting to add the series ".$show['title']." JSON is: ".json_encode($show));
