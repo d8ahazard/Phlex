@@ -2050,7 +2050,7 @@
 			}
 		}
 
-		write_log("Offset has been set to ".$offset);
+		if ($offset !== 0) write_log("Offset has been set to ".$offset);
 
 		checkString: {
 		$winner = false;
@@ -2125,7 +2125,7 @@
 
 			$winner['art'] = transcodeImage($winner['art']);
 			$winner['thumb'] = transcodeImage($winner['thumb']);
-			if ($offset != -1) {
+			if (($offset != -1) && ($offset != 0)) {
                 write_log("Appending offset for ".$winner['title']. ' to '.$winner['viewOffset']);
                 $winner['viewOffset']=$offset;
             }
@@ -2888,7 +2888,7 @@
 		$transientToken = fetchTransientToken();
 		$playUrl = $client.'/player/playback/playMedia'.
 		'?key='.urlencode($media['key']) .
-		'&offset='.($media['viewOffset']?$media['viewOffset']:0).
+		'&offset='.($media['viewOffset'] ?? 0).
 		'&machineIdentifier=' .$serverID.
 		'&protocol='.$serverProtocol.
 		'&address=' .$serverIP.
@@ -2917,7 +2917,7 @@
 		write_log("Queue Token is ".$queueID);
 		$playUrl = $_SESSION['plexServerUri'].'/player/playback/playMedia'.
 			'?key='.urlencode($media['key']) .
-			'&offset='.($media['viewOffset']?$media['viewOffset']:0).
+			'&offset='.($media['viewOffset'] ?? 0).
 			'&machineIdentifier=' .$serverID.
 			'&protocol='.$serverProtocol.
 			'&address=' .$serverIP.
@@ -2953,7 +2953,7 @@
 		write_log("Queue Token is ".$queueID);
 		$playUrl = $_SESSION['plexClientUri'].'/player/playback/playMedia'.
 		'?key='.urlencode($media['key']) .
-		'&offset='.($media['viewOffset']?$media['viewOffset']:0).
+		'&offset='.($media['viewOffset'] ?? 0).
 		'&machineIdentifier=' .$serverID.
 		'&protocol='.$serverProtocol.
 		'&address=' .$serverIP.
@@ -3004,7 +3004,7 @@
 				'streamType' => 'BUFFERED',
 				'contentType' => ($transcoderVideo ? 'video' : 'music'),
 				'customData' => [
-					'offset' => (array_key_exists('viewOffset',$media) ? $media['viewOffset']:0),
+					'offset' => ($media['viewOffset'] ?? 0),
 					'directPlay' => true,
 					'directStream' => true,
 					'subtitleSize' => 100,
