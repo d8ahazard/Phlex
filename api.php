@@ -1556,7 +1556,6 @@
                 $resultTitle = $media['title'] ?? $media['@attributes']['title'];
                 $resultYear = $media['year'];
                 $resultImage = $media['art'];
-                $resultThumb = $media['thumb'];
                 $resultSummary = $media['summary'];
                 $resultSubtitle = $media['subtitle'];
                 $resultData['image'] = $resultImage;
@@ -2230,9 +2229,7 @@
                                     }
 
                                     if (! $skip) {
-                                        $music = queueAudio($Element);
-                                        write_log("Returning music queue: " . json_encode($music));
-                                        return [$music];
+	                                    array_push($exactResults,$Element);
                                     }
                                 }
 
