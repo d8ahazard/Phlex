@@ -1247,6 +1247,7 @@
 			$cards = [];
 			$list = fetchAirings($days);
 			if ($list) {
+				$_SESSION['mediaList']=$list;
 				$i = 1;
 				$speech = "Here's a list of scheduled recordings: ";
 				if ($days == 'now') {
@@ -1272,7 +1273,7 @@
 					if (count($names) >= 3) {
 						foreach ($names as $name) {
 							if ($i == count($names)) {
-								$speech .= "and " . $name . " are";
+								$speech .= "and " . $name;
 							} else {
 								$speech .= $name . ', ';
 							}
@@ -1281,14 +1282,14 @@
 					} else {
 						foreach ($names as $name) {
 							if ($i == count($names)) {
-								$speech .= "and " . $name . " are";
+								$speech .= "and " . $name;
 							} else {
 								$speech .= $name . ' ';
 							}
 							$i++;
 						}
 					}
-				} else $speech .= $names[0]. " is";
+				} else $speech .= $names[0];
 				$tail = ".";
 				if ($days == 'now') $tail = " on the schedule.";
 				if ((preg_match("/day/",$days)) || ($days == 'tomorrow') || ($days == 'weekend')) $tail= " on the schedule.";
@@ -1346,12 +1347,20 @@
 						die();
 					}
 				} else {
-					$mediaResult = parsePlayCommand(strtolower($command),$year,$artist,$type);
+					$mediaResult = parsePlayCommand(strtolower($command), $year, $artist, $type);
 				}
 			}
 			if (isset($mediaResult)) {
-                write_log("Media result retrieved.");
+				write_log("Media result retrieved.");
 				if (count($mediaResult)==1) {
+					if ($mediaResult[0]['type'] == 'airing') {
+						write_log("Got an airing result, let's display a card.");
+						$speech = "Here's some more information on that.";
+						$button = [['title' => 'Search Results', 'openUrlAction' => ['url' => 'https://www.google.com/search?q=' . urlencode($mediaResult[0]['title'])]]];
+						$card = ['title' => $mediaResult[0]['title'], 'formattedText'=>$mediaResult[0]['summary'],'image' => ['url' => $mediaResult[0]['thumb']], 'buttons' => $button];
+						returnSpeech($speech, $contextName, [$card]);
+						die();
+					}
 				    write_log("Got media, sending play command.");
 					$queryOut['mediaResult'] = $mediaResult[0];
 					$searchType = $queryOut['mediaResult']['searchType'];
@@ -3480,7 +3489,7 @@
 						if ($airDate >= $startDate && $airDate <= $endDate) {
 							write_log("This fits: " . $show['show_name'] . ":" . $show['airdate']);
 							$extra = fetchTVDBInfo($show['tvdbid']);
-							$item = ['title' => $show['show_name'] . " - ".$show['ep_name'], 'summary' => $show['ep_plot'], 'year' => explode('-', $show['airdate'])['0'], 'thumb' => $extra['thumb'], 'airdate' => $show['airdate']];
+							$item = ['title' => $show['show_name'] . " - ".$show['ep_name'], 'summary' => $show['ep_plot'], 'year' => explode('-', $show['airdate'])['0'], 'thumb' => $extra['thumb'], 'airdate' => $show['airdate'], 'type' =>'airing'];
 							array_push($list, $item);
 						}
 					}
@@ -3499,7 +3508,8 @@
 					$item = ['title'=>$show['series']['title'],
 						'summary'=>$show['overview'],
 						'year'=>$show['series']['year'],
-						'thumb'=>$extra['thumb']];
+						'thumb'=>$extra['thumb'],
+						'type'=>'airing'];
 					array_push($list,$item);
 				}
 			}
@@ -3520,7 +3530,7 @@
 						if ($date) {
 							$airDate = new DateTime("@$date");
 							if ($airDate >= $startDate && $airDate <= $endDate) {
-								$item = ['title' => $show['grandparentTitle']. " - ".$show['title'], 'summary' => $show['summary'], 'year' => $show['year'], 'thumb' => $show['grandparentThumb'], 'airdate' => $date];
+								$item = ['title' => $show['grandparentTitle']. " - ".$show['title'], 'summary' => $show['summary'], 'year' => $show['year'], 'thumb' => $show['grandparentThumb'], 'airdate' => $date, 'type' => 'airing'];
 								write_log("DVR show: ".json_encode($item));
 								array_push($list, $item);
 							}
@@ -4274,7 +4284,8 @@ function returnSpeech($speech, $contextName, $cards=false, $waitForResponse=fals
 			$carousel = [];
 			foreach ($cards as $card) {
 				$item = [];
-				$item['image'] = transcodeImage($card['image']);
+				if (! (preg_match("/http/",$card['image']))) $card['image'] = transcodeImage($card['image']);
+				$item['image'] = $card['image'];
 				$item['image']['accessibilityText'] = $card['title'];
 				$item['title'] = $card['title'];
 				$item['description'] = $card['description'];
@@ -4286,7 +4297,6 @@ function returnSpeech($speech, $contextName, $cards=false, $waitForResponse=fals
 			$output['data']['google']['systemIntent']['data']['listSelect']['items'] = $carousel;
 			$output['data']['google']['expectedInputs'][0]['possibleIntents'][0]['inputValueData']['@type'] = "type.googleapis.com/google.actions.v2.OptionValueSpec";
 			$output['data']['google']['expectedInputs'][0]['possibleIntents'][0]['intent'] = "actions.intent.OPTION";
-
 		}
 	}
 
