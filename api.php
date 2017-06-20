@@ -908,7 +908,7 @@
 	// Parse and handle API.ai commands
 	function parseApiCommand($request) {
 		write_log("Function fired.");
-		$greeting = $mediaResult = $screen = $year = false;
+		$greeting = $mediaResult = $rechecked = $screen = $year = false;
 		$card = $suggestions = false;
 		write_log("Full request text is ".json_encode($request));
 		$result = $request["result"];
@@ -1350,6 +1350,7 @@
 					$mediaResult = parsePlayCommand(strtolower($command), $year, $artist, $type);
 				}
 			}
+			recheck:
 			if (isset($mediaResult)) {
 				write_log("Media result retrieved.");
 				if (count($mediaResult)==1) {
@@ -1512,6 +1513,21 @@
 				}
 				if (! count($mediaResult)) {
                     if ($command) {
+                    	// TODO: Search and swap numbers if no search results
+	                    if (! $rechecked);
+	                    $swapped = searchSwap($command);
+	                    if ($swapped !== $command) {
+	                    	write_log("Swapping alpha title worked: ".$swapped);
+		                    $mediaResult = parsePlayCommand(strtolower($swapped), $year, $artist, $type);
+		                    write_log("MediaResult: ".json_encode($mediaResult));
+		                    if (is_array($mediaResult)) {
+			                        $rechecked = true;
+			                        goto recheck;
+
+		                    }
+	                    }
+
+
                         if (isset($_SESSION['cleaned_search'])) {
                             $command = $_SESSION['cleaned_search'];
                             unset($_SESSION['cleaned_search']);
@@ -1702,6 +1718,33 @@
 		die();
 
 
+	}
+
+
+	function searchSwap($command) {
+		$outArray = [];
+		$commandArray = explode(" ",$command);
+		$spell = new NumberFormatter("en", NumberFormatter::SPELLOUT);
+		foreach ($commandArray as $word) {
+			write_log("Word in: ".$word);
+			if (is_numeric($word)) {
+				$word = $spell->format($word);
+			} else {
+				$word = wordsToNumber($word);
+			}
+			write_log("Word out: ".$word);
+			array_push($outArray,$word);
+		}
+		$command = implode(" ",$outArray);
+		return $command;
+	}
+
+	// Replace all number words with an equivalent numeric value
+	function wordsToNumber($data) {
+		$search = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty', 'thirty', 'forty', 'fourty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety', 'hundred', 'thousand', 'million', 'billion'];
+		$replace = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '30', '40', '40', '50', '60', '70', '80', '90', '100', '1000', '1000000', '1000000000'];
+		$data = str_replace($search,$replace, $data);
+		return $data;
 	}
 	//
 	// ############# Client/Server Functions ############
