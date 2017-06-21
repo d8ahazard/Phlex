@@ -3150,12 +3150,9 @@ function NumbersToWord($data) {
                 $vidArray = json_decode(json_encode($Media),true);
                 $isCast = ($vidArray['Player']['@attributes']['address'] == $addresses['host']);
                 $isPlayer = ($vidArray['Player']['@attributes']['machineIdentifier'] == $_SESSION['plexClientId']);
-	            unset($_GET['pollPlayer']);
-                write_log("VidArray: ".json_encode($vidArray));
-	            $_GET['pollPlayer']=true;
-                if (($isPlayer) || ($isCast)) {
-                	write_log("Da, is cast for good.");
-                    $state = $vidArray['Player']['@attributes']['state'];
+	            write_log("VidArray: ".json_encode($vidArray));
+	            if (($isPlayer) || ($isCast)) {
+                	$state = $vidArray['Player']['@attributes']['state'];
                     $time=$vidArray['@attributes']['viewOffset'];
                     $duration = $vidArray['@attributes']['duration'];
                     $result['plexServerId']=$_SESSION['plexServerUri'];
@@ -3191,7 +3188,6 @@ function NumbersToWord($data) {
 		                    $cc = new Chromecast($client['host'], $client['port']);
 		                    $r = $cc->Plex->plexStatus();
 		                    fclose($cc->socket);
-		                    unset($_GET['pollPlayer']);
 		                    $status2 = json_decode($r, true);
 		                    $status2 = $status2['status'][0] ?? false;
 		                    write_log("Status: " . json_encode($status2));
