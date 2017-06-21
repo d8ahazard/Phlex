@@ -808,20 +808,22 @@
 		$numberWordIn = array("first","pilot","second","third","last","final","latest","random");
 
 		foreach($_SESSION['list_plexdevices']['clients'] as $client) {
-			$clientName = '/'.strtolower($client['name']).'/';
-			if (preg_match($clientName,$command)) {
-				write_log("I was just asked me to play something on a specific device: ".$client['name']);
-				$playerIn = explode(" ",cleanCommandString($client['name']));
-				array_push($playerIn,"on","in");
-				$_SESSION['plexClientId'] = $client['id'];
-				$_SESSION['plexClientName'] = $client['name'];
-				$_SESSION['plexClientUri'] = $client['uri'];
-				$_SESSION['plexClientProduct'] = $client['product'];
-				$GLOBALS['config']->set('user-_-'.$_SESSION['plexUserName'],'plexClientId',$client['id']);
-				$GLOBALS['config']->set('user-_-'.$_SESSION['plexUserName'],'plexClientProduct',$client['product']);
-				$GLOBALS['config']->set('user-_-'.$_SESSION['plexUserName'],'plexClientName',$client['name']);
-				$GLOBALS['config']->set('user-_-'.$_SESSION['plexUserName'],'plexClientUri',$client['uri']);
-				saveConfig($GLOBALS['config']);
+			if ($client['name'] != "") {
+				$clientName = '/' . strtolower($client['name']) . '/';
+				if (preg_match($clientName, $command)) {
+					write_log("I was just asked me to play something on a specific device: " . $client['name']);
+					$playerIn = explode(" ", cleanCommandString($client['name']));
+					array_push($playerIn, "on", "in");
+					$_SESSION['plexClientId'] = $client['id'];
+					$_SESSION['plexClientName'] = $client['name'];
+					$_SESSION['plexClientUri'] = $client['uri'];
+					$_SESSION['plexClientProduct'] = $client['product'];
+					$GLOBALS['config']->set('user-_-' . $_SESSION['plexUserName'], 'plexClientId', $client['id']);
+					$GLOBALS['config']->set('user-_-' . $_SESSION['plexUserName'], 'plexClientProduct', $client['product']);
+					$GLOBALS['config']->set('user-_-' . $_SESSION['plexUserName'], 'plexClientName', $client['name']);
+					$GLOBALS['config']->set('user-_-' . $_SESSION['plexUserName'], 'plexClientUri', $client['uri']);
+					saveConfig($GLOBALS['config']);
+				}
 			}
 		}
 		if (isset($_SESSION['cleaned_search'])) unset($_SESSION['cleaned_search']);
@@ -1976,14 +1978,11 @@
 
 	/// What used to be a big ugly THING is now just a wrapper and parser of the result of scanDevices
 	function fetchClientList($devices) {
-		write_log("Function Fired.");
 		$options = "";
 		if (isset($devices['clients'])) {
-			if (!(isset($_GET['pollPlayer']))) write_log("Client list retrieved.");
 			foreach($devices['clients'] as $key => $client) {
                 $selected = (trim($client['id']) == trim($_SESSION['plexClientId']));
-                if ($selected) write_log("This device is selected: ".$client['name']);
-				$id = $client['id'];
+                $id = $client['id'];
 				$name = $client['name'];
 				$uri = $client['uri'];
 				$product = $client['product'];
@@ -1998,7 +1997,6 @@
 
 	// Fetch a list of servers for playback
 	function fetchServerList($devices) {
-		write_log("Function Fired.");
 		$current = $GLOBALS['config']->get('user-_-' . $_SESSION['plexUserName'], 'plexServerId', false);
 		$options = "";
 		if (isset($devices['servers'])) {
@@ -2019,8 +2017,7 @@
 	}
 
 	function fetchDVRList($devices) {
-        write_log("Function fired.");
-		$current = $GLOBALS['config']->get('user-_-' . $_SESSION['plexUserName'], 'plexDvrId', false);
+        $current = $GLOBALS['config']->get('user-_-' . $_SESSION['plexUserName'], 'plexDvrId', false);
 		$options = "";
 		if (isset($devices['dvrs'])) {
 			$options = "";
@@ -3148,37 +3145,51 @@
                 $vidArray = json_decode(json_encode($Media),true);
                 $isCast = ($vidArray['Player']['@attributes']['address'] == $addresses['host']);
                 $isPlayer = ($vidArray['Player']['@attributes']['machineIdentifier'] == $_SESSION['plexClientId']);
+	            unset($_GET['pollPlayer']);
                 write_log("VidArray: ".json_encode($vidArray));
+	            $_GET['pollPlayer']=true;
                 if (($isPlayer) || ($isCast)) {
+                	write_log("Da, is cast for good.");
                     $state = $vidArray['Player']['@attributes']['state'];
-                    $time=$vidArray['TranscodeSession']['@attributes']['progress'];
-                    $duration = $vidArray['TranscodeSession']['@attributes']['duration'];
-                    $time = $duration / $time;
+                    $time=$vidArray['@attributes']['viewOffset'];
+                    $duration = $vidArray['@attributes']['duration'];
                     $result['plexServerId']=$_SESSION['plexServerUri'];
-                    $summary=$vidArray['@attributes']['summary'] ?? "";
-                    $title=$vidArray['@attributes']['summary'] ?? "";
-                    $tagline=$vidArray['@attributes']['summary'] ?? "";
-                    $year=$vidArray['@attributes']['year'] ?? "";
+                    $type = $vidArray['@attributes']['type'];
+                    $summary=$vidArray['@attributes']['summary'] ?? $vidArray['@attributes']['parentTitle'] ?? "";
+                    $title=$vidArray['@attributes']['title'] ?? "";
+	                $year=$vidArray['@attributes']['year'] ?? false;
+	                $tagline=$vidArray['@attributes']['tagline'] ?? $vidArray['@attributes']['parentTitle'] ?? "";
+	                if ($type == 'track') {
+	                    if (isset($vidArray['@attributes']['grandparentTitle'])) $title = $vidArray['@attributes']['grandparentTitle'] . " - ".$title;
+		                if ($year) $tagline.= "(".$year.")";
+	                }
+
+                    if ($type == 'movie') {
+	                    if ($year) $title.= "(".$year.")";
+                    }
+
+                    if ($type == 'episode') {
+	                    $title = $vidArray['@attributes']['grandparentTitle']. " - ". $title;
+	                    if ($year) $title.= "(".$year.")";
+                    }
                     $volume = 1;
-                    $result['mediaResult'] = $vidArray;
                     $thumb = (($vidArray['@attributes']['type'] == 'movie') ? $vidArray['@attributes']['thumb'] : $vidArray['@attributes']['parentThumb']);
-                    $thumb = transcodeImage($thumb);
+                    $thumb = (string) transcodeImage($thumb);
                     $art = transcodeImage($vidArray['@attributes']['art']);
-                    $result['mediaResult']['thumb'] = $thumb;
-                    $result['mediaResult']['art'] = $art;
-                    // TODO: Progress seems to go to 100 and then stop. Use the chromecast reporting to fill in the actual time.
+	                $vidArray['thumb'] = $thumb;
+	                $vidArray['art'] = $art;
+	                $result['mediaResult'] = $vidArray;
+	                // TODO: Progress seems to go to 100 and then stop. Use the chromecast reporting to fill in the actual time.
 	                if (($state == "playing") || ($state == "paused")) {
 	                    try {
 		                    $client = parse_url($_SESSION['plexClientUri']);
 		                    $cc = new Chromecast($client['host'], $client['port']);
 		                    $r = $cc->Plex->plexStatus();
 		                    fclose($cc->socket);
+		                    unset($_GET['pollPlayer']);
 		                    $status2 = json_decode($r, true);
 		                    $status2 = $status2['status'][0] ?? false;
 		                    write_log("Status: " . json_encode($status2));
-		                    $state = $status['playerState'];
-		                    $title = $status2['items'][0]['media']['metadata']['title'];
-		                    $tagline = $status2['items'][0]['media']['metadata']['subtitle'];
 		                    $volume = $status2['volume']['level'];
 	                    } catch (Exception $e) {
 		                    unset($_GET['pollPlayer']);
@@ -3186,7 +3197,7 @@
 		                    $_GET['pollPlayer'] = true;
 	                    }
                     }
-                    $mediaResult = ['title' => $title, 'tagline' => $tagline, 'summary'=>$summary,'year'=>$year,'art' => $art, 'thumb' => $thumb];
+                    $mediaResult = ['title' => $title, 'tagline' => $tagline,'duration'=>$duration,'summary'=>$summary,'year'=>$year,'art' => $art, 'thumb' => $thumb];
                     $status = ['status' => strtolower($state), 'time'=>$time,'type'=>'cast','volume' => $volume, 'mediaResult' => $mediaResult];
                 }
             }
@@ -3212,42 +3223,38 @@
 				$array = json_decode(json_encode($container),true);
 				if (count($array)) {
 					$status['status'] = 'stopped';
-                        foreach($array['Timeline'] as $item) {
-                            $Timeline = $item['@attributes'];
-
-                            if ((($Timeline['state'] == 'playing') || ($Timeline['state'] == 'paused')) && ($Timeline['key'])) {
-	                            $uri = $Timeline['protocol'].'://'.$Timeline['address'].':'.$Timeline['port'];
-	                            $token= $Timeline['token'];
-                                    $mediaURL = $uri . $Timeline['key'] .
-                                        '?X-Plex-Token=' . $token;
-                                    $media = curlGet($mediaURL);
-                                    if ($media) {
-                                        $mediaContainer = new SimpleXMLElement($media);
-                                        $MC = json_decode(json_encode($mediaContainer), true);
-                                        $item = (isset($MC['Video']) ? $MC['Video']['@attributes'] : $MC['Track']['@attributes']);
-                                        $extras = (($item['type'] === 'track') ? fetchMediaExtra(($item['grandparentRatingKey'])) : false);
-                                        if ($extras) $item['summary'] = $extras['summary'];
-                                        $status['mediaResult'] = $item;
-                                        $seriesThumb = (isset($item['parentThumb']) ? $item['parentThumb'] : $item['grandparentThumb']);
-                                        $thumb = (($item['type'] === 'episode') ? $seriesThumb : $item['thumb']);
-                                        #TODO: Get the public address of the server it's playing on, not the one we have selected.
-	                                    $thumb = transcodeImage($thumb,$uri,$token);
-                                        $status['mediaResult']['thumb'] = $thumb;
-                                        $art = (isset($item['art']) ? $item['art'] : false);
-                                        if ($art) {
-                                            $art = transcodeImage($art,$uri,$token);
-                                            $status['mediaResult']['art'] = $art;
-                                        }
-                                        $status['status'] = (string)$Timeline['state'];
-                                        $status['volume'] = (string)$Timeline['volume'];
-                                        if ($Timeline['time']) {
-                                            $status['time'] = (string)$Timeline['time'];
-                                        }
-                                    }
-
+                    foreach($array['Timeline'] as $item) {
+                        $Timeline = $item['@attributes'];
+						if ((($Timeline['state'] == 'playing') || ($Timeline['state'] == 'paused')) && ($Timeline['key'])) {
+                            $uri = $Timeline['protocol'].'://'.$Timeline['address'].':'.$Timeline['port'];
+                            $token= $Timeline['token'];
+                            $mediaURL = $uri . $Timeline['key'] .'?X-Plex-Token=' . $token;
+                            $media = curlGet($mediaURL);
+                            if ($media) {
+                                $mediaContainer = new SimpleXMLElement($media);
+                                $MC = json_decode(json_encode($mediaContainer), true);
+                                $item = (isset($MC['Video']) ? $MC['Video']['@attributes'] : $MC['Track']['@attributes']);
+                                $extras = (($item['type'] === 'track') ? fetchMediaExtra(($item['grandparentRatingKey'])) : false);
+                                if ($extras) $item['summary'] = $extras['summary'];
+                                $status['mediaResult'] = $item;
+                                $seriesThumb = (isset($item['parentThumb']) ? $item['parentThumb'] : $item['grandparentThumb']);
+                                $thumb = (($item['type'] === 'episode') ? $seriesThumb : $item['thumb']);
+                                #TODO: Get the public address of the server it's playing on, not the one we have selected.
+                                $thumb = transcodeImage($thumb,$uri,$token);
+                                $status['mediaResult']['thumb'] = $thumb;
+                                $art = (isset($item['art']) ? $item['art'] : false);
+                                if ($art) {
+                                    $art = transcodeImage($art,$uri,$token);
+                                    $status['mediaResult']['art'] = $art;
+                                }
+                                $status['status'] = (string)$Timeline['state'];
+                                $status['volume'] = (string)$Timeline['volume'];
+                                if ($Timeline['time']) {
+                                    $status['time'] = (string)$Timeline['time'];
+                                }
                             }
                         }
-
+                    }
 				}
 			}
 		}

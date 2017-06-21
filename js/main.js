@@ -511,10 +511,12 @@ function updateStatus() {
 					var thumbPath = mr.thumb;
 					var artPath = mr.art;
 					var resultSummary = mr.summary;
+					if (resultSummary === "") resultSummary = mr.tagline;
 					var resultOffset = data.playerStatus.time;
 					resultDuration = mr.duration;
+					console.log("Time: "+ resultOffset + " Duration: " + resultDuration);
 					var progressSlider = document.getElementById('progressSlider');
-                    TitleString = resultTitle + ((resultYear !== '')? "(" + resultYear + ")" : '');
+                    TitleString = resultTitle;
 					if (resultType === "episode") TitleString = "S" + mr.parentIndex + "E"+mr.index + " - " + resultTitle;
 					if (resultType === "track") {
 						console.log("The title should be right, fucker.");

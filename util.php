@@ -177,17 +177,13 @@
 	}
 
 	function transcodeImage($path,$uri=false,$token=false) {
-		write_log("Function fired");
-    	write_log("Path: ".$path);
-    	if ($uri) $server = $uri;
+		if ($uri) $server = $uri;
     	$server = $server ?? $_SESSION['plexServerUri'] ?? $_SESSION['plexServerPublicUri'] ?? false;
     	if ($token) $serverToken = $token;
     	$token = $serverToken ?? $_SESSION['plexServerToken'];
     	if ($server) {
 		    $image = $server . "/photo/:/transcode?width=1920&height=1920&minSize=1&url=" . urlencode($path) . "%3FX-Plex-Token%3D".$token."&X-Plex-Token=" . $token;
-		    write_log("Image path: " . $image);
 		    if (checkRemoteFile($image)) {
-		    	write_log("Image valid, returning");
 		    	return $image;
 		    }
 	    } else {
@@ -197,8 +193,7 @@
 	}
 
 	function checkRemoteFile($url) {
-    	write_log("Function fired");
-		$certPath = file_build_path(dirname(__FILE__),"cert","cacert.pem");
+    	$certPath = file_build_path(dirname(__FILE__),"cert","cacert.pem");
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL,$url);
 		curl_setopt ($ch, CURLOPT_CAINFO, $certPath);
@@ -207,12 +202,11 @@
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 		if(curl_exec($ch)!==FALSE)
 		{
-			write_log("Success.");
 			return true;
 		}
 		else
 		{
-			write_log("Fail");
+			write_log("Failure finding remote file.","ERROR");
 			return false;
 		}
 	}
