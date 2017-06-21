@@ -4547,7 +4547,6 @@ function returnSpeechV1($speech, $contextName, $cards=false, $waitForResponse=fa
 	}
 
 	function fireHook($param=false,$type=false) {
-		$param = false;
 		if ($_SESSION['hookEnabled'] == "true") {
 			write_log("Hooks are enabled!");
 			if ($type && ($_SESSION['hookSplit'] == "true")) {
@@ -4558,7 +4557,7 @@ function returnSpeechV1($speech, $contextName, $cards=false, $waitForResponse=fa
 				$url=$_SESSION['hookUrl'];
 			}
 			if (($url) && ($url !== "")) {
-				if ($param) $url.="?param=".$param;
+				if ($param) $url.="?value1=".urlencode($param);
 				write_log("Final hook URL: ".$url);
 				$result = curlGet($url);
 				write_log("Hook result: ".$result);
