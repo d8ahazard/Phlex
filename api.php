@@ -2967,12 +2967,12 @@
                     $result = playMediaCast($media);
 					break;
 				case (preg_match('/Roku/', $clientProduct) ? $clientProduct : !$clientProduct):
-				case 'PlexKodiConnect':
 					$result = playMediaRelayed($media);
 					break;
 				case 'Plex for Android':
 				    $result = (isset($media['queueID']) ? playMediaQueued($media) : playMediaDirect($media));
 					break;
+				case 'PlexKodiConnect':
 				case 'Plex Media Player':
 				case 'Plex Web':
 				case 'Plex TV':
