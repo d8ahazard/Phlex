@@ -23,10 +23,7 @@ jQuery(document).ready(function($) {
 	deviceID = $('#deviceID').attr('data');
 	publicIP = $('#publicIP').attr('data');
     sonarr = $('#sonarr').attr('enable') === 'true';
-    hook = $('#hook').attr('enable') === 'true';
-    hooks = $('#hookSplit').attr('enable') === 'true';
-    hookCustom = $('#hookCustom').attr('enable') === 'true';
-	sick = $('#sick').attr('enable') === 'true';
+    sick = $('#sick').attr('enable') === 'true';
     couch = $('#couchpotato').attr('enable') === 'true';
     radarr = $('#radarr').attr('enable') === 'true';
     ombi = $('#ombi').attr('enable') === 'true';
@@ -276,15 +273,18 @@ jQuery(document).ready(function($) {
 	var radarrEnabled = $('#radarrEnabled');
     var hookEnabled = $('#hookEnabled');
     var hookSplit = $('#hookSplit');
+    var hookPlay = $('#hookPlay');
+    var hookPaused = $('#hookPaused');
+    var hookStop = $('#hookStop');
+    var hookFetch = $('#hookFetch');
+    var hookCustom = $('#hookCustom');
+    var urlGroup = $('.urlGroup');
 
     ombiEnabled.prop("checked",ombi);
 	couchEnabled.prop("checked",couch);
 	sonarrEnabled.prop("checked",sonarr);
 	sickEnabled.prop("checked",sick);
 	radarrEnabled.prop("checked",radarr);
-    hookSplit.prop("checked",hooks);
-    hookEnabled.prop("checked",hook);
-    $('#hookCustom').prop("checked",hookCustom);
 
     if (ombiEnabled.is(':checked')) {
 		$('#ombiGroup').show();
@@ -325,12 +325,39 @@ jQuery(document).ready(function($) {
     if (hookSplit.is(':checked')) {
         $('#hookUrlGroup').hide();
         $('.hookLabel').show();
+        urlGroup.css("height","");
     } else {
         $('#hookUrlGroup').show();
         $('.hookLabel').hide();
+        urlGroup.css("height","0");
     }
 
-    if ($('#hookCustom').is(':checked')) {
+    if (hookPlay.is(':checked')) {
+        $('#hookPlayGroup').show();
+    } else {
+        $('#hookPlayGroup').hide();
+    }
+
+    if (hookPaused.is(':checked')) {
+        $('#hookPausedGroup').show();
+    } else {
+        $('#hookPausedGroup').hide();
+    }
+
+    if (hookStop.is(':checked')) {
+        $('#hookStopGroup').show();
+    } else {
+        $('#hookStopGroup').hide();
+    }
+
+    if (hookFetch.is(':checked')) {
+        $('#hookFetchGroup').show();
+    } else {
+        $('#hookFetchGroup').hide();
+    }
+
+
+    if (hookCustom.is(':checked')) {
 		$('#hookCustomPhraseGroup').show();
 	} else {
         $('#hookCustomPhraseGroup').hide();
@@ -379,9 +406,11 @@ jQuery(document).ready(function($) {
         $('.hookLabel').toggle();
     });
 
-    $('#hookCustom').change(function() {
-        $('#hookCustomPhraseGroup').toggle();
-    });
+    hookPlay.change(function() {$('#hookPlayGroup').toggle();});
+    hookPaused.change(function() {$('#hookPausedGroup').toggle();});
+    hookStop.change(function() {$('#hookStopGroup').toggle();});
+    hookFetch.change(function() {$('#hookFetchGroup').toggle();});
+    hookCustom.change(function() {$('#hookCustomPhraseGroup').toggle();});
 
 
 

@@ -58,6 +58,15 @@ function makeBody() {
     $_SESSION['dvr_endoffset'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'dvr_endoffset', 2);
     $_SESSION['resolution'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'resolution', 0);
 
+	$_SESSION['hookEnabled'] = $config->getBool('user-_-'.$_SESSION['plexUserName'], 'hookEnabled', false);
+	$_SESSION['hookSplit'] = $config->getBool('user-_-'.$_SESSION['plexUserName'], 'hookSplit', false);
+	$_SESSION['hookPlay'] = $config->getBool('user-_-'.$_SESSION['plexUserName'], 'hookPlay', false);
+	$_SESSION['hookPaused'] = $config->getBool('user-_-'.$_SESSION['plexUserName'], 'hookPaused', false);
+	$_SESSION['hookStop'] = $config->getBool('user-_-'.$_SESSION['plexUserName'], 'hookStop', false);
+	$_SESSION['hookFetch'] = $config->getBool('user-_-'.$_SESSION['plexUserName'], 'hookFetch', false);
+	$_SESSION['hookCustom'] = $config->getBool('user-_-'.$_SESSION['plexUserName'], 'hookCustom', false);
+	$_SESSION['hookCustomReply'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'hookCustomReply', "");
+
     $url = 'https://plex.tv/pms/:/ip';
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL,$url);
@@ -252,6 +261,102 @@ function makeBody() {
                                     </label>
                                 </div>
 
+                            </div>
+                        </div>
+                    </div>
+                    <div class="appContainer card">
+                        <div class="card-body">
+                            <h4 class="cardHeader">Webhooks</h4>
+                            <div class="togglebutton">
+                                <label for="hookEnabled" class="appLabel checkLabel">Enable
+                                    <input id="hookEnabled" type="checkbox" class="appInput appToggle" '.($_SESSION["hookEnabled"] ? 'checked' : '').'/>
+                                </label>
+                            </div>
+                            <div class="form-group" id="hookGroup">
+	                            <div class="togglebutton">
+	                                <label for="hookSplit" class="appLabel checkLabel">Separate URLs
+	                                    <input id="hookSplit" type="checkbox" class="appInput appToggle" '.($_SESSION["hookSplit"] ? 'checked' : '').'/>
+	                                </label>
+	                            </div>
+	                            <div class="form-group" id="hookUrlGroup">
+                                    <label for="hookUrl" class="appLabel">Webhook URL:
+                                        <input id="hookUrl" class="appInput form-control Webhooks" type="text" value="' . $_SESSION["hookUrl"] . '"/>
+                                        <span class="bmd-help">?param={{media/command}} will be appended</span>
+                                    </label>
+                                </div>
+                                <div class="togglebutton">
+	                                <label for="hookPlay" class="appLabel checkLabel">Playback
+	                                    <input id="hookPlay" type="checkbox" class="appInput hookToggle" '.($_SESSION["hookPlay"] ? 'checked' : '').'/>
+	                                </label>
+	                            </div>
+	                            <div class="hookLabel">
+	                                <div class="form-group urlGroup" id="hookPlayGroup">
+	                                    <label for="hookPlayUrl" class="appLabel">URL:
+	                                        <input id="hookPlayUrl" class="appInput form-control Webhooks" type="text" value="' . $_SESSION["hookPlayUrl"] . '"/>
+	                                        <span class="bmd-help">?param={{media name}} will be appended</span>
+	                                    </label>
+	                                </div>
+                                </div>
+                                <div class="togglebutton">
+	                                <label for="hookPaused" class="appLabel checkLabel">Pause
+	                                    <input id="hookPaused" type="checkbox" class="appInput hookToggle" '.($_SESSION["hookPaused"] ? 'checked' : '').'/>
+	                                </label>
+	                            </div>
+	                            <div class="hookLabel">
+	                                <div class="form-group urlGroup" id="hookPausedGroup">
+	                                    <label for="hookPausedUrl" class="appLabel">URL:
+	                                        <input id="hookPausedUrl" class="appInput form-control Webhooks" type="text" value="' . $_SESSION["hookPausedUrl"] . '"/>
+	                                    </label>
+	                                </div>
+                                </div>
+                                <div class="togglebutton">
+	                                <label for="hookStop" class="appLabel checkLabel">Stop
+	                                    <input id="hookStop" type="checkbox" class="appInput hookToggle"/ '.($_SESSION["hookStop"] ? 'checked' : '').'>
+	                                </label>
+	                            </div>
+	                            <div class="hookLabel">
+	                                <div class="form-group urlGroup" id="hookStopGroup">
+	                                    <label for="hookStopUrl" class="appLabel">URL:
+	                                        <input id="hookStopUrl" class="appInput form-control Webhooks" type="text" value="' . $_SESSION["hookStopUrl"] . '"/>
+	                                    </label>
+	                                </div>
+                                </div>
+                                <div class="togglebutton">
+	                                <label for="hookFetch" class="appLabel checkLabel">Fetch
+	                                    <input id="hookFetch" type="checkbox" class="appInput hookToggle" '.($_SESSION["hookFetch"] ? 'checked' : '').'/>
+	                                </label>
+	                            </div>
+	                            <div class="hookLabel">
+	                                <div class="form-group urlGroup" id="hookFetchGroup">
+	                                    <label for="hookFetchUrl" class="appLabel">URL:
+	                                        <input id="hookFetchUrl" class="appInput form-control Webhooks" type="text" value="' . $_SESSION["hookFetchUrl"] . '"/>
+	                                    </label>
+	                                </div>
+                                </div>
+                                <div class="togglebutton">
+	                                <label for="hookCustom" class="appLabel checkLabel">Custom
+	                                    <input id="hookCustom" type="checkbox" class="appInput hookToggle" '.($_SESSION["hookCustom"] ? 'checked' : '').'/>
+	                                </label>
+	                            </div>
+                                <div class="form-group" id="hookCustomPhraseGroup">
+	                                <div class="hookLabel">
+	                                    <label for="hookCustomUrl" class="appLabel">URL:
+	                                        <input id="hookCustomUrl" class="appInput form-control Webhooks" type="text" value="' . $_SESSION["hookCustomUrl"] . '"/>
+	                                    </label>
+                                    </div>
+                                    <label for="hookCustomPhrase" class="appLabel">Custom Phrase:
+                                        <input id="hookCustomPhrase" class="appInput form-control Webhooks" type="text" value="' . $_SESSION["hookCustomPhrase"] . '"/>
+                                    </label>
+                                    <label for="hookCustomReply" class="appLabel">Custom Phrase:
+                                        <input id="hookCustomReply" class="appInput form-control Webhooks" type="text" value="' . $_SESSION["hookCustomReply"] . '"/>
+                                    </label>
+                                </div>
+                                <div class="text-center">
+                                    <div class="form-group btn-group">
+                                        <button value="Webhooks" class="testInput btn btn-raised btn-info" type="button">Test</button>
+                                        <button id="resetCouch" value="Webhooks" class="resetInput btn btn-raised btn-danger btn-100" type="button">Reset</button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>

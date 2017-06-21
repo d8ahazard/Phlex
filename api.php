@@ -484,6 +484,7 @@
 
 
 	function parseFetchCommand($command,$type=false) {
+		fireHook($command,"Fetch");
 		$resultOut = array();
 		write_log("Function Fired.");
         $episode = $remove = $season = $useNext = false;
@@ -921,6 +922,17 @@
 		$artist = $result['parameters']['artist'] ?? false;
 
 		if ($command) $command = cleanCommandString($command);
+		$rawspeech = $result['resolvedQuery'];
+		if (cleanCommandString($rawspeech) == cleanCommandString($_SESSION['hookCustomPhrase'])) {
+			fireHook(false,"Custom");
+			write_log("Custom phrase triggered: ".$_SESSION['hookCustomPhrase']);
+			$queryOut['initialCommand'] = $rawspeech;
+			$speech = ($_SESSION['hookCustomReply']!="" ? $_SESSION['hookCustomReply'] : "Congratulations, you've fired the custom webhook command!");
+			$queryOut['speech'] = $speech;
+			returnSpeech($speech,"yes",false,false);
+			log_command(json_encode($queryOut));
+			die();
+		}
 		if ($control) $control = strtolower($control);
 
 		$capabilities = $request['originalRequest']['data']['surface']['capabilities'];
@@ -929,7 +941,8 @@
             if ($capability['name'] == "actions.capability.SCREEN_OUTPUT") $GLOBALS['screen'] = true;
         }
 
-		$rawspeech = $result['resolvedQuery'];
+
+
 		if ($rawspeech == "GOOGLE_ASSISTANT_WELCOME") $rawspeech = "Talk to Flex TV.";
 		write_log("Raw speech is ".$rawspeech);
 		$queryOut=array();
@@ -2949,6 +2962,7 @@
     }
 
 	function playMedia($media) {
+		write_log("Function fired!");
 		if (isset($media['key'])) {
 		    $clientProduct = $_SESSION['plexClientProduct'];
 			switch ($clientProduct) {
@@ -2969,10 +2983,12 @@
 					$result = playMediaQueued($media);
 					break;
 			}
+			fireHook($media['title'],"Play");
 			return $result;
 		} else {
 			write_log("No media to play!!","ERROR");
 			$result['status'] = 'error';
+			fireHook($media['title'],"Play");
 			return $result;
 		}
 	}
@@ -3259,6 +3275,8 @@
 					break;
 			}
 			write_log("Result is ".print_r($result,true));
+			if (preg_match("/stop/",$cmd)) fireHook(false,"Stop");
+			if (preg_match("/pause/",$cmd)) fireHook(false,"Paused");
 			return $result;
 	}
 
@@ -4440,6 +4458,29 @@ function returnSpeech($speech, $contextName, $cards=false, $waitForResponse=fals
 			}
 		}
 		return $user;
+	}
+
+	function fireHook($param=false,$type=false) {
+		$param = false;
+		write_log("Function fired.");
+		if ($_SESSION['hookEnabled']) {
+			write_log("Hooks are enabled!");
+			if ($type && ($_SESSION['hookSplit'] == "true")) {
+				write_log("Using split URL.");
+				$url=$_SESSION['hook'.$type.'Url'];
+			} else {
+				write_log("Using standard URL: ".$_SESSION['hookUrl']);
+				$url=$_SESSION['hookUrl'];
+			}
+			if (($url) && ($url !== "")) {
+				if ($param) $url.="?param=".$param;
+				write_log("Final hook URL: ".$url);
+				$result = curlGet($url);
+				write_log("Hook result: ".$result);
+			} else {
+				write_log("ERROR, no URL!","ERROR");
+			}
+		}
 	}
 
 
