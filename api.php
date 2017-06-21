@@ -115,10 +115,6 @@
 
 	    if (isset($_GET['device'])) {
 	    	write_log("SETTING DEVICE HERE");
-		    write_log("SETTING DEVICE HERE");
-		    foreach($_GET as $name=>$param) {
-		    	write_log("Device Param ".$name.": ".$param);
-		    }
 		    $type = $_GET['device'];
 		    $id = $_GET['id'];
 		    $uri = $_GET['uri'];
@@ -3045,9 +3041,8 @@ function NumbersToWord($data) {
 			'&port=' .$serverPort.
 			'&containerKey=%2FplayQueues%2F'.$queueID.'%3Fown%3D1%26window%3D200'.
 			'&token=' .$transientToken.
-			clientString().
-			'&X-Plex-Token=' .$_SESSION['plexServerToken'].
-			'&commandID='.$_SESSION['counter'];
+			'&commandID='.$_SESSION['counter'].
+			clientString();
 		$headers = clientHeaders();
 		$result = curlGet($playUrl,$headers);
 		write_log('Playback URL is ' . protectURL($playUrl));
@@ -4553,8 +4548,7 @@ function returnSpeechV1($speech, $contextName, $cards=false, $waitForResponse=fa
 
 	function fireHook($param=false,$type=false) {
 		$param = false;
-		write_log("Function fired.");
-		if ($_SESSION['hookEnabled']) {
+		if ($_SESSION['hookEnabled'] == "true") {
 			write_log("Hooks are enabled!");
 			if ($type && ($_SESSION['hookSplit'] == "true")) {
 				write_log("Using split URL.");
