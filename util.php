@@ -176,9 +176,10 @@
 		return $path;
 	}
 
-	function transcodeImage($path,$uri=false,$token=false) {
+	function transcodeImage(string $path,string $uri="",string $token="") {
+    	write_log("THE FUCKING URI IS ".$_SESSION['plexServerPublicUri']);
 		if ($uri) $server = $uri;
-    	$server = $server ?? $_SESSION['plexServerUri'] ?? $_SESSION['plexServerPublicUri'] ?? false;
+    	$server = $server ?? $_SESSION['plexServerPublicUri'] ?? $_SESSION['plexServerUri'] ?? false;
     	if ($token) $serverToken = $token;
     	$token = $serverToken ?? $_SESSION['plexServerToken'];
     	if ($server) {
@@ -186,9 +187,9 @@
 		    if (checkRemoteFile($image)) {
 		    	return $image;
 		    }
-	    } else {
-		    $path = cacheImage($uri . $path . "?X-Plex-Token=" . $token);
-		}
+	    }
+		(string) $cachePath = $server . $path . "?X-Plex-Token=" . $token;
+		$path = cacheImage($cachePath);
 		return $path;
 	}
 
@@ -307,20 +308,22 @@
             'X-Plex-Platform:Web',
             'X-Plex-Platform-Version:1.0.0',
             'X-Plex-Product:Phlex',
-            'X-Plex-Version:1.0.0'
+            'X-Plex-Version:3.9.1'
         );
     }
 
 function clientString() {
-	return '&X-Plex-Client-Identifier=' . checkSetDeviceID().
-		'&X-Plex-Target-Client-Identifier=' . $_SESSION['plexClientId'].
+	$string = '&X-Plex-Product=Phlex'.
+		'&X-Plex-Version=3.9.1'.
+		'&X-Plex-Client-Identifier=' . checkSetDeviceID().
+		'&X-Plex-Platform=Web'.
+		'&X-Plex-Platform-Version=1.0.0'.
 		'&X-Plex-Device=PhlexWeb'.
 		'&X-Plex-Device-Name=Phlex'.
 		'&X-Plex-Device-Screen-Resolution=1520x707,1680x1050,1920x1080'.
-		'&X-Plex-Platform=Web'.
-		'&X-Plex-Platform-Version=1.0.0'.
-		'&X-Plex-Product=Phlex'.
-		'&X-Plex-Version=1.0.0';
+		'&X-Plex-Token=' .$_SESSION['plexServerToken'].
+		'&X-Plex-Target-Client-Identifier=' . $_SESSION['plexClientId'];
+	return $string;
 }
 
 

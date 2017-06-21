@@ -185,7 +185,7 @@ jQuery(document).ready(function($) {
 		var serverID = $(this).val();
 		var element = $(this).find('option:selected'); 
 		var serverUri = element.attr('uri');
-        var serverPublicUri = element.attr('publicaddress');
+        var serverPublicUri = element.attr('publicuri');
 		var serverName = element.attr('name');
 		var serverToken = element.attr('token');
 		var serverProduct = element.attr('product');

@@ -267,7 +267,6 @@ class Chromecast {
 	}
 
 	function testLive() {
-		write_log("Function fired.");
 		// If there is a difference of 10 seconds or more between $this->lastactivetime and the current time, then we've been kicked off and need to reconnect
 		if ($this->lastip == "") {
 			write_log("No last IP, returning.");
@@ -336,6 +335,7 @@ class Chromecast {
 		while (($this->transportid == "" || $this->transportid == $oldtransportid) && ($count < $this->breakout))  {
 			$r = $this->getCastMessage();
 			write_log("Looking for a cast message: ".$r);
+			$count++;
 		}
 	}
 
@@ -390,7 +390,6 @@ class Chromecast {
 	}
 
 	public function getCastMessage() {
-		write_log("Function fired.");
 		// Get the Chromecast Message/Response
 		// Later on we could update CCprotoBuf to decode this
 		// but for now all we need is the transport id  and session id if it is
@@ -398,6 +397,7 @@ class Chromecast {
 		$this->testLive();
 		//stream_set_timeout($this->socket,1);
 		$response = fread($this->socket, 10000);
+		$response = preg_replace('/[[:^print:]]/','',$response);
 		$pongcount = 0;
 		while (preg_match("/urn:x-cast:com.google.cast.tp.heartbeat/", $response) && preg_match("/\"PING\"/", $response)) {
 			if ($response != "") { $this->pong(); }
@@ -411,13 +411,11 @@ class Chromecast {
 			set_time_limit(30);
 		}
 		if (preg_match("/transportId/s", $response)) {
-			write_log("Found a match for tID: ".$response);
 			preg_match("/transportId\"\:\"([^\"]*)/", $response, $matches);
 			$matches = $matches[1];
 			$this->transportid = $matches;
 		}
 		if (preg_match("/sessionId/s", $response)) {
-			write_log("Found a match for sID: ".$response);
 			preg_match("/\"sessionId\"\:\"([^\"]*)/", $response, $r);
 			$this->sessionid = $r[1];
 		}
@@ -426,7 +424,6 @@ class Chromecast {
 	}
 
 	public function sendMessage($urn, $message) {
-		write_log("Function fired.");
 		// Send the given message to the given urn
 		$this->testLive();
 		$c = new CastMessage();

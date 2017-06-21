@@ -26,7 +26,7 @@
     	write_log("Sorry, couldn't validate user.");
 	    if (isset($_GET['testclient'])) {
 		    write_log("API Link Test FAILED!  Invalid API Token.");
-		    echo 'Invalid API Token Specified! <br>';
+	    echo json_encode(['error'=>'Invalid API Token Specified, please re-link your account through the Phlex Web UI.']);
 	    }
 	    write_log("ERROR: Unauthenticated access detected.  Originating IP - ".$_SERVER['REMOTE_ADDR'],"ERROR");
 	    $entityBody = curlGet('php://input');
@@ -122,7 +122,7 @@
 		    $type = $_GET['device'];
 		    $id = $_GET['id'];
 		    $uri = $_GET['uri'];
-		    $publicUri = $_GET['publicuri'] ?? $uri;
+		    $publicUri = $_GET['publicUri'];
 		    $name = $_GET['name'];
 		    $product = $_GET['product'];
 		    write_log('GET: New device selected. Type is ' . $type . ". ID is " . $id . ". Name is " . $name);
@@ -131,10 +131,11 @@
 				    $token = $_GET['token'];
 				    $GLOBALS['config']->set('user-_-' . $_SESSION['plexUserName'], $type . 'Token', $token);
 			    }
+
 			    $GLOBALS['config']->set('user-_-' . $_SESSION['plexUserName'], $type, $id);
 			    $GLOBALS['config']->set('user-_-' . $_SESSION['plexUserName'], $type. 'Id', $id);
 			    $GLOBALS['config']->set('user-_-' . $_SESSION['plexUserName'], $type . 'Uri', $uri);
-			    $GLOBALS['config']->set('user-_-' . $_SESSION['plexUserName'], $type . 'publicUri', $publicUri);
+			    $GLOBALS['config']->set('user-_-' . $_SESSION['plexUserName'], $type . 'PublicUri', $publicUri);
 			    $GLOBALS['config']->set('user-_-' . $_SESSION['plexUserName'], $type . 'Name', $name);
 			    $GLOBALS['config']->set('user-_-' . $_SESSION['plexUserName'], $type . 'Product', $product);
 			    saveConfig($GLOBALS['config']);
@@ -922,6 +923,7 @@
 		$type = $result['parameters']['type'] ?? false;
 		$days = $result['parameters']['days'] ?? false;
 		$artist = $result['parameters']['artist'] ?? false;
+		$_SESSION['apiVersion'] = $request['originalRequest']['version'] ?? "1";
 
 		if ($command) $command = cleanCommandString($command);
 		$rawspeech = $result['resolvedQuery'];
@@ -1827,7 +1829,7 @@ function NumbersToWord($data) {
 	                            if ((isset($list['servers'])) && ($device['product'] === 'Plex Media Server')) {
 		                            foreach ($list['servers'] as $server) {
 			                            if ($server['id'] === $device['id']) {
-				                            $device['uri'] = $server['uri'];
+				                            //$device['uri'] = $server['uri'];
 			                            }
 		                            }
 	                            }
@@ -1850,8 +1852,8 @@ function NumbersToWord($data) {
 			                            if (check_url($con['@attributes']['uri'] . '/resources?X-Plex-Token=' . $device['token'])) $device['uri'] = $con['@attributes']['uri'];
 		                            }
 	                            }
-	                            if ($con['@attributes']['local'] == 0) {
-		                            $device['publicUri'] = $protocol . "://" . $con['@attributes']['address'] . ":" . $con['@attributes']['port'];
+	                            if (! $con['@attributes']['local']) {
+		                            $device['publicUri'] = $con['@attributes']['uri'];
 	                            }
 	                            array_push($connections, (array)$con['@attributes']);
                             } else write_log("IP is loopback, filtering: ".$con['@attributes']['address'],"INFO");
@@ -4329,6 +4331,10 @@ function NumbersToWord($data) {
 
 
 function returnSpeech($speech, $contextName, $cards=false, $waitForResponse=false, $suggestions=false) {
+	if ($_SESSION['apiVersion'] !== "2")  {
+		returnSpeechV1($speech,$contextName,$cards,$waitForResponse,$suggestions);
+		return;
+	}
 	$suggestions = false; //TODO: Remove this whenever google gets me documentation
 	write_log("Final Speech should be: ".$speech);
 	if (! $cards) write_log("Card array is ".json_encode($cards));
@@ -4353,8 +4359,9 @@ function returnSpeech($speech, $contextName, $cards=false, $waitForResponse=fals
 			$carousel = [];
 			foreach ($cards as $card) {
 				$item = [];
-				if (! (preg_match("/http/",$card['image']))) $card['image'] = transcodeImage($card['image']);
-				$item['image'] = $card['image'];
+				$img = $card['image']['url'];
+				if (! (preg_match("/http/",$card['image']['url']))) $img = transcodeImage($card['image']['url']);
+				$item['image']['url'] = $img;
 				$item['image']['accessibilityText'] = $card['title'];
 				$item['title'] = $card['title'];
 				$item['description'] = $card['description'];
@@ -4380,6 +4387,82 @@ function returnSpeech($speech, $contextName, $cards=false, $waitForResponse=fals
 
 	$output['data']['google']['richResponse']['suggestions'] = $sugs;
 
+	ob_end_clean();
+	echo json_encode($output);
+	write_log("JSON out is ".json_encode($output));
+}
+
+function returnSpeechV1($speech, $contextName, $cards=false, $waitForResponse=false, $suggestions=false) {
+	$suggestions = false; //TODO: Remove this whenever google gets me documentation
+	write_log("Final Speech should be: ".$speech);
+	if (! $cards) write_log("Card array is ".json_encode($cards));
+	header('Content-Type: application/json');
+	ob_start();
+	$cardArray = $item = $items = $richResponse = $sugs = [];
+	$output["speech"] = $speech;
+	$returns = array();
+	$contexts = array('waitforplayer','yes','promptfortitle');
+	foreach($contexts as $context) {
+		if ($context == $contextName) {
+			$lifespan = 2;
+		} else {
+			$lifespan = 0;
+		}
+		$item = array('name'=>$context, 'lifespan'=>$lifespan);
+		array_push($returns,$item);
+	}
+	$output["contextOut"] = $returns;
+	$output["contextOut"][0]["name"] = $contextName;
+	$output["contextOut"][0]["lifespan"] = 2;
+	write_log("Expect response is ". $waitForResponse);
+	$output["data"]["google"]["expect_user_response"] = $waitForResponse;
+	$richResponse = array();
+	$items = [];
+	$simple = ['simple_response'=>['display_text'=>$speech,'text_to_speech'=>$speech]];
+	array_push($items, $simple);
+
+	if ($GLOBALS['screen']) {
+		if (is_array($cards)) {
+			write_log("Building card array.");
+			$cardArray = [];
+			array_push($cardArray, $item);
+			if (count($cards) >= 2) {
+				//$output['data']['google']['system_intent']['intent'] = "actions.intent.OPTION";
+				$carousel = [];
+				foreach ($cards as $card) {
+					$item = [];
+					$item['image'] = $card['image'];
+					$item['image']['accessibilityText'] = $card['title'];
+					$item['title'] = $card['title'];
+					$item['description'] = $card['summary'];
+					$item['option_info']['key'] = 'play '.$card['title'];
+					array_push($carousel, $item);
+				}
+				$output['data']['google']['expectedInputs'][0]['possibleIntents'][0]['inputValueData']['listSelect']['items'] = $carousel;
+				//$output['data']['google']['system_intent']['spec']['option_value_spec']['list_select']['items'] = $carousel;
+				$output['data']['google']['expectedInputs'][0]['possibleIntents'][0]['inputValueData']['@type'] = "type.googleapis.com/google.actions.v2.OptionValueSpec";
+				$output['data']['google']['expectedInputs'][0]['possibleIntents'][0]['intent'] = "actions.intent.OPTION";
+			} else {
+				write_log("Should be formatting a BasicCard here: " . json_encode($cards[0]));
+				array_push($items,['basic_card'=>$cards[0]]);
+			}
+		}
+	}
+	$richResponse['items'] = $items;
+
+	if ($GLOBALS['screen']) {
+		if (is_array($suggestions)) {
+			$sugs = [];
+			foreach ($suggestions as $suggestion) {
+				array_push($sugs, ["title" => $suggestion]);
+			}
+			array_push($richResponse,['suggestions'=>$sugs]);
+		}
+	}
+	$output['data']['google']['rich_response'] = $richResponse;
+	//$output["data"] = $resultData;
+	$output["displayText"] = $speech;
+	$output["source"] = "api.php";
 	ob_end_clean();
 	echo json_encode($output);
 	write_log("JSON out is ".json_encode($output));
