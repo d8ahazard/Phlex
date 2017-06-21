@@ -1739,11 +1739,10 @@
 	function searchSwap($command) {
 		$outArray = [];
 		$commandArray = explode(" ",$command);
-		$spell = new NumberFormatter("en", NumberFormatter::SPELLOUT);
 		foreach ($commandArray as $word) {
 			write_log("Word in: ".$word);
 			if (is_numeric($word)) {
-				$word = $spell->format($word);
+				$word = NumbersToWord($word);
 			} else {
 				$word = wordsToNumber($word);
 			}
@@ -1761,6 +1760,12 @@
 		$data = str_replace($search,$replace, $data);
 		return $data;
 	}
+function NumbersToWord($data) {
+	$search = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '30', '40', '40', '50', '60', '70', '80', '90', '100', '1000', '1000000', '1000000000'];
+	$replace = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty', 'thirty', 'forty', 'fourty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety', 'hundred', 'thousand', 'million', 'billion'];
+	$data = str_replace($search,$replace, $data);
+	return $data;
+}
 	//
 	// ############# Client/Server Functions ############
 	//
