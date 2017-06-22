@@ -176,20 +176,23 @@
 		return $path;
 	}
 
-	function transcodeImage(string $path,string $uri="",string $token="") {
-    	write_log("THE FUCKING URI IS ".$_SESSION['plexServerPublicUri']);
-		if ($uri) $server = $uri;
-    	$server = $server ?? $_SESSION['plexServerPublicUri'] ?? $_SESSION['plexServerUri'] ?? false;
-    	if ($token) $serverToken = $token;
-    	$token = $serverToken ?? $_SESSION['plexServerToken'];
-    	if ($server) {
-		    $image = $server . "/photo/:/transcode?width=1920&height=1920&minSize=1&url=" . urlencode($path) . "%3FX-Plex-Token%3D".$token."&X-Plex-Token=" . $token;
-		    if (checkRemoteFile($image)) {
-		    	return $image;
+	function transcodeImage($path,$uri="",$token="") {
+    	if ($path) {
+		    if ($uri) $server = $uri;
+		    $server = $server ?? $_SESSION['plexServerPublicUri'] ?? $_SESSION['plexServerUri'] ?? false;
+		    if ($token) $serverToken = $token;
+		    $token = $serverToken ?? $_SESSION['plexServerToken'];
+		    if ($server) {
+			    $image = $server . "/photo/:/transcode?width=1920&height=1920&minSize=1&url=" . urlencode($path) . "%3FX-Plex-Token%3D" . $token . "&X-Plex-Token=" . $token;
+			    if (checkRemoteFile($image)) {
+				    return $image;
+			    }
 		    }
+		    $cachePath = $server . $path . "?X-Plex-Token=" . $token;
+		    $path = cacheImage($cachePath);
+	    } else {
+		    $path = cacheImage(file_build_path(dirname(__FILE__),"img","phlex.png"));
 	    }
-		(string) $cachePath = $server . $path . "?X-Plex-Token=" . $token;
-		$path = cacheImage($cachePath);
 		return $path;
 	}
 
@@ -446,9 +449,8 @@ function clientString() {
             curl_setopt($ch, CURLOPT_HTTPHEADER, $_SESSION['plex_headers']);
         }
         /* Get the HTML or whatever is linked in $url. */
-        $response = curl_exec($ch);
-
-        /* Check for 404 (file not found). */
+        curl_exec($ch);
+		/* Check for 404 (file not found). */
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 
@@ -573,7 +575,6 @@ function checkFiles() {
             //echo $scriptBlock;
 	        write_log($message,"ERROR");
             return $message;
-            die();
         }
     }
     $extensions = ['sockets','curl'];
@@ -585,13 +586,12 @@ function checkFiles() {
             return $message;
         }
     }
-    try {$config = new Config_Lite('config.ini.php');} catch (Config_Lite_Exception_Runtime $e) {
+    try {new Config_Lite('config.ini.php');} catch (Config_Lite_Exception_Runtime $e) {
         $message = "An exception occurred trying to load config.ini.php.  Please check that the directory and file are writeable by your webserver application and try again: ".$e;
         //$scriptBlock = "<script language='javascript'>alert(\"" . $message . "\");</script>";
         //echo $scriptBlock;
 	    write_log($message,"ERROR");
         return $message;
-        die();
     };
     return false;
 }

@@ -867,7 +867,7 @@
 			$mods['filter']=$filterOut;
 			write_log("filterOut: ".implode(" : ",$mods['filterOut']));
 		}
-
+		$mods['preFilter'] = implode(" ",$commandArray);
 		if ($mediaOut) {
 			$commandArray = array_diff($commandArray, $mediaOut);
 			//					  "season","series","show","episode","movie","film","beginning","rest","end","minute","minutes","hour","hours"
@@ -883,7 +883,6 @@
 			}
 			$mods['media'] = $mediaOut;
 		}
-		$mods['preFilter'] = implode(" ",$commandArray);
 		if ($numberOut) {
 			$commandArray = array_diff($commandArray, $numberOut);
 			// "first","pilot","second","third","last","final","latest","random"
@@ -1265,14 +1264,17 @@
 				$speech = "Here's a list of scheduled recordings: ";
 				if ($days == 'now') {
 					$time = date('H');
-					$verb = 'Today';
-					if ($time >= 12) $verb = 'This afternoon';
-					if ($time >= 5) $verb = 'Tonight';
-					$speech = $verb . ", it looks like ";
+					$speech = 'Today';
+					if ($time >= 12) $speech = 'This afternoon';
+					if ($time >= 17) $speech = 'Tonight';
+					$days = $speech;
+					$speech .=", ";
 				}
-				if ($days == 'tomorrow') $speech = "Tomorrow, you have ";
-				if ($days == 'weekend') $speech = "This weekend, you have ";
-				if (preg_match("/day/",$days)) $speech = "On ".$days." you have ";
+				if ($days == 'tomorrow') $speech = "Tomorrow, ";
+				if ($days == 'weekend') $speech = "This weekend, ";
+				if (preg_match("/day/",$days)) $speech = "On ".$days.", ";
+				$mids = ['you have ','I see ','I found '];
+				$speech .= $mids[array_rand($mids)];
 				$names = [];
 				foreach ($list as $upcoming) {
 					array_push($names,$upcoming['title']);
@@ -1303,12 +1305,11 @@
 						}
 					}
 				} else $speech .= $names[0];
-				$tail = ".";
-				if ($days == 'now') $tail = " on the schedule.";
-				if ((preg_match("/day/",$days)) || ($days == 'tomorrow') || ($days == 'weekend')) $tail= " on the schedule.";
-				$speech .= $tail;
+				$tails = ['on the schedule.','set to record','coming up.'];
+				$speech .= $tails[array_rand($tails)];
 			} else {
-				$speech = "Sorry, it doesn't look you have any scheduled recordings for that day.";
+				$errors = ["Sorry, it doesn't look like you have any scheduled recordings for that day.","I don't have anything on the list for ".$days.".","You don't have anything scheduled for ".$days."."];
+				$speech = $errors[array_rand($errors)];
 				$cards = false;
 			}
 			returnSpeech($speech,$contextName,$cards,false);
@@ -1369,7 +1370,8 @@
 				if (count($mediaResult)==1) {
 					if ($mediaResult[0]['type'] == 'airing') {
 						write_log("Got an airing result, let's display a card.");
-						$speech = "Here's some more information on that.";
+						$affirmatives = ["Here's some more information on that.","Here's what I found for that item.","I looked this up for you."];
+						$speech = $affirmatives[array_rand($affirmatives)];
 						$button = [['title' => 'Search Results', 'openUrlAction' => ['url' => 'https://www.google.com/search?q=' . urlencode($mediaResult[0]['title'])]]];
 						$card = ['title' => $mediaResult[0]['title'], 'formattedText'=>$mediaResult[0]['summary'],'image' => ['url' => $mediaResult[0]['thumb']], 'buttons' => $button];
 						returnSpeech($speech, $contextName, [$card]);
@@ -1510,7 +1512,8 @@
 						array_push($cards,$card);
 					}
                     $queryOut['card'] = $cards;
-					$speech = "I found several possible results for that, which one was it?  ". $speechString;
+					$questions = ["I found several possible results for that, were one of these what you wanted? ","Which one did you mean? ","You have a few things that could match that search, are one of these it? "];
+					$speech = $questions[array_rand($questions)]. $speechString;
 					$contextName = "promptfortitle";
 					$_SESSION['promptfortitle'] = true;
 					if (isset($_SESSION['mediaList'])) unset($_SESSION['mediaList']);
@@ -1527,25 +1530,13 @@
 				if (! count($mediaResult)) {
                     if ($command) {
                     	// TODO: Search and swap numbers if no search results
-	                    if (! $rechecked);
-	                    $swapped = searchSwap($command);
-	                    if ($swapped !== $command) {
-	                    	write_log("Swapping alpha title worked: ".$swapped);
-		                    $mediaResult = parsePlayCommand(strtolower($swapped), $year, $artist, $type);
-		                    write_log("MediaResult: ".json_encode($mediaResult));
-		                    if (is_array($mediaResult)) {
-			                        $rechecked = true;
-			                        goto recheck;
-
-		                    }
-	                    }
-
 
                         if (isset($_SESSION['cleaned_search'])) {
                             $command = $_SESSION['cleaned_search'];
                             unset($_SESSION['cleaned_search']);
                         }
-                        $speech = "I'm sorry, I was unable to find ".$command." in your library.  Would you like me to add it to your watch list?";
+                        $errors = ["I couldn't find ".$command." in your library.  Should I try to add it to the watch lists?","I didn't find anything named '".$command."' to play.  Should I try to fetch it for you?'","I couldn't find that in the library, do you want me to try downloading '".$command."'?"];
+                        $speech = $errors[array_rand($errors)];
                         $contextName = 'yes';
                         $suggestions = ['Yes','No'];
                         returnSpeech($speech,$contextName,false,true,$suggestions);
@@ -1590,7 +1581,10 @@
 			}
 			if (count($list) == 1) {
 			    $suggestions = false;
-				$speech = "I'd like to help you with that, but I only see one ".$action." that I can currently talk to.";
+			    $errors = ["I'm sorry, I've only got a ".$action." named '".$list[0]['name']."' to select.",
+				    "I'd like to help you with that, but I only see one ".$action." that I can currently talk to.",
+				    "Unfortunately, I only see ".$list[0]['name']." right now, and it's already selected."];
+				$speech = $errors[array_rand($errors)];
 				$contextName = "waitforplayer";
 				$waitForResponse = false;
 			}
@@ -1646,7 +1640,10 @@
                 unset($_SESSION['deviceArray']);
                 die();
             } else {
-				$speech = "Unfortunately, I was not able to find anything with that title to download.";
+				$errors = ["Unfortunately, I was not able to find anything with that title to download.",
+					"Sorry, but I couldn't find that in any of your searchers.",
+					"This is embarrassing. I can't seem to find that anywhere."];
+				$speech = $errors[array_rand($errors)];
 				returnSpeech($speech,$contextName);
 				$queryOut['mediaStatus'] = $result['status'];
 				$queryOut['speech'] = $speech;
@@ -1678,29 +1675,32 @@
 				}
 			} else {
                 write_log("Switching for command");
+				$affirmatives = ["Okay.","You got it.","Sure thing.","Consider it done."];
 				switch ($command) {
 					case "resume":
 					case "play":
-						$speech = 'Resuming playback.';
+						$extras = ['Resuming playback.','Playing.','Plex should be playing.'];
 						break;
 					case "stop":
-						$speech = 'Plex should now be stopped.';
+						$extras = ['Plex should now be stopped.','Stopping.','Plex is stopped.'];
 						break;
 					case "pause":
-						$speech = 'Plex should now be paused.';
+						$extras = ['Plex should now be paused.','Pausing playback.',"Okay, I've paused the TV for you."];
 						break;
 					case "subtitleson":
-						$speech = 'Subtitles have been enabled.';
+						$extras = ['Subtitles have been enabled.','Enabling subtitles.','Engaging universal translator.'];
 						$queryOut['parsedCommand'] = "Enable Subtitles.";
 						break;
 					case "subtitlesoff":
-						$speech = 'Subtitles have been disabled.';
+						$extras = ['Subtitles have been disabled.','Disabling subtitles.','Removing Babel fish.'];
 						$queryOut['parsedCommand'] = "Disable Subtitles.";
 						break;
 					default:
-						$speech = 'Sending a command to '.$command;
+						$extras = ['Sending a command to '.$command.'.',"Okay, I'll tell Plex to ".$command."."];
                         $queryOut['parsedCommand'] = $command;
 				}
+				array_push($affirmatives,$extras);
+				$speech = $affirmatives[array_rand($affirmatives)];
 			}
 			$queryOut['speech'] = $speech;
 			returnSpeech($speech,$contextName);
@@ -1761,7 +1761,7 @@
 function NumbersToWord($data) {
 	$search = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '30', '40', '40', '50', '60', '70', '80', '90', '100', '1000', '1000000', '1000000000'];
 	$replace = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty', 'thirty', 'forty', 'fourty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety', 'hundred', 'thousand', 'million', 'billion'];
-	$data = str_replace($search,$replace, $data);
+	$data = str_replace(array_reverse($search),array_reverse($replace), $data);
 	return $data;
 }
 	//
@@ -2229,9 +2229,8 @@ function NumbersToWord($data) {
 		if ($winner) {
 			write_log("We have a winner.  Title is ".$winner['title']);
 			// -1 is our magic key to tell it to just use whatever is there
-
-			$winner['art'] = transcodeImage($winner['art']);
 			$winner['thumb'] = transcodeImage($winner['thumb']);
+			$winner['art'] = transcodeImage($winner['art'] ?? $winner['thumb']);
 			if (($offset !== 'foo') && ($offset != -1)) {
                 write_log("Appending offset for ".$winner['title']. ' to '.$winner['viewOffset']);
                 $winner['viewOffset']=$offset;
@@ -2254,6 +2253,8 @@ function NumbersToWord($data) {
 	// It queries the /hubs endpoint, scrapes together a bunch of results, and then decides
 	// how relevant those results are and returns them to our talk-bot
 	function fetchHubResults($title,$type=false,$artist=false) {
+		$rechecked = false;
+		reHub:
 		write_log("Function Fired.");
 		write_log("Type is ".$type);
 		$title = cleanCommandString($title);
@@ -2397,6 +2398,15 @@ function NumbersToWord($data) {
 			}
 
 			write_log("We have ".count($finalResults)." results.");
+            if ((! count($finalResults)) && (! $rechecked)) {
+            	write_log("Trying the searchSwap here instead.");
+            	$oTitle = $title;
+            	$title = searchSwap($title);
+            	if ($oTitle !== $title) {
+            		$rechecked = true;
+            		goto reHub;
+	            }
+            }
 			// Need to check the type of each result object, make sure that we return a media result for each type
 			$Returns = array();
 			foreach($finalResults as $Result) {
@@ -4557,7 +4567,14 @@ function returnSpeechV1($speech, $contextName, $cards=false, $waitForResponse=fa
 				$url=$_SESSION['hookUrl'];
 			}
 			if (($url) && ($url !== "")) {
-				if ($param) $url.="?value1=".urlencode($param);
+				if ($type) {
+					if ($param) {
+						$url .= "?value1=" . urlencode($param);
+					}
+					$url .="&value2=".$type;
+				} else {
+					if ($param) $url .= "?value1=" . urlencode($param);
+				}
 				write_log("Final hook URL: ".$url);
 				$result = curlGet($url);
 				write_log("Hook result: ".$result);
