@@ -806,7 +806,7 @@
 
 		foreach($_SESSION['list_plexdevices']['clients'] as $client) {
 			if ($client['name'] != "") {
-				$clientName = '/' . strtolower($client['name']) . '/';
+				$clientName = '/' . cleanCommandString($client['name']) . '/';
 				if (preg_match($clientName, $command)) {
 					write_log("I was just asked me to play something on a specific device: " . $client['name']);
 					$playerIn = explode(" ", cleanCommandString($client['name']));
@@ -1232,6 +1232,9 @@
 					}
 					$i++;
 				}
+
+				$speech .= " If you'd like to watch something, just say the name, otherwise, you can say 'never mind'.";
+
 				$_SESSION['mediaList'] = $array;
 				$queryOut['card'] = $cards;
 				$queryOut['mediaStatus'] = 'SUCCESS: Hub array returned';
@@ -1308,6 +1311,13 @@
 				$tails = ['on the schedule.','set to record','coming up.'];
 				$speech .= $tails[array_rand($tails)];
 			} else {
+				if ($days == 'now') {
+					$time = date('H');
+					$days = 'today';
+					if ($time >= 12) $days = 'this afternoon';
+					if ($time >= 17) $days = 'tonight';
+
+				}
 				$errors = ["Sorry, it doesn't look like you have any scheduled recordings for that day.","I don't have anything on the list for ".$days.".","You don't have anything scheduled for ".$days."."];
 				$speech = $errors[array_rand($errors)];
 				$cards = false;
@@ -1451,7 +1461,7 @@
 
 					if ($type == 'episode') {
 						$seriesTitle = $queryOut['mediaResult']['grandparentTitle'];
-						$speech = $affirmative. "Playing the episode of ". $seriesTitle ." named ".$title.".";
+						$speech = $affirmative. "Playing ".$title.".";
 						$title = $seriesTitle . ' - '.$title." (".$year.")";
 					} else if (($type == 'track') || ($type == 'album')) {
 					    write_log("Got a thing here: ".json_encode($queryOut['mediaResult']));
@@ -1699,7 +1709,7 @@
 						$extras = ['Sending a command to '.$command.'.',"Okay, I'll tell Plex to ".$command."."];
                         $queryOut['parsedCommand'] = $command;
 				}
-				array_push($affirmatives,$extras);
+				array_merge($affirmatives,$extras);
 				$speech = $affirmatives[array_rand($affirmatives)];
 			}
 			$queryOut['speech'] = $speech;

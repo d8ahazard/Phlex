@@ -23,6 +23,7 @@
 			$userString = 'user-_-'.$userName;
 			$config->set('user-_-'.$userString,'apiToken',$apiToken);
 			write_log("Setting some other values.");
+			$_SESSION['newToken'] = true;
 			saveConfig($config);
 		}
 		return $apiToken;
@@ -31,6 +32,9 @@
     function cleanCommandString($string) {
         $string = trim(strtolower($string));
         $string = preg_replace("#[[:punct:]]#", "", $string);
+        $string = preg_replace("/ask Flex TV/","",$string);
+	    $string = preg_replace("/tell Flex TV/","",$string);
+	    $string = preg_replace("/Flex TV/","",$string);
         $stringArray = explode(" "	,$string);
         $stripIn = array("of","the","an","a","at","th","nd","in","from","and");
         $stringArray = array_diff($stringArray,array_intersect($stringArray,$stripIn));
