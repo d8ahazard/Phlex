@@ -1061,8 +1061,9 @@
 		$resultData = array();
 
 		if ($greeting) {
-			$greetings = array("Hi, I'm Flex TV.  What can I do for you today?","Greetings! How can I help you?","Hello there. Try asking me to play a movie or show.'");
+			$greetings = array("Hi, I'm Flex TV.  What can I do for you today?","Greetings! How can I help you?","Hello there. Try asking me to play something.'");
 			$speech = $greetings[array_rand($greetings)];
+			$speech .= " If you'd like a list of commands, you can say 'Help' or 'What are your commands?'";
 			$contextName = 'PlayMedia';
 			$button = [['title'=>'View Readme','openUrlAction'=>['url'=>'https://github.com/d8ahazard/Phlex/blob/master/readme.md']]];
 			$card = [['title'=>"Welcome to Flex TV!",'formattedText'=>'','image'=>['url'=>'https://phlexchat.com/img/avatar.png'],'buttons'=>$button]];
@@ -1233,7 +1234,7 @@
 					$i++;
 				}
 
-				$speech .= " If you'd like to watch something, just say the name, otherwise, you can say 'never mind'.";
+				$speech .= " If you'd like to watch something, just say the name, otherwise, you can say 'cancel'.";
 
 				$_SESSION['mediaList'] = $array;
 				$queryOut['card'] = $cards;
@@ -1308,7 +1309,7 @@
 						}
 					}
 				} else $speech .= $names[0];
-				$tails = ['on the schedule.','set to record','coming up.'];
+				$tails = [' on the schedule.',' set to record',' coming up.'];
 				$speech .= $tails[array_rand($tails)];
 			} else {
 				if ($days == 'now') {
@@ -1362,7 +1363,7 @@
 						}
 					}
 					if (! $mediaResult) {
-						if (preg_match('/none/',$cleanedRaw) || preg_match('/neither/',$cleanedRaw) || preg_match('/nevermind/',$cleanedRaw) || preg_match('/cancel/',$cleanedRaw)) {
+						if (preg_match('/none/',$cleanedRaw) || preg_match('/neither/',$cleanedRaw) || preg_match('/never mind/',$cleanedRaw) || preg_match('/nevermind/',$cleanedRaw) || preg_match('/cancel/',$cleanedRaw)) {
 							$speech = "Okay.";
 						} else {
 							$speech = "I'm sorry, but '".$rawspeech."' doesn't seem to match anything I just said.";
@@ -1527,7 +1528,6 @@
 					$contextName = "promptfortitle";
 					$_SESSION['promptfortitle'] = true;
 					if (isset($_SESSION['mediaList'])) unset($_SESSION['mediaList']);
-					//TODO - enable card when fixed
 					returnSpeech($speech,$contextName,$cards,true);
 					$queryOut['parsedCommand'] = 'Play a media item named '.$command.'. (Multiple results found)';
 					$queryOut['mediaStatus'] = 'SUCCESS: Multiple Results Found, prompting user for more information';
@@ -1539,9 +1539,7 @@
 				}
 				if (! count($mediaResult)) {
                     if ($command) {
-                    	// TODO: Search and swap numbers if no search results
-
-                        if (isset($_SESSION['cleaned_search'])) {
+                    	if (isset($_SESSION['cleaned_search'])) {
                             $command = $_SESSION['cleaned_search'];
                             unset($_SESSION['cleaned_search']);
                         }
@@ -1605,6 +1603,21 @@
 			log_command(json_encode($queryOut));
 			die();
 
+		}
+
+		if ($action == 'help') {
+			$errors = ['Here are some possible commands.',
+				'Below are some suggestions you can try.',
+				"Sure, why don't you try one of these?"];
+			$speech = $errors[array_rand($errors)];
+			$button = [['title'=>'View Readme','openUrlAction'=>['url'=>'https://github.com/d8ahazard/Phlex/blob/master/readme.md']]];
+			$card = [['title'=>"Welcome!",'formattedText'=>'','image'=>['url'=>'https://phlexchat.com/img/avatar.png'],'buttons'=>$button]];
+			$contextName = 'yes';
+			$suggestions = ['What new films do I have?','What new shows do I have?',"What's on deck?","Switch players.","Switch servers.","Play a movie.",'Cancel.'];
+			foreach ($suggestions as $suggestion) $speech .= " ".$suggestion;
+			if (! $GLOBALS['screen']) $card = $suggestions = false;
+			returnSpeech($speech,$contextName,$card,true,$suggestions);
+			die();
 		}
 
 		if ($action == 'fetchAPI') {
@@ -3910,11 +3923,14 @@ function NumbersToWord($data) {
 	    $result = false;
         $apikey = curlPost('https://api.thetvdb.com/login','{"apikey": "19D9A181DA722C87"}',true);
         if ($apikey) $apikey = json_decode($apikey,true);
+        write_log("APIKEY: ".json_encode($apikey));
         if (isset($apikey['token'])) {
             $apikey = $apikey['token'];
             $url = 'https://api.thetvdb.com/series/'.$id;
             $show = curlGet($url,['Authorization: Bearer '.$apikey]);
             $url = 'https://api.thetvdb.com/series/'.$id.'/images/query?keyType=fanart';
+            write_log("URL: ".$url);
+            write_log("APIKEY: ".$apikey);
             $images = curlGet($url,['Authorization: Bearer '.$apikey]);
             if ($show) {
             	write_log("Found a show!");
@@ -4032,7 +4048,7 @@ function NumbersToWord($data) {
 		}
 
 		$movieCollectionURL = $baseURL.'/movie?apikey='.$radarrApiKey;
-		$movieCollection = curlGet($movieCollectionURL);
+		$movieCollection = curlGet($movieCollectionURL,null,60);
 		if ($movieCollection) {
 			//write_log("Collection data retrieved: ".$movieCollection);
 			$movieJSON = json_decode($movieCollection,true);
@@ -4350,7 +4366,6 @@ function returnSpeech($speech, $contextName, $cards=false, $waitForResponse=fals
 		returnSpeechV1($speech,$contextName,$cards,$waitForResponse,$suggestions);
 		return;
 	}
-	$suggestions = false; //TODO: Remove this whenever google gets me documentation
 	write_log("Final Speech should be: ".$speech);
 	if (! $cards) write_log("Card array is ".json_encode($cards));
 	header('Content-Type: application/json');
@@ -4369,6 +4384,7 @@ function returnSpeech($speech, $contextName, $cards=false, $waitForResponse=fals
 			write_log("Should be formatting a BasicCard here: " . json_encode($cards[0]));
 			$cards[0]['image']['accessibilityText'] = 'foo';
 			array_push($items, ['basicCard' => $cards[0]]);
+
 
 		} else {
 			$carousel = [];
@@ -4458,6 +4474,7 @@ function returnSpeechV1($speech, $contextName, $cards=false, $waitForResponse=fa
 				$output['data']['google']['expectedInputs'][0]['possibleIntents'][0]['inputValueData']['@type'] = "type.googleapis.com/google.actions.v2.OptionValueSpec";
 				$output['data']['google']['expectedInputs'][0]['possibleIntents'][0]['intent'] = "actions.intent.OPTION";
 			} else {
+				if (isset($cards[0]['buttons'])) unset($cards[0]['buttons']);
 				write_log("Should be formatting a BasicCard here: " . json_encode($cards[0]));
 				array_push($items,['basic_card'=>$cards[0]]);
 			}

@@ -22,9 +22,10 @@
 			write_log("API token created ".$cleaned);
 			$userString = 'user-_-'.$userName;
 			$config->set('user-_-'.$userString,'apiToken',$apiToken);
-			write_log("Setting some other values.");
-			$_SESSION['newToken'] = true;
 			saveConfig($config);
+			write_log("Setting some other values.");
+			$_SESSION['apiToken'] = $apiToken;
+			$_SESSION['newToken'] = true;
 		}
 		return $apiToken;
 	}
@@ -229,35 +230,43 @@
 	}
 
 	function initMCurl() {
-        $mc = JMathai\PhpMultiCurl\MultiCurl::getInstance();
-        return $mc;
+        return JMathai\PhpMultiCurl\MultiCurl::getInstance();
     }
 
 	// Fetch data from a URL using CURL
 	function curlGet($url, $headers=null,$timeout=4) {
-        $certPath = file_build_path(dirname(__FILE__),"cert","cacert.pem");
-        $mc = JMathai\PhpMultiCurl\MultiCurl::getInstance();
+    	$cert = getContent(file_build_path(dirname(__FILE__),"cacert.pem"),'https://curl.haxx.se/ca/cacert.pem');
+    	if (!$cert) $cert = file_build_path(dirname(__FILE__),"cert","cacert.pem");
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL,$url);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $timeout);
         curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
-		curl_setopt ($ch, CURLOPT_CAINFO, $certPath);
-		if ($headers) curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-		$call = $mc->addCurl($ch);
-        // Access response(s) from your cURL calls.
-        $result = $call->response;
+		curl_setopt ($ch, CURLOPT_CAINFO, $cert);
+		if ($headers !== null) curl_setopt($ch, CURLOPT_HTTPHEADER,$headers);
+		$result = curl_exec($ch);
+		if (!curl_errno($ch)) {
+			switch ($http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE)) {
+				case 200:
+					break;
+				default:
+					write_log('Unexpected HTTP code: '. $http_code, "ERROR");
+					$result = false;
+			}
+		}
+		curl_close($ch);
 		return $result;
 	}
 	
 	
 	function curlPost($url,$content=false,$JSON=false, Array $headers=null) {
-        $certPath = file_build_path(dirname(__FILE__),"cert","cacert.pem");
+		$cert = getContent(file_build_path(dirname(__FILE__),"cacert.pem"),'https://curl.haxx.se/ca/cacert.pem');
+		if (!$cert) $cert = file_build_path(dirname(__FILE__),"cert","cacert.pem");
         $mc = JMathai\PhpMultiCurl\MultiCurl::getInstance();
         $curl = curl_init($url);
 		curl_setopt($curl, CURLOPT_HEADER, false);
 		curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt ($curl, CURLOPT_CAINFO, $certPath);
+		curl_setopt ($curl, CURLOPT_CAINFO, $cert);
 		curl_setopt($curl, CURLOPT_POST, true);
         curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 4);
         curl_setopt($curl, CURLOPT_TIMEOUT, 3);
@@ -623,5 +632,51 @@ function addScheme($url, $scheme = 'http://')
 {
 	return parse_url($url, PHP_URL_SCHEME) === null ?
 		$scheme . $url : $url;
+}
+
+// Shamelessly stolen from https://davidwalsh.name/php-cache-function
+// But slightly updated to do what I needed it to do.
+
+function getContent($file,$url,$hours = 24,$fn = '',$fn_args = '') {
+	//vars
+	$current_time = time(); $expire_time = $hours * 60 * 60; $file_time = filemtime($file);
+	//decisions, decisions
+	if(file_exists($file) && ($current_time - $expire_time < $file_time)) {
+		write_log('returning from cached file');
+		return $file;
+	}
+	else {
+		$content = getUrl($url);
+		if ($content) {
+			if ($fn) {
+				$content = $fn($content, $fn_args);
+			}
+			$content .= '<!-- cached:  ' . time() . '-->';
+			file_put_contents($file, $content);
+			write_log('retrieved fresh from ' . $url . ':: ' . $content);
+			return $file;
+		}
+		return false;
+	}
+}
+
+/* gets content from a URL via curl */
+function getUrl($url) {
+	$ch = curl_init();
+	curl_setopt($ch,CURLOPT_URL,$url);
+	curl_setopt($ch,CURLOPT_RETURNTRANSFER,1);
+	curl_setopt($ch,CURLOPT_CONNECTTIMEOUT,5);
+	$content = curl_exec($ch);
+	if (!curl_errno($ch)) {
+		switch ($http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE)) {
+			case 200:  # OK
+				break;
+			default:
+				write_log('Unexpected HTTP code: '. $http_code, "ERROR");
+				$content = false;
+		}
+	}
+	curl_close($ch);
+	return $content;
 }
 
