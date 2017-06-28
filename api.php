@@ -3747,176 +3747,134 @@ function NumbersToWord($data) {
 		return $response;
 	}
 
-	function sonarrDownload2($command,$season=false,$episode=false) {
-        write_log("Function fired.");
-        $exists = $score = $show = false;
+	function sonarrDownload($command,$season=false,$episode=false) {
+        write_log("Function fired, searching for ".$command);
+        $exists = $score = $seriesId = $show = $wanted = false;
+        $response = ['status'=>'ERROR'];
         $sonarrURL = $_SESSION['sonarrIP'];
         $sonarrApiKey = $_SESSION['sonarrAuth'];
         $sonarrPort = $_SESSION['sonarrPort'];
         $sonarr = new Sonarr($sonarrURL.':'.$sonarrPort, $sonarrApiKey);
         $rootArray = json_decode($sonarr->getRootFolder(),true);
         $seriesArray = json_decode($sonarr->getSeries(),true);
-        $root = $rootArray[0]['path'];
+		$root = $rootArray[0]['path'];
 
         // See if it's already in the library
         foreach($seriesArray as $series) {
             if(cleanCommandString($series['title']) == cleanCommandString($command)) {
-                write_log("This show is already in the library: ".json_encode($series));
+                write_log("This show is already in the library.");
+                write_log("SERIES: ".json_encode($series));
                 $exists = $show = $series;
+	            $response['status'] = "SUCCESS: Already In Searcher";
                 break;
             }
         }
 
         // If not, look for it.
         if (! $exists) {
-            $search = json_decode($sonarr->getSeriesLookup($command),true);
+	        $search = json_decode($sonarr->getSeriesLookup($command),true);
             write_log("Searching for show, array is ".json_encode($search));
             foreach($search as $series) {
                 $similarity = similarity(cleanCommandString($command),cleanCommandString($series['title']));
                 write_log("Series title is ".$series['title'].", similarity is ".$similarity);
                 if ($similarity > $score) $score = $similarity;
                 if ($similarity > .7) $show = $series;
+                if ($show) break;
             }
             // If we found something to download and don't have it, add it.
             if (is_array($show)) {
                 $show['qualityProfileId'] = ($_SESSION['sonarrProfile'] ? $_SESSION['sonarrProfile'] : 0);
                 $show['rootFolderPath'] = $root;
                 write_log("Attempting to add the series ".$show['title']." JSON is: ".json_encode($show));
-                $result = $sonarr->postSeries($show, false);
-                write_log("Show add result: ".$result);
+                $show = $sonarr->postSeries($show, false);
+                write_log("Show add result: ".$show);
+                $response['status'] = "SUCCESS: Series added!";
+            } else {
+            	$response['status'] = "ERROR: No Results Found.";
             }
         }
-
-
-
 
         // Now that we know it's in the library, check for episode/season search.
-        if ($season || $episode) {
-            if ($episode == -1) {
+        if (($season || $episode) && ($show)) {
+        	write_log("Looking for a specific episode or season.");
+        	$seriesId = $show['id'];
+        	write_log("Show ID: ".$seriesId);
+        	if ($seriesId) {
+        		$episodeArray = json_decode($sonarr->getEpisodes($seriesId),true);
+        		write_log("Fetched episode array: ".json_encode($episodeArray));
+		        if ($episode && !$season && ($episode == -1)) {
+		        	$wanted = end($episodeArray);
+		        }
+		        // Season Number Only
+		        if ($season && !$episode) {
+		        	$newSeasons = [];
+		            foreach ($show['seasons'] as $check) {
+		            	if (($check['seasonNumber'] == $season) && (! $check['monitored'])) {
+		            		$check['monitored'] = true;
+		            		array_push($newSeasons,$check);
+			            }
+		            }
+		            $show['seasons'] = $newSeasons;
+			        $show = $sonarr->postSeries($show, false);
+		        }
+		        if (($episode && !$season) || ($season && $episode)) {
+	                foreach ($episodeArray as $file) {
+	                    $fileEpNum = $file['episodeNumber'];
+	                    $fileSeasonNum = $file['seasonNumber'];
+	                    $fileAbsNum = $file['absoluteEpisodeNumber'];
 
+				        // Episode Number only
+				        if ($episode && !$season) {
+				        	if ($episode == $fileAbsNum) $wanted = $file;
+				        }
+
+				        // Episode and Season
+				        if ($season && $episode) {
+				        	if (($fileSeasonNum == $season) && ($fileEpNum == $episode)) $wanted = $file;
+				        }
+				        if ($wanted) break;
+			        }
+		        }
+	        }
+
+            if ($wanted) {
+                write_log("We have something to add: ".json_encode($wanted));
+                $episodeId = $wanted['sceneAbsoluteEpisodeNumber'];
+                $seriesId = $wanted['seriesId'];
+                $data = ['episodeIds' =>[
+                			$episodeId
+		                ]
+                ];
+                $result = json_decode($sonarr->postCommand("episodeSearch",$data),true);
+                write_log("Command result: ".json_encode($result));
+                $response['status'] = (($result['body']['completionMessage']=="Completed") ? "SUCCESS: EPISODE SEARCHED" : "ERROR: COMMAND FAILED");
+	        } else {
+        		$response['status'] = "ERROR: EPISODE NOT FOUND";
             }
         }
-    }
-	// Fetch a series from Sonarr
-	// Need to add a method to trigger it to search for all episodes, etc.
-	function sonarrDownload($command,$season=false,$episode=false) {
-		$response = false;
-		$sonarrURL = $_SESSION['sonarrIP'];
-		$sonarrApiKey = $_SESSION['sonarrAuth'];
-		$sonarrPort = $_SESSION['sonarrPort'];
-		$baseURL = $sonarrURL.':'.$sonarrPort.'/api';
-		$searchString = '/series/lookup?term='.urlencode($command);
-		$authString = '&apikey='.$sonarrApiKey;
-		$searchURL = $baseURL.$searchString.$authString;
-		$root = curlGet($baseURL.'/rootfolder?apikey='.$sonarrApiKey);
-		if ($root) {
-			$rootPathObj = json_decode($root,true);
-			$rootObj = $rootPathObj[0];
-			$rootPath = (string)$rootObj['path'];
-			write_log("RootPath: ".$rootPath);
-			write_log("Search URL is ".protectURL($searchURL));
-		} else {
-			write_log("Error retrieving root path.","ERROR");
-			return false;
-		}
-		$seriesCollectionURL = $baseURL.'/series?apikey='.$sonarrApiKey;
-		$seriesCollection = curlGet($seriesCollectionURL);
-		if ($seriesCollection) {
-			$seriesJSON = json_decode($seriesCollection,true);
-		} else {
-			write_log("Error retrieving current series data.","ERROR");
-			return false;
-		}
-		$result = curlGet($baseURL.$searchString.$authString);
-		if ($result) {
-			$resultJSONS = json_decode($result,true);
-			if (!(empty($resultJSONS))) {
-				$resultJSON = $resultJSONS[0];
-				$year = $resultJSON['year'];
-				write_log("Result JSON is ".json_encode($resultJSON));
-				$putURL = $baseURL.'/series'.'?apikey='.$sonarrApiKey;
-				write_log("sending result for fetching, URL is ".protectURL($putURL));
-				$resultObject['title'] = (string)$resultJSON['title'];
-				$resultObject['tvdbId'] = (string)$resultJSON['tvdbId'];
-				$resultObject['qualityProfileId'] = ($_SESSION['sonarrProfile'] ? $_SESSION['sonarrProfile'] : 0);
-				$resultObject['titleSlug'] = (string)$resultJSON['titleSlug'];
-				$resultObject['images'] = $resultJSON['images'];
-				$resultObject['summary'] = (string)$resultJSON['overview'];
-				$seasons = array();
-				foreach ($resultJSON['seasons'] as $season) {
-					$monitored = (($season['seasonNumber'] == 0) ? false : true);
-					array_push($seasons,array('seasonNumber'=>$season['seasonNumber'],'monitored'=>$monitored));
-				}
-				$resultObject['seasons'] = $seasons;
-				$resultObject['monitored'] = true;
-				$resultObject['titleSlug'] = (string)$resultJSON['titleSlug'];
-				$resultObject['rootFolderPath'] = $rootPath;
-				$resultObject['addOptions']['ignoreEpisodesWithFiles'] = false;
-				$resultObject['addOptions']['searchForMissingEpisodes'] = true;
-				$resultObject['addOptions']['ignoreEpisodesWithoutFiles'] = false;
-				foreach($seriesJSON as $series) {
-					if ($series['title'] == $resultObject['title']) {
-						write_log("Results match: ".$resultObject['title']);
-						$response['status'] = 'SUCCESS: Already in searcher.';
-						$response['mediaResult']['@attributes']['url'] = $putURL;
-						$resultObject['year'] = $year;
-						$resultObject['summary'] = $resultJSON['overview'];
-						$resultObject['type'] = 'show';
-						$artUrl = $sonarrURL.':'.$sonarrPort.'/MediaCover/'. $series['id'] . '/fanart.jpg?apikey='.$sonarrApiKey;
-                        $thumbUrl = $sonarrURL.':'.$sonarrPort.'/MediaCover/'. $series['id'] . '/poster.jpg?apikey='.$sonarrApiKey;
-						$resultObject['art'] = cacheImage($artUrl);
-						$resultObject['thumb'] = $thumbUrl;
-						$response['mediaResult'] = $resultObject;
-						$scanURL = $baseURL . "/command/SearchSeries?apikey=".$sonarrApiKey;
-						$searchArray = ['name'=>"SearchSeries",'seriesId'=>$resultObject['tvdbId']];
-						curlPost($scanURL,json_encode($searchArray),true);
-						return $response;
-					}
-				}
-				write_log("Made it to the next CURL");
-				$content = json_encode($resultObject);
-				write_log("Request content format: ".$content);
-				$json_response = curlPost($putURL,$content,true);
-				write_log("Add Command Successful!  Response is ".$json_response);
-				$responseJSON = json_decode($json_response, true);
-				if ($responseJSON) {
-					$response['status'] = 'SUCCESS: Media added to library.';
-					$response['mediaResult']['url'] = $putURL;
-					$responseJSON['type'] = 'show';
-					$responseJSON['year'] = $year;
-					$seriesID = $responseJSON['id'];
-					$tvdbId = $responseJSON['tvdbId'];
-					$extras = fetchTVDBInfo($tvdbId);
-					$responseJSON['art'] = $extras['thumb'];
-					$responseJSON['summary'] = $extras['summary'];
-					$responseJSON['subtitle'] = $extras['subtitle'];
-					$response['mediaResult'] = $responseJSON;
-					$scanURL = $baseURL.'/command'.'?apikey='.$sonarrApiKey;
-					$fetchMe = array();
-					$fetchMe['name'] = 'SeriesSearch';
-					$fetchMe['seriesId'] = $seriesID;
-					$curl = curl_init($scanURL);
-					curl_setopt($curl, CURLOPT_HEADER, false);
-					curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-					curl_setopt ($curl, CURLOPT_CAINFO, dirname(__FILE__) . "/cert/cacert.pem");
-					curl_setopt($curl, CURLOPT_HTTPHEADER,
-							array("Content-type: application/json"));
-					curl_setopt($curl, CURLOPT_POST, true);
-					curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($fetchMe));
-					curl_exec($curl);
-					curl_close($curl);
 
-
+		if (preg_match("/SUCCESS/",$response['status'])) {
+			if ($show) {
+				$seriesId = $show['tvdbId'];
+				$extras = fetchTVDBInfo($seriesId);
+				$mediaOut['thumb'] = $mediaOut['art'] = $extras['thumb'];
+				$mediaOut['year'] = $extras['year'];
+				$mediaOut['tagline'] = $extras['subtitle'];
+				if ($wanted) {
+					$mediaOut['title'] = $show['title']. " - ".$wanted['title'];
+					$mediaOut['summary'] = $wanted['overview'];
+					$mediaOut['year'] = explode("-",$wanted['airDate'])[0];
 				} else {
-					$response['status'] = 'ERROR: No results.';
+					$mediaOut['title'] = $show['title'];
+					$mediaOut['summary'] = $show['overview'];
 				}
+
+				$response['mediaResult'] = $mediaOut;
 			}
 		}
-		if ($season || $episode) {
-			write_log("Looking for a season or episode fetch here.");
-		}
-        return $response;
-	}
+		write_log("Final response: ".json_encode($response));
+		return $response;
+    }
 
 	function fetchTVDBInfo($id) {
 		write_log("Function fired!");
@@ -3931,7 +3889,7 @@ function NumbersToWord($data) {
             $url = 'https://api.thetvdb.com/series/'.$id.'/images/query?keyType=fanart';
             write_log("URL: ".$url);
             write_log("APIKEY: ".$apikey);
-            $images = curlGet($url,['Authorization: Bearer '.$apikey]);
+            $images = curlGet($url,['Authorization: Bearer '.$apikey],20);
             if ($show) {
             	write_log("Found a show!");
                 $show = json_decode($show,true)['data'];

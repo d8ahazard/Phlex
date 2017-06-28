@@ -108,13 +108,11 @@ class Sonarr
             'name' => $name
         ];
 
-        if ( array_key_exists('seriesId', $params) ) { $uriData['seriesId'] = $params['seriesId']; }
-        if ( array_key_exists('episodeIds', $params) ) { $uriData['episodeIds'] = $params['episodeIds']; }
-        if ( array_key_exists('seasonNumber', $params) ) { $uriData['seasonNumber'] = $params['seasonNumber']; }
-        if ( array_key_exists('path', $params) ) { $uriData['path'] = $params['path']; }
-        if ( array_key_exists('downloadClientId', $params) ) { $uriData['downloadClientId'] = $params['downloadClientId']; }
-        if ( array_key_exists('files', $params) ) { $uriData['files'] = $params['files']; }
-        if ( array_key_exists('seriesIds', $params) ) { $uriData['seriesIds'] = $params['seriesIds']; }
+        if (is_array($params)) {
+        	foreach($params as $key=>$value) {
+        		$uriData[$key] = $value;
+	        }
+        }
 
         $response = [
             'uri' => $uri,
