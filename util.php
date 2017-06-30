@@ -126,35 +126,41 @@
 	}
 	
 	// Grab an image from a server and save it locally
-	function cacheImage($url) {
+	function cacheImage($url,$image=false) {
     	write_log("Function fired, caching ".$url);
         $path = '';
+        $cached_filename = false;
 		try {
-		    $URL_REF = $_SESSION['publicAddress'] ?? 'https://'.$_SERVER['HTTP_HOST'];
-            $cacheDir = file_build_path(dirname(__FILE__),"img","cache");
-            if (!file_exists($cacheDir)) {
-                write_log("No cache directory found, creating.","INFO");
-                mkdir($cacheDir, 0777, true);
-            }
-         	$cached_filename = md5($url);
-			$files = glob($cacheDir . '/*.{jpg,jpeg,png,gif}', GLOB_BRACE);
-			$now = time();
-			foreach($files as $file) {
-			    $fileName = explode('.',basename($file));
-            	if ($fileName[0] == $cached_filename) {
-            		write_log("File is already cached.");
-                    $path = $URL_REF .getRelativePath(dirname(__FILE__),$file);
-            	} else {
-                    if (is_file($file)) {
-                        if ($now - filemtime($file) >= 60 * 60 * 24 * 5) { // 5 days
-                            unlink($file);
-                        }
-                    }
-                }
+			$URL_REF = $_SESSION['publicAddress'] ?? 'https://'.$_SERVER['HTTP_HOST'];
+			$cacheDir = file_build_path(dirname(__FILE__),"img","cache");
+			if (!file_exists($cacheDir)) {
+				write_log("No cache directory found, creating.","INFO");
+				mkdir($cacheDir, 0777, true);
 			}
-			if ($path == $url) {
+			if ($url) {
+			    $cached_filename = md5($url);
+				$files = glob($cacheDir . '/*.{jpg,jpeg,png,gif}', GLOB_BRACE);
+				$now = time();
+				foreach($files as $file) {
+				    $fileName = explode('.',basename($file));
+	                if ($fileName[0] == $cached_filename) {
+	                    write_log("File is already cached.");
+	                    $path = $URL_REF .getRelativePath(dirname(__FILE__),$file);
+	                } else {
+	                    if (is_file($file)) {
+	                        if ($now - filemtime($file) >= 60 * 60 * 24 * 5) { // 5 days
+	                            unlink($file);
+	                        }
+	                    }
+	                }
+				}
+			}
+			if ($image) {
+				$cached_filename = md5($image);
+			}
+			if ((($path == $url) || ($image)) && ($cached_filename)) {
 				write_log("Caching file.");
-			    $image = file_get_contents($url);
+			    if (! $image) $image = file_get_contents($url);
                 if ($image) {
                 	write_log("Image retrieved successfully!");
                     $tempName = file_build_path($cacheDir, $cached_filename);
@@ -558,6 +564,11 @@ function checkSetDeviceID() {
     return $deviceID;
 }
 
+function fetchDirectory($id=1) {
+    if ($id=1) return base64_decode("Y2QyMjlmNTU5NWZjYWEyNzI3MGI0NDU4OTIyOGE0OTI=");
+	if ($id=2) return base64_decode("MTlEOUExODFEQTcyMkM4Nw==");
+}
+
 function setDefaults() {
     ini_set("log_errors", 1);
     ini_set('max_execution_time', 300);
@@ -638,11 +649,8 @@ function addScheme($url, $scheme = 'http://')
 // But slightly updated to do what I needed it to do.
 
 function getContent($file,$url,$hours = 24,$fn = '',$fn_args = '') {
-	//vars
 	$current_time = time(); $expire_time = $hours * 60 * 60; $file_time = filemtime($file);
-	//decisions, decisions
 	if(file_exists($file) && ($current_time - $expire_time < $file_time)) {
-		write_log('returning from cached file');
 		return $file;
 	}
 	else {
@@ -653,7 +661,7 @@ function getContent($file,$url,$hours = 24,$fn = '',$fn_args = '') {
 			}
 			$content .= '<!-- cached:  ' . time() . '-->';
 			file_put_contents($file, $content);
-			write_log('retrieved fresh from ' . $url . ':: ' . $content);
+			write_log('retrieved fresh from ' . $url . ':: ' . $content,"INFO");
 			return $file;
 		}
 		return false;
