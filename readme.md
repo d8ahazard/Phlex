@@ -25,6 +25,10 @@ alt="Phlex Demo #2" width="480" height="360" border="10" /></a>
 <a href="http://s803.photobucket.com/user/d8ahazard/media/Phlex/6.png.html" target="_blank"><img src="http://i803.photobucket.com/albums/yy318/d8ahazard/Phlex/6.png" border="0" alt=" photo 6.png"/></a>
 
 ## Installation:
+
+**NOTE:  YOUR config.ini.php file is IMPORTANT.  DO NOT DELETE OR REMOVE THIS FILE ONCE YOU'VE GOT PHLEX RUNNING.  IF UPDATING, KEEP A COPY OF THIS FILE AND REPLACE IT.  REMOVING THIS FILE WILL ABSOLUTELY BREAK ACCOUNT LINKING FOR GOOGLE ASSISTANT.**
+
+
 <BR>
 
 Phlex requires a webserver and PHP 7.0+ with CURL and SSH enabled in order to work correctly.
@@ -56,15 +60,62 @@ If you are running Phlex on an existing webserver, Phlex PHP version 7.0 and up.
 You will also need the CURL and openSSL extensions enabled, and sockets if you have any Cast devices.
 <br><br>
 
+# Raspberry Pi Specific Instructions 
+(Thanks to giac0m0 for the writeup)
 
-## Updating:
+
+### Check version of PHP
+
+01. On the Raspberry Pi, check version of PHP, is lower then 7.0, follow further PHP section:
+
+`$ php -v`
+
+02. If PHP is not v7.0, remove PHP and install 7.0
+
+###Remove all PHP
+
+`$ sudo apt-get remove php*`
+
+### Insall PHP v7.0 and plugins needed
+
+03. Install Apache and PHP7.0 using instructions from site:
+https://www.stewright.me/2016/03/turn-raspberry-pi-3-php-7-powered-web-server/
+
+04. Install PHP XML (missing from previous guide)
+
+`$ sudo apt-get install php-xml`
+
+05. Change ownership of Phlex folder to www-data
+
+`$ sudo chown -R www-data /var/www/html/Phlex/`
+
+06. Add writeable folders to:
+        /etc/php/7.0/apache2/php.ini
+
+Add this line to the file, near the guidance notes for open_basedir :
+
+        open_basedir = /var/www/html/Phlex/`
+
+07. Edit php.ini for Dynamic Extensions.  Add lines:
+
+        extension=curl.so
+        extension=openssl.so
+
+###Restart web server
+
+`$ sudo service apache2 restart`
+
+
+
+
+# Updating:
 
 If you cloned Phlex using .git, simply do a git pull, your configuration files will remain untouched.  If you installed via .zip, you should be able to download the latest copy and extract it in-place.  
 
 However you update, it is important to not delete config.ini.php, as this is where your server's API token is stored, which is used to associate your local Phlex client with your Google account.
 <br><br>
 
-## Post-Installation (Network Stuff):
+# Post-Installation (Network Stuff):
 #### Port forwarding
 First, you'll need to forward IP traffic to port 80 on the computer where Phlex is running.  You do not have to forward port 80 to port 80, you can choose any open port you like.
 <br><br>
@@ -87,7 +138,7 @@ If you used an alternative webserver option, google it.
 
 If sockets are enabled and you STILL can't see all of your cast devices, I would suggest looking in the web UI for your router and looking for any setting related to "multicast filtering", "bonjour","or MDNS discovery".  Most of them should support it, it may just need to be enabled.
 
-## Setting it up with Google Assistant: ##
+# Setting it up with Google Assistant:
 <br>
 Log into Phlex with your Plex.tv username and password.
 Click on the gear icon to open settings.
@@ -120,7 +171,16 @@ Open the Google Home app on your phone, and look for the card prompting you to l
 Boom.  You can now talk to Phlex by saying things like "Ask Flex TV to play batman begins" or "Ask Flex TV to play the lastest episode of THe Big Bang Theory".  I'll be adding a wiki page for voice commands as time allows.
 <br><br>
 
-## Google Assistant Examples: ##
+## Multiple Google Home Users:
+
+If you have multiple people in your household, it's possible to allow them to link their account to your Phlex instance, without having them create their own Plex.tv account.
+All you need to do is have them sign into the Phlex UI from a device linked to their Google account.  Go into settings, click the "link server" button, and have them select their own Google account.  
+
+Now have them ask to talk to Flex TV through Assistant, and finish linking their account through the Ghome app.
+
+This can be repeated for as many users as you have in your household.
+
+## Google Assistant Examples:
 <br>
 
 When talking with Google Assistant, your speech is parsed using API.ai's natural language processing, meaning Phlex is always getting better!  Below are just a few examples of the type of things you can ask Flex TV to do.
@@ -352,13 +412,13 @@ Below are all of the recognized trigger phrases for Google Assistant commands.
 15.  Repeat for a download and "control playback" command.
 <br><br>
 
-## SUPPORT ##
+## SUPPORT:
 For general help with installation, setup, or questions, head on over to the Plex forums and drop me a line.
 <br><br>
  https://forums.plex.tv/discussion/252910/phlex-google-home-plex-integration-with-support-for-sonarr-couchpotato-etc-now-live/
 <BR>
 
-## Reporting Issues ##
+## Reporting Issues:
 If you think you've found a bug or would like to make a feature request, feel free to use the [issue tracker](https://github.com/d8ahazard/Phlex/issues) to let me know.  When posting an issue, try to include the following information:
 
 1.  On what OS are you running Phlex?
@@ -370,7 +430,11 @@ If you think you've found a bug or would like to make a feature request, feel fr
 
 <br><br>
 
-### DONATIONS ###
-If you really really like this project and want to thank me for sharing it with the world, you can send money via paypal to ** donate.to.digitalhigh@gmail.com **.  
+### DONATIONS:
+Phlex/Flex TV is currently a one-person operation.  There is no big team of people, there are no slick corporate sponsors.  I cannot stand ad-sponsored projects or "freemium" apps, and will never try to use this garbage to gain revenue from users.
 
-This is a donate-only address, support requests will not be answered.
+However, this is a massive undertaking, and has snowballed enormously from a simple IFTTT hook/script to the project you now see today.
+
+SO, If you really really like this project and want to show a little love, you can send money via paypal to **donate.to.digitalhigh@gmail.com**.  
+
+This address is for donations only, if you need support, please look above for information.
