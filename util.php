@@ -305,8 +305,9 @@
 			$level = 'DEBUG';
 		}
 		$caller = getCaller();
-		$filename = 'Phlex.log';
-		$text = date(DATE_RFC2822) . ' [ '.$level.' ] '.$caller . " - " . $text . PHP_EOL;
+		$filename = file_build_path(dirname(__FILE__),'logs',"Phlex.log");
+		//$filename = 'Phlex.log';
+		$text = '[ '.date(DATE_RFC2822) . ' ] [ '.$level.' ] [ '.$caller . " ] - " . $text . PHP_EOL;
 		if (!file_exists($filename)) { touch($filename); chmod($filename, 0666); }
 		if (filesize($filename) > 2*1024*1024) {
 			$filename2 = "$filename.old";
@@ -573,14 +574,16 @@ function setDefaults() {
     ini_set("log_errors", 1);
     ini_set('max_execution_time', 300);
     error_reporting(E_ERROR);
-    $errfilename = 'Phlex_error.log';
-    ini_set("error_log", $errfilename);
+	$errorLogPath = file_build_path(dirname(__FILE__),'logs',"Phlex_error.log");
+    ini_set("error_log", $errorLogPath);
     date_default_timezone_set((date_default_timezone_get() ? date_default_timezone_get() : "America/Chicago"));
     checkFiles();
 }
 
 function checkFiles() {
-    $files = ['Phlex.log','Phlex_error.log','config.ini.php','commands.php'];
+	$logPath = file_build_path(dirname(__FILE__),'logs',"Phlex.log");
+	$errorLogPath = file_build_path(dirname(__FILE__),'logs',"Phlex_error.log");
+    $files = [$logPath,$errorLogPath,'config.ini.php','commands.php'];
     foreach ($files as $file) {
         if (!file_exists($file)) {
             touch($file);
@@ -666,6 +669,33 @@ function getContent($file,$url,$hours = 24,$fn = '',$fn_args = '') {
 		}
 		return false;
 	}
+}
+
+function checkUpdates($install=false) {
+    $result = false;
+	if (file_exists(dirname(__FILE__).'/.git')) {
+		write_log("This instance has been cloned, initializing git.");
+		$repo = new Cz\Git\GitRepository(dirname(__FILE__));
+		if ($repo) {
+			$result = $repo->hasChanges();
+			$autoUpdate = $_SESSION['autoUpdate'];
+			if ($result) {
+				write_log("The repo has been changed: ".json_encode($result));
+				if ($autoUpdate || $install) {
+					write_log("Updating from repository");
+					$repo->pull('origin');
+				}
+			} else {
+				write_log("No changes detected.");
+			}
+		} else {
+			write_log("Couldn't initialize git.","ERROR");
+		}
+	} else {
+		write_log("Doesn't appear to be a cloned repository.","ERROR");
+	}
+	return "Function has been executed.";
+
 }
 
 /* gets content from a URL via curl */

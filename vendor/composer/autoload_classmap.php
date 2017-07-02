@@ -11,4 +11,7 @@ return array(
     'Config_Lite_Exception_InvalidArgument' => $vendorDir . '/pear-pear.php.net/Config_Lite/Config/Lite/Exception/InvalidArgument.php',
     'Config_Lite_Exception_Runtime' => $vendorDir . '/pear-pear.php.net/Config_Lite/Config/Lite/Exception/Runtime.php',
     'Config_Lite_Exception_UnexpectedValue' => $vendorDir . '/pear-pear.php.net/Config_Lite/Config/Lite/Exception/UnexpectedValue.php',
+    'Cz\\Git\\GitException' => $vendorDir . '/czproject/git-php/src/IGit.php',
+    'Cz\\Git\\GitRepository' => $vendorDir . '/czproject/git-php/src/GitRepository.php',
+    'Cz\\Git\\IGit' => $vendorDir . '/czproject/git-php/src/IGit.php',
 );

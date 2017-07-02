@@ -16,4 +16,5 @@ new_img/
 new_index.php
 new_js/
 /cacert.pem
-/vendor/
+
+/logs/

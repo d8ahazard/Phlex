@@ -1,5 +1,5 @@
 var action = "play";
-var appName, token, deviceID, resultDuration, lastUpdate, itemJSON, apiToken, ombi, couch, hook, hooks, hookCustom, sonarr, radarr, sick, publicIP, dvr, resolution, weatherClass, city, state, weatherHtml;
+var appName, autoUpdate, token, deviceID, resultDuration, lastUpdate, itemJSON, apiToken, ombi, couch, hook, hooks, hookCustom, sonarr, radarr, sick, publicIP, dvr, resolution, weatherClass, city, state, weatherHtml;
 var condition = null;
 
 jQuery(document).ready(function($) {
@@ -22,12 +22,14 @@ jQuery(document).ready(function($) {
 	token = $('#tokenData').attr('data');
 	deviceID = $('#deviceID').attr('data');
 	publicIP = $('#publicIP').attr('data');
-    sonarr = $('#sonarr').attr('enable') === 'true';
+    newToken = $('#newToken').attr('enable') === 'true';
+	sonarr = $('#sonarr').attr('enable') === 'true';
     sick = $('#sick').attr('enable') === 'true';
     couch = $('#couchpotato').attr('enable') === 'true';
     radarr = $('#radarr').attr('enable') === 'true';
     ombi = $('#ombi').attr('enable') === 'true';
-	$.material.init();
+    autoUpdate = $('#autoUpdate').attr('enable') === 'true';
+    $.material.init();
 	var Logdata = $('#logData').attr('data');
 	if (Logdata !== "") {
 		Logdata = decodeURIComponent(Logdata.replace(/\+/g, '%20'));
@@ -49,7 +51,9 @@ jQuery(document).ready(function($) {
 		
 	$('.formpop').popover();
 
-
+	if (newToken) {
+		showMessage("New API Token Detected","A new API Token was created.  It may be necessary to go into settings and click 'Register Server' again before Google Assistant commands will work");
+	}
     progressSlider.noUiSlider.on('end', function(values, handle){
 		var value = values[handle];
 		var newOffset = Math.round((resultDuration * (value * .01)));
@@ -76,15 +80,6 @@ jQuery(document).ready(function($) {
 			apiToken = $('#apiTokenData').attr('data');
 			$.get('api.php?apiToken=' + apiToken, {id:id, value:value}, function(data) {
                 if (id==='darkTheme') setTimeout( function() { location.reload(); }, 200);
-                if (((id === 'useCast') && (value==true)) || (id ==='phpPath')) {
-                	if (data === 'NOPHP') {
-                		showMessage("Invalid PHP Path","Unfortunately, the path you've specified for PHP is invalid.  Cast discovery will still work, but it may be a little slower.");
-                    }
-                    if (data === 'PHPFOUND') {
-                        $.snackbar({content: "PHP Path is valid!"});
-					}
-
-                }
 			});
 			if ($(this).hasClass("appParam")) {
 				id = $(this).parent().parent().parent().attr('id').replace("Group","");
@@ -268,6 +263,7 @@ jQuery(document).ready(function($) {
 	
 	var ombiEnabled = $('#ombiEnabled');
 	var couchEnabled = $('#couchEnabled');
+    var autoUpdateEnabled = $('#autoUpdate');
 	var sonarrEnabled = $('#sonarrEnabled');
 	var sickEnabled = $('#sickEnabled');
 	var radarrEnabled = $('#radarrEnabled');
@@ -291,6 +287,12 @@ jQuery(document).ready(function($) {
 	} else {
 		$('#ombiGroup').hide();
 	}
+
+    if (autoUpdateEnabled.is(':checked')) {
+        $('#installUpdates').hide();
+    } else {
+        $('#installUpdates').show();
+    }
 	
 	if (couchEnabled.is(':checked')) {
 		$('#couchGroup').show();
@@ -376,6 +378,10 @@ jQuery(document).ready(function($) {
 	ombiEnabled.change(function() {
 		$('#ombiGroup').toggle();
 	});
+
+    autoUpdateEnabled.change(function() {
+        $('#installUpdates').toggle();
+    });
 	 
 	couchEnabled.change(function() {
 		$('#couchGroup').toggle();
@@ -401,6 +407,10 @@ jQuery(document).ready(function($) {
         $('#hookGroup').toggle();
     });
 
+    hookEnabled.change(function() {
+        $('#hookGroup').toggle();
+    });
+
     hookSplit.change(function() {
         $('#hookUrlGroup').toggle();
         $('.hookLabel').toggle();
@@ -419,8 +429,21 @@ jQuery(document).ready(function($) {
 		var res = $(this).find('option:selected').attr('value');
 		$.get('api.php?apiToken=' + apiToken, {id:'plexDvrResolution', value:res});
 	});
-	
-	
+
+    $('#checkUpdates').click(function() {
+        apiToken = $('#apiTokenData').attr('data');
+        $.get('api.php?apiToken=' + apiToken, {checkUpdates:true},function (data) {
+			$('#updateContainer').html(data);
+        });
+    });
+
+    $('#installUpdates').click(function() {
+        apiToken = $('#apiTokenData').attr('data');
+        $.get('api.php?apiToken=' + apiToken, {installUpdates:true},function (data) {
+            $('#updateContainer').html(data);
+        });
+    });
+
 	
 	// Update our status every 10 seconds?  Should this be longer?  Shorter?  IDK...
 	window.setInterval(function(){updateStatus();}, 5000);

@@ -13,6 +13,10 @@ class ComposerStaticInitf7f0b8b64790bd42b927eb029aa43b35
     );
 
     public static $prefixLengthsPsr4 = array (
+        'd' => 
+        array (
+            'digitalhigh\\Radarr\\' => 19,
+        ),
         'P' => 
         array (
             'Psr\\Http\\Message\\' => 17,
@@ -35,6 +39,10 @@ class ComposerStaticInitf7f0b8b64790bd42b927eb029aa43b35
     );
 
     public static $prefixDirsPsr4 = array (
+        'digitalhigh\\Radarr\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/digitalhigh/radarr/src',
+        ),
         'Psr\\Http\\Message\\' => 
         array (
             0 => __DIR__ . '/..' . '/psr/http-message/src',
@@ -71,6 +79,9 @@ class ComposerStaticInitf7f0b8b64790bd42b927eb029aa43b35
         'Config_Lite_Exception_InvalidArgument' => __DIR__ . '/..' . '/pear-pear.php.net/Config_Lite/Config/Lite/Exception/InvalidArgument.php',
         'Config_Lite_Exception_Runtime' => __DIR__ . '/..' . '/pear-pear.php.net/Config_Lite/Config/Lite/Exception/Runtime.php',
         'Config_Lite_Exception_UnexpectedValue' => __DIR__ . '/..' . '/pear-pear.php.net/Config_Lite/Config/Lite/Exception/UnexpectedValue.php',
+        'Cz\\Git\\GitException' => __DIR__ . '/..' . '/czproject/git-php/src/IGit.php',
+        'Cz\\Git\\GitRepository' => __DIR__ . '/..' . '/czproject/git-php/src/GitRepository.php',
+        'Cz\\Git\\IGit' => __DIR__ . '/..' . '/czproject/git-php/src/IGit.php',
     );
 
     public static function getInitializer(ClassLoader $loader)

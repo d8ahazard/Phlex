@@ -4,7 +4,7 @@ require_once dirname(__FILE__) . '/cast/Chromecast.php';
 require_once dirname(__FILE__) . '/util.php';
 require_once dirname(__FILE__) . '/api.php';
 
-function makeBody() {
+function makeBody($newToken = false) {
     write_log("Function fired.");
     if (!defined('LOGGED_IN')) {
         write_log("Dying because not logged in?","ERROR");
@@ -47,7 +47,8 @@ function makeBody() {
     $_SESSION['apiai_dev_token'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'apiDevToken', '');
 
     $_SESSION['use_cast'] = $config->getBool('user-_-'.$_SESSION['plexUserName'], 'useCast', false);
-    $_SESSION['clean_logs'] = $config->getBool('user-_-'.$_SESSION['plexUserName'], 'cleanLogs', true);
+	$_SESSION['autoUpdate'] = $config->getBool('user-_-'.$_SESSION['plexUserName'], 'autoUpdate', false);
+	$_SESSION['clean_logs'] = $config->getBool('user-_-'.$_SESSION['plexUserName'], 'cleanLogs', true);
     $_SESSION['darkTheme'] = $config->getBool('user-_-'.$_SESSION['plexUserName'], 'darkTheme', false);
 
     $_SESSION['dvr_resolution'] = $config->getBool('user-_-'.$_SESSION['plexUserName'], 'dvr_resolution', "0");
@@ -66,7 +67,7 @@ function makeBody() {
 	$_SESSION['hookFetch'] = $config->getBool('user-_-'.$_SESSION['plexUserName'], 'hookFetch', false);
 	$_SESSION['hookCustom'] = $config->getBool('user-_-'.$_SESSION['plexUserName'], 'hookCustom', false);
 	$_SESSION['hookCustomReply'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'hookCustomReply', "");
-
+	if ($_SESSION['newToken']) write_log("NEW FUCKING TOKEN!!");
     $url = 'https://plex.tv/pms/:/ip';
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL,$url);
@@ -190,6 +191,29 @@ function makeBody() {
                                 <button id="sayURL" class="copyInput btn btn-raised btn-primary btn-70" type="button"><i class="material-icons">message</i></button>
                             </div>
 
+                        </div>
+                    </div>
+                    <div class="appContainer card updateDiv">
+                        <div class="card-body">
+                            <h4 class="cardHeader">Updates</h4>
+                            <div class="form-group">
+                                <div class="form-group">
+                                    <div id="updateContainer" class="panel panel-primary">
+                                        <label id="noUpdates" class="appLabel checkLabel">No updates available.</label>
+                                    </div>
+                                </div>
+                                <div class="togglebutton">
+                                        <label for="autoUpdate" class="appLabel checkLabel">Automatically Install Updates
+                                            <input id="autoUpdate" type="checkbox" class="appToggle" ' . ($_SESSION["autoUpdate"] ? "checked" : "") . '/>
+                                        </label>
+                                    </div>
+                                <div class="text-center">
+                                    <div class="form-group btn-group">
+                                        <button id="checkUpdates" value="checkUpdates" class="btn btn-raised btn-info btn-100" type="button">Refresh</button>
+                                        <button id="installUpdates" value="installUpdates" class="btn btn-raised btn-warning btn-100" type="button">Install</button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="appContainer card">
@@ -604,7 +628,8 @@ function makeBody() {
     </div>
     
     <div id="metaTags">
-    <meta id="apiTokenData" data="' . $_SESSION["apiToken"] . '" property="" content=""/>' . metaTags() . '</div>
+    <meta id="apiTokenData" data="' . $_SESSION["apiToken"] . '" property="" content=""/>' .
+	'<meta id="newToken" data="' . ($newToken ? 'true': 'false') . '" property="" content=""/>'.metaTags() . '</div>
     <script type="text/javascript" src="./js/main.js"></script></div>';
 return $bodyText;
 }
