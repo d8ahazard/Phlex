@@ -11,7 +11,7 @@ html {
 	background: transparent;  /* optional: just make scrollbar invisible */
 }
 
-#updateDiv {
+.updateDiv {
 	display:none;
 }
 
