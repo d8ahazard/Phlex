@@ -15,18 +15,6 @@ Or, in short - you can watch and download movies and shows just by telling your 
 alt="Phlex Demo #2" width="480" height="360" border="10" /></a>
 
 
-
-<img src="http://imgur.com/rqottwZ"/>
-
-<img src="http://imgur.com/let2swA"/>
-
-<img src="http://imgur.com/t0PtEoA"/>
-
-<img src="http://imgur.com/zKUb4wy"/>
-
-<img src="http://imgur.com/Ehdead2"/>
-
-
 ## Installation:
 
 **NOTE:  YOUR config.ini.php file is IMPORTANT.  DO NOT DELETE OR REMOVE THIS FILE ONCE YOU'VE GOT PHLEX RUNNING.  IF UPDATING, KEEP A COPY OF THIS FILE AND REPLACE IT.  REMOVING THIS FILE WILL ABSOLUTELY BREAK ACCOUNT LINKING FOR GOOGLE ASSISTANT.**
