@@ -143,8 +143,10 @@
 		 * Exists changes?
 		 * @return bool
 		 */
-		function hasChanges();
 
+		function hasLocalChanges();
+		
+		function hasRemoteChanges();
 
 		/**
 		 * Pull changes from a remote

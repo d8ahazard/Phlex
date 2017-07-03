@@ -682,12 +682,14 @@ function checkUpdates($install=false) {
 		try {
 			$repo = new GitRepository(dirname(__FILE__));
 			$html = '';
-			if ($repo) {
+			if (1==1) {
+				write_log("Repo lives?");
 				$result = $repo->hasRemoteChanges();
+				$revision = $repo->getRev();
 				$autoUpdate = $_SESSION['autoUpdate'];
+				write_log("Result: ".$result);
 				if ($result) {
 					write_log("The repo has been changed.");
-					$revision = $repo->getRev();
 					$log = $repo->readLog('origin/master',$revision);
 					if (count($log)) {
 						write_log("LOG: " . json_encode($log));
@@ -695,21 +697,25 @@ function checkUpdates($install=false) {
 							$html .= '
 								<div class="panel panel-primary">
 						  			<div class="panel-heading">
-						    			<h3 class="panel-title">'.$commit['date'].' '.$commit['shortHead'].' '.$commit['subject'].'</h3>
+						    			<h5 class="panel-title">'.$commit['date'].' '.$commit['shortHead'].' '.$commit['subject'].'</h5>
 						  			</div>
 							        <div class="panel-body">
-							            Author: '.$commit['author'].'
+							            Author: '.$commit['author'].'<br>
 							            Message: '.$commit['body'].'
 							        </div>
 								</div>';
 						}
+						$html = '<div><h5>Current revision: '.$revision.'<br>Status:'.count($log).' commit(s) behind.</h5>'.$html.'</div>';
 						if ($install) {
 							write_log("Updating from repository");
 							$repo->pull('origin');
+							$html = '<div><h5>Current revision: '.substr($revision,0,7).'<br>Status: Up-to-date</h5></div>';
 						}
 					}
 				} else {
 					write_log("No changes detected.");
+					$html = '<div><h5>Current revision: '.substr($revision,0,7).'<br>Status: Up-to-date</h5></div>';
+
 				}
 			} else {
 				write_log("Couldn't initialize git.", "ERROR");

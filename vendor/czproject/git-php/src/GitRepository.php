@@ -376,12 +376,12 @@
 		public function hasRemoteChanges()
 		{
 			$this->begin();
-			$lastLine = exec('git status');
+			exec('git status',$lines);
 			$this->end();
-			if (preg_match("/commit/",$lastLine)) {
-				return false;
+			if (preg_match("/fast-forwarded/",implode(" ",$lines))) {
+				return true;
 			}
-			return true;
+			return false;
 		}
 
 
@@ -390,7 +390,7 @@
 		 */
 		public function isChanges()
 		{
-			return $this->hasChanges();
+			return $this->hasLocalChanges();
 		}
 
 		/**
@@ -413,7 +413,7 @@
 				write_log("Command: ".$command);
 				exec($command,$shorts);
 			}
-			if (count($shorts)) $limit = count($shorts);
+			if (count($shorts)) $limit = count($shorts)-1;
 			if (is_numeric($limit)) {
 				write_log("Fetching $limit lines of log.");
 				$i = 0;
@@ -424,13 +424,13 @@
 					$shortHead = exec($command.'"%h"');
 					$subject = exec($command.'"%s"');
 					$body = exec($command.'"%B"');
-					$committer = exec($command.'"%aN"');
+					$author = exec($command.'"%aN"');
 					$date = exec($command.'"%aD"');
 					$commit = [
 						'head'=>$head,
 						'shortHead'=>$shortHead,
 						'body'=>$body,
-						'committer'=>$committer,
+						'author'=>$author,
 						'date'=>$date
 					];
 					array_push($commits,$commit);

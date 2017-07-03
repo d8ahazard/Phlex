@@ -11,10 +11,6 @@ html {
 	background: transparent;  /* optional: just make scrollbar invisible */
 }
 
-.updateDiv {
-	display:none;
-}
-
 .background {
 	height: 100%;
 	width: 100%;
