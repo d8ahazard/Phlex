@@ -585,8 +585,12 @@ function setDefaults() {
 }
 
 function checkFiles() {
-	$logPath = file_build_path(dirname(__FILE__),'logs',"Phlex.log");
-	$errorLogPath = file_build_path(dirname(__FILE__),'logs',"Phlex_error.log");
+    $logDir = file_build_path(dirname(__FILE__),"logs");
+    if(!is_dir($logDir) && !mkdir($logDir, 0777, true)) {
+        die("Cannot create logs folder");
+    }
+    $logPath = file_build_path($logDir,"Phlex.log");
+    $errorLogPath = file_build_path($logDir,"Phlex_error.log");
     $files = [$logPath,$errorLogPath,'config.ini.php','commands.php'];
     foreach ($files as $file) {
         if (!file_exists($file)) {
