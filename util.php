@@ -1,4 +1,8 @@
 <?PHP
+use Cz\Git\GitRepository;
+
+require_once dirname(__FILE__) . '/vendor/autoload.php';
+
 	// Checks whether an API Token exists for the current user, generates and saves one if none exists.
     // Returns generated or existing API Token.
 	function checkSetApiToken($userName) {
@@ -598,8 +602,8 @@ function checkFiles() {
             } else if (PHP_SHLIB_SUFFIX === "dll") {
                 $message .= "  Detected Windows system, refer to guides on how to set appropriate permissions."; //Can't get fileowner in a trivial manner.
             }
-            //$scriptBlock = "<script language='javascript'>alert(\"" . $message . "\");</script>";
-            //echo $scriptBlock;
+            $scriptBlock = "<script type='text/javascript'>alert(\"" . $message . "\");</script>";
+            echo $scriptBlock;
 	        write_log($message,"ERROR");
             return $message;
         }
@@ -675,26 +679,48 @@ function checkUpdates($install=false) {
     $result = false;
 	if (file_exists(dirname(__FILE__).'/.git')) {
 		write_log("This instance has been cloned, initializing git.");
-		$repo = new Cz\Git\GitRepository(dirname(__FILE__));
-		if ($repo) {
-			$result = $repo->hasChanges();
-			$autoUpdate = $_SESSION['autoUpdate'];
-			if ($result) {
-				write_log("The repo has been changed: ".json_encode($result));
-				if ($autoUpdate || $install) {
-					write_log("Updating from repository");
-					$repo->pull('origin');
+		try {
+			$repo = new GitRepository(dirname(__FILE__));
+			$html = '';
+			if ($repo) {
+				$result = $repo->hasRemoteChanges();
+				$autoUpdate = $_SESSION['autoUpdate'];
+				if ($result) {
+					write_log("The repo has been changed.");
+					$revision = $repo->getRev();
+					$log = $repo->readLog('origin/master',$revision);
+					if (count($log)) {
+						write_log("LOG: " . json_encode($log));
+						foreach($log as $commit) {
+							$html .= '
+								<div class="panel panel-primary">
+						  			<div class="panel-heading">
+						    			<h3 class="panel-title">'.$commit['date'].' '.$commit['shortHead'].' '.$commit['subject'].'</h3>
+						  			</div>
+							        <div class="panel-body">
+							            Author: '.$commit['author'].'
+							            Message: '.$commit['body'].'
+							        </div>
+								</div>';
+						}
+						if ($install) {
+							write_log("Updating from repository");
+							$repo->pull('origin');
+						}
+					}
+				} else {
+					write_log("No changes detected.");
 				}
 			} else {
-				write_log("No changes detected.");
+				write_log("Couldn't initialize git.", "ERROR");
 			}
-		} else {
-			write_log("Couldn't initialize git.","ERROR");
+		} catch (\Cz\Git\GitException $e) {
+			write_log("An exception has occurred: ".$e,"ERROR");
 		}
 	} else {
 		write_log("Doesn't appear to be a cloned repository.","ERROR");
 	}
-	return "Function has been executed.";
+	return $html;
 
 }
 

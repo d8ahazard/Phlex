@@ -1,4 +1,5 @@
 <?php
+
 	/**
 	 * Default implementation of IGit interface
 	 *
@@ -351,16 +352,36 @@
 
 
 		/**
-		 * Exists changes?
+		 * Exists local changes?
 		 * `git status` + magic
 		 * @return bool
 		 */
-		public function hasChanges()
+		public function hasLocalChanges()
 		{
 			$this->begin();
 			$lastLine = exec('git status');
 			$this->end();
-			return (strpos($lastLine, 'nothing to commit')) === FALSE; // FALSE => changes
+			if (preg_match("/nothing to commit/",$lastLine)) {
+				return false;
+			}
+			return true;
+		}
+
+
+		/**
+		 * Exists local changes?
+		 * `git status` + magic
+		 * @return bool
+		 */
+		public function hasRemoteChanges()
+		{
+			$this->begin();
+			$lastLine = exec('git status');
+			$this->end();
+			if (preg_match("/commit/",$lastLine)) {
+				return false;
+			}
+			return true;
 		}
 
 
@@ -372,7 +393,67 @@
 			return $this->hasChanges();
 		}
 
+		/**
+		 * Read Log Messages to JSON
+		 *
+		 * @param  string $branch - The branch to read logs from
+		 * @param  string|int $limit - Number of commits to return, or the commit hash to return logs until
+		 * @throws Cz\Git\GitException
+		 * @return array $logs
+		 */
 
+		public function readLog($branch="origin/master",$limit=10)
+		{
+			$output = "";
+			$this->begin();
+			$commits = [];
+			if (!is_numeric($limit)) {
+				write_log("Searching origin for revision ".$limit);
+				$command = "git log $limit..$branch --oneline";
+				write_log("Command: ".$command);
+				exec($command,$shorts);
+			}
+			if (count($shorts)) $limit = count($shorts);
+			if (is_numeric($limit)) {
+				write_log("Fetching $limit lines of log.");
+				$i = 0;
+				do {
+					$command = "git log $branch -1 --pretty=format:";
+					if ($i) $command = "git log $branch --skip $i -1 --pretty=format:";
+					$head = exec($command.'"%H"');
+					$shortHead = exec($command.'"%h"');
+					$subject = exec($command.'"%s"');
+					$body = exec($command.'"%B"');
+					$committer = exec($command.'"%aN"');
+					$date = exec($command.'"%aD"');
+					$commit = [
+						'head'=>$head,
+						'shortHead'=>$shortHead,
+						'body'=>$body,
+						'committer'=>$committer,
+						'date'=>$date
+					];
+					array_push($commits,$commit);
+					$i++;
+				} while ($i <= $limit);
+			}
+
+			$this->end();
+			return $commits;
+		}
+
+		public function getRev() {
+			$this->begin();
+			$head = exec('git rev-parse HEAD');
+			$this->end();
+			return $head;
+		}
+
+		/**
+		 * Exists changes?
+		 * `git status` + magic
+		 * @return bool
+		 */
 		/**
 		 * Pull changes from a remote
 		 * @param  string|NULL
