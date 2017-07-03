@@ -48,7 +48,7 @@ To log in, enter your **Plex** username and password.
 
 
 If you are running Phlex on an existing webserver, Phlex PHP version 7.0 and up.  Phlex will also require r/w access to the root of the /Phlex directory for configuration and logging purposes.
-You will also need the CURL and openSSL extensions enabled, and sockets if you have any Cast devices.
+You will also need the CURL and openSSL extensions enabled, and sockets if you have any Cast devices.  If you're not using Xampp, you may also need to enable the xml module.
 <br><br>
 
 # Raspberry Pi Specific Instructions 
