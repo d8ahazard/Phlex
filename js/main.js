@@ -53,11 +53,13 @@ jQuery(document).ready(function($) {
 	$('.formpop').popover();
 
 	if (newToken) {
-		showMessage("New API Token Detected","A new API Token was created.  It may be necessary to go into settings and click 'Register Server' again before Google Assistant commands will work");
+        var serverAddress = $('#publicAddress').val();
+        var regUrl = 'https://phlexserver.cookiehigh.us/api.php?apiToken='+apiToken+"&serverAddress="+serverAddress;
+        showMessage("New API Token Detected","A new API Token was created. Click here to re-register your server.",regUrl);
 	}
 
 	if (updateAvailable >= 1) {
-		showMessage("Updates available!","You have " + updateAvailable + " update(s) available.  <a href='./api.php?installUpdates&apiToken="+apiToken+"'>Click here</a> to update.");
+		showMessage("Updates available!","You have " + updateAvailable + " update(s) available.");
 	}
     progressSlider.noUiSlider.on('end', function(values, handle){
 		var value = values[handle];
@@ -449,6 +451,15 @@ jQuery(document).ready(function($) {
         });
     });
 
+    document.addEventListener('DOMContentLoaded', function () {
+        if (!Notification) {
+            alert('Desktop notifications not available in your browser. Try Chromium.');
+            return;
+        }
+
+        if (Notification.permission !== "granted")
+            Notification.requestPermission();
+    });
 	
 	// Update our status every 10 seconds?  Should this be longer?  Shorter?  IDK...
 	window.setInterval(function(){updateStatus();}, 5000);
@@ -477,6 +488,8 @@ jQuery(document).ready(function($) {
     }, 30000);
 
 });
+
+
 
 function setBackground() {
     console.log("Setting background image.");
@@ -821,10 +834,19 @@ function notify() {
     console.log("Image loaded: ".imgUrl);
 }
 
-function showMessage(title,message) {
-	$('#alertTitle').text(title);
-    $('#alertBody').find('p').text(message);
-    $('#alertModal').modal('show');
+function showMessage(title,message,url) {
+    if (Notification.permission !== "granted")
+        Notification.requestPermission();
+    else {
+        var notification = new Notification(title, {
+            icon: './img/avatar.png',
+            body: message,
+        });
+
+        notification.onclick = function () {
+            window.open(url);
+        };
+    }
 }
 
 

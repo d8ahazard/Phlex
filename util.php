@@ -646,7 +646,7 @@ function checkFiles() {
             } else if (PHP_SHLIB_SUFFIX === "dll") {
                 $message .= "  Detected Windows system, refer to guides on how to set appropriate permissions."; //Can't get fileowner in a trivial manner.
             }
-            $scriptBlock = "<script type='text/javascript'>showMessage('File Error!','" . $message . "');</script>";
+            $scriptBlock = "<script type='text/javascript'>showMessage('File Error!','" . $message . ",'');</script>";
             echo $scriptBlock;
 	        write_log($message,"ERROR");
             return $message;
