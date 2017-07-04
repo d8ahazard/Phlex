@@ -361,10 +361,7 @@
 			$this->begin();
 			$lastLine = exec('git status');
 			$this->end();
-			if (preg_match("/nothing to commit/",$lastLine)) {
-				return false;
-			}
-			return true;
+			return !preg_match("/nothing to commit/",$lastLine);
 		}
 
 
@@ -378,10 +375,7 @@
 			$this->begin();
 			exec('git status',$lines);
 			$this->end();
-			if (preg_match("/fast-forwarded/",implode(" ",$lines))) {
-				return true;
-			}
-			return false;
+			return (preg_match("/fast-forwarded/",implode(" ",$lines)));
 		}
 
 

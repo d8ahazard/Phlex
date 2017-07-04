@@ -325,6 +325,22 @@ require_once dirname(__FILE__) . '/vendor/autoload.php';
 		fclose($handle);
 	}
 
+function logUpdate(array $log) {
+	$filename = file_build_path(dirname(__FILE__),'logs',"Phlex_update.log");
+	$text = '[ '.date(DATE_RFC2822) . ' ] - '.json_encode($log);
+	if (!file_exists($filename)) { touch($filename); chmod($filename, 0666); }
+	if (filesize($filename) > 2*1024*1024) {
+		$filename2 = "$filename.old";
+		if (file_exists($filename2)) unlink($filename2);
+		rename($filename, $filename2);
+		touch($filename); chmod($filename,0666);
+	}
+	if (!is_writable($filename)) die;
+	if (!$handle = fopen($filename, 'a+')) die;
+	if (fwrite($handle, $text) === FALSE) die;
+	fclose($handle);
+}
+
 	function clientHeaders() {
         return array(
             'X-Plex-Client-Identifier:' . checkSetDeviceID(),
@@ -591,7 +607,8 @@ function checkFiles() {
     }
     $logPath = file_build_path($logDir,"Phlex.log");
     $errorLogPath = file_build_path($logDir,"Phlex_error.log");
-    $files = [$logPath,$errorLogPath,'config.ini.php','commands.php'];
+	$updateLogPath = file_build_path($logDir,"Phlex_update.log");
+    $files = [$logPath,$errorLogPath,$updateLogPath,'config.ini.php','commands.php'];
     foreach ($files as $file) {
         if (!file_exists($file)) {
             touch($file);
@@ -680,23 +697,21 @@ function getContent($file,$url,$hours = 24,$fn = '',$fn_args = '') {
 }
 
 function checkUpdates($install=false) {
+	write_log("Function fired.");
     $result = false;
-	if (file_exists(dirname(__FILE__).'/.git')) {
-		write_log("This instance has been cloned, initializing git.");
+    $html = '';
+	if ((file_exists(dirname(__FILE__).'/.git')) && checkGit()) {
+		write_log("This is a repo and GIT is available, let's go.");
 		try {
 			$repo = new GitRepository(dirname(__FILE__));
-			$html = '';
-			if (1==1) {
-				write_log("Repo lives?");
+			if ($repo) {
 				$result = $repo->hasRemoteChanges();
 				$revision = $repo->getRev();
 				$autoUpdate = $_SESSION['autoUpdate'];
-				write_log("Result: ".$result);
 				if ($result) {
 					write_log("The repo has been changed.");
 					$log = $repo->readLog('origin/master',$revision);
 					if (count($log)) {
-						write_log("LOG: " . json_encode($log));
 						foreach($log as $commit) {
 							$html .= '
 								<div class="panel panel-primary">
@@ -709,11 +724,12 @@ function checkUpdates($install=false) {
 							        </div>
 								</div>';
 						}
-						$html = '<div><h5>Current revision: '.$revision.'<br>Status:'.count($log).' commit(s) behind.</h5>'.$html.'</div>';
-						if ($install) {
-							write_log("Updating from repository");
+						$html = '<div>Current revision: '.$revision.'<br>Status:'.count($log).' commit(s) behind.'.$html.'</div>';
+						if (($install) || ($autoUpdate)) {
+							write_log("Updating from repository - ".($install ? 'Manually triggered.' : 'Automatically triggered.'));
 							$repo->pull('origin');
-							$html = '<div><h5>Current revision: '.substr($revision,0,7).'<br>Status: Up-to-date</h5></div>';
+							logUpdate($log);
+							$html = '<div>Current revision: '.substr($revision,0,7).'<br>Status: Up-to-date</div>';
 						}
 					}
 				} else {
@@ -732,6 +748,11 @@ function checkUpdates($install=false) {
 	}
 	return $html;
 
+}
+
+function checkGit() {
+	exec("git",$lines);
+	return (preg_match("/git help/",implode(" ",$lines)));
 }
 
 /* gets content from a URL via curl */

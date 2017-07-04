@@ -67,8 +67,7 @@ function makeBody($newToken = false) {
 	$_SESSION['hookFetch'] = $config->getBool('user-_-'.$_SESSION['plexUserName'], 'hookFetch', false);
 	$_SESSION['hookCustom'] = $config->getBool('user-_-'.$_SESSION['plexUserName'], 'hookCustom', false);
 	$_SESSION['hookCustomReply'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'hookCustomReply', "");
-	if ($_SESSION['newToken']) write_log("NEW FUCKING TOKEN!!");
-    $url = 'https://plex.tv/pms/:/ip';
+	$url = 'https://plex.tv/pms/:/ip';
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL,$url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -192,19 +191,19 @@ function makeBody($newToken = false) {
                             </div>
 
                         </div>
-                    </div>
-                    <div class="appContainer card updateDiv">
+                    </div>'.(checkGit() ?
+                    '<div class="appContainer card updateDiv">
                         <div class="card-body">
                             <h4 class="cardHeader">Updates</h4>
                             <div class="form-group">
                                 <div class="form-group">
                                     <div id="updateContainer" class="panel panel-primary">
-                                        <label id="noUpdates" class="appLabel checkLabel">No updates available.</label>
+                                        '.checkUpdates().'
                                     </div>
                                 </div>
                                 <div class="togglebutton">
                                         <label for="autoUpdate" class="appLabel checkLabel">Automatically Install Updates
-                                            <input id="autoUpdate" type="checkbox" class="appToggle" ' . ($_SESSION["autoUpdate"] ? "checked" : "") . '/>
+                                            <input id="autoUpdate" type="checkbox" class="appInput" ' . ($_SESSION["autoUpdate"] ? "checked" : "") . '/>
                                         </label>
                                     </div>
                                 <div class="text-center">
@@ -215,8 +214,8 @@ function makeBody($newToken = false) {
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="appContainer card">
+                    </div>' : '').
+                    '<div class="appContainer card">
                         <div class="card-body">
                             <h4 class="cardHeader">Plex</h4>
                             <div class="form-group">
