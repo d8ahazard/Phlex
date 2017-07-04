@@ -97,13 +97,11 @@ Add this line to the file, near the guidance notes for open_basedir :
 `$ sudo service apache2 restart`
 
 
-
-
 # Updating:
 
-If you cloned Phlex using .git, simply do a git pull, your configuration files will remain untouched.  If you installed via .zip, you should be able to download the latest copy and extract it in-place.  
+Congratulations.  If you installed Phlex via git or Docker, you're all set.  Go into settings, click the "Auto update" toggle, and go to town!
 
-However you update, it is important to not delete config.ini.php, as this is where your server's API token is stored, which is used to associate your local Phlex client with your Google account.
+If you installed from a .zip file, it is important to not delete config.ini.php, as this is where your server's API token is stored, which is used to associate your local Phlex client with your Google account.
 <br><br>
 
 # Post-Installation (Network Stuff):
