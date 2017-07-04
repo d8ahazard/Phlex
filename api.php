@@ -3528,6 +3528,7 @@ function metaTags() {
 	$commandData = urlencode($contents);
 	$tags .= '<meta id="tokenData" data="' . $_SESSION['plexServerToken'] . '"/>' .
 		'<meta id="usernameData" data="' . $_SESSION['plexUserName'] . '"/>' .
+		'<meta id="updateAvailable" data="' . $_SESSION['updateAvailable'] . '"/>' .
 		'<meta id="publicIP" data="' . $_SESSION['publicAddress'] . '"/>' .
 		'<meta id="deviceID" data="' . $_SESSION['deviceID'] . '"/>' .
 		'<meta id="serverURI" data="' . $_SESSION['plexServerUri'] . '"/>' .

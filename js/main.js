@@ -1,5 +1,5 @@
 var action = "play";
-var appName, autoUpdate, token, deviceID, resultDuration, lastUpdate, itemJSON, apiToken, ombi, couch, hook, hooks, hookCustom, sonarr, radarr, sick, publicIP, dvr, resolution, weatherClass, city, state, weatherHtml;
+var appName, autoUpdate, token, deviceID, resultDuration, lastUpdate, itemJSON, apiToken, ombi, couch, hook, hooks, hookCustom, sonarr, radarr, sick, publicIP, dvr, resolution, weatherClass, city, state, updateAvailable, weatherHtml;
 var condition = null;
 
 jQuery(document).ready(function($) {
@@ -26,9 +26,10 @@ jQuery(document).ready(function($) {
 	sonarr = $('#sonarr').attr('enable') === 'true';
     sick = $('#sick').attr('enable') === 'true';
     couch = $('#couchpotato').attr('enable') === 'true';
-    radarr = $('#radarr').attr('enable') === 'true';
+    radarr = $('#radarr').attr('enable') === 'true'
     ombi = $('#ombi').attr('enable') === 'true';
     autoUpdate = $('#autoUpdate').attr('enable') === 'true';
+    updateAvailable = $('#updateAvailable').attr('data');
     $.material.init();
 	var Logdata = $('#logData').attr('data');
 	if (Logdata !== "") {
@@ -53,6 +54,10 @@ jQuery(document).ready(function($) {
 
 	if (newToken) {
 		showMessage("New API Token Detected","A new API Token was created.  It may be necessary to go into settings and click 'Register Server' again before Google Assistant commands will work");
+	}
+
+	if (updateAvailable >= 1) {
+		showMessage("Updates available!","You have " + updateAvailable + " update(s) available.  <a href='./api.php?installUpdates&apiToken="+apiToken+"'>Click here</a> to update.");
 	}
     progressSlider.noUiSlider.on('end', function(values, handle){
 		var value = values[handle];
@@ -818,7 +823,7 @@ function notify() {
 
 function showMessage(title,message) {
 	$('#alertTitle').text(title);
-    $('#alertBody p').text(message);
+    $('#alertBody').find('p').text(message);
     $('#alertModal').modal('show');
 }
 

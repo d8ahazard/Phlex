@@ -326,10 +326,14 @@ require_once dirname(__FILE__) . '/vendor/autoload.php';
 	}
 
 function logUpdate(array $log) {
+	$config = new Config_Lite('config.ini.php');
 	$filename = file_build_path(dirname(__FILE__),'logs',"Phlex_update.log");
 	$data['installed'] = date(DATE_RFC2822);
 	$data['commits'] = $log;
 	$text = json_encode($data);
+	$config->set("general","lastUpdate",$data['installed']);
+	saveConfig($config);
+	unset($_SESSION['updateAvailable']);
 	if (!file_exists($filename)) { touch($filename); chmod($filename, 0666); }
 	if (filesize($filename) > 2*1024*1024) {
 		$filename2 = "$filename.old";
@@ -606,6 +610,7 @@ function checkSetDeviceID() {
 function fetchDirectory($id=1) {
     if ($id=1) return base64_decode("Y2QyMjlmNTU5NWZjYWEyNzI3MGI0NDU4OTIyOGE0OTI=");
 	if ($id=2) return base64_decode("MTlEOUExODFEQTcyMkM4Nw==");
+	return false;
 }
 
 function setDefaults() {
@@ -641,7 +646,7 @@ function checkFiles() {
             } else if (PHP_SHLIB_SUFFIX === "dll") {
                 $message .= "  Detected Windows system, refer to guides on how to set appropriate permissions."; //Can't get fileowner in a trivial manner.
             }
-            $scriptBlock = "<script type='text/javascript'>alert(\"" . $message . "\");</script>";
+            $scriptBlock = "<script type='text/javascript'>showMessage('File Error!','" . $message . "');</script>";
             echo $scriptBlock;
 	        write_log($message,"ERROR");
             return $message;
@@ -730,6 +735,7 @@ function checkUpdates($install=false) {
 					write_log("The repo has been changed.");
 					$log = $repo->readLog('origin/master',$revision);
 					if (count($log)) {
+						$_SESSION['updateAvailable'] = count($log);
 						$html = parseLog($log);
 						$html = '<div>Current revision: '.$revision.'<br>Status:'.count($log).' commit(s) behind.<br>Missing Commits:'.$html.'</div>';
 						if (($install) || ($autoUpdate)) {
