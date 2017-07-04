@@ -423,6 +423,7 @@
 					$commit = [
 						'head'=>$head,
 						'shortHead'=>$shortHead,
+						'subject'=>$subject,
 						'body'=>$body,
 						'author'=>$author,
 						'date'=>$date

@@ -712,29 +712,19 @@ function checkUpdates($install=false) {
 					write_log("The repo has been changed.");
 					$log = $repo->readLog('origin/master',$revision);
 					if (count($log)) {
-						foreach($log as $commit) {
-							$html .= '
-								<div class="panel panel-primary">
-						  			<div class="panel-heading">
-						    			<h5 class="panel-title">'.$commit['date'].' '.$commit['shortHead'].' '.$commit['subject'].'</h5>
-						  			</div>
-							        <div class="panel-body">
-							            Author: '.$commit['author'].'<br>
-							            Message: '.$commit['body'].'
-							        </div>
-								</div>';
-						}
-						$html = '<div>Current revision: '.$revision.'<br>Status:'.count($log).' commit(s) behind.'.$html.'</div>';
+						$html = parseLog($log);
+						$html = '<div>Current revision: '.$revision.'<br>Status:'.count($log).' commit(s) behind.<br>Missing Commits:'.$html.'</div>';
 						if (($install) || ($autoUpdate)) {
 							write_log("Updating from repository - ".($install ? 'Manually triggered.' : 'Automatically triggered.'));
 							$repo->pull('origin');
 							logUpdate($log);
-							$html = '<div>Current revision: '.substr($revision,0,7).'<br>Status: Up-to-date</div>';
+							$html = '<div>Current revision: '.substr($revision,0,7).'<br>Status: Up-to-date<br>Latest Change:</div>';
 						}
 					}
 				} else {
 					write_log("No changes detected.");
-					$html = '<div><h5>Current revision: '.substr($revision,0,7).'<br>Status: Up-to-date</h5></div>';
+					$html = parseLog($repo->readLog("origin/master",0));
+					$html = '<div>Current revision: '.substr($revision,0,7).'<br>Status: Up-to-date</div><br>Latest Change:'.$html;
 
 				}
 			} else {
@@ -748,6 +738,22 @@ function checkUpdates($install=false) {
 	}
 	return $html;
 
+}
+
+function parseLog($log) {
+    $html = '';
+	foreach($log as $commit) {
+		$html .= '
+								<div class="panel panel-primary">
+						  			<div class="panel-heading">
+						    			<div class="panel-title">'.$commit['shortHead'].' - '.$commit['date'].' '.$commit['subject'].'</div>
+						  			</div>
+							        <div class="panel-body">
+							            '.$commit['body'].'
+							        </div>
+								</div>';
+	}
+	return $html;
 }
 
 function checkGit() {

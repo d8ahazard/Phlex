@@ -196,16 +196,16 @@ function makeBody($newToken = false) {
                         <div class="card-body">
                             <h4 class="cardHeader">Updates</h4>
                             <div class="form-group">
+                                <div class="togglebutton">
+                                    <label for="autoUpdate" class="appLabel checkLabel">Automatically Install Updates
+                                        <input id="autoUpdate" type="checkbox" class="appInput" ' . ($_SESSION["autoUpdate"] ? "checked" : "") . '/>
+                                    </label>
+                                </div>
                                 <div class="form-group">
-                                    <div id="updateContainer" class="panel panel-primary">
+                                    <div id="updateContainer">
                                         '.checkUpdates().'
                                     </div>
                                 </div>
-                                <div class="togglebutton">
-                                        <label for="autoUpdate" class="appLabel checkLabel">Automatically Install Updates
-                                            <input id="autoUpdate" type="checkbox" class="appInput" ' . ($_SESSION["autoUpdate"] ? "checked" : "") . '/>
-                                        </label>
-                                    </div>
                                 <div class="text-center">
                                     <div class="form-group btn-group">
                                         <button id="checkUpdates" value="checkUpdates" class="btn btn-raised btn-info btn-100" type="button">Refresh</button>
