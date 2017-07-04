@@ -429,4 +429,4 @@ However, this is a massive undertaking, and has snowballed enormously from a sim
 
 SO, If you really really like this project and want to show a little love, you can send money via paypal to **donate.to.digitalhigh@gmail.com**.  
 
-This address is for donations only, if you need support, please look above for information.
+This address is for donations only, if you need support, please look above for information on how to ask for it.
