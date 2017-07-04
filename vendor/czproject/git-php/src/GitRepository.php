@@ -417,7 +417,8 @@
 					$head = exec($command.'"%H"');
 					$shortHead = exec($command.'"%h"');
 					$subject = exec($command.'"%s"');
-					$body = exec($command.'"%B"');
+					exec($command.'"%b"',$body);
+					$body = implode('<br>',$body);
 					$author = exec($command.'"%aN"');
 					$date = exec($command.'"%aD"');
 					$commit = [

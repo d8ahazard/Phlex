@@ -109,3 +109,11 @@
 .modal-backdrop {
     background: rgb(255, 255, 255);
 }
+
+.panel {
+    box-shadow: 0 1px 6px 0 rgba(255, 255, 255, 0.12), 0 1px 6px 0 rgba(255, 255, 255, 0.12);
+}
+
+pre {
+    color: white !important;
+}

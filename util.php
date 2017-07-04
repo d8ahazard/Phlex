@@ -690,7 +690,7 @@ function getContent($file,$url,$hours = 24,$fn = '',$fn_args = '') {
 			$content .= '<!-- cached:  ' . time() . '-->';
 			file_put_contents($file, $content);
 			write_log('retrieved fresh from ' . $url . ':: ' . $content,"INFO");
-			return $file;
+			if(file_exists($file)) return $file;
 		}
 		return false;
 	}
@@ -724,7 +724,10 @@ function checkUpdates($install=false) {
 				} else {
 					write_log("No changes detected.");
 					$html = parseLog($repo->readLog("origin/master",0));
-					$html = '<div>Current revision: '.substr($revision,0,7).'<br>Status: Up-to-date</div><br>Latest Change:'.$html;
+					$html = '<div class="cardHeader">Current revision: '.substr($revision,0,7).'<br>
+								Status: Up-to-date
+							</div><br>
+							<h5 class="cardHeader">Latest Change:</h5>'.$html;
 
 				}
 			} else {
@@ -745,11 +748,11 @@ function parseLog($log) {
 	foreach($log as $commit) {
 		$html .= '
 								<div class="panel panel-primary">
-						  			<div class="panel-heading">
-						    			<div class="panel-title">'.$commit['shortHead'].' - '.$commit['date'].' '.$commit['subject'].'</div>
+						  			<div class="panel-heading cardHeader">
+						    			<div class="panel-title">'.$commit['shortHead'].' - '.$commit['date'].'</div>
 						  			</div>
-							        <div class="panel-body">
-							            '.$commit['body'].'
+							        <div class="panel-body cardHeader">
+							            <b>'.$commit['subject'].'</b><br>'.$commit['body'].'
 							        </div>
 								</div>';
 	}
