@@ -1632,7 +1632,11 @@ function parseApiCommand($request) {
 		$button = [['title'=>'View Readme','openUrlAction'=>['url'=>'https://github.com/d8ahazard/Phlex/blob/master/readme.md']]];
 		$card = [['title'=>"Welcome!",'formattedText'=>'','image'=>['url'=>'https://phlexchat.com/img/avatar.png'],'buttons'=>$button]];
 		$contextName = 'yes';
-		$suggestions = ['What new films do I have?','What new shows do I have?',"What's on deck?","Switch players.","Switch servers.","Play a movie.",'Cancel.'];
+		$suggestions = ['What new films do I have?','What new shows do I have?',"What's on deck?","Switch players.","Switch servers.","Play a movie."];
+		if ($_SESSION['plexDvrUri']) array_push($suggestions,"DVR Jeopardy.");
+		if (($_SESSION['couchEnabled']) || ($_SESSION['radarrEnabled'])) array_push($suggestions,"Download the movie Tron.");
+		if (($_SESSION['sickEnabled']) || ($_SESSION['sonarrEnabled'])) array_push($suggestions,"Fetch the show Weeds.");
+		array_push($suggestions,'Cancel.');
 		foreach ($suggestions as $suggestion) $speech .= " ".$suggestion;
 		if (! $GLOBALS['screen']) $card = $suggestions = false;
 		returnSpeech($speech,$contextName,$card,true,$suggestions);
