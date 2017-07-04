@@ -718,15 +718,14 @@ function checkUpdates($install=false) {
 	write_log("Function fired.");
     $installed = $result = false;
     $html = '';
-	if ((file_exists(dirname(__FILE__).'/.git')) && checkGit()) {
-		$lastTime = filemtime(dirname(__FILE__).'/.git/HEAD');
-		write_log("This is a repo and GIT is available, let's go.");
+	$autoUpdate = $_SESSION['autoUpdate'];
+	if (checkGit()) {
+		write_log("This is a repo and GIT is available, checking for updates.");
 		try {
 			$repo = new GitRepository(dirname(__FILE__));
 			if ($repo) {
 				$result = $repo->hasRemoteChanges();
 				$revision = $repo->getRev();
-				$autoUpdate = $_SESSION['autoUpdate'];
 				if ($result) {
 					write_log("The repo has been changed.");
 					$log = $repo->readLog('origin/master',$revision);
@@ -762,7 +761,7 @@ function checkUpdates($install=false) {
 			write_log("An exception has occurred: ".$e,"ERROR");
 		}
 	} else {
-		write_log("Doesn't appear to be a cloned repository.","ERROR");
+		write_log("Doesn't appear to be a cloned repository or git not available.","INFO");
 	}
 	return $html;
 
@@ -786,7 +785,7 @@ function parseLog($log) {
 
 function checkGit() {
 	exec("git",$lines);
-	return (preg_match("/git help/",implode(" ",$lines)));
+	return ((preg_match("/git help/",implode(" ",$lines))) && (file_exists(dirname(__FILE__).'/.git')));
 }
 
 /* gets content from a URL via curl */
