@@ -366,6 +366,9 @@ Below are all of the recognized trigger phrases for Google Assistant commands.
 
 >(Note - What's airing commands work with Plex DVR, Sonarr, and Sickrage)
 
+>**"Help":**
+
+
 ## Setting up IFTTT With Phlex (UPDATED)
 
 1.  Head on over to https://ifttt.com/ and create an account.
