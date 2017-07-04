@@ -1830,7 +1830,11 @@ function scanDevices($force=false) {
 	// Set things up to be recached
 	if (($diffMinutes >= $rescanTime) || $force || (! count($list['servers']))) {
 		if ($force) write_log("Force-recaching devices.","INFO");
-		if ($diffMinutes >= $rescanTime) write_log("Recaching due to timer: ".$diffMinutes." versus ".$_SESSION['rescanTime'],"INFO");
+		if ($diffMinutes >= $rescanTime) {
+			write_log("Recaching due to timer: ".$diffMinutes." versus ".$_SESSION['rescanTime'],"INFO");
+			write_log("Checking for updates.");
+			checkUpdates();
+		}
 		if (! count($list['servers'])) write_log("Recaching due to missing servers");
 		$_SESSION['last_fetch'] = $now;
 
