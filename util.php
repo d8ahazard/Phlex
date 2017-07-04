@@ -327,7 +327,9 @@ require_once dirname(__FILE__) . '/vendor/autoload.php';
 
 function logUpdate(array $log) {
 	$filename = file_build_path(dirname(__FILE__),'logs',"Phlex_update.log");
-	$text = '[ '.date(DATE_RFC2822) . ' ] - '.json_encode($log);
+	$data['installed'] = date(DATE_RFC2822);
+	$data['commits'] = $log;
+	$text = json_encode($data);
 	if (!file_exists($filename)) { touch($filename); chmod($filename, 0666); }
 	if (filesize($filename) > 2*1024*1024) {
 		$filename2 = "$filename.old";
@@ -339,6 +341,22 @@ function logUpdate(array $log) {
 	if (!$handle = fopen($filename, 'a+')) die;
 	if (fwrite($handle, $text) === FALSE) die;
 	fclose($handle);
+}
+
+function readUpdate() {
+	write_log("Function fired.");
+    $log = false;
+	$filename = file_build_path(dirname(__FILE__),'logs',"Phlex_update.log");
+	if (file_exists($filename)) {
+		$lines = file($filename, FILE_IGNORE_NEW_LINES);
+		$commits = [];
+		foreach ($lines as $line) {
+			array_push($commits,json_decode($line,true));
+		}
+		$log = array_reverse($commits);
+	}
+	write_log("LOG: ".json_encode($log));
+	return $log;
 }
 
 	function clientHeaders() {
@@ -698,9 +716,10 @@ function getContent($file,$url,$hours = 24,$fn = '',$fn_args = '') {
 
 function checkUpdates($install=false) {
 	write_log("Function fired.");
-    $result = false;
+    $installed = $result = false;
     $html = '';
 	if ((file_exists(dirname(__FILE__).'/.git')) && checkGit()) {
+		$lastTime = filemtime(dirname(__FILE__).'/.git/HEAD');
 		write_log("This is a repo and GIT is available, let's go.");
 		try {
 			$repo = new GitRepository(dirname(__FILE__));
@@ -723,12 +742,18 @@ function checkUpdates($install=false) {
 					}
 				} else {
 					write_log("No changes detected.");
-					$html = parseLog($repo->readLog("origin/master",0));
+					$logHistory = readUpdate();
+					if (count($logHistory)) {
+						$html = parseLog($logHistory[0]['commits']);
+						$installed = $logHistory['0']['installed'];
+					} else {
+						$html = parseLog($repo->readLog("origin/master", 0));
+					}
 					$html = '<div class="cardHeader">Current revision: '.substr($revision,0,7).'<br>
-								Status: Up-to-date
+								Status: Up-to-date<br>
+								'.($installed ? "Installed: ".$installed : '').'
 							</div><br>
 							<h5 class="cardHeader">Latest Change:</h5>'.$html;
-
 				}
 			} else {
 				write_log("Couldn't initialize git.", "ERROR");
