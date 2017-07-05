@@ -729,6 +729,7 @@ function checkUpdates($install=false) {
 		try {
 			$repo = new GitRepository(dirname(__FILE__));
 			if ($repo) {
+				$repo->fetch('origin');
 				$result = $repo->hasRemoteChanges();
 				$revision = $repo->getRev();
 				if ($result) {
