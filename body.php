@@ -194,8 +194,9 @@ function makeBody($newToken = false) {
 		                            </div>
 		                            <div class="form-group text-center">
 		                                <div class="form-group">
-		                                    <label for="linkAccount">Google Action Account Linking:</label><br>
-		                                    <button id="linkAccount" class="btn btn-raised linkBtn btn-info">Register Server</button>
+		                                    <label for="linkAccount">Account Linking:</label><br>
+		                                    <button id="linkAccount" class="btn btn-raised linkBtn btn-danger">Link Google</button>
+		                                    <button id="linkAmazonAccount" class="btn btn-raised alexaBtn btn-info">Link Amazon</button>
 		                                </div>
 		                            </div>
 		                            <div class="text-center">

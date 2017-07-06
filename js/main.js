@@ -157,16 +157,21 @@ jQuery(document).ready(function($) {
 		}
 		
 		if ($(this).hasClass("linkBtn")) {
-			localStorage.setItem("apiToken", apiToken);
-			clipboard.copy(apiToken);
 			var serverAddress = $('#publicAddress').val();
 			var regUrl = 'https://phlexserver.cookiehigh.us/api.php?apiToken='+apiToken+"&serverAddress="+serverAddress;
 			newwindow=window.open(regUrl,'');
 			if (window.focus) {
 				newwindow.focus();
 			}
-			
 		}
+        if ($(this).hasClass("alexaBtn")) {
+            var serverAddress = $('#publicAddress').val();
+            var regUrl = 'https://phlexchat.com/alexaAuth.php?apiToken='+apiToken+"&serverAddress="+serverAddress;
+            newwindow=window.open(regUrl,'');
+            if (window.focus) {
+                newwindow.focus();
+            }
+        }
 	});
 	
 	

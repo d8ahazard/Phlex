@@ -220,10 +220,18 @@ function initialize() {
 	}
 
 	if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+		$_SESSION['amazonRequest'] = false;
 		write_log("Incoming API.ai request detected.","INFO");
 		$json = file_get_contents('php://input');
+		write_log("JSON: ".$json);
 		$request = json_decode($json, true);
 		$request = array_filter_recursive($request);
+		write_log("Request array: ".json_encode($request));
+		if ($request['type'] === 'Amazon') {
+			$_SESSION['amazonRequest'] = true;
+			write_log("Fuckity fuck");
+			$request = translateRequest($request);
+		}
 		parseApiCommand($request);
 		die();
 	}
@@ -4194,6 +4202,14 @@ function testConnection($serviceName) {
 }
 
 
+function returnSpeech($speech, $contextName, $cards=false, $waitForResponse=false, $suggestions=false) {
+	if ($_SESSION['amazonRequest']) {
+		returnAlexaSpeech($speech, $contextName, $cards, $waitForResponse, $suggestions);
+	} else {
+		returnAssistantSpeech($speech, $contextName, $cards, $waitForResponse, $suggestions);
+	}
+}
+
 // APIAI ITEMS
 // Put our calls to API.ai here
 // #######################################################################
@@ -4201,7 +4217,7 @@ function testConnection($serviceName) {
 
 
 
-function returnSpeech($speech, $contextName, $cards=false, $waitForResponse=false, $suggestions=false) {
+function returnAssistantSpeech($speech, $contextName, $cards, $waitForResponse, $suggestions) {
 	if (! $cards) write_log("Card array: ".json_encode($cards));
 	header('Content-Type: application/json');
 	ob_start();
@@ -4256,6 +4272,68 @@ function returnSpeech($speech, $contextName, $cards=false, $waitForResponse=fals
 	write_log("JSON out is ".json_encode($output));
 }
 
+function returnAlexaSpeech($speech, $contextName, $cards, $waitForResponse, $suggestions) {
+	write_log("Function fired!");
+	ob_start();
+	$endSession = ! $waitForResponse;
+	$response = [
+		"version"=>"1.0",
+		"response"=>[
+			"outputSpeech"=>[
+				"type"=>"PlainText",
+				"text"=>$speech
+			]
+		],
+		"shoudEndSession"=>$endSession
+	];
+	if ($cards) $response['response']['card'] = [
+		"type"=>"Standard",
+		"title"=>$cards[0]['title'],
+		"text"=>$cards[0]['summary'] ?? $cards[0]['formattedText'] ?? $cards[0]['tagline'] ?? $cards[0]['description'] ?? $cards[0]['subtitle'] ?? '',
+		"image"=>[
+			"smallImageUrl"=>$cards[0]['image']['url'],
+			"largeImageUrl"=>$cards[0]['image']['url']
+		]
+	];
+	write_log("Response: ".json_encode($response));
+	ob_end_clean();
+	echo json_encode($response);
+	write_log("JSON out is ".json_encode($response));
+}
+
+function translateRequest($request) {
+	write_log("Hey, we've made it.");
+	write_log(json_encode($request));
+	$params = [];
+	foreach ($request['intent']['slots'] as $intent) {
+		write_log("INTENT: ".json_encode($intent));
+		if (isset($intent['value'])) {
+			$name = $intent['name'];
+			switch ($name) {
+				case 'trigger':
+					$name = 'action';
+					break;
+				case 'actor':
+				case 'song':
+				case 'movie':
+				case 'show':
+				case 'episode':
+				case 'musician':
+				case 'album':
+					$name = 'command';
+					break;
+				case 'control':
+					$name = 'Controls';
+					break;
+			}
+			$params[$name] = $intent['value'];
+		}
+	}
+	$result['result']['parameters'] = $params;
+	$result['result']['resolvedQuery'] = $params['action']." " ?? ''. $params['command'] ?? '';
+	write_log("I've gathered some data: ".json_encode($params));
+	return $result;
+}
 
 // Register our server with the mothership and link google account
 function registerServer() {

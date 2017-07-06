@@ -385,10 +385,6 @@ html {
 	display: inline-block;
 }
 
-#linkAccount {
-	background-color: #4285f4;
-}
-
 #actionLabel {
 	position: absolute;
 	left: 50px;
