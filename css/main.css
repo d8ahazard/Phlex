@@ -1,3 +1,11 @@
+.nav-item > .nav-link {
+	color: grey !important;
+}
+
+.nav-item.active > .nav-link {
+	color: white !important;
+}
+
 html, body {
 	height:100%;
 	width:100%;
@@ -41,6 +49,9 @@ html {
 	
 }
 
+#logBody {
+	min-height:500px;
+}
 
 .loginBox {
 	display:none;
@@ -146,6 +157,18 @@ html {
 	width:100%;
 	height:100%;
 }
+
+.close {
+	right: 20px;
+	top: 7px;
+	position: relative;
+}
+
+
+.nav-link.active {
+	color:white !important;
+}
+
 @media only screen and (max-width: 1024px) {
 	.ccTextDiv {
 		display: none;
@@ -233,6 +256,15 @@ html {
 
 .bootstrap-dialog.type-primary .modal-header {
 	background-color: #306abd !important;
+}
+
+.modal-header {
+	text-align: center;
+}
+
+.userHeader {
+	padding-top: 14px;
+	margin-bottom: 0 !important;
 }
 
 .login-box label {

@@ -1,5 +1,5 @@
 var action = "play";
-var appName, autoUpdate, token, deviceID, resultDuration, lastUpdate, itemJSON, apiToken, ombi, couch, hook, hooks, hookCustom, sonarr, radarr, sick, publicIP, dvr, resolution, weatherClass, city, state, updateAvailable, weatherHtml;
+var appName, autoUpdate, token, deviceID, resultDuration, lastUpdate, logLevel, itemJSON, apiToken, ombi, couch, hook, hooks, hookCustom, sonarr, radarr, sick, publicIP, dvr, resolution, weatherClass, city, state, updateAvailable, weatherHtml;
 var condition = null;
 
 jQuery(document).ready(function($) {
@@ -10,6 +10,7 @@ jQuery(document).ready(function($) {
         loginBox.hide("slide", {direction: "up"}, 1000);
         loginBox.remove();
     }
+    logLevel = "ALL";
     var bgDiv = $('.bg');
     if (bgDiv.css('display') === 'none') {
         bgDiv.fadeIn(2000);
@@ -94,11 +95,13 @@ jQuery(document).ready(function($) {
 					$('#'+id + 'Profile').html(data);
 				})
 			}
-
-
-
 		}
 	});
+
+	$('#logLevel').change(function(){
+        logLevel = $(this).val();
+        console.log("Log level changed to " + logLevel);
+	})
 
 	var checkbox = $(':checkbox'); 
     checkbox.change(function() {
@@ -525,7 +528,8 @@ function resetApiUrl(newUrl) {
 function updateStatus() {
 	apiToken = $('#apiTokenData').attr('data');
 	var footer = $('.nowPlayingFooter');
-	$.get('api.php?pollPlayer&apiToken=' + apiToken, function(data) {
+	var logLimit = $('#logLimit').find(":selected").val();
+	$.get('api.php?pollPlayer&apiToken=' + apiToken + '&logLimit='+ logLimit, function(data) {
 		var dataCommands = data.commands.replace(/\+/g, '%20');
 		if (dataCommands) {
 			try {
@@ -538,7 +542,12 @@ function updateStatus() {
 		try {
 			$('#clientWrapper').html(data.players);	
 			$('#serverList').html(data.servers);
-			$('#dvrList').html(data.dvrs);			
+			$('#dvrList').html(data.dvrs);
+			$('#updateContainer').html(data.updates);
+			$('#logBody').html(formatLog(JSON.parse(data.logs)));
+			if (data.hasOwnProperty(updateAvailable)) {
+				showMessage("An update is available.","An update is available for Phlex.  Click here to install it now.",'api.php?apiToken=' + apiToken + '&installUpdates=true');
+			}
 			ddText = $('.dd-selected').text();
 			$('.ddLabel').html(ddText);
 			data.playerStatus = JSON.parse(data.playerStatus);
@@ -707,6 +716,56 @@ function updateCommands(data,prepend) {
 	}
 }
 
+function formatLog(logJSON) {
+	var htmlOut = '';
+	$.each(logJSON, function(index,line) {
+        var skip = false;
+    	var alertClass;
+    	switch(line.level) {
+			case "DEBUG":
+				alertClass="alert alert-success";
+                if (logLevel === "INFO") skip = true;
+                if (logLevel === "WARN") skip = true;
+                if (logLevel === "ERROR") skip = true;
+				break;
+			case "INFO":
+                alertClass="alert alert-info";
+                if (logLevel === "WARN") skip = true;
+                if (logLevel === "ERROR") skip = true;
+				break;
+            case "WARN":
+                alertClass="alert alert-warning";
+                if (logLevel === "ERROR") skip = true;
+                break;
+            case "ERROR":
+                alertClass="alert alert-danger";
+                break;
+		}
+		if (!skip) {
+    		var logHTML = "";
+    		if (line.hasOwnProperty('JSON')) {
+    			logHTML="<br>";
+    			console.log(line.JSON);
+    			var logJSON = JSON.parse(line.JSON);
+    			logHTML = logHTML + recurseJSON(logJSON);
+
+			}
+            htmlOut = htmlOut + '<div class="' + alertClass + '">' +
+                '<span class="badge badge-default"><b>' + line.time +
+                '</span></b> - ' +
+                '<span class="badge badge-primary">' + line.caller +
+                '</span><br>' + line.message + logHTML +
+                '</div>';
+        }
+    });
+	if (htmlOut == '') htmlOut = '<div class="alert alert-info">' +
+        '<span class="badge badge-default"><b>No records found.</b></span>' +
+
+        '</div>';
+    return htmlOut;
+
+}
+
 
 // Scale the dang diddly-ang slider to the correct width, as it doesn't like to be responsive by itself
 $(window).on('resize', function(){
@@ -742,6 +801,28 @@ setInterval(function() {
   }
 }, 50);
 
+function recurseJSON(value,$level=0) {
+	var varData = '';
+    if (typeof(value) === 'object') {
+        $.each(value, function (key2, value2) {
+            var spacer = '&emsp;';
+            var tabs = spacer.repeat($level);
+            var innerTabs = ($level >=1 ? spacer.repeat($level) : tabs);
+        	console.log("Subkey: "+ key2);
+        	if (typeof(value2) === 'object') {
+            	console.log("More recursion: " + key2);
+            	subData = recurseJSON(value2,$level++);
+            	varData = varData + '<span><b>' + innerTabs + key2 + ':</b><br>' + subData	+ '</span>'
+            } else {
+        		console.log("Final recursion: " + key2);
+                if ((key2 !=='') && (key2 !=='')) {
+                    varData = varData + '<span><b>' + tabs + key2 + ': </b>' + value2 + '</span><br>'
+                }
+            }
+        });
+        return(varData);
+    }
+}
 function buildCards(value,i) {
     var initialCommand = ucFirst(value.initialCommand);
     var timeStamp = ($.inArray('timeStamp',value) ? $.trim(value.timestamp) : '');
@@ -834,20 +915,7 @@ function notify() {
     console.log("Image loaded: ".imgUrl);
 }
 
-function showMessage(title,message,url) {
-    if (Notification.permission !== "granted")
-        Notification.requestPermission();
-    else {
-        var notification = new Notification(title, {
-            icon: './img/avatar.png',
-            body: message,
-        });
 
-        notification.onclick = function () {
-            window.open(url);
-        };
-    }
-}
 
 
 function formatAMPM() {

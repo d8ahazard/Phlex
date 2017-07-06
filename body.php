@@ -39,6 +39,7 @@ function makeBody($newToken = false) {
     $_SESSION['port_radarr'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'radarrPort', '7878');
 
     $_SESSION['auth_couch'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'couchAuth', '');
+	$_SESSION['auth_ombi'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'ombiAuth', '');
     $_SESSION['auth_sonarr'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'sonarrAuth', '');
     $_SESSION['auth_sick'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'sickAuth', '');
     $_SESSION['auth_radarr'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'radarrAuth', '');
@@ -121,464 +122,524 @@ function makeBody($newToken = false) {
     </div>
     <div class="modal fade" id="settingsModal">
         <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <hac class="modal-title">Settings</hac>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                    <br>
+        	<ul class="nav nav-tabs" id="tabContent" role="tablist">
+			    <li class="nav-item active">
+			    	<a href="#generalSettingsTab" class="nav-link" data-toggle="tab" role="tab">Phlex</a>
+		        </li>
+		        <li class="nav-item">
+			    	<a href="#plexSettingsTab" class="nav-link" data-toggle="tab" role="tab">Plex</a>
+		        </li>
+		        <li class="nav-item">
+			    	<a href="#fetcherSettingsTab" class="nav-link" data-toggle="tab" role="tab">Fetchers</a>
+		        </li>
+		        <li class="nav-item">
+			    	<a href="#logTab" class="nav-link" data-toggle="tab" role="tab">Logs</a>
+		        </li>
+		            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+	                	<span aria-hidden="true">&times;</span>
+	                </button>
+				
+			</ul>
+			
+		                
+            <div class="tab-content">
+				<div class="tab-pane active" id="generalSettingsTab" role="tabpanel">
+					<div class="modal-header">
+						<h3>Phlex Settings</h3>
+		            </div>
+		            <div class="modal-content">
+                		<div class="modal-body">
+		                    <div class="appContainer card">
+		                        <div class="card-body">
+		                            <h4 class="cardHeader">General</h4>
+		                            <div class="form-group">
+		                                <div class="form-group">
+		                                    <label for="apiToken" class="appLabel">API Key:
+		                                        <input id="apiToken" class="appInput form-control" type="text" value="' . $_SESSION["apiToken"] . '" readonly="readonly"/>
+		                                    </label>
+		                                </div>
+		                            </div>
+		                            <div class="form-group">
+		                                <div class="form-group">
+		                                    <label for="publicAddress" class="appLabel">Public Address:
+		                                        <input id="publicAddress" class="appInput form-control formpop" type="text" value="' . $_SESSION["publicAddress"] . '" />
+		                                        <span class="bmd-help">Make sure this works from a cellphone with wifi turned off.</span>
+		                                    </label>
+		                                </div>
+		                            </div>
+		                            <div class="form-group">
+		                                <div class="form-group">
+		                                    <label for="returnItems" class="appLabel">Number of On-Deck/Recent Items to Return:
+		                                        <input id="returnItems" class="appInput form-control" type="number" min="1" max="20" value="' . $_SESSION["returnItems"] . '" />
+		                                    </label>
+		                                </div>
+		                            </div>
+		                            <div class="form-group">
+		                                <div class="form-group">
+		                                    <label for="rescanTime" class="appLabel">Device Rescan Interval (Minutes):
+		                                        <input id="rescanTime" class="appInput form-control" type="number" min="5" max="30" value="' . $_SESSION["rescanTime"] . '" />
+		                                        <span class="bmd-help">How frequently to re-cache devices.</span>
+		                                    </label>
+		                                </div>
+		                            </div>
+		                            <div class="togglebutton">
+		                                <label for="cleanLogs" class="appLabel checkLabel">Obscure Sensitive Data in Logs
+		                                    <input id="cleanLogs" type="checkbox" class="appInput appToggle" ' . ($_SESSION["clean_logs"] ? "checked" : "") . '/>
+		                                </label>
+		                            </div>
+		                            <div class="togglebutton">
+		                                <label for="darkTheme" class="appLabel checkLabel">Use Dark Theme
+		                                    <input id="darkTheme" class="appInput" type="checkbox" ' . ($_SESSION["darkTheme"] ? "checked" : "") . '/>
+		                                </label>
+		                            </div>
+		                            <div class="form-group text-center">
+		                                <div class="form-group">
+		                                    <label for="linkAccount">Google Action Account Linking:</label><br>
+		                                    <button id="linkAccount" class="btn btn-raised linkBtn btn-info">Register Server</button>
+		                                </div>
+		                            </div>
+		                            <div class="text-center">
+		                                <label for="sel1">Click to copy IFTTT URL:</label><br>
+		                                <button id="sayURL" class="copyInput btn btn-raised btn-primary btn-70" type="button"><i class="material-icons">message</i></button>
+		                            </div>
+		                        </div>
+		                    </div>'.(checkGit() ?
+		                    '<div class="appContainer card updateDiv">
+		                        <div class="card-body">
+		                            <h4 class="cardHeader">Updates</h4>
+		                            <div class="form-group">
+		                                <div class="togglebutton">
+		                                    <label for="autoUpdate" class="appLabel checkLabel">Automatically Install Updates
+		                                        <input id="autoUpdate" type="checkbox" class="appInput" ' . ($_SESSION["autoUpdate"] ? "checked" : "") . '/>
+		                                    </label>
+		                                </div>
+		                                <div class="form-group">
+		                                    <div id="updateContainer">
+		                                    </div>
+		                                </div>
+		                                <div class="text-center">
+		                                    <div class="form-group btn-group">
+		                                        <button id="checkUpdates" value="checkUpdates" class="btn btn-raised btn-info btn-100" type="button">Refresh</button>
+		                                        <button id="installUpdates" value="installUpdates" class="btn btn-raised btn-warning btn-100" type="button">Install</button>
+		                                    </div>
+		                                </div>
+		                            </div>
+		                        </div>
+		                    </div>' : '').
+		                    '<div class="appContainer card">
+		                        <div class="card-body">
+		                            <h4 class="cardHeader">Webhooks</h4>
+		                            <div class="togglebutton">
+		                                <label for="hookEnabled" class="appLabel checkLabel">Enable
+		                                    <input id="hookEnabled" type="checkbox" class="appInput appToggle" '.($_SESSION["hookEnabled"] ? 'checked' : '').'/>
+		                                </label>
+		                            </div>
+		                            <div class="form-group" id="hookGroup">
+			                            <div class="togglebutton">
+			                                <label for="hookSplit" class="appLabel checkLabel">Separate URLs
+			                                    <input id="hookSplit" type="checkbox" class="appInput appToggle" '.($_SESSION["hookSplit"] ? 'checked' : '').'/>
+			                                </label>
+			                            </div>
+			                            <div class="form-group" id="hookUrlGroup">
+		                                    <label for="hookUrl" class="appLabel">Webhook URL:
+		                                        <input id="hookUrl" class="appInput form-control Webhooks" type="text" value="' . $_SESSION["hookUrl"] . '"/>
+		                                        <span class="bmd-help">?param={{media/command}} will be appended</span>
+		                                    </label>
+		                                </div>
+		                                <div class="togglebutton">
+			                                <label for="hookPlay" class="appLabel checkLabel">Playback
+			                                    <input id="hookPlay" type="checkbox" class="appInput hookToggle" '.($_SESSION["hookPlay"] ? 'checked' : '').'/>
+			                                </label>
+			                            </div>
+			                            <div class="hookLabel">
+			                                <div class="form-group urlGroup" id="hookPlayGroup">
+			                                    <label for="hookPlayUrl" class="appLabel">URL:
+			                                        <input id="hookPlayUrl" class="appInput form-control Webhooks" type="text" value="' . $_SESSION["hookPlayUrl"] . '"/>
+			                                        <span class="bmd-help">?param={{media name}} will be appended</span>
+			                                    </label>
+			                                </div>
+		                                </div>
+		                                <div class="togglebutton">
+			                                <label for="hookPaused" class="appLabel checkLabel">Pause
+			                                    <input id="hookPaused" type="checkbox" class="appInput hookToggle" '.($_SESSION["hookPaused"] ? 'checked' : '').'/>
+			                                </label>
+			                            </div>
+			                            <div class="hookLabel">
+			                                <div class="form-group urlGroup" id="hookPausedGroup">
+			                                    <label for="hookPausedUrl" class="appLabel">URL:
+			                                        <input id="hookPausedUrl" class="appInput form-control Webhooks" type="text" value="' . $_SESSION["hookPausedUrl"] . '"/>
+			                                    </label>
+			                                </div>
+		                                </div>
+		                                <div class="togglebutton">
+			                                <label for="hookStop" class="appLabel checkLabel">Stop
+			                                    <input id="hookStop" type="checkbox" class="appInput hookToggle"/ '.($_SESSION["hookStop"] ? 'checked' : '').'>
+			                                </label>
+			                            </div>
+			                            <div class="hookLabel">
+			                                <div class="form-group urlGroup" id="hookStopGroup">
+			                                    <label for="hookStopUrl" class="appLabel">URL:
+			                                        <input id="hookStopUrl" class="appInput form-control Webhooks" type="text" value="' . $_SESSION["hookStopUrl"] . '"/>
+			                                    </label>
+			                                </div>
+		                                </div>
+		                                <div class="togglebutton">
+			                                <label for="hookFetch" class="appLabel checkLabel">Fetch
+			                                    <input id="hookFetch" type="checkbox" class="appInput hookToggle" '.($_SESSION["hookFetch"] ? 'checked' : '').'/>
+			                                </label>
+			                            </div>
+			                            <div class="hookLabel">
+			                                <div class="form-group urlGroup" id="hookFetchGroup">
+			                                    <label for="hookFetchUrl" class="appLabel">URL:
+			                                        <input id="hookFetchUrl" class="appInput form-control Webhooks" type="text" value="' . $_SESSION["hookFetchUrl"] . '"/>
+			                                    </label>
+			                                </div>
+		                                </div>
+		                                <div class="togglebutton">
+			                                <label for="hookCustom" class="appLabel checkLabel">Custom
+			                                    <input id="hookCustom" type="checkbox" class="appInput hookToggle" '.($_SESSION["hookCustom"] ? 'checked' : '').'/>
+			                                </label>
+			                            </div>
+		                                <div class="form-group" id="hookCustomPhraseGroup">
+			                                <div class="hookLabel">
+			                                    <label for="hookCustomUrl" class="appLabel">URL:
+			                                        <input id="hookCustomUrl" class="appInput form-control Webhooks" type="text" value="' . $_SESSION["hookCustomUrl"] . '"/>
+			                                    </label>
+		                                    </div>
+		                                    <label for="hookCustomPhrase" class="appLabel">Custom Phrase:
+		                                        <input id="hookCustomPhrase" class="appInput form-control Webhooks" type="text" value="' . $_SESSION["hookCustomPhrase"] . '"/>
+		                                    </label>
+		                                    <label for="hookCustomReply" class="appLabel">Custom Phrase:
+		                                        <input id="hookCustomReply" class="appInput form-control Webhooks" type="text" value="' . $_SESSION["hookCustomReply"] . '"/>
+		                                    </label>
+		                                </div>
+		                                <div class="text-center">
+		                                    <div class="form-group btn-group">
+		                                        <button value="Webhooks" class="testInput btn btn-raised btn-info" type="button">Test</button>
+		                                        <button id="resetCouch" value="Webhooks" class="resetInput btn btn-raised btn-danger btn-100" type="button">Reset</button>
+		                                    </div>
+		                                </div>
+		                            </div>
+		                        </div>
+		                    </div>
+		                </div>
+		            </div>
+            	</div>
+            	<div class="tab-pane fade" id="plexSettingsTab" role="tabpanel">
+            		<div class="modal-header">
+            			<h3>Plex Settings</h3>
+					</div>
+                    <div class="modal-body">
                     <div class="userGroup">
-                        <img class="avatar" src="' . $_SESSION["plexAvatar"] . '"/>
-                        <haa>' . ucfirst($_SESSION["username"]) . '</haa><br>
-                        <hab>' . $_SESSION["plexEmail"] . '</hab>
+		                    <img class="avatar" src="' . $_SESSION["plexAvatar"] . '"/>
+		                    <h4 class="userHeader">' . ucfirst($_SESSION["plexUserName"]) . '</h4>
+		                    <hab>' . $_SESSION["plexEmail"] . '</hab>
+		                </div>
+                        <div class="card">
+                        	<div class="card-body">
+                        		<div class="form-group" id="plexBody">
+		                        	<div class="appContainer card">
+				                        <div class="card-body">
+				                            <h4 class="cardHeader">Plex</h4>
+				                            <div class="form-group">
+				                                <div class="form-group">
+				                                    <label class="appLabel" for="serverList">Playback Server:</label>
+				                                    <select class="form-control custom-select" id="serverList">
+				                                    </select>
+				                                    <br><br>
+				                                    <div class="togglebutton">
+				                                        <label for="useCast" class="appLabel checkLabel">Use Cast Devices
+				                                            <input id="useCast" type="checkbox" class="appInput appToggle" \' . ($_SESSION["use_cast"] ? "checked" : "") . \'/>
+				                                        </label>
+				                                    </div>
+				                                </div>
+				                                <div class="text-center">
+				                                    <div class="form-group btn-group">
+				                                        <button value="Plex" class="testInput btn btn-raised btn-info btn-100" type="button">Test</button>
+				                                    </div>
+				                                </div>
+				                            </div>
+				                        </div>
+				                    </div>
+				                    <div class="appContainer card dvrGroup">
+				                        <div class="card-body">
+				                            <h4 class="cardHeader">Plex DVR</h4>
+				                            <div class="form-group">
+				                                <div class="form-group">
+				                                    <label class="appLabel" for="dvrList">DVR Server:</label>
+				                                    <select class="form-control custom-select" id="dvrList">
+				
+				                                    </select>
+				                                </div>
+				                                <div class="form-group">
+				                                    <label class="appLabel" for="resolution">Resolution:</label>
+				                                    <select class="form-control appInput" id="resolution">
+				                                        <option value="0" \'.($_SESSION["resolution"] == 0 ? "selected" : "") .\' >Any </option>
+				                                        <option value="720" \'. ($_SESSION["resolution"] == 720 ? "selected" : "") .\' >High-Definition </option>
+				                                    </select>
+				                                </div>
+				                                <br>
+				                                <div class="togglebutton">
+				                                    <label for="dvr_newairings" class="appLabel checkLabel">Record new Airings Only
+				                                        <input id="dvr_newairings" type="checkbox" class="appInput" \'.($_SESSION["dvr_newairings"] ? "checked" : "") . \' />
+				                                    </label>
+				                                </div>
+				                                <br>
+				                                <div class="togglebutton">
+				                                    <label for="dvr_replacelower" class="appLabel checkLabel">Replace Lower Quality Recordings
+				                                        <input id="dvr_replacelower" type="checkbox" class="appInput" \'. ($_SESSION["dvr_replacelower"] ? " checked " : "") . \' />
+				                                    </label>
+				                                </div>
+				                                <br>
+				                                <div class="togglebutton">
+				                                    <label for="dvr_recordpartials" class="appLabel checkLabel">Record partial episodes
+				                                        <input id="dvr_recordpartials" type="checkbox" class="appInput" \'. ($_SESSION["dvr_recordpartials"] ? "checked" : "") . \' />
+				                                    </label>
+				                                </div>
+				                                <div class="form-group">
+				                                    <label for="dvr_startoffset" class="appLabel">Start Offset (Minutes):
+				                                        <input id="dvr_startoffset" class="appInput form-control" type="number" min="1" max="30" value="\' . $_SESSION["dvr_startoffset"] . \'" />
+				                                    </label>
+				                                </div>
+				                                <div class="form-group">
+				                                    <label for="dvr_endoffset" class="appLabel">End Offset (Minutes):
+				                                        <input id="dvr_endoffset" class="appInput form-control" type="number" min="1" max="30" value="\' . $_SESSION["dvr_endoffset"] . \'" />
+				                                    </label>
+				                                </div>
+				
+				                            </div>
+				                        </div>
+				                    </div>
+								</div>
+							</div>
+						</div>
                     </div>
-
-                </div>
-                <div class="modal-body">
-                    <div class="appContainer card">
-                        <div class="card-body">
-                            <h4 class="cardHeader">General</h4>
-                            <div class="form-group">
-                                <div class="form-group">
-                                    <label for="apiToken" class="appLabel">API Key:
-                                        <input id="apiToken" class="appInput form-control" type="text" value="' . $_SESSION["apiToken"] . '" readonly="readonly"/>
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <div class="form-group">
-                                    <label for="publicAddress" class="appLabel">Public Address:
-                                        <input id="publicAddress" class="appInput form-control formpop" type="text" value="' . $_SESSION["publicAddress"] . '" />
-                                        <span class="bmd-help">Make sure this works from a cellphone with wifi turned off.</span>
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <div class="form-group">
-                                    <label for="returnItems" class="appLabel">Number of On-Deck/Recent Items to Return:
-                                        <input id="returnItems" class="appInput form-control" type="number" min="1" max="20" value="' . $_SESSION["returnItems"] . '" />
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <div class="form-group">
-                                    <label for="rescanTime" class="appLabel">Device Rescan Interval (Minutes):
-                                        <input id="rescanTime" class="appInput form-control" type="number" min="5" max="30" value="' . $_SESSION["rescanTime"] . '" />
-                                        <span class="bmd-help">How frequently to re-cache devices.</span>
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="togglebutton">
-                                <label for="cleanLogs" class="appLabel checkLabel">Obscure Sensitive Data in Logs
-                                    <input id="cleanLogs" type="checkbox" class="appInput appToggle" ' . ($_SESSION["clean_logs"] ? "checked" : "") . '/>
-                                </label>
-                            </div>
-                            <div class="togglebutton">
-                                <label for="darkTheme" class="appLabel checkLabel">Use Dark Theme
-                                    <input id="darkTheme" class="appInput" type="checkbox" ' . ($_SESSION["darkTheme"] ? "checked" : "") . '/>
-                                </label>
-                            </div>
-                            <div class="form-group text-center">
-                                <div class="form-group">
-                                    <label for="linkAccount">Google Action Account Linking:</label><br>
-                                    <button id="linkAccount" class="btn btn-raised linkBtn btn-info">Register Server</button>
-                                </div>
-                            </div>
-                            <div class="text-center">
-                                <label for="sel1">Click to copy IFTTT URL:</label><br>
-                                <button id="sayURL" class="copyInput btn btn-raised btn-primary btn-70" type="button"><i class="material-icons">message</i></button>
-                            </div>
-
-                        </div>
-                    </div>'.(checkGit() ?
-                    '<div class="appContainer card updateDiv">
-                        <div class="card-body">
-                            <h4 class="cardHeader">Updates</h4>
-                            <div class="form-group">
-                                <div class="togglebutton">
-                                    <label for="autoUpdate" class="appLabel checkLabel">Automatically Install Updates
-                                        <input id="autoUpdate" type="checkbox" class="appInput" ' . ($_SESSION["autoUpdate"] ? "checked" : "") . '/>
-                                    </label>
-                                </div>
-                                <div class="form-group">
-                                    <div id="updateContainer">
-                                        '.checkUpdates().'
-                                    </div>
-                                </div>
-                                <div class="text-center">
-                                    <div class="form-group btn-group">
-                                        <button id="checkUpdates" value="checkUpdates" class="btn btn-raised btn-info btn-100" type="button">Refresh</button>
-                                        <button id="installUpdates" value="installUpdates" class="btn btn-raised btn-warning btn-100" type="button">Install</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>' : '').
-                    '<div class="appContainer card">
-                        <div class="card-body">
-                            <h4 class="cardHeader">Plex</h4>
-                            <div class="form-group">
-                                <div class="form-group">
-                                    <label class="appLabel" for="serverList">Playback Server:</label>
-                                    <select class="form-control custom-select" id="serverList">
-                                    </select>
-                                    <br><br>
-                                    <div class="togglebutton">
-                                        <label for="useCast" class="appLabel checkLabel">Use Cast Devices
-                                            <input id="useCast" type="checkbox" class="appInput appToggle" ' . ($_SESSION["use_cast"] ? "checked" : "") . '/>
-                                        </label>
-                                    </div>
-                                </div>
-                                <div class="text-center">
-                                    <div class="form-group btn-group">
-                                        <button value="Plex" class="testInput btn btn-raised btn-info btn-100" type="button">Test</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                </div> 
+            	<div class="tab-pane fade" id="fetcherSettingsTab" role="tabpanel">
+            		<div class="modal-header">
+            			<h3>Fetchers</h3>
+					</div>
+                    <div class="modal-body" id="fetcherBody">
+                        <div class="appContainer card">
+		                        <div class="card-body">
+		                            <h4 class="cardHeader">CouchPotato</h4>
+		                            <div class="togglebutton">
+		                                <label for="couchEnabled" class="appLabel checkLabel">Enable
+		                                    <input id="couchEnabled" type="checkbox" class="appInput appToggle"/>
+		                                </label>
+		                            </div>
+		                            <div class="form-group" id="couchGroup">
+		                                <div class="form-group">
+		                                    <label for="couchIP" class="appLabel">Couchpotato IP/URL:
+		                                        <input id="couchIP" class="appInput form-control CouchPotato appParam" type="text" value="' . $_SESSION["ip_couch"] . '"/>
+		                                    </label>
+		                                </div>
+		                                <div class="form-group">
+		                                    <label for="couchPort" class="appLabel">Couchpotato Port:
+		                                        <input id="couchPort" class="appInput form-control CouchPotato appParam" type="text" value="' . $_SESSION["port_couch"] . '"/>
+		                                    </label>
+		                                </div>
+		                                <div class="form-group">
+		                                    <label for="couchAuth" class="appLabel">Couchpotato Token:
+		                                        <input id="couchAuth" class="appInput form-control CouchPotato appParam" type="text" value="' . $_SESSION["auth_couch"] . '"/>
+		                                    </label>
+		                                </div>
+		                                <div class="form-group">
+		                                    <label class="appLabel" for="couchProfile">Quality Profile:</label>
+		                                    <select class="form-control profileList" id="couchProfile">
+		                                        '. fetchList("couch") .'
+		                                    </select>
+		                                </div>
+		                                <div class="text-center">
+		                                    <div class="form-group btn-group">
+		                                        <button value="CouchPotato" class="testInput btn btn-raised btn-info" type="button">Test</button>
+		                                        <button id="resetCouch" value="CouchPotato" class="resetInput btn btn-raised btn-danger btn-100" type="button">Reset</button>
+		                                    </div>
+		                                </div>
+		                            </div>
+		                        </div>
+		                    </div>
+		                    <div class="appContainer card ombiGroup">
+		                        <div class="card-body">
+		                            <h4 class="cardHeader">Ombi</h4>
+		                            <div class="togglebutton">
+		                                <label for="ombiEnabled" class="appLabel checkLabel">Enable
+		                                    <input id="ombiEnabled" type="checkbox" class="appInput appToggle"/>
+		                                </label>
+		                            </div>
+		                            <div class="form-group" id="ombiGroup">
+		                                <div class="form-group">
+		                                    <label for="ombiUrl" class="appLabel">Ombi IP/URL:
+		                                        <input id="ombiUrl" class="appInput form-control ombiUrl appParam" type="text"  value="' . $_SESSION["ip_ombi"] . '" />
+		                                    </label>
+		                                </div>
+		                                <div class="form-group">
+		                                    <label for="ombiPort" class="appLabel">Ombi Port:
+		                                        <input id="ombiPort" class="appInput form-control Ombi appParam" type="text" value="' . $_SESSION["port_ombi"] . '"/>
+		                                    </label>
+		                                </div>
+		                                <div class="form-group">
+		                                    <label for="ombiAuth" class="appLabel">Ombi Token:
+		                                        <input id="ombiAuth" class="appInput form-control Ombi appParam" type="text" value="' . $_SESSION["auth_ombi"] . '"/>
+		                                    </label>
+		                                </div>
+		                                <div class="text-center">
+		                                    <div class="form-group btn-group">
+		                                        <button value="Ombi" class="testInput btn btn-raised btn-info btn-100" type="button">Test</button>
+		                                        <button id="resetOmbi" value="Ombi" class="resetInput btn btn-raised btn-danger btn-100" type="button">Reset</button>
+		                                    </div>
+		                                </div>
+		                            </div>
+		                        </div>
+		                    </div>
+		                    <div class="appContainer card">
+		                        <div class="card-body">
+		                            <h4 class="cardHeader">Radarr</h4>
+		                            <div class="togglebutton">
+		                                <label for="radarrEnabled" class="appLabel checkLabel">Enable
+		                                    <input id="radarrEnabled" type="checkbox" class="appInput appToggle"/>
+		                                </label>
+		                            </div>
+		                            <div class="form-group" id="radarrGroup">
+		                                <div class="form-group">
+		                                    <label for="radarrIP" class="appLabel">Radarr IP/URL:
+		                                        <input id="radarrIP" class="appInput form-control Radarr appParam" type="text" value="' . $_SESSION["ip_radarr"] . '"/>
+		                                    </label>
+		                                </div>
+		                                <div class="form-group">
+		                                    <label for="radarrPort" class="appLabel">Radarr Port:
+		                                        <input id="radarrPort" class="appInput form-control Radarr appParam" type="text" value="' . $_SESSION["port_radarr"] . '"/>
+		                                    </label>
+		                                </div>
+		                                <div class="form-group">
+		                                    <label for="radarrAuth" class="appLabel">Radarr Token:
+		                                        <input id="radarrAuth" class="appInput form-control Radarr appParam" type="text" value="' . $_SESSION["auth_radarr"] . '"/>
+		                                    </label>
+		                                </div>
+		                                <div class="form-group">
+		                                    <label class="appLabel" for="radarrProfile">Quality Profile:</label>
+		                                    <select class="form-control profileList" id="radarrProfile">
+		                                        '. fetchList("radarr") .'
+		                                    </select>
+		                                </div>
+		                                <div class="text-center">
+		                                    <div class="form-group btn-group">
+		                                        <button value="Radarr" class="testInput btn btn-raised btn-info btn-100" type="button">Test</button>
+		                                        <button id="resetRadarr" value="Radarr" class="resetInput btn btn-raised btn-danger btn-100" type="button">Reset</button>
+		                                    </div>
+		                                </div>
+		                            </div>
+		                        </div>
+		                    </div>
+		                    <div class="appContainer card">
+		                        <div class="card-body">
+		                            <h4 class="cardHeader">Sickbeard/SickRage</h4>
+		                            <div class="togglebutton">
+		                                <label for="sickEnabled" class="appLabel checkLabel">Enable
+		                                    <input id="sickEnabled" type="checkbox" class="appInput appToggle"/>
+		                                </label>
+		                            </div>
+		                            <div class="form-group" id="sickGroup">
+		                                <div class="form-group">
+		                                    <label for="sickIP" class="appLabel">Sick IP/URL:
+		                                        <input id="sickIP" class="appInput form-control Sick appParam" type="text" value="' . $_SESSION["ip_sick"] . '"/>
+		                                    </label>
+		                                </div>
+		                                <div class="form-group">
+		                                    <label for="sickPort" class="appLabel">Sick Port:
+		                                        <input id="sickPort" class="appInput form-control Sick appParam" type="text" value="' . $_SESSION["port_sick"] . '"/>
+		                                        <span class="bmd-help">8085/8081</span>
+		                                    </label>
+		                                </div>
+		                                <div class="form-group">
+		                                    <label for="sickAuth" class="appLabel">Sick Token:
+		                                        <input id="sickAuth" class="appInput form-control Sick appParam" type="text" value="' . $_SESSION["auth_sick"] . '"/>
+		                                    </label>
+		                                </div>
+		                                <div class="form-group">
+		                                    <label class="appLabel" for="sickProfile">Quality Profile:</label>
+		                                    <select class="form-control appInput profileList" id="sickProfile">
+		                                        '. fetchList("sick") .'
+		                                    </select>
+		                                </div>
+		                                <div class="text-center">
+		                                    <div class="form-group btn-group">
+		                                        <button value="Sick" class="testInput btn btn-raised btn-info btn-100" type="button">Test</button>
+		                                        <button id="resetSick" value="Sick" class="resetInput btn btn-raised btn-danger btn-100" type="button">Reset</button>
+		                                    </div>
+		                                </div>
+		                            </div>
+		                        </div>
+		                    </div>
+		                    <div class="appContainer card">
+		                        <div class="card-body">
+		                            <h4 class="cardHeader">Sonarr</h4>
+		                            <div class="togglebutton">
+		                                <label for="sonarrEnabled" class="appLabel checkLabel">Enable
+		                                    <input id="sonarrEnabled" type="checkbox" class="appInput appToggle"/>
+		                                </label>
+		                            </div>
+		                            <div class="form-group" id="sonarrGroup">
+		                                <div class="form-group">
+		                                    <label for="sonarrIP" class="appLabel">Sonarr IP/URL:
+		                                        <input id="sonarrIP" class="appInput form-control Sonarr appParam" type="text" value="' . $_SESSION["ip_sonarr"] . '"/>
+		                                    </label>
+		                                </div>
+		                                <div class="form-group">
+		                                    <label for="sonarrPort" class="appLabel">Sonarr Port:
+		                                        <input id="sonarrPort" class="appInput form-control Sonarr appParam" type="text" value="' . $_SESSION["port_sonarr"] . '"/>
+		                                    </label>
+		                                </div>
+		                                <div class="form-group">
+		                                    <label for="sonarrAuth" class="appLabel">Sonarr Token:
+		                                        <input id="sonarrAuth" class="appInput form-control Sonarr appParam" type="text" value="' . $_SESSION["auth_sonarr"] . '"/>
+		                                    </label>
+		                                </div>
+		                                <div class="form-group">
+		                                    <label class="appLabel" for="sonarrProfile">Quality Profile:</label>
+		                                    <select class="form-control profileList" id="sonarrProfile">
+		                                        '. fetchList("sonarr") .'
+		                                    </select>
+		                                </div>
+		                                <div class="text-center">
+		                                    <div class="form-group btn-group">
+		                                        <button value="Sonarr" class="testInput btn btn-raised btn-info btn-100" type="button">Test</button>
+		                                        <button id="resetSonarr" value="Sonarr" class="resetInput btn btn-raised btn-danger btn-100" type="button">Reset</button>
+		                                    </div>
+		                                </div>
+		                            </div>
+		                        </div>
+		                    </div>
                     </div>
-                    <div class="appContainer card dvrGroup">
-                        <div class="card-body">
-                            <h4 class="cardHeader">Plex DVR</h4>
-                            <div class="form-group">
-                                <div class="form-group">
-                                    <label class="appLabel" for="dvrList">DVR Server:</label>
-                                    <select class="form-control custom-select" id="dvrList">
-
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label class="appLabel" for="resolution">Resolution:</label>
-                                    <select class="form-control appInput" id="resolution">
-                                        <option value="0" '.($_SESSION["resolution"] == 0 ? "selected" : "") .' >Any </option>
-                                        <option value="720" '. ($_SESSION["resolution"] == 720 ? "selected" : "") .' >High-Definition </option>
-                                    </select>
-                                </div>
-                                <br>
-                                <div class="togglebutton">
-                                    <label for="dvr_newairings" class="appLabel checkLabel">Record new Airings Only
-                                        <input id="dvr_newairings" type="checkbox" class="appInput" '.($_SESSION["dvr_newairings"] ? "checked" : "") . ' />
-                                    </label>
-                                </div>
-                                <br>
-                                <div class="togglebutton">
-                                    <label for="dvr_replacelower" class="appLabel checkLabel">Replace Lower Quality Recordings
-                                        <input id="dvr_replacelower" type="checkbox" class="appInput" '. ($_SESSION["dvr_replacelower"] ? " checked " : "") . ' />
-                                    </label>
-                                </div>
-                                <br>
-                                <div class="togglebutton">
-                                    <label for="dvr_recordpartials" class="appLabel checkLabel">Record partial episodes
-                                        <input id="dvr_recordpartials" type="checkbox" class="appInput" '. ($_SESSION["dvr_recordpartials"] ? "checked" : "") . ' />
-                                    </label>
-                                </div>
-                                <div class="form-group">
-                                    <label for="dvr_startoffset" class="appLabel">Start Offset (Minutes):
-                                        <input id="dvr_startoffset" class="appInput form-control" type="number" min="1" max="30" value="' . $_SESSION["dvr_startoffset"] . '" />
-                                    </label>
-                                </div>
-                                <div class="form-group">
-                                    <label for="dvr_endoffset" class="appLabel">End Offset (Minutes):
-                                        <input id="dvr_endoffset" class="appInput form-control" type="number" min="1" max="30" value="' . $_SESSION["dvr_endoffset"] . '" />
-                                    </label>
-                                </div>
-
-                            </div>
-                        </div>
+                </div> 
+            	<div class="tab-pane fade" id="logTab" role="tabpanel">
+            		<div class="modal-header">
+            			<h3>Log Viewer</h3>
+            			<select id="logLimit">
+	                        <option value="10">10</option>
+	                        <option value="50" selected>50</option>
+	                        <option value="100">100</option>
+	                        <option value="500">500</option>
+	                        <option value="1000">1000</option>
+                    	</select>
+                    	<select id="logLevel">
+	                        <option value="DEBUG" selected>ALL</option>
+	                        <option value="INFO">Info</option>
+	                        <option value="WARN">Warn</option>
+	                        <option value="ERROR">Error</option>
+                    	</select>
+					</div>
+                    <div class="modal-body" id="logBody">
+                        <div class="card">
+                        	<div class="card-body">
+                        		<h4 class="cardHeader" id="updateHeader">Updates</h4>
+                        		<div class="form-group" id="logBody">
+                        		
+								</div>
+							</div>
+						</div>
                     </div>
-                    <div class="appContainer card">
-                        <div class="card-body">
-                            <h4 class="cardHeader">Webhooks</h4>
-                            <div class="togglebutton">
-                                <label for="hookEnabled" class="appLabel checkLabel">Enable
-                                    <input id="hookEnabled" type="checkbox" class="appInput appToggle" '.($_SESSION["hookEnabled"] ? 'checked' : '').'/>
-                                </label>
-                            </div>
-                            <div class="form-group" id="hookGroup">
-	                            <div class="togglebutton">
-	                                <label for="hookSplit" class="appLabel checkLabel">Separate URLs
-	                                    <input id="hookSplit" type="checkbox" class="appInput appToggle" '.($_SESSION["hookSplit"] ? 'checked' : '').'/>
-	                                </label>
-	                            </div>
-	                            <div class="form-group" id="hookUrlGroup">
-                                    <label for="hookUrl" class="appLabel">Webhook URL:
-                                        <input id="hookUrl" class="appInput form-control Webhooks" type="text" value="' . $_SESSION["hookUrl"] . '"/>
-                                        <span class="bmd-help">?param={{media/command}} will be appended</span>
-                                    </label>
-                                </div>
-                                <div class="togglebutton">
-	                                <label for="hookPlay" class="appLabel checkLabel">Playback
-	                                    <input id="hookPlay" type="checkbox" class="appInput hookToggle" '.($_SESSION["hookPlay"] ? 'checked' : '').'/>
-	                                </label>
-	                            </div>
-	                            <div class="hookLabel">
-	                                <div class="form-group urlGroup" id="hookPlayGroup">
-	                                    <label for="hookPlayUrl" class="appLabel">URL:
-	                                        <input id="hookPlayUrl" class="appInput form-control Webhooks" type="text" value="' . $_SESSION["hookPlayUrl"] . '"/>
-	                                        <span class="bmd-help">?param={{media name}} will be appended</span>
-	                                    </label>
-	                                </div>
-                                </div>
-                                <div class="togglebutton">
-	                                <label for="hookPaused" class="appLabel checkLabel">Pause
-	                                    <input id="hookPaused" type="checkbox" class="appInput hookToggle" '.($_SESSION["hookPaused"] ? 'checked' : '').'/>
-	                                </label>
-	                            </div>
-	                            <div class="hookLabel">
-	                                <div class="form-group urlGroup" id="hookPausedGroup">
-	                                    <label for="hookPausedUrl" class="appLabel">URL:
-	                                        <input id="hookPausedUrl" class="appInput form-control Webhooks" type="text" value="' . $_SESSION["hookPausedUrl"] . '"/>
-	                                    </label>
-	                                </div>
-                                </div>
-                                <div class="togglebutton">
-	                                <label for="hookStop" class="appLabel checkLabel">Stop
-	                                    <input id="hookStop" type="checkbox" class="appInput hookToggle"/ '.($_SESSION["hookStop"] ? 'checked' : '').'>
-	                                </label>
-	                            </div>
-	                            <div class="hookLabel">
-	                                <div class="form-group urlGroup" id="hookStopGroup">
-	                                    <label for="hookStopUrl" class="appLabel">URL:
-	                                        <input id="hookStopUrl" class="appInput form-control Webhooks" type="text" value="' . $_SESSION["hookStopUrl"] . '"/>
-	                                    </label>
-	                                </div>
-                                </div>
-                                <div class="togglebutton">
-	                                <label for="hookFetch" class="appLabel checkLabel">Fetch
-	                                    <input id="hookFetch" type="checkbox" class="appInput hookToggle" '.($_SESSION["hookFetch"] ? 'checked' : '').'/>
-	                                </label>
-	                            </div>
-	                            <div class="hookLabel">
-	                                <div class="form-group urlGroup" id="hookFetchGroup">
-	                                    <label for="hookFetchUrl" class="appLabel">URL:
-	                                        <input id="hookFetchUrl" class="appInput form-control Webhooks" type="text" value="' . $_SESSION["hookFetchUrl"] . '"/>
-	                                    </label>
-	                                </div>
-                                </div>
-                                <div class="togglebutton">
-	                                <label for="hookCustom" class="appLabel checkLabel">Custom
-	                                    <input id="hookCustom" type="checkbox" class="appInput hookToggle" '.($_SESSION["hookCustom"] ? 'checked' : '').'/>
-	                                </label>
-	                            </div>
-                                <div class="form-group" id="hookCustomPhraseGroup">
-	                                <div class="hookLabel">
-	                                    <label for="hookCustomUrl" class="appLabel">URL:
-	                                        <input id="hookCustomUrl" class="appInput form-control Webhooks" type="text" value="' . $_SESSION["hookCustomUrl"] . '"/>
-	                                    </label>
-                                    </div>
-                                    <label for="hookCustomPhrase" class="appLabel">Custom Phrase:
-                                        <input id="hookCustomPhrase" class="appInput form-control Webhooks" type="text" value="' . $_SESSION["hookCustomPhrase"] . '"/>
-                                    </label>
-                                    <label for="hookCustomReply" class="appLabel">Custom Phrase:
-                                        <input id="hookCustomReply" class="appInput form-control Webhooks" type="text" value="' . $_SESSION["hookCustomReply"] . '"/>
-                                    </label>
-                                </div>
-                                <div class="text-center">
-                                    <div class="form-group btn-group">
-                                        <button value="Webhooks" class="testInput btn btn-raised btn-info" type="button">Test</button>
-                                        <button id="resetCouch" value="Webhooks" class="resetInput btn btn-raised btn-danger btn-100" type="button">Reset</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="appContainer card">
-                        <div class="card-body">
-                            <h4 class="cardHeader">CouchPotato</h4>
-                            <div class="togglebutton">
-                                <label for="couchEnabled" class="appLabel checkLabel">Enable
-                                    <input id="couchEnabled" type="checkbox" class="appInput appToggle"/>
-                                </label>
-                            </div>
-                            <div class="form-group" id="couchGroup">
-                                <div class="form-group">
-                                    <label for="couchIP" class="appLabel">Couchpotato IP/URL:
-                                        <input id="couchIP" class="appInput form-control CouchPotato appParam" type="text" value="' . $_SESSION["ip_couch"] . '"/>
-                                    </label>
-                                </div>
-                                <div class="form-group">
-                                    <label for="couchPort" class="appLabel">Couchpotato Port:
-                                        <input id="couchPort" class="appInput form-control CouchPotato appParam" type="text" value="' . $_SESSION["port_couch"] . '"/>
-                                    </label>
-                                </div>
-                                <div class="form-group">
-                                    <label for="couchAuth" class="appLabel">Couchpotato Token:
-                                        <input id="couchAuth" class="appInput form-control CouchPotato appParam" type="text" value="' . $_SESSION["auth_couch"] . '"/>
-                                    </label>
-                                </div>
-                                <div class="form-group">
-                                    <label class="appLabel" for="couchProfile">Quality Profile:</label>
-                                    <select class="form-control profileList" id="couchProfile">
-                                        '. fetchList("couch") .'
-                                    </select>
-                                </div>
-                                <div class="text-center">
-                                    <div class="form-group btn-group">
-                                        <button value="CouchPotato" class="testInput btn btn-raised btn-info" type="button">Test</button>
-                                        <button id="resetCouch" value="CouchPotato" class="resetInput btn btn-raised btn-danger btn-100" type="button">Reset</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="appContainer card ombiGroup">
-                        <div class="card-body">
-                            <h4 class="cardHeader">Ombi</h4>
-                            <div class="togglebutton">
-                                <label for="ombiEnabled" class="appLabel checkLabel">Enable
-                                    <input id="ombiEnabled" type="checkbox" class="appInput appToggle"/>
-                                </label>
-                            </div>
-                            <div class="form-group" id="ombiGroup">
-                                <div class="form-group">
-                                    <label for="ombiUrl" class="appLabel">Ombi IP/URL:
-                                        <input id="ombiUrl" class="appInput form-control ombiUrl appParam" type="text"  value="' . $_SESSION["ip_ombi"] . '" />
-                                    </label>
-                                </div>
-                                <div class="form-group">
-                                    <label for="ombiPort" class="appLabel">Ombi Port:
-                                        <input id="ombiPort" class="appInput form-control Ombi appParam" type="text" value="' . $_SESSION["port_ombi"] . '"/>
-                                    </label>
-                                </div>
-                                <div class="form-group">
-                                    <label class="appLabel" for="ombi">Quality Profile:</label>
-                                    <select class="form-control profileList" id="ombi">
-
-                                    </select>
-                                </div>
-                                <div class="text-center">
-                                    <div class="form-group btn-group">
-                                        <button value="Ombi" class="testInput btn btn-raised btn-info btn-100" type="button">Test</button>
-                                        <button id="resetOmbi" value="Ombi" class="resetInput btn btn-raised btn-danger btn-100" type="button">Reset</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="appContainer card">
-                        <div class="card-body">
-                            <h4 class="cardHeader">Radarr</h4>
-                            <div class="togglebutton">
-                                <label for="radarrEnabled" class="appLabel checkLabel">Enable
-                                    <input id="radarrEnabled" type="checkbox" class="appInput appToggle"/>
-                                </label>
-                            </div>
-                            <div class="form-group" id="radarrGroup">
-                                <div class="form-group">
-                                    <label for="radarrIP" class="appLabel">Radarr IP/URL:
-                                        <input id="radarrIP" class="appInput form-control Radarr appParam" type="text" value="' . $_SESSION["ip_radarr"] . '"/>
-                                    </label>
-                                </div>
-                                <div class="form-group">
-                                    <label for="radarrPort" class="appLabel">Radarr Port:
-                                        <input id="radarrPort" class="appInput form-control Radarr appParam" type="text" value="' . $_SESSION["port_radarr"] . '"/>
-                                    </label>
-                                </div>
-                                <div class="form-group">
-                                    <label for="radarrAuth" class="appLabel">Radarr Token:
-                                        <input id="radarrAuth" class="appInput form-control Radarr appParam" type="text" value="' . $_SESSION["auth_radarr"] . '"/>
-                                    </label>
-                                </div>
-                                <div class="form-group">
-                                    <label class="appLabel" for="radarrProfile">Quality Profile:</label>
-                                    <select class="form-control profileList" id="radarrProfile">
-                                        '. fetchList("radarr") .'
-                                    </select>
-                                </div>
-                                <div class="text-center">
-                                    <div class="form-group btn-group">
-                                        <button value="Radarr" class="testInput btn btn-raised btn-info btn-100" type="button">Test</button>
-                                        <button id="resetRadarr" value="Radarr" class="resetInput btn btn-raised btn-danger btn-100" type="button">Reset</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="appContainer card">
-                        <div class="card-body">
-                            <h4 class="cardHeader">Sickbeard/SickRage</h4>
-                            <div class="togglebutton">
-                                <label for="sickEnabled" class="appLabel checkLabel">Enable
-                                    <input id="sickEnabled" type="checkbox" class="appInput appToggle"/>
-                                </label>
-                            </div>
-                            <div class="form-group" id="sickGroup">
-                                <div class="form-group">
-                                    <label for="sickIP" class="appLabel">Sick IP/URL:
-                                        <input id="sickIP" class="appInput form-control Sick appParam" type="text" value="' . $_SESSION["ip_sick"] . '"/>
-                                    </label>
-                                </div>
-                                <div class="form-group">
-                                    <label for="sickPort" class="appLabel">Sick Port:
-                                        <input id="sickPort" class="appInput form-control Sick appParam" type="text" value="' . $_SESSION["port_sick"] . '"/>
-                                        <span class="bmd-help">8085/8081</span>
-                                    </label>
-                                </div>
-                                <div class="form-group">
-                                    <label for="sickAuth" class="appLabel">Sick Token:
-                                        <input id="sickAuth" class="appInput form-control Sick appParam" type="text" value="' . $_SESSION["auth_sick"] . '"/>
-                                    </label>
-                                </div>
-                                <div class="form-group">
-                                    <label class="appLabel" for="sickProfile">Quality Profile:</label>
-                                    <select class="form-control appInput profileList" id="sickProfile">
-                                        '. fetchList("sick") .'
-                                    </select>
-                                </div>
-                                <div class="text-center">
-                                    <div class="form-group btn-group">
-                                        <button value="Sick" class="testInput btn btn-raised btn-info btn-100" type="button">Test</button>
-                                        <button id="resetSick" value="Sick" class="resetInput btn btn-raised btn-danger btn-100" type="button">Reset</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="appContainer card">
-                        <div class="card-body">
-                            <h4 class="cardHeader">Sonarr</h4>
-                            <div class="togglebutton">
-                                <label for="sonarrEnabled" class="appLabel checkLabel">Enable
-                                    <input id="sonarrEnabled" type="checkbox" class="appInput appToggle"/>
-                                </label>
-                            </div>
-                            <div class="form-group" id="sonarrGroup">
-                                <div class="form-group">
-                                    <label for="sonarrIP" class="appLabel">Sonarr IP/URL:
-                                        <input id="sonarrIP" class="appInput form-control Sonarr appParam" type="text" value="' . $_SESSION["ip_sonarr"] . '"/>
-                                    </label>
-                                </div>
-                                <div class="form-group">
-                                    <label for="sonarrPort" class="appLabel">Sonarr Port:
-                                        <input id="sonarrPort" class="appInput form-control Sonarr appParam" type="text" value="' . $_SESSION["port_sonarr"] . '"/>
-                                    </label>
-                                </div>
-                                <div class="form-group">
-                                    <label for="sonarrAuth" class="appLabel">Sonarr Token:
-                                        <input id="sonarrAuth" class="appInput form-control Sonarr appParam" type="text" value="' . $_SESSION["auth_sonarr"] . '"/>
-                                    </label>
-                                </div>
-                                <div class="form-group">
-                                    <label class="appLabel" for="sonarrProfile">Quality Profile:</label>
-                                    <select class="form-control profileList" id="sonarrProfile">
-                                        '. fetchList("sonarr") .'
-                                    </select>
-                                </div>
-                                <div class="text-center">
-                                    <div class="form-group btn-group">
-                                        <button value="Sonarr" class="testInput btn btn-raised btn-info btn-100" type="button">Test</button>
-                                        <button id="resetSonarr" value="Sonarr" class="resetInput btn btn-raised btn-danger btn-100" type="button">Reset</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                </div> 
             </div>
         </div>
     </div>

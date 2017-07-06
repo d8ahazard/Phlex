@@ -117,3 +117,7 @@
 pre {
     color: white !important;
 }
+
+.modal-header {
+    color: #dfdfdf;
+}

@@ -311,7 +311,7 @@ require_once dirname(__FILE__) . '/vendor/autoload.php';
 		$caller = getCaller();
 		$filename = file_build_path(dirname(__FILE__),'logs',"Phlex.log");
 		//$filename = 'Phlex.log';
-		$text = '[ '.date(DATE_RFC2822) . ' ] [ '.$level.' ] [ '.$caller . " ] - " . $text . PHP_EOL;
+		$text = '['.date(DATE_RFC2822) . '] ['.$level.'] ['.$caller . "] - " . $text . PHP_EOL;
 		if (!file_exists($filename)) { touch($filename); chmod($filename, 0666); }
 		if (filesize($filename) > 2*1024*1024) {
 			$filename2 = "$filename.old";
@@ -325,43 +325,37 @@ require_once dirname(__FILE__) . '/vendor/autoload.php';
 		fclose($handle);
 	}
 
-function logUpdate(array $log) {
-	$config = new Config_Lite('config.ini.php');
-	$filename = file_build_path(dirname(__FILE__),'logs',"Phlex_update.log");
-	$data['installed'] = date(DATE_RFC2822);
-	$data['commits'] = $log;
-	$text = json_encode($data);
-	$config->set("general","lastUpdate",$data['installed']);
-	saveConfig($config);
-	unset($_SESSION['updateAvailable']);
-	if (!file_exists($filename)) { touch($filename); chmod($filename, 0666); }
-	if (filesize($filename) > 2*1024*1024) {
-		$filename2 = "$filename.old";
-		if (file_exists($filename2)) unlink($filename2);
-		rename($filename, $filename2);
-		touch($filename); chmod($filename,0666);
-	}
-	if (!is_writable($filename)) die;
-	if (!$handle = fopen($filename, 'a+')) die;
-	if (fwrite($handle, $text) === FALSE) die;
-	fclose($handle);
-}
-
-function readUpdate() {
-	write_log("Function fired.");
-    $log = false;
-	$filename = file_build_path(dirname(__FILE__),'logs',"Phlex_update.log");
-	if (file_exists($filename)) {
-		$lines = file($filename, FILE_IGNORE_NEW_LINES);
-		$commits = [];
-		foreach ($lines as $line) {
-			array_push($commits,json_decode($line,true));
+	function logUpdate(array $log) {
+		$config = new Config_Lite('config.ini.php');
+		$filename = file_build_path(dirname(__FILE__),'logs',"PhlexUpdate.log");
+		$data['installed'] = date(DATE_RFC2822);
+		$data['commits'] = $log;
+		$config->set("general","lastUpdate",$data['installed']);
+		saveConfig($config);
+		unset($_SESSION['updateAvailable']);
+		if (!file_exists($filename)) { touch($filename); chmod($filename, 0666); }
+		if (filesize($filename) > 2*1024*1024) {
+			$filename2 = "$filename.old";
+			if (file_exists($filename2)) unlink($filename2);
+			rename($filename, $filename2);
+			touch($filename); chmod($filename,0666);
 		}
-		$log = array_reverse($commits);
+		if (!is_writable($filename)) die;
+		$json=json_decode(file_get_contents($filename),true) ?? [];
+		array_unshift($json,$log);
+		file_put_contents($filename,json_encode($json));
 	}
-	write_log("LOG: ".json_encode($log));
-	return $log;
-}
+
+	function readUpdate() {
+		write_log("Function fired.");
+	    $log = false;
+		$filename = file_build_path(dirname(__FILE__),'logs',"PhlexUpdate.log");
+		if (file_exists($filename)) {
+			$log = json_decode(file_get_contents($filename),true) ?? [];
+		}
+		write_log("LOG: ".json_encode($log));
+		return $log;
+	}
 
 	function clientHeaders() {
         return array(
@@ -431,8 +425,7 @@ function clientString() {
 	}
 	
 	function protectURL($string) {
-    	write_log("CleanLogs: ".(($_SESSION['cleanLogs'] == "true") ? 'ON' : 'OFF'));
-        if ($_SESSION['cleanLogs'] == "true") {
+    	if ($_SESSION['cleanLogs'] == "true") {
             $keys = parse_url($string);
             $cleaned = str_repeat("X", strlen($keys['host']));
             $string = str_replace($keys['host'], $cleaned, $string);
@@ -624,13 +617,16 @@ function setDefaults() {
 }
 
 function checkFiles() {
+	$messages = [];
     $logDir = file_build_path(dirname(__FILE__),"logs");
     if(!is_dir($logDir) && !mkdir($logDir, 0777, true)) {
         die("Cannot create logs folder");
     }
     $logPath = file_build_path($logDir,"Phlex.log");
     $errorLogPath = file_build_path($logDir,"Phlex_error.log");
-	$updateLogPath = file_build_path($logDir,"Phlex_update.log");
+	$updateLogPath = file_build_path($logDir,"PhlexUpdate.log");
+	$oldLogPath = file_build_path($logDir,"Phlex_update.log");
+	if (file_exists($oldLogPath)) unlink($oldLogPath);
     $files = [$logPath,$errorLogPath,$updateLogPath,'config.ini.php','commands.php'];
     foreach ($files as $file) {
         if (!file_exists($file)) {
@@ -639,36 +635,39 @@ function checkFiles() {
         }
         if ((file_exists($file) && (!is_writable(dirname($file)) || !is_writable($file))) || !is_writable(dirname($file))) { // If file exists, check both file and directory writeable, else check that the directory is writeable.
             $message = 'Either the file '. $file .' and/or it\'s parent directory is not writable by the PHP process. Check the permissions & ownership and try again.';
+            $url = '';
             if (PHP_SHLIB_SUFFIX === "so") { //Check for POSIX systems.
                 $message .= "  Current permission mode of ". $file. " is " .decoct(fileperms($file) & 0777);
                 $message .= "  Current owner of " . $file . " is ". posix_getpwuid(fileowner($file))['name'];
                 $message .= "  Refer to the README on instructions how to change permissions on the aforementioned files.";
+                $url = 'http://www.computernetworkingnotes.com/ubuntu-12-04-tips-and-tricks/how-to-fix-permission-of-htdocs-in-ubuntu.html';
             } else if (PHP_SHLIB_SUFFIX === "dll") {
                 $message .= "  Detected Windows system, refer to guides on how to set appropriate permissions."; //Can't get fileowner in a trivial manner.
+	            $url = 'https://stackoverflow.com/questions/32017161/xampp-on-windows-8-1-cant-edit-files-in-htdocs';
             }
-            $scriptBlock = "<script type='text/javascript'>showMessage('File Error!','" . $message . ",'');</script>";
-            echo $scriptBlock;
-	        write_log($message,"ERROR");
-            return $message;
+            write_log($message,"ERROR");
+            $error = ['title'=>'File error.','message'=>$message,'url'=>$url];
+            array_push($messages,$error);
         }
     }
-    $extensions = ['sockets','curl'];
+    $cert = file_build_path(dirname(__FILE__),'cacert.pem');
+    $extensions = ['sockets','curl','xml'];
     foreach ($extensions as $extension) {
         if (! extension_loaded($extension)) {
             $message = "The ". $extension . " PHP extension, which is required for Phlex to work correctly, is not loaded." .
-                "Please enable it in php.ini, restart your webserver, and then reload this page to continue.";
+                " Please enable it in php.ini, restart your webserver, and then reload this page to continue.";
 	        write_log($message,"ERROR");
-            return $message;
+	        $url = "http://php.net/manual/en/book.$extension.php";
+	        $error = ['title'=>'PHP Extension not loaded.','message'=>$message,'url'=>$url];
+	        array_push($messages,$error);
         }
     }
     try {new Config_Lite('config.ini.php');} catch (Config_Lite_Exception_Runtime $e) {
-        $message = "An exception occurred trying to load config.ini.php.  Please check that the directory and file are writeable by your webserver application and try again: ".$e;
-        //$scriptBlock = "<script language='javascript'>alert(\"" . $message . "\");</script>";
-        //echo $scriptBlock;
-	    write_log($message,"ERROR");
-        return $message;
+        $message = "An exception occurred trying to load config.ini.php.  Please check that the directory and file are writeable by your webserver application and try again.";
+        $error = ['title'=>'Config error.','message'=>$message];
+	    array_push($messages,$error);
     };
-    return false;
+    return $messages;
 }
 
 function clearSession() {
@@ -738,12 +737,12 @@ function checkUpdates($install=false) {
 					if (count($log)) {
 						$_SESSION['updateAvailable'] = count($log);
 						$html = parseLog($log);
-						$html = '<div>Current revision: '.$revision.'<br>Status:'.count($log).' commit(s) behind.<br>Missing Commits:'.$html.'</div>';
+						$html = '<div>Current revision: '.$revision.'<br>Status:'.count($log).' commit(s) behind.<br>Missing Update(s):'.$html.'</div>';
 						if (($install) || ($autoUpdate)) {
 							write_log("Updating from repository - ".($install ? 'Manually triggered.' : 'Automatically triggered.'));
 							$repo->pull('origin');
 							logUpdate($log);
-							$html = '<div>Current revision: '.substr($revision,0,7).'<br>Status: Up-to-date<br>Latest Change:</div>';
+							$html = '<div>Current revision: '.substr($revision,0,7).'<br>Status: Up-to-date<br>Last Update:</div>';
 						}
 					}
 				} else {
@@ -751,7 +750,7 @@ function checkUpdates($install=false) {
 					$logHistory = readUpdate();
 					if (count($logHistory)) {
 						$html = parseLog($logHistory[0]['commits']);
-						$installed = $logHistory['0']['installed'];
+						$installed = $logHistory[0]['installed'];
 					} else {
 						$html = parseLog($repo->readLog("origin/master", 0));
 					}
@@ -759,7 +758,7 @@ function checkUpdates($install=false) {
 								Status: Up-to-date<br>
 								'.($installed ? "Installed: ".$installed : '').'
 							</div><br>
-							<h5 class="cardHeader">Latest Change:</h5>'.$html;
+							<h5 class="cardHeader">Last Update:</h5>'.$html;
 				}
 			} else {
 				write_log("Couldn't initialize git.", "ERROR");
@@ -813,5 +812,57 @@ function getUrl($url) {
 	}
 	curl_close($ch);
 	return $content;
+}
+
+function tail($filename, $lines = 50, $buffer = 4096){
+	if(!is_file($filename)){
+		return false;
+	}
+	$f = fopen($filename, "rb");
+	if(!$f){
+		return false;
+	}
+	fseek($f, -1, SEEK_END);
+	if(fread($f, 1) != "\n") $lines -= 1;
+	$output = '';
+	$chunk = '';
+	while(ftell($f) > 0 && $lines >= 0)
+	{
+		$seek = min(ftell($f), $buffer);
+		fseek($f, -$seek, SEEK_CUR);
+		$output = ($chunk = fread($f, $seek)).$output;
+		fseek($f, -mb_strlen($chunk, '8bit'), SEEK_CUR);
+		$lines -= substr_count($chunk, "\n");
+	}
+
+	while($lines++ < 0)
+	{
+		// Find first newline and remove all text before that
+		$output = substr($output, strpos($output, "\n") + 1);
+	}
+	fclose($f);
+	return $output;
+}
+
+function formatLog($logData) {
+	$lines = array_reverse(explode("\n", $logData));
+	$JSON = false;
+	$records = [];
+	unset($_GET['pollPlayer']);
+	foreach ($lines as $line) {
+		$sections = explode(" - ",$line);
+		preg_match_all("/\[([^\]]*)\]/", $sections[0], $matches);
+		$params = $matches[0];
+		$message = trim($sections[1]);
+		$message = preg_replace('~\{(?:[^{}]|(?R))*\}~', '', $message);
+		if ($message !== trim($sections[1])) $JSON = true;
+		if ($JSON) $JSON = str_replace($message,"",trim($sections[1]));
+		if (count($params)>= 3) {
+			$record = ['time' => substr($params[0],1,-1), 'level' => substr($params[1],1,-1), 'caller' => substr($params[2],1,-1), 'message' => $message];
+			if ($JSON) $record['JSON'] = trim($JSON);
+			array_push($records, $record);
+		}
+	}
+	return json_encode($records);
 }
 

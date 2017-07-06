@@ -30,8 +30,9 @@
         <link href="./css/bootstrap-material-design.min.css" rel="stylesheet">
         <link href="./css/bootstrap-dialog.css" rel="stylesheet">
         <link href="./css/ripples.min.css" rel="stylesheet">
-        <link href="./css/main.css" rel="stylesheet">
         <link href="./css/jquery-ui.min.css" rel="stylesheet">
+        <link href="./css/main.css" rel="stylesheet">
+
 
         <!--[if lt IE 9]>
         <link href="/css/bootstrap-ie8.css" rel="stylesheet">
@@ -73,17 +74,41 @@
             <div class="bg bgLoaded"></div>
         </div>
         <?php
-        $message = checkFiles();
-        if ($message) {
+        $messages = checkFiles();
+        if (count($messages)) {
+            foreach ($messages as $message) {
             $scriptBlock = "<script language='javascript'>
-                showMessage('ERROR','" . $message . "');
-                function showMessage(title,message) {
-                    $('#alertTitle').text(title);
-                    $('#alertBody p').text(message);
-                    $('#alertModal').modal('show');
+                showMessage('".$message['title']."','".$message['message']."','".$message['url']."');
+                function showMessage(title,message,url='') {
+                    if (Notification.permission === 'granted') {
+                        var notification = new Notification(title, {
+                            icon: './img/avatar.png',
+                            body: message,
+                        });
+                
+                        notification.onclick = function () {
+                            window.open(url);
+                        };
+                        
+                    } else {
+                        if (Notification.permission !== 'denied') {
+                            Notification.requestPermission().then(function(result) {
+                                if ((result=== 'denied') || (result === 'default')) {
+                                    $('#alertTitle').text(title);
+                                    $('#alertBody p').text(message);
+                                    $('#alertModal').modal('show');
+                                }
+                            });
+                        } else {
+                            $('#alertTitle').text(title);
+                            $('#alertBody p').text(message);
+                            $('#alertModal').modal('show');
+                        }
+                    }
                 }
                 </script>";
             echo $scriptBlock;
+            }
         }
         session_start();
         setDefaults();
