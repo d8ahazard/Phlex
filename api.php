@@ -1187,7 +1187,7 @@ function parseApiCommand($request) {
 				$i++;
 			}
 
-			$speech .= " If you'd like to watch something, just say the name, otherwise, you can say 'cancel'.";
+			if (! $_SESSION['amazonRequest']) $speech .= " If you'd like to watch something, just say the name, otherwise, you can say 'cancel'.";
 
 			$_SESSION['mediaList'] = $array;
 			$queryOut['card'] = $cards;
@@ -1202,7 +1202,7 @@ function parseApiCommand($request) {
 
 
 		$contextName = 'promptfortitle';
-		returnSpeech($speech,$contextName,$cards,true);
+		returnSpeech($speech,$contextName,$cards,! $_SESSION['amazonRequest']);
 		$queryOut['parsedCommand'] = "Return a list of ".$action.' '.(($action == 'recent') ? $type : 'items').'.';
 		$queryOut['speech'] = $speech;
 		log_command(json_encode($queryOut));
