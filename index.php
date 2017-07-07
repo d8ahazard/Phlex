@@ -67,6 +67,7 @@
                 }
             }
         </script>
+        <script type="text/javascript" src="./js/run_prettify.js"></script>
         <script type="text/javascript" src="./js/jquery-3.1.1.min.js"></script>
         <script type="text/javascript" src="./js/jquery-ui.min.js"></script>
         <script type="text/javascript" src="./js/snackbar.min.js"></script>

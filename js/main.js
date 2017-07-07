@@ -1,5 +1,5 @@
 var action = "play";
-var appName, autoUpdate, token, deviceID, resultDuration, lastUpdate, logLevel, itemJSON, apiToken, ombi, couch, hook, hooks, hookCustom, sonarr, radarr, sick, publicIP, dvr, resolution, weatherClass, city, state, updateAvailable, weatherHtml;
+var appName, autoUpdate, token, deviceID, resultDuration, lastUpdate, logLevel, lastLog, itemJSON, apiToken, ombi, couch, hook, hooks, hookCustom, sonarr, radarr, sick, publicIP, dvr, resolution, weatherClass, city, state, updateAvailable, weatherHtml;
 var condition = null;
 
 jQuery(document).ready(function($) {
@@ -722,57 +722,59 @@ function updateCommands(data,prepend) {
 }
 
 function formatLog(logJSON) {
-	var htmlOut = '';
-	$.each(logJSON, function(index,line) {
-        var skip = false;
-    	var alertClass;
-    	switch(line.level) {
-			case "DEBUG":
-				alertClass="alert alert-success";
-                if (logLevel === "INFO") skip = true;
-                if (logLevel === "WARN") skip = true;
-                if (logLevel === "ERROR") skip = true;
-				break;
-			case "INFO":
-                alertClass="alert alert-info";
-                if (logLevel === "WARN") skip = true;
-                if (logLevel === "ERROR") skip = true;
-				break;
-            case "WARN":
-                alertClass="alert alert-warning";
-                if (logLevel === "ERROR") skip = true;
-                break;
-            case "ERROR":
-                alertClass="alert alert-danger";
-                break;
-		}
-		if (!skip) {
-    		var logHTML = "";
-    		if (line.hasOwnProperty('JSON')) {
-    			logHTML="<br>";
-    			console.log(line.JSON);
-    			try {
-                    var logJSON = JSON.parse(line.JSON);
-                    logHTML = logHTML + recurseJSON(logJSON);
-                } catch(err) {
-    				console.log("ERROR: " + err);
-				}
+	if (lastLog !== logJSON) {
+        var htmlOut = '';
+        $.each(logJSON, function (index, line) {
+            var skip = false;
+            var alertClass;
+            switch (line.level) {
+                case "DEBUG":
+                    alertClass = "alert alert-success";
+                    if (logLevel === "INFO") skip = true;
+                    if (logLevel === "WARN") skip = true;
+                    if (logLevel === "ERROR") skip = true;
+                    break;
+                case "INFO":
+                    alertClass = "alert alert-info";
+                    if (logLevel === "WARN") skip = true;
+                    if (logLevel === "ERROR") skip = true;
+                    break;
+                case "WARN":
+                    alertClass = "alert alert-warning";
+                    if (logLevel === "ERROR") skip = true;
+                    break;
+                case "ERROR":
+                    alertClass = "alert alert-danger";
+                    break;
+            }
+            if (!skip) {
+                var logHTML = "";
+                if (line.hasOwnProperty('JSON')) {
+                    logHTML = "<br>";
+                    console.log(line.JSON);
+                    try {
+                        var logJSON = JSON.parse(line.JSON);
+                        logHTML = logHTML + recurseJSON(logJSON);
+                    } catch (err) {
+                        console.log("ERROR: " + err);
+                    }
 
-			}
-            htmlOut = htmlOut + '<div class="' + alertClass + '">' +
-                '<span class="badge badge-default"><b>' + line.time +
-                '</span></b> - ' +
-                '<span class="badge badge-primary">' + line.caller +
-                '</span><br>' + line.message + logHTML +
-                '</div>';
-        }
-    });
-	if (htmlOut == '') htmlOut = '<div class="alert alert-info">' +
-        '<span class="badge badge-default"><b>No records found.</b></span>' +
+                }
+                htmlOut = htmlOut + '<div class="' + alertClass + '">' +
+                    '<span class="badge badge-default"><b>' + line.time +
+                    '</span></b> - ' +
+                    '<span class="badge badge-primary">' + line.caller +
+                    '</span><br>' + line.message + logHTML +
+                    '</div>';
+            }
+        });
+        if (htmlOut == '') htmlOut = '<div class="alert alert-info">' +
+            '<span class="badge badge-default"><b>No records found.</b></span>' +
 
-        '</div>';
-    return htmlOut;
-
+            '</div>';
+        lastLog = logJSON;
+        return htmlOut;
+    }
 }
 
 
@@ -810,27 +812,11 @@ setInterval(function() {
   }
 }, 50);
 
-function recurseJSON(value,$level=0) {
-	var varData = '';
-    if (typeof(value) === 'object') {
-        $.each(value, function (key2, value2) {
-            var spacer = '&emsp;';
-            var tabs = spacer.repeat($level);
-            var innerTabs = ($level >=1 ? spacer.repeat($level) : tabs);
-        	console.log("Subkey: "+ key2);
-        	if (typeof(value2) === 'object') {
-            	console.log("More recursion: " + key2);
-            	subData = recurseJSON(value2,$level++);
-            	varData = varData + '<span><b>' + innerTabs + key2 + ':</b><br>' + subData	+ '</span>'
-            } else {
-        		console.log("Final recursion: " + key2);
-                if ((key2 !=='') && (key2 !=='')) {
-                    varData = varData + '<span><b>' + tabs + key2 + ': </b>' + value2 + '</span><br>'
-                }
-            }
-        });
-        return(varData);
-    }
+function recurseJSON(json) {
+
+        return '<pre class="prettyprint">' + JSON.stringify(json, undefined, 2) + '</pre>';
+
+
 }
 function buildCards(value,i) {
     var initialCommand = ucFirst(value.initialCommand);

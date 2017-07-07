@@ -427,6 +427,11 @@ html {
 	
 }
 
+pre.prettyprint {
+	border: 0 !important;
+	color: #fff;
+}
+
 .modal-header, .modal-body {
 	background-color: #fff;
 }
