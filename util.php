@@ -601,8 +601,9 @@ function checkSetDeviceID() {
 }
 
 function fetchDirectory($id=1) {
-    if ($id=1) return base64_decode("Y2QyMjlmNTU5NWZjYWEyNzI3MGI0NDU4OTIyOGE0OTI=");
-	if ($id=2) return base64_decode("MTlEOUExODFEQTcyMkM4Nw==");
+    if ($id==1) return base64_decode("Y2QyMjlmNTU5NWZjYWEyNzI3MGI0NDU4OTIyOGE0OTI=");
+	if ($id==2) return base64_decode("MTlEOUExODFEQTcyMkM4Nw==");
+	if ($id==3) return base64_decode("NjU2NTRmODIwZDQ2NDdhYjljZjdlZGRkZGJiYTZlMDI=");
 	return false;
 }
 

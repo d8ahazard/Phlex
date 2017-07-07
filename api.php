@@ -229,7 +229,6 @@ function initialize() {
 		write_log("Request array: ".json_encode($request));
 		if ($request['type'] === 'Amazon') {
 			$_SESSION['amazonRequest'] = true;
-			write_log("Fuckity fuck");
 			$request = translateRequest($request);
 		}
 		parseApiCommand($request);
@@ -238,18 +237,8 @@ function initialize() {
 
 	if ((isset($_GET['say'])) && (isset($_GET['command']))) {
 		write_log("Incoming API request detected.","INFO");
-		$apiaikey = '65654f820d4647ab9cf7eddddbba6e02';
-		$_SESSION['counter2'] = (isset($_SESSION['counter2']) ? $_SESSION['counter2']++ : 0);
 		try {
-			$url = 'https://api.api.ai/v1/query?v=20150910&query=' . urlencode($_GET['command']) . '&lang=en&sessionId=' . $_SESSION['plexServerToken'] . $_SESSION['counter2'];
-			$response = curlGet($url, ['Authorization: Bearer ' . $apiaikey], 3);
-			if ($response == null) {
-				write_log("Null response received from API.ai, re-submitting.","WARN");
-				$response = curlGet($url, ['Authorization: Bearer ' . $apiaikey], 10);
-			}
-			$request = json_decode($response, true);
-			$request = array_filter_recursive($request);
-			$request['originalRequest']['data']['inputs'][0]['raw_inputs'][0]['query'] = $request['result']['resolvedQuery'];
+		$request = queryApiAi($_GET['command']);
 			parseApiCommand($request);
 			die();
 		} catch (\Exception $error) {
@@ -4215,7 +4204,25 @@ function returnSpeech($speech, $contextName, $cards=false, $waitForResponse=fals
 // #######################################################################
 // Push API.ai bot to other's account.  This can go after Google approval
 
-
+function queryApiAi($command) {
+	$_SESSION['counter2'] = (isset($_SESSION['counter2']) ? $_SESSION['counter2']++ : 0);
+	$d = fetchDirectory(3);
+	try {
+		$url = 'https://api.api.ai/v1/query?v=20150910&query=' . urlencode($command) . '&lang=en&sessionId=' . $_SESSION['plexServerToken'] . $_SESSION['counter2'];
+		$response = curlGet($url, ['Authorization: Bearer ' . $d], 3);
+		if ($response == null) {
+			write_log("Null response received from API.ai, re-submitting.", "WARN");
+			$response = curlGet($url, ['Authorization: Bearer ' . $d], 10);
+		}
+		$request = json_decode($response, true);
+		$request = array_filter_recursive($request);
+		$request['originalRequest']['data']['inputs'][0]['raw_inputs'][0]['query'] = $request['result']['resolvedQuery'];
+		return $request;
+	} catch (Exception $e) {
+		write_log("An exception has occurred: ".$e,"ERROR");
+		return false;
+	}
+}
 
 function returnAssistantSpeech($speech, $contextName, $cards, $waitForResponse, $suggestions) {
 	if (! $cards) write_log("Card array: ".json_encode($cards));
@@ -4304,34 +4311,43 @@ function returnAlexaSpeech($speech, $contextName, $cards, $waitForResponse, $sug
 function translateRequest($request) {
 	write_log("Hey, we've made it.");
 	write_log(json_encode($request));
-	$params = [];
-	foreach ($request['intent']['slots'] as $intent) {
-		write_log("INTENT: ".json_encode($intent));
-		if (isset($intent['value'])) {
-			$name = $intent['name'];
-			switch ($name) {
-				case 'trigger':
-					$name = 'action';
-					break;
-				case 'actor':
-				case 'song':
-				case 'movie':
-				case 'show':
-				case 'episode':
-				case 'musician':
-				case 'album':
-					$name = 'command';
-					break;
-				case 'control':
-					$name = 'Controls';
-					break;
-			}
-			$params[$name] = $intent['value'];
+	if ($request['locale'] === 'en-GB') {
+		write_log("Fancy a cuppa tea, gov?");
+		$command = $request['intent']['slots']['trigger']['value'] ?? $request['intent']['slots']['control']['value'] ?? 'false';
+		if ($command) {
+			write_log("Found a command to parse: ".$command);
+			$result = queryApiAi($command);
 		}
+	} else {
+		$params = [];
+		foreach ($request['intent']['slots'] as $intent) {
+			write_log("INTENT: " . json_encode($intent));
+			if (isset($intent['value'])) {
+				$name = $intent['name'];
+				switch ($name) {
+					case 'trigger':
+						$name = 'action';
+						break;
+					case 'actor':
+					case 'song':
+					case 'movie':
+					case 'show':
+					case 'episode':
+					case 'musician':
+					case 'album':
+						$name = 'command';
+						break;
+					case 'control':
+						$name = 'Controls';
+						break;
+				}
+				$params[$name] = $intent['value'];
+			}
+		}
+		$result['result']['parameters'] = $params;
+		$result['result']['resolvedQuery'] = $params['action'] . " " ?? '' . $params['command'] ?? '';
+		write_log("I've gathered some data: " . json_encode($params));
 	}
-	$result['result']['parameters'] = $params;
-	$result['result']['resolvedQuery'] = $params['action']." " ?? ''. $params['command'] ?? '';
-	write_log("I've gathered some data: ".json_encode($params));
 	return $result;
 }
 
