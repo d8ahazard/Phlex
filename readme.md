@@ -4,7 +4,7 @@
 
 **What is Phlex?**  Phlex stands for **P**ersonal **H**ome **L**anguage **EX**tension. I mean, I guess. I literally just made that up. Also, it sounds cool.
 
-Aside from being a made-up name that sounds cool, The purpose of Phlex is to provide a natural language interface for Home Theater applications - effectively bridging the current gap between commercial AI Solutions like Google Home and personal web applications like Plex, Couchpotato, and Sonarr.
+Aside from being a made-up name that sounds cool, The purpose of Phlex is to provide a natural language interface for Home Theater applications - effectively bridging the current gap between commercial AI Solutions like Google Home/Alexa and personal web applications like Plex, Couchpotato, and Sonarr.
 
 Or, in short - you can watch and download movies and shows just by telling your phone to do so.
 
