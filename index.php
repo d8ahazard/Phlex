@@ -1,6 +1,7 @@
 <?php
     require_once dirname(__FILE__) . '/vendor/autoload.php';
     require_once dirname(__FILE__) . '/util.php';
+    session_start();
 ?>
 
 <!doctype html>
@@ -110,7 +111,6 @@
             echo $scriptBlock;
             }
         }
-        session_start();
         setDefaults();
         $config = new Config_Lite('config.ini.php');
             if (isset($_GET['logout'])) {

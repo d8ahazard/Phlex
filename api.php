@@ -394,8 +394,8 @@ function setSessionVariables() {
 	$userSections = $GLOBALS['config']->getSection('user-_-'.$_SESSION['plexUserName'],false);
 
 	foreach ($userSections as $key=>$value) {
-		if (is_bool($value)) $value = boolval($value);
-		$_SESSION[$key] = $value;
+		//if (is_bool($value)) $value = boolval($value);
+		//$_SESSION[$key] = $value;
 	}
 
 	foreach ($_SESSION as $key=>$value) {
@@ -4308,47 +4308,10 @@ function returnAlexaSpeech($speech, $contextName, $cards, $waitForResponse, $sug
 	write_log("JSON out is ".json_encode($response));
 }
 
+// That's it?!?!  HAHAHAHAHAHA...
 function translateRequest($request) {
-	write_log("Hey, we've made it.");
-	write_log(json_encode($request));
-	if ($request['locale'] === 'en-GB') {
-		write_log("Fancy a cuppa tea, gov?");
-		$command = $request['intent']['slots']['trigger']['value'] ?? $request['intent']['slots']['control']['value'] ?? 'false';
-		if ($command) {
-			write_log("Found a command to parse: ".$command);
-			$result = queryApiAi($command);
-		}
-	} else {
-		$params = [];
-		foreach ($request['intent']['slots'] as $intent) {
-			write_log("INTENT: " . json_encode($intent));
-			if (isset($intent['value'])) {
-				$name = $intent['name'];
-				switch ($name) {
-					case 'trigger':
-						$name = 'action';
-						break;
-					case 'actor':
-					case 'song':
-					case 'movie':
-					case 'show':
-					case 'episode':
-					case 'musician':
-					case 'album':
-						$name = 'command';
-						break;
-					case 'control':
-						$name = 'Controls';
-						break;
-				}
-				$params[$name] = $intent['value'];
-			}
-		}
-		$result['result']['parameters'] = $params;
-		$result['result']['resolvedQuery'] = $params['action'] . " " ?? '' . $params['command'] ?? '';
-		write_log("I've gathered some data: " . json_encode($params));
-	}
-	return $result;
+	$command = $request['intent']['slots']['trigger']['value'] ?? $request['intent']['slots']['control']['value'] ?? false;
+	return $command ? queryApiAi($command) : false;
 }
 
 // Register our server with the mothership and link google account
