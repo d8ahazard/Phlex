@@ -12,6 +12,21 @@ Or, in short - you can watch and download movies and shows just by telling your 
 " target="_blank"><img src="http://img.youtube.com/vi/FZBlNwBocAc/0.jpg"
 alt="Phlex Demo #2" width="480" height="360" border="10" /></a>
 
+<a href="http://imgur.com/kzIOZ8s"><img src="http://i.imgur.com/kzIOZ8s.png" title="source: imgur.com" /></a>
+
+<a href="http://imgur.com/Ehdead2"><img src="http://i.imgur.com/Ehdead2.png" title="source: imgur.com" /></a>
+
+<a href="http://imgur.com/rqottwZ"><img src="http://i.imgur.com/rqottwZ.png" title="source: imgur.com" /></a>
+
+<a href="http://imgur.com/zKUb4wy"><img src="http://i.imgur.com/zKUb4wy.png" title="source: imgur.com" /></a>
+
+<a href="http://imgur.com/t0PtEoA"><img src="http://i.imgur.com/t0PtEoA.png" title="source: imgur.com" /></a>
+
+<a href="http://imgur.com/let2swA"><img src="http://i.imgur.com/let2swA.png" title="source: imgur.com" /></a>
+
+<a href="http://imgur.com/O9sDzUx"><img src="http://imgur.com/O9sDzUx.png"></a>
+
+
 ## Installation
 
 **NOTE: YOUR config.ini.php file is IMPORTANT. DO NOT DELETE OR REMOVE THIS FILE ONCE YOU'VE GOT PHLEX RUNNING. IF UPDATING, KEEP A COPY OF THIS FILE AND REPLACE IT. REMOVING THIS FILE WILL ABSOLUTELY BREAK ACCOUNT LINKING FOR GOOGLE ASSISTANT.**
