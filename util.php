@@ -720,7 +720,7 @@ function getContent($file,$url,$hours = 24,$fn = '',$fn_args = '') {
 }
 
 function checkUpdates($install=false) {
-	write_log("Function fired.");
+	write_log("Function fired.".($install ? " Install requested." : ""));
     $installed = $result = false;
     $html = '';
 	$autoUpdate = $_SESSION['autoUpdate'];
@@ -730,8 +730,16 @@ function checkUpdates($install=false) {
 			$repo = new GitRepository(dirname(__FILE__));
 			if ($repo) {
 				$repo->fetch('origin');
+				$local = $repo->hasLocalChanges();
 				$result = $repo->hasRemoteChanges();
 				$revision = $repo->getRev();
+				if (1==2) {
+					$html = '<div class="cardHeader">Current revision: '.substr($revision,0,7).'<br>
+								Status: ERROR: Local file conflicts exist.<br>
+							</div><br>';
+					write_log("LOCAL CHANGES DETECTED.","ERROR");
+					return $html;
+				}
 				if ($result) {
 					write_log("The repo has been changed.");
 					$log = $repo->readLog('origin/master',$revision);
@@ -741,7 +749,8 @@ function checkUpdates($install=false) {
 						$html = '<div>Current revision: '.$revision.'<br>Status:'.count($log).' commit(s) behind.<br>Missing Update(s):'.$html.'</div>';
 						if (($install) || ($autoUpdate)) {
 							write_log("Updating from repository - ".($install ? 'Manually triggered.' : 'Automatically triggered.'));
-							$repo->pull('origin');
+							$result = $repo->pull('origin');
+							write_log("Pull result: ".$result);
 							logUpdate($log);
 							$html = '<div>Current revision: '.substr($revision,0,7).'<br>Status: Up-to-date<br>Last Update:</div>';
 						}

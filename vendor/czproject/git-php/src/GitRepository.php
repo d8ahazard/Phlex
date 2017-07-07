@@ -464,9 +464,10 @@
 				$params = array();
 			}
 
-			return $this->begin()
-				->run("git pull $remote", $params)
-				->end();
+			$this->begin();
+			$result = $this->run("git pull $remote", $params);
+			$this->end();
+			return $result;
 		}
 
 
@@ -504,9 +505,10 @@
 				$params = array();
 			}
 
-			return $this->begin()
-				->run("git fetch $remote", $params)
-				->end();
+				$this->begin();
+				$result = $this->run("git fetch $remote", $params);
+				$this->end();
+				return $result;
 		}
 
 
@@ -655,13 +657,13 @@
 			$args = func_get_args();
 			$cmd = self::processCommand($args);
 			exec($cmd, $output, $ret);
-
+			$result = implode (" ",$output);
 			if($ret !== 0)
 			{
-				throw new GitException("Command '$cmd' failed (exit-code $ret).", $ret);
+				write_log("Command '$cmd' failed (exit-code $ret).  Result: $result","ERROR");
 			}
 
-			return $this;
+			return $result;
 		}
 
 

@@ -427,6 +427,9 @@ html {
 	
 }
 
+.modal-header {
+	background-color: #fff;
+}
 
 
 .clicked, .dd-selected {
