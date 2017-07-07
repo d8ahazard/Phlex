@@ -876,6 +876,7 @@ function parsePlayCommand($command,$year=false,$artist=false,$type=false) {
 
 // Parse and handle API.ai commands
 function parseApiCommand($request) {
+	$_SESSION['lastRequest'] = json_encode($request);
 	$greeting = $mediaResult = $rechecked = $screen = $year = false;
 	$card = $suggestions = false;
 	write_log("Full API.AI request: ".json_encode($request),"INFO");
@@ -4302,6 +4303,7 @@ function returnAlexaSpeech($speech, $contextName, $cards, $waitForResponse, $sug
 			"largeImageUrl"=>$cards[0]['image']['url']
 		]
 	];
+	$response['originalRequest'] = $_SESSION['lastRequest'];
 	write_log("Response: ".json_encode($response));
 	ob_end_clean();
 	echo json_encode($response);

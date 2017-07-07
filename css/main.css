@@ -427,7 +427,7 @@ html {
 	
 }
 
-.modal-header {
+.modal-header, .modal-body {
 	background-color: #fff;
 }
 

@@ -751,8 +751,12 @@ function formatLog(logJSON) {
     		if (line.hasOwnProperty('JSON')) {
     			logHTML="<br>";
     			console.log(line.JSON);
-    			var logJSON = JSON.parse(line.JSON);
-    			logHTML = logHTML + recurseJSON(logJSON);
+    			try {
+                    var logJSON = JSON.parse(line.JSON);
+                    logHTML = logHTML + recurseJSON(logJSON);
+                } catch(err) {
+    				console.log("ERROR: " + err);
+				}
 
 			}
             htmlOut = htmlOut + '<div class="' + alertClass + '">' +
