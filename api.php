@@ -395,7 +395,7 @@ function setSessionVariables() {
 
 	foreach ($userSections as $key=>$value) {
 		//if (is_bool($value)) $value = boolval($value);
-		//$_SESSION[$key] = $value;
+		$_SESSION[$key] = $value;
 	}
 
 	foreach ($_SESSION as $key=>$value) {
