@@ -425,7 +425,7 @@ function clientString() {
 	}
 	
 	function protectURL($string) {
-    	if ($_SESSION['cleanLogs'] == "true") {
+    	if ($_SESSION['cleanLogs']) {
             $keys = parse_url($string);
             $cleaned = str_repeat("X", strlen($keys['host']));
             $string = str_replace($keys['host'], $cleaned, $string);

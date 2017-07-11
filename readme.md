@@ -161,7 +161,7 @@ Open the Google Home app on your phone, and look for the card prompting you to l
 
 Boom. You can now talk to Phlex by saying things like "Ask Flex TV to play batman begins" or "Ask Flex TV to play the lastest episode of THe Big Bang Theory". I'll be adding a wiki page for voice commands as time allows.
 
-## Multiple Google Home Users
+### Multiple Google Home Users
 
 If you have multiple people in your household, it's possible to allow them to link their account to your Phlex instance, without having them create their own Plex.tv account.
 All you need to do is have them sign into the Phlex UI from a device linked to their Google account. Go into settings, click the "link server" button, and have them select their own Google account.
@@ -170,7 +170,7 @@ Now have them ask to talk to Flex TV through Assistant, and finish linking their
 
 This can be repeated for as many users as you have in your household.
 
-## Google Assistant Examples
+### Google Assistant Examples
 
 When talking with Google Assistant, your speech is parsed using API.ai's natural language processing, meaning Phlex is always getting better! Below are just a few examples of the type of things you can ask Flex TV to do.
 
@@ -215,6 +215,13 @@ When talking with Google Assistant, your speech is parsed using API.ai's natural
     OK Google, Ask Flex TV if I have any new movies.
 
     OK Google, Ask Flex TV What's on deck.
+
+
+## Amazon Alexa
+
+If you're reading this because you suddenly noticed that there is mention of Alexa floating around, you're in luck!
+
+I'm currently looking for beta testers from both the US and UK to help work out bugs with Flex TV as I await certification from Amazon.  
 
 ## Trigger phrases
 

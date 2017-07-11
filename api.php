@@ -228,6 +228,10 @@ function initialize() {
 		$request = array_filter_recursive($request);
 		write_log("Request array: ".json_encode($request));
 		if ($request['type'] === 'Amazon') {
+			if ($request['reason'] == 'ERROR') {
+				write_log("Alexa Error message: ".$request['error']['type'].'::'.$request['error']['message'],"ERROR");
+				die();
+			}
 			$_SESSION['amazonRequest'] = true;
 			$request = translateRequest($request);
 		}
@@ -4294,15 +4298,11 @@ function returnAlexaSpeech($speech, $contextName, $cards, $waitForResponse, $sug
 		],
 		"shoudEndSession"=>$endSession
 	];
-	if ($cards) $response['response']['card'] = [
-		"type"=>"Standard",
-		"title"=>$cards[0]['title'],
-		"text"=>$cards[0]['summary'] ?? $cards[0]['formattedText'] ?? $cards[0]['tagline'] ?? $cards[0]['description'] ?? $cards[0]['subtitle'] ?? '',
-		"image"=>[
-			"smallImageUrl"=>$cards[0]['image']['url'],
-			"largeImageUrl"=>$cards[0]['image']['url']
-		]
-	];
+	if ($cards) {
+		if (preg_match('/https/',$cards[0]['image']['url'])) {
+			$response['response']['card'] = ["type" => "Standard", "title" => $cards[0]['title'], "text" => $cards[0]['summary'] ?? $cards[0]['formattedText'] ?? $cards[0]['tagline'] ?? $cards[0]['description'] ?? $cards[0]['subtitle'] ?? '', "image" => ["smallImageUrl" => $cards[0]['image']['url'], "largeImageUrl" => $cards[0]['image']['url']]];
+		}
+	}
 	$response['originalRequest'] = $_SESSION['lastRequest'];
 	write_log("Response: ".json_encode($response));
 	ob_end_clean();
