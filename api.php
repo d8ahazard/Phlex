@@ -80,10 +80,6 @@ function initialize() {
 		die();
 	}
 
-	if ((isset($_GET['getProfiles'])) && (isset($_GET['service']))) {
-		$service = $_GET['service'];
-	}
-
 	if (isset($_GET['testclient'])) {
 		write_log("API Link Test successful!!","INFO");
 		echo 'success';
@@ -233,7 +229,6 @@ function initialize() {
 				die();
 			}
 			$_SESSION['amazonRequest'] = true;
-			$request = translateRequest($request);
 		}
 		parseApiCommand($request);
 		die();
@@ -2770,7 +2765,6 @@ function queueAudio($media) {
 	foreach($sections as $section) if ($section['type'] == "artist") $uuid = $section['uuid'];
 	$ratingKey = (isset($media['ratingKey']) ? urlencode($media['ratingKey']) : false);
 	$key = (isset($media['key']) ? urlencode($media['key']) : false);
-	$uri = urlencode('library://'.$uuid.'/item/'.$key);
 
 	$type = $media['type'] ?? false;
 	if (($key) && ($type) && ($uuid)) {
@@ -2807,7 +2801,7 @@ function queueAudio($media) {
 		if (($id) && isset($_SESSION['queueID'])) {
 			if ($id == $_SESSION['queueID']) {
 				$url = $_SESSION['plexServerUri'] . '/player/playback/refreshPlayQueue?playQueueID=' . $id . '&X-Plex-Token=' . $_SESSION['plexServerToken'];
-				$result = curlGet($url);
+				curlGet($url);
 			}
 		}
 	}
@@ -4233,7 +4227,7 @@ function returnAssistantSpeech($speech, $contextName, $cards, $waitForResponse, 
 	if (! $cards) write_log("Card array: ".json_encode($cards));
 	header('Content-Type: application/json');
 	ob_start();
-	$cardArray = $items = $richResponse = $sugs = [];
+	$items = $richResponse = $sugs = [];
 	$output["speech"] = $speech;
 	$output["contextOut"][0] = ["name"=>$contextName,"lifespan"=>2,"parameters"=>[]];
 	$output["data"]["google"]["expectUserResponse"] = boolval($waitForResponse);
@@ -4310,11 +4304,7 @@ function returnAlexaSpeech($speech, $contextName, $cards, $waitForResponse, $sug
 	write_log("JSON out is ".json_encode($response));
 }
 
-// That's it?!?!  HAHAHAHAHAHA...
-function translateRequest($request) {
-	$command = $request['intent']['slots']['trigger']['value'] ?? $request['intent']['slots']['control']['value'] ?? false;
-	return $command ? queryApiAi($command) : false;
-}
+
 
 // Register our server with the mothership and link google account
 function registerServer() {
