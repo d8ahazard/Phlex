@@ -757,12 +757,11 @@ function checkUpdates($install=false) {
 					}
 				} else {
 					write_log("No changes detected.");
-					$logHistory = readUpdate();
-					if (count($logHistory)) {
-						$html = parseLog($logHistory[0]['commits']);
-						$installed = $logHistory[0]['installed'];
+					if (! isset($_SESSIONN['logHistory'])) {
+                        $html = parseLog($repo->readLog("origin/master", 0));
+						$_SESSION['logHistory'] = $html;
 					} else {
-						$html = parseLog($repo->readLog("origin/master", 0));
+						$html = $_SESSION['logHistory'];
 					}
 					$html = '<div class="cardHeader">Current revision: '.substr($revision,0,7).'<br>
 								Status: Up-to-date<br>
