@@ -500,24 +500,30 @@ jQuery(document).ready(function($) {
 
 
 function setBackground() {
-    console.log("Setting background image.");
+    console.log("Caching background image.");
     var bgString = '<div class="bg"></div>';
     bgs = $('.bg');
     bgs.after(bgString);
     bgs = $('.bg');
     var urls = "https://unsplash.it/1920/1080?random&v=" + (Math.floor(Math.random()*(1084)));
-    bgs.last().css('background-image','url('+urls+')');
+    $('<img />').attr('src',urls,).attr("onload","setBg(this.src)").addClass("imgHolder").appendTo('body').css('display','none');
+
+}
+
+function setBg(imgUrl) {
+	console.log("Image cached, loading.");
+    bgs.last().css('background-image','url('+imgUrl+')');
     bgs.last().fadeIn(1000);
 
     setTimeout(
         function()
         {
-        	console.log("Removing first background");
+            console.log("Removing first background");
             bgs.first().fadeOut(1000).remove();
+            $('.imgHolder').remove();
 
         }, 1500);
 }
-
 
 
 function resetApiUrl(newUrl) {
@@ -751,7 +757,6 @@ function formatLog(logJSON) {
                 var logHTML = "";
                 if (line.hasOwnProperty('JSON')) {
                     logHTML = "<br>";
-                    console.log(line.JSON);
                     try {
                         var logJSON = JSON.parse(line.JSON);
                         logHTML = logHTML + recurseJSON(logJSON);
