@@ -72,29 +72,29 @@ You will also need the CURL and openSSL extensions enabled, and sockets if you h
 
         php -v
 
-1. **If** PHP is not v7.0, remove PHP and install 7.0
+1a. **If** PHP is not v7.0, remove PHP and install 7.0
 
         sudo apt-get remove php*
 
 #### Install PHP v7.0 and plugins needed
 
-3. Install Apache and PHP7.0 using instructions from site: <https://www.stewright.me/2016/03/turn-raspberry-pi-3-php-7-powered-web-server/>
+2. Install Apache and PHP7.0 using instructions from site: <https://www.stewright.me/2016/03/turn-raspberry-pi-3-php-7-powered-web-server/>
 
-1. Install PHP XML (missing from previous guide)
+3. Install PHP XML and mbstrings (missing from previous guide)
 
-        sudo apt-get install php-xml
+        sudo apt-get install php-xml php7.0-mbstring
 
-1. Change ownership of Phlex folder to www-data
+4. Change ownership of Phlex folder to www-data
 
         sudo chown -R www-data /var/www/html/Phlex/
 
-1. Add writeable folders to `/etc/php/7.0/apache2/php.ini`
+5. Add writeable folders to `/etc/php/7.0/apache2/php.ini`
 
    Add this line to the file, near the guidance notes for open_basedir :
 
         open_basedir = /var/www/html/Phlex/
 
-1. Edit php.ini for Dynamic Extensions.  Add lines:
+6. Edit php.ini for Dynamic Extensions.  Add lines:
 
         extension=curl.so
         extension=openssl.so
