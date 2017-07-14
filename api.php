@@ -221,7 +221,6 @@ function initialize() {
 		$json = file_get_contents('php://input');
 		write_log("JSON: ".$json);
 		$request = json_decode($json, true);
-		$request = array_filter_recursive($request);
 		write_log("Request array: ".json_encode($request));
 		if ($request['type'] === 'Amazon') {
 			if ($request['reason'] == 'ERROR') {
@@ -1282,6 +1281,7 @@ function parseApiCommand($request) {
 
 	// Start handling playback commands now"
 	if (($action == 'play') || ($action == 'playfromlist')) {
+		if (($year) && ($action == 'playfromlist')) $command=$year;
 		if (!($command)) {
 			write_log("This does not have a command.  Checking for a different identifier.","WARN");
 			foreach($request["result"]['parameters'] as $param=>$value) {
@@ -3709,9 +3709,9 @@ function fetchTMDBInfo($title=false,$tmdbId=false) {
 		$result = json_decode(curlGet($url),true);
 		write_log("Result2: ".json_encode($result));
 		if (isset($result['overview'])) {
-			$year = explode("-",$result['release_date'])[0];
+			$year = explode("-",$result['release_date'])[0] ?? $result['first_air_date'];
 			$response = [
-				'title'=>$result['title'],
+				'title'=>$result['title'] ?? $result['name'],
 				'year'=>$year,
 				'summary'=>$result['overview'],
 				'tagline'=>$result['tagline'] ?? $year. " - ".$result['status'],
@@ -4367,6 +4367,7 @@ function checkSignIn() {
 
 function validateCredentials() {
 	$user = false;
+	write_log("Trying to sign in user.");
 	$token = $_GET['apiToken'] ?? $_SERVER['HTTP_APITOKEN'] ?? $_SESSION['apiToken'] ?? false;
 	// Check that we have some form of set credentials
 	if ($token) {

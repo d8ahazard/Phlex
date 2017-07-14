@@ -327,7 +327,7 @@ require_once dirname(__FILE__) . '/vendor/autoload.php';
 
 	function logUpdate(array $log) {
 		$config = new Config_Lite('config.ini.php');
-		$filename = file_build_path(dirname(__FILE__),'logs',"PhlexUpdate.log");
+		$filename = file_build_path(dirname(__FILE__),'logs',"Phlex_update.log");
 		$data['installed'] = date(DATE_RFC2822);
 		$data['commits'] = $log;
 		$config->set("general","lastUpdate",$data['installed']);
@@ -342,14 +342,14 @@ require_once dirname(__FILE__) . '/vendor/autoload.php';
 		}
 		if (!is_writable($filename)) die;
 		$json=json_decode(file_get_contents($filename),true) ?? [];
-		array_unshift($json,$log);
+		array_unshift($json,$data);
 		file_put_contents($filename,json_encode($json));
 	}
 
 	function readUpdate() {
 		write_log("Function fired.");
 	    $log = false;
-		$filename = file_build_path(dirname(__FILE__),'logs',"PhlexUpdate.log");
+		$filename = file_build_path(dirname(__FILE__),'logs',"Phlex_update.log");
 		if (file_exists($filename)) {
 			$log = json_decode(file_get_contents($filename),true) ?? [];
 		}
@@ -603,7 +603,7 @@ function checkSetDeviceID() {
 function fetchDirectory($id=1) {
     if ($id==1) return base64_decode("Y2QyMjlmNTU5NWZjYWEyNzI3MGI0NDU4OTIyOGE0OTI=");
 	if ($id==2) return base64_decode("MTlEOUExODFEQTcyMkM4Nw==");
-	if ($id==3) return base64_decode("NjU2NTRmODIwZDQ2NDdhYjljZjdlZGRkZGJiYTZlMDI=");
+	if ($id==3) return base64_decode("Y2NiODRhNTU3MDljNGYxOWFmMzlmN2RiZjZiNGQ1Mjg=");
 	return false;
 }
 
@@ -625,8 +625,8 @@ function checkFiles() {
     }
     $logPath = file_build_path($logDir,"Phlex.log");
     $errorLogPath = file_build_path($logDir,"Phlex_error.log");
-	$updateLogPath = file_build_path($logDir,"PhlexUpdate.log");
-	$oldLogPath = file_build_path($logDir,"Phlex_update.log");
+	$oldLogPath = file_build_path($logDir,"PhlexUpdate.log");
+	$updateLogPath = file_build_path($logDir,"Phlex_update.log");
 	if (file_exists($oldLogPath)) unlink($oldLogPath);
     $files = [$logPath,$errorLogPath,$updateLogPath,'config.ini.php','commands.php'];
     foreach ($files as $file) {
@@ -685,9 +685,13 @@ function clearSession() {
 			setcookie($name, '', time()-1000, '/');
 		}
 	}
-	session_destroy();
-	header('Location: '.$_SERVER['PHP_SELF']);
-	die;
+	session_start();
+	session_unset();
+	$has_session = session_status() == PHP_SESSION_ACTIVE;
+	if ($has_session) session_destroy();
+	session_write_close();
+	setcookie(session_name(),'',0,'/');
+	session_regenerate_id(true);
 }
 
 function addScheme($url, $scheme = 'http://')
@@ -712,7 +716,7 @@ function getContent($file,$url,$hours = 24,$fn = '',$fn_args = '') {
 			}
 			$content .= '<!-- cached:  ' . time() . '-->';
 			file_put_contents($file, $content);
-			write_log('retrieved fresh from ' . $url . ':: ' . $content,"INFO");
+			write_log('Retrieved fresh from ' . $url,"INFO");
 			if(file_exists($file)) return $file;
 		}
 		return false;
@@ -757,11 +761,12 @@ function checkUpdates($install=false) {
 					}
 				} else {
 					write_log("No changes detected.");
-					if (! isset($_SESSIONN['logHistory'])) {
-                        $html = parseLog($repo->readLog("origin/master", 0));
-						$_SESSION['logHistory'] = $html;
+					$logHistory = readUpdate();
+					if (count($logHistory)) {
+						$html = parseLog($logHistory[0]['commits']);
+						$installed = $logHistory[0]['installed'];
 					} else {
-						$html = $_SESSION['logHistory'];
+						$html = parseLog($repo->readLog("origin/master", 0));
 					}
 					$html = '<div class="cardHeader">Current revision: '.substr($revision,0,7).'<br>
 								Status: Up-to-date<br>

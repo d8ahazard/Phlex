@@ -2,8 +2,26 @@
     require_once dirname(__FILE__) . '/vendor/autoload.php';
     require_once dirname(__FILE__) . '/util.php';
     session_start();
-?>
+    $messages = checkFiles();
+    if (count($messages)) {
+        foreach ($messages as $message) {
+            $scriptBlock = "<script language='javascript'>
+            showMessage('".$message['title']."','".$message['message']."','".$message['url']."');
+            </script>";
+            echo $scriptBlock;
+        }
+    }
+    setDefaults();
+    $config = new Config_Lite('config.ini.php');
+    if (isset($_GET['logout'])) {
+        clearSession();
+        echo '<script language="javascript">
+                    document.location.href="/";
+                    </script>';
 
+    }
+    write_log("Session variables: ".json_encode($_SESSION));
+?>
 <!doctype html>
 <html>
     <head>
@@ -67,13 +85,17 @@
                 }
             }
         </script>
+        <script>
+            if(typeof window.history.pushState == 'function') {
+                window.history.pushState({}, "Hide", '<?php echo $_SERVER['PHP_SELF'];?>');
+            }
+        </script>
         <script type="text/javascript" src="./js/run_prettify.js"></script>
-        <script type="text/javascript" src="./js/jquery-3.1.1.min.js"></script>
+        <script type="text/javascript" src="./js/jquery-3.2.1.min.js"></script>
         <script type="text/javascript" src="./js/jquery-ui.min.js"></script>
         <script type="text/javascript" src="./js/snackbar.min.js"></script>
         <script type="text/javascript" src="./js/clipboard.min.js"></script>
         <script type="text/javascript" src="./js/jquery.simpleWeather.min.js"></script>
-        <script type="text/javascript" src="./js/tether.min.js"></script>
         <script type="text/javascript" src="./js/bootstrap.min.js"></script>
         <script type="text/javascript" src="./js/bootstrap-dialog.js"></script>
         <script type="text/javascript" src="./js/arrive.min.js"></script>
@@ -84,80 +106,65 @@
     </head>
 
     <body style="background-color:black">
-        <div class="modal fade" id="alertModal">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="alertTitle">Modal title</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body" id="alertBody">
-                        <p>Modal body text goes here.</p>
+        <div id="bodyWrap">
+	        <?php
+	        if (isset($_SESSION['plexToken']))  {
+            define('LOGGED_IN', true);
+            require_once dirname(__FILE__) . '/body.php';
+            echo makeBody();
+            };?>
+        </div>
+            <div class="modal fade" id="alertModal">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="alertTitle">Modal title</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body" id="alertBody">
+                            <p>Modal body text goes here.</p>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-        <div id="bgwrap">
-            <div class="bg bgLoaded"></div>
-        </div>
+            <div id="bgwrap">
+                <div class="bg bgLoaded"></div>
+            </div>
         <?php
-        $messages = checkFiles();
-        if (count($messages)) {
-            foreach ($messages as $message) {
-            $scriptBlock = "<script language='javascript'>
-                showMessage('".$message['title']."','".$message['message']."','".$message['url']."');
-                </script>";
-            echo $scriptBlock;
-            }
-        }
-        setDefaults();
-        $config = new Config_Lite('config.ini.php');
-            if (isset($_GET['logout'])) {
-                $_SESSION['plexUserName'] = '';
-                clearSession();
-                $has_session = session_status() == PHP_SESSION_ACTIVE;
-                if ($has_session) session_destroy();
-                header('Location:  .');
-            }
-            if (! isset($_SESSION['plexToken'])) {
-                echo '
-                    <div class="loginBox">
-                        <div class="login-box">
-                            <div class="card loginCard">
-                            <div class="card-block">
-                                <b><h3 class="loginLabel card-title">Welcome to Phlex!</h3></b>
-                                <img class="loginLogo" src="./img/phlex.png" alt="Card image">
-                                <h6 class="loginLabel card-subtitle text-muted">Please log in below to begin.</h6>
-                            </div>
-                            <div class="card-block">
-                                <form id="loginForm" method="post">
-                                    <div class="label-static form-group loginGroup">
-                                        <label id="userLabel" for="username" class="control-label">Username</label>
-                                        <input type="text" class="form-control login-control" id="username" name ="username" autofocus/>
-                                        <span class="bmd-help">Enter your Plex username or email address.</span>
-                                    </div>
-                                    <div class="label-static form-group loginGroup">
-                                        <label id="passLabel" for="password" class="control-label">Password</label>
-                                        <input type="password" class="form-control login-control" id="password" name="password"/>
-                                        <span class="bmd-help">Enter your Plex password.</span>
-                                    </div>
-                                    <button class="btn btn-raised btn-primary" id="post">DO IT!</button>
-                                    <br><br>
-                                    <a href="http://phlexchat.com/Privacy.html" class="card-link">Privacy Policy</a>
-                                </form>
+        if (! isset($_SESSION['plexToken'])) {
+	        echo '
+                        <div class="loginBox">
+                            <div class="login-box">
+                                <div class="card loginCard">
+                                <div class="card-block">
+                                    <b><h3 class="loginLabel card-title">Welcome to Phlex!</h3></b>
+                                    <img class="loginLogo" src="./img/phlex.png" alt="Card image">
+                                    <h6 class="loginLabel card-subtitle text-muted">Please log in below to begin.</h6>
+                                </div>
+                                <div class="card-block">
+                                    <form id="loginForm" method="post">
+                                        <div class="label-static form-group loginGroup">
+                                            <label id="userLabel" for="username" class="control-label">Username</label>
+                                            <input type="text" class="form-control login-control" id="username" name ="username" autofocus/>
+                                            <span class="bmd-help">Enter your Plex username or email address.</span>
+                                        </div>
+                                        <div class="label-static form-group loginGroup">
+                                            <label id="passLabel" for="password" class="control-label">Password</label>
+                                            <input type="password" class="form-control login-control" id="password" name="password"/>
+                                            <span class="bmd-help">Enter your Plex password.</span>
+                                        </div>
+                                        <button class="btn btn-raised btn-primary" id="post">DO IT!</button>
+                                        <br><br>
+                                        <a href="http://phlexchat.com/Privacy.html" class="card-link">Privacy Policy</a>
+                                    </form>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <script type="text/javascript" src="./js/login.js"></script>';
-                die();
-            } else {
-	            define('LOGGED_IN', true);
-                require_once dirname(__FILE__) . '/body.php';
-                echo makeBody();
-            }
+                        <script type="text/javascript" src="./js/login.js"></script>';
+	        die();
+        }
         ?>
-
     </body>
 </html>

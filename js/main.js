@@ -1,22 +1,30 @@
 var action = "play";
-var appName, autoUpdate, token, deviceID, resultDuration, lastUpdate, logLevel, lastLog, itemJSON, apiToken, ombi, couch, hook, hooks, hookCustom, sonarr, radarr, sick, publicIP, dvr, resolution, weatherClass, city, state, updateAvailable, weatherHtml;
+var appName, autoUpdate, token, newToken, deviceID, resultDuration, lastUpdate, logLevel, lastLog, itemJSON, apiToken, ombi, couch, sonarr, radarr, sick, publicIP, dvr, weatherClass, city, state, updateAvailable, weatherHtml;
 var condition = null;
 
 jQuery(document).ready(function($) {
 
-    var loginBox = $('.loginBox');
-    if (loginBox.css('display') !== 'none') {
+    var loginBox = $('.login-box');
+    if (loginBox.length > 0) {
         console.log("Hiding login box.");
-        loginBox.hide("slide", {direction: "up"}, 1000);
-        loginBox.remove();
+        loginBox.css({"top":"-1000px"});
+        $('.snackbar').snackbar("hide");
+        $.snackbar({content: "Login successful!"});
+
     }
-    logLevel = "ALL";
+	logLevel = "ALL";
     var bgDiv = $('.bg');
     if (bgDiv.css('display') === 'none') {
-        bgDiv.fadeIn(2000);
+        bgDiv.fadeIn(1000);
     }
-    $('#mainwrap').show("slide", { direction: "up" }, 750);
-    $('.castArt').fadeIn(2000);
+    $('#mainwrap').css({"top": 0});
+    setTimeout(
+        function()
+        {
+            $('#results').css({"top":0,"max-height":"100%","overflow":"inherit"})
+        }, 500);
+
+    $('.castArt').fadeIn(1000);
 
     dvr = $("#plexDvr").attr('enable') === 'true';
 	apiToken = $('#apiTokenData').attr('data');
@@ -86,7 +94,7 @@ jQuery(document).ready(function($) {
 			}
 
 			apiToken = $('#apiTokenData').attr('data');
-			$.get('api.php?apiToken=' + apiToken, {id:id, value:value}, function(data) {
+			$.get('api.php?apiToken=' + apiToken, {id:id, value:value}, function() {
                 if (id==='darkTheme') setTimeout( function() { location.reload(); }, 200);
 			});
 			if ($(this).hasClass("appParam")) {
@@ -101,7 +109,7 @@ jQuery(document).ready(function($) {
 	$('#logLevel').change(function(){
         logLevel = $(this).val();
         console.log("Log level changed to " + logLevel);
-	})
+	});
 
 	var checkbox = $(':checkbox'); 
     checkbox.change(function() {
@@ -122,10 +130,24 @@ jQuery(document).ready(function($) {
         }
     });
 
+	$('#logout').click(function(){
+        var bgDiv = $('.bg');
+		$('#results').css({"top":"-2000px","max-height":0,"overflow":"hidden"})
 
+        setTimeout(
+            function()
+            {
+                $('#mainwrap').css({"top": "-200px"});
+                bgDiv.fadeOut(1000);
+                $('.castArt').fadeOut(1000);
+            }, 500);
+
+
+	});
 
     $(".btn").on('click', function() {
-		var value;
+		var value,regUrl;
+        var serverAddress = $('#publicAddress').val();
 		if ($(this).hasClass("copyInput")) {
 			value = $(this).val();
 			clipboard.copy(value);
@@ -138,7 +160,7 @@ jQuery(document).ready(function($) {
 			$.get('api.php?test='+ value+'&apiToken=' + apiToken,function(data) {
 				var dataArray =[data];
 				$.snackbar({content: JSON.stringify(dataArray[0].status).replace(/"/g, "")});
-			},dataType="json");
+			});
 		}
 		if ($(this).hasClass("resetInput")) {
 			appName = $(this).attr('value');
@@ -152,21 +174,19 @@ jQuery(document).ready(function($) {
 			apiToken = $('#apiTokenData').attr('data');
 			$.get('api.php?setup&apiToken=' + apiToken,function(data) {
 				$.snackbar({content: JSON.stringify(data).replace(/"/g, "")});
-			},dataType="json");
+			});
 			$.snackbar({content: "Setting up API.ai Bot."});
 		}
 		
 		if ($(this).hasClass("linkBtn")) {
-			var serverAddress = $('#publicAddress').val();
-			var regUrl = 'https://phlexserver.cookiehigh.us/api.php?apiToken='+apiToken+"&serverAddress="+serverAddress;
+			regUrl = 'https://phlexserver.cookiehigh.us/api.php?apiToken='+apiToken+"&serverAddress="+serverAddress;
 			newwindow=window.open(regUrl,'');
 			if (window.focus) {
 				newwindow.focus();
 			}
 		}
         if ($(this).hasClass("alexaBtn")) {
-            var serverAddress = $('#publicAddress').val();
-            var regUrl = 'https://phlexchat.com/alexaAuth.php?apiToken='+apiToken+"&serverAddress="+serverAddress;
+            regUrl = 'https://phlexchat.com/alexaAuth.php?apiToken='+apiToken+"&serverAddress="+serverAddress;
             newwindow=window.open(regUrl,'');
             if (window.focus) {
                 newwindow.focus();
@@ -226,20 +246,24 @@ jQuery(document).ready(function($) {
 	// This handles sending and parsing our result for the web UI.
 	$("#executeButton").click(function() {
 		console.log("Execute clicked!");
+		$('.load-bar').show();
         var command = $('#commandTest').val();
 		if (command !== '') {
             command = command.replace(/ /g,"+");
 			apiToken = $('#apiTokenData').attr('data');
 			var url = 'api.php?say&command=' + command+'&apiToken=' + apiToken;
 			$.get(url, function() {
-                $('.cssload-thecube').show();
+
 			})
 			.done(function(data) {
 				var dataArray = [data];
 				updateCommands(dataArray, true);
 			})
 			.always(function() {
-				$('.cssload-thecube').hide();
+				setTimeout(function(){
+					$('.load-bar').hide();
+				},1000);
+
 			},dataType="json");
 		}
 		
@@ -470,7 +494,6 @@ jQuery(document).ready(function($) {
     });
 	
 	// Update our status every 10 seconds?  Should this be longer?  Shorter?  IDK...
-	window.setInterval(function(){updateStatus();}, 5000);
 	var sliderWidth = $('.statusText').width();
 	$("#progressSlider").css('width',sliderWidth);
 	var IPString = $('#publicAddress').val() + "/api.php?";
@@ -484,16 +507,18 @@ jQuery(document).ready(function($) {
 	var clientList = $.get('api.php?clientList&apiToken=' + apiToken,function(clientData) {
 		$('#clientWrapper').html(clientData);
 	}) ;
-	
-	updateStatus();
-    setWeather();
+
+    setInterval(function(){
+    	updateStatus();
+    }, 5000);
+
     setInterval(function() {
-    	setBackground();
+        setBackground();
     }, 1000 * 60);
 
     setInterval(function() {
-    	setWeather();
-    }, 30000);
+        setWeather();
+    }, 10 * 1000 * 60);
 
 });
 
@@ -634,7 +659,6 @@ function msToTime(duration) {
 function updateCommands(data,prepend) {
 	
 	if (JSON.stringify(lastUpdate) !== JSON.stringify(data)) {
-		console.log("Update data: ", data);
 		lastUpdate = data;
 
 		if (!(prepend)) $('#resultsInner').html("");
@@ -644,6 +668,8 @@ function updateCommands(data,prepend) {
 				var initialCommand = ucFirst(value.initialCommand);
 				var timeStamp = ($.inArray('timeStamp',value) ? $.trim(value.timestamp) : '');
 				speech = (value.speech ? value.speech : "");
+                if ($(window).width() < 700) speech = speech.substring(0,100);
+                console.log("SPEECH: "+ speech);
 				var status = (value.mediaStatus ? value.mediaStatus : "");
 				itemJSON = value;
 				var JSONdiv = '<a href="javascript:void(0)" id="JSON'+i+'" class="JSONPop" data="'+encodeURIComponent(JSON.stringify(value,null,2))+'" title="Result JSON">{JSON}</a>';
@@ -761,7 +787,7 @@ function formatLog(logJSON) {
                         var logJSON = JSON.parse(line.JSON);
                         logHTML = logHTML + recurseJSON(logJSON);
                     } catch (err) {
-                        console.log("ERROR: " + err);
+
                     }
 
                 }
@@ -827,6 +853,7 @@ function buildCards(value,i) {
     var initialCommand = ucFirst(value.initialCommand);
     var timeStamp = ($.inArray('timeStamp',value) ? $.trim(value.timestamp) : '');
     speech = (value.speech ? value.speech : "");
+    if ($(window).width() < 700) speech = speech.substring(0,100);
     var status = (value.mediaStatus ? value.mediaStatus : "");
     itemJSON = value;
     var JSONdiv = '<a href="javascript:void(0)" id="JSON'+i+'" class="JSONPop" data="'+encodeURIComponent(JSON.stringify(value,null,2))+'" title="Result JSON">{JSON}</a>';
@@ -859,7 +886,6 @@ function buildCards(value,i) {
         $.each(cardArray, function(l, subCard) {
             var newLine = '';
             var width = '';
-            console.log("Counter: "+ l);
             if (count >= 2) width = '50%';
             if (count >= 6) width = '33.3%';
 
@@ -883,14 +909,13 @@ function buildCards(value,i) {
         })
 
         cardDiv += '</div><div class="card-img-overlay card-inverse">' +
-            '<p class="card-subtitle">' + $.trim(timeStamp) + '</p>' +
+            '<p class="card-subtitle">' + $.trim(timeStamp) + '</p><br>' +
             '<p class="card-text card-base">' +
-            '<b>You said: </b>"' + initialCommand + '"' +
-            '<br><b>My reply: </b>"' + speech + '"<br><br>' +
+            '<p class="reques-text card-text"><b>You said: </b>"' + initialCommand + '"</p>' +
+            '<p class="reply-text card-text"><b>My reply: </b>"' + speech + '"</p>' +
             JSONdiv +
             '</p><br>' +
             '</div>';
-        console.log("Two cards?");
     }
     return cardDiv;
 }

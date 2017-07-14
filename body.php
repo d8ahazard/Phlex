@@ -94,6 +94,11 @@ function makeBody($newToken = false) {
 							</div>
                         	<label id="actionLabel" for="commandTest" class="control-label">Hi, I\'m Flex TV.  What can I do for you?</label>
 	                        <input type="text" class="form-control" id="commandTest"/>
+	                        <div class="load-bar">
+								<div class="bar"></div>
+								<div class="bar"></div>
+								<div class="bar"></div>
+							</div>
 	                        <a class="material-icons sendBtn" id="executeButton">message</a>
                         </div>
                     </div>
@@ -350,7 +355,7 @@ function makeBody($newToken = false) {
 				                                    <br><br>
 				                                    <div class="togglebutton">
 				                                        <label for="useCast" class="appLabel checkLabel">Use Cast Devices
-				                                            <input id="useCast" type="checkbox" class="appInput appToggle" \' . ($_SESSION["use_cast"] ? "checked" : "") . \'/>
+				                                            <input id="useCast" type="checkbox" class="appInput appToggle" ' . ($_SESSION["use_cast"] ? "checked" : "") . '/>
 				                                        </label>
 				                                    </div>
 				                                </div>
@@ -375,36 +380,36 @@ function makeBody($newToken = false) {
 				                                <div class="form-group">
 				                                    <label class="appLabel" for="resolution">Resolution:</label>
 				                                    <select class="form-control appInput" id="resolution">
-				                                        <option value="0" \'.($_SESSION["resolution"] == 0 ? "selected" : "") .\' >Any </option>
-				                                        <option value="720" \'. ($_SESSION["resolution"] == 720 ? "selected" : "") .\' >High-Definition </option>
+				                                        <option value="0" '.($_SESSION["resolution"] == 0 ? "selected" : "") .' >Any </option>
+				                                        <option value="720" '. ($_SESSION["resolution"] == 720 ? "selected" : "") .' >High-Definition </option>
 				                                    </select>
 				                                </div>
 				                                <br>
 				                                <div class="togglebutton">
 				                                    <label for="dvr_newairings" class="appLabel checkLabel">Record new Airings Only
-				                                        <input id="dvr_newairings" type="checkbox" class="appInput" \'.($_SESSION["dvr_newairings"] ? "checked" : "") . \' />
+				                                        <input id="dvr_newairings" type="checkbox" class="appInput" '.($_SESSION["dvr_newairings"] ? "checked" : "") . ' />
 				                                    </label>
 				                                </div>
 				                                <br>
 				                                <div class="togglebutton">
 				                                    <label for="dvr_replacelower" class="appLabel checkLabel">Replace Lower Quality Recordings
-				                                        <input id="dvr_replacelower" type="checkbox" class="appInput" \'. ($_SESSION["dvr_replacelower"] ? " checked " : "") . \' />
+				                                        <input id="dvr_replacelower" type="checkbox" class="appInput" '. ($_SESSION["dvr_replacelower"] ? " checked " : "") . ' />
 				                                    </label>
 				                                </div>
 				                                <br>
 				                                <div class="togglebutton">
 				                                    <label for="dvr_recordpartials" class="appLabel checkLabel">Record partial episodes
-				                                        <input id="dvr_recordpartials" type="checkbox" class="appInput" \'. ($_SESSION["dvr_recordpartials"] ? "checked" : "") . \' />
+				                                        <input id="dvr_recordpartials" type="checkbox" class="appInput" '. ($_SESSION["dvr_recordpartials"] ? "checked" : "") . ' />
 				                                    </label>
 				                                </div>
 				                                <div class="form-group">
 				                                    <label for="dvr_startoffset" class="appLabel">Start Offset (Minutes):
-				                                        <input id="dvr_startoffset" class="appInput form-control" type="number" min="1" max="30" value="\' . $_SESSION["dvr_startoffset"] . \'" />
+				                                        <input id="dvr_startoffset" class="appInput form-control" type="number" min="1" max="30" value="' . $_SESSION["dvr_startoffset"] . '" />
 				                                    </label>
 				                                </div>
 				                                <div class="form-group">
 				                                    <label for="dvr_endoffset" class="appLabel">End Offset (Minutes):
-				                                        <input id="dvr_endoffset" class="appInput form-control" type="number" min="1" max="30" value="\' . $_SESSION["dvr_endoffset"] . \'" />
+				                                        <input id="dvr_endoffset" class="appInput form-control" type="number" min="1" max="30" value="' . $_SESSION["dvr_endoffset"] . '" />
 				                                    </label>
 				                                </div>
 				

@@ -1,31 +1,28 @@
-var bg, body, loginBox, loginForm, mainwrap;
+var bg, bodyWrap, loginBox, loginForm, mainwrap;
 jQuery(document).ready(function($) {
     bg = $('.bg');
-    body = $('body');
-    loginBox = $('.loginBox');
+    bodyWrap = $('#bodyWrap');
+    loginBox = $('.login-box');
     loginForm = $('#loginForm');
     mainwrap = $("#mainwrap");
     if (mainwrap.length === 0){
         bg.fadeIn(2000);
-        loginBox.fadeIn(1000);
+        loginBox.css({"top":"50%"});
     }
+    var success = false;
 
     loginForm.submit(function(e) {
         e.preventDefault();
+        $.snackbar({content: "One moment...",timeout:0});
         $.post("api.php", loginForm.serialize(), function(data) {
             if (data !== 'ERROR') {
-                console.log("successful!");
-                var html = body.html();
-                body.html(data + html);
-
-                var loginBox = $('.loginBox');
-                if (loginBox.css('display') !== 'none') {
-                    console.log("Hiding login box.");
-                    loginBox.hide("slide", {direction: "up"}, 1000);
-                    loginBox.remove();
-                }
+                bodyWrap.html(data);
+            } else {
+                $('.snackbar').snackbar("hide");
+                $.snackbar({content: "Invalid password."});
             }
         });
+
     });
 
 });
