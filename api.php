@@ -165,6 +165,11 @@ function initialize() {
 			$_SESSION['useCast'] = $value;
 			scanDevices(true);
 		}
+		
+		if (preg_match("/Path/",$id)) {
+			if (substr($value,0,1) !== "/") $value = "/".$value;
+		}
+		
 		if (trim($id) === 'cleanLogs') {
 			$_SESSION['cleanLogs'] = $value;
 		}
