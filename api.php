@@ -3446,10 +3446,11 @@ function sickDownload($command,$season=false,$episode=false) {
 	write_log("Function fired");
 	$exists = $id = $response = $responseJSON = $resultID = $resultYear = $status = $results = $result = $show = false;
 	$sickURL = $_SESSION['sickIP'];
+	$sickPath = $_SESSION['sickPath'];
 	$sickApiKey = $_SESSION['auth_sick'];
 	$sickPort = $_SESSION['sickPort'];
 	$highest = 69;
-	$sick = new SickRage($sickURL.':'.$sickPort, $sickApiKey);
+	$sick = new SickRage($sickURL.':'.$sickPort.$sickPath, $sickApiKey);
 	$results = json_decode($sick->shows(), true)['data'];
 	foreach ($results as $show) {
 		if (cleanCommandString($show['show_name']) == cleanCommandString($command)) {
@@ -4150,10 +4151,11 @@ function testConnection($serviceName) {
 
 		case "Sick":
 			$sickURL = $_SESSION['sickIP'];
+			$sickPath = $_SESSION['sickPath'];
 			$sickApiKey = $_SESSION['auth_sick'];
 			$sickPort = $_SESSION['sickPort'];
 			if (($sickURL) && ($sickApiKey) && ($sickPort)) {
-				$sick = new SickRage($sickURL.':'.$sickPort, $sickApiKey);
+				$sick = new SickRage($sickURL.':'.$sickPort.$sickPath, $sickApiKey);
 				try {
 					$result = $sick->sbGetDefaults();
 				} catch (\Kryptonit3\SickRage\Exceptions\InvalidException $e) {

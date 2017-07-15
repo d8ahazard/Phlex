@@ -34,6 +34,7 @@ function makeBody($newToken = false) {
 
     $_SESSION['path_couch'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'couchPath', '');
     $_SESSION['path_radarr'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'radarrPath', '');
+    $_SESSION['path_sick'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'sickPath', '');
 
     $_SESSION['port_couch'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'couchPort', '5050');
     $_SESSION['port_ombi'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'ombiPort', '3579');
@@ -562,6 +563,11 @@ function makeBody($newToken = false) {
 		                                <div class="form-group">
 		                                    <label for="sickIP" class="appLabel">Sick IP/URL:
 		                                        <input id="sickIP" class="appInput form-control Sick appParam" type="text" value="' . $_SESSION["ip_sick"] . '"/>
+		                                    </label>
+		                                </div>
+		                                <div class="form-group">
+		                                    <label for="sickPath" class="appLabel">Sick Path (Optional):
+		                                        <input id="sickPath" class="appInput form-control Sick appParam" type="text" value="' . $_SESSION["path_sick"] . '"/>
 		                                    </label>
 		                                </div>
 		                                <div class="form-group">
