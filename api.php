@@ -154,6 +154,8 @@ function initialize() {
 		if (preg_match("/IP/", $id)) {
 			$value = addScheme($value);
 		}
+		if ((preg_match("/Path/",$id)) && (substr($value,0,1) != "/")) $value = "/".$value;
+
 		if (is_bool($value) === true) {
 			$GLOBALS['config']->setBool('user-_-' . $_SESSION['plexUserName'], $id, $value);
 		} else {
@@ -166,10 +168,7 @@ function initialize() {
 			scanDevices(true);
 		}
 		
-		if (preg_match("/Path/",$id)) {
-			if (substr($value,0,1) !== "/") $value = "/".$value;
-		}
-		
+
 		if (trim($id) === 'cleanLogs') {
 			$_SESSION['cleanLogs'] = $value;
 		}
