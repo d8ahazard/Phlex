@@ -26,18 +26,18 @@ jQuery(document).ready(function($) {
 
     $('.castArt').fadeIn(1000);
 
-    dvr = $("#plexDvr").attr('enable') === 'true';
+    dvr = $("#plexDvr").attr('enable');
 	apiToken = $('#apiTokenData').attr('data');
 	token = $('#tokenData').attr('data');
 	deviceID = $('#deviceID').attr('data');
 	publicIP = $('#publicIP').attr('data');
-    newToken = $('#newToken').attr('enable') === 'true';
-	sonarr = $('#sonarr').attr('enable') === 'true';
-    sick = $('#sick').attr('enable') === 'true';
-    couch = $('#couchpotato').attr('enable') === 'true';
-    radarr = $('#radarr').attr('enable') === 'true'
-    ombi = $('#ombi').attr('enable') === 'true';
-    autoUpdate = $('#autoUpdate').attr('enable') === 'true';
+    newToken = $('#newToken').attr('enable');
+	sonarr = $('#sonarr').attr('enable');
+    sick = $('#sick').attr('enable');
+    couch = $('#couchpotato').attr('enable');
+    radarr = $('#radarr').attr('enable');
+    ombi = $('#ombi').attr('enable');
+    autoUpdate = $('#autoUpdate').attr('enable');
     updateAvailable = $('#updateAvailable').attr('data');
     $.material.init();
 	var Logdata = $('#logData').attr('data');

@@ -20,7 +20,6 @@
                     </script>';
 
     }
-    write_log("Session variables: ".json_encode($_SESSION));
 ?>
 <!doctype html>
 <html>

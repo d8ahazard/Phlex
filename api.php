@@ -398,7 +398,7 @@ function setSessionVariables() {
 	$userSections = $GLOBALS['config']->getSection('user-_-'.$_SESSION['plexUserName'],false);
 
 	foreach ($userSections as $key=>$value) {
-		//if (is_bool($value)) $value = boolval($value);
+		$value = toBool($value);
 		$_SESSION[$key] = $value;
 	}
 

@@ -260,7 +260,7 @@ require_once dirname(__FILE__) . '/vendor/autoload.php';
 				case 200:
 					break;
 				default:
-					write_log('Unexpected HTTP code: '. $http_code, "ERROR");
+					write_log('Unexpected HTTP code: '. $http_code.', URL: '.$url, "ERROR");
 					$result = false;
 			}
 		}
@@ -304,7 +304,8 @@ require_once dirname(__FILE__) . '/vendor/autoload.php';
 	// Write log information to $filename
 	// Auto rotates files larger than 2MB
 	function write_log($text,$level=null) {
-		if (isset($_GET['pollPlayer'])) return;
+		//if (isset($_GET['pollPlayer'])) return;
+		$text = preg_replace( '/[^[:print:]]/', '',$text);
 		if ($level === null) {
 			$level = 'DEBUG';
 		}
@@ -347,13 +348,11 @@ require_once dirname(__FILE__) . '/vendor/autoload.php';
 	}
 
 	function readUpdate() {
-		write_log("Function fired.");
-	    $log = false;
+		$log = false;
 		$filename = file_build_path(dirname(__FILE__),'logs',"Phlex_update.log");
 		if (file_exists($filename)) {
 			$log = json_decode(file_get_contents($filename),true) ?? [];
 		}
-		write_log("LOG: ".json_encode($log));
 		return $log;
 	}
 
@@ -723,56 +722,80 @@ function getContent($file,$url,$hours = 24,$fn = '',$fn_args = '') {
 	}
 }
 
+
+function toBool($var) {
+	if (!is_string($var)) $var;
+	switch (strtolower($var)) {
+		case 'true':
+			return true;
+		case 'false':
+			return false;
+		default:
+			return $var;
+	}
+}
+
 function checkUpdates($install=false) {
 	write_log("Function fired.".($install ? " Install requested." : ""));
-    $installed = $result = false;
+    $installed = $pp = $result = false;
     $html = '';
 	$autoUpdate = $_SESSION['autoUpdate'];
+	write_log("Auto Update is ".($autoUpdate ? " on " : "off"));
 	if (checkGit()) {
 		write_log("This is a repo and GIT is available, checking for updates.");
 		try {
 			$repo = new GitRepository(dirname(__FILE__));
 			if ($repo) {
+
 				$repo->fetch('origin');
 				$local = $repo->hasLocalChanges();
-				$result = $repo->hasRemoteChanges();
+				$result = $repo->readLog('origin','HEAD');
 				$revision = $repo->getRev();
+				$logHistory = readUpdate();
+				if (count($logHistory)) $installed = $logHistory[0]['installed'];
+				$header = '<div class="cardHeader">
+							Current revision: '.substr($revision,0,7).'<br>
+							'.($installed ? "Last Update: ".$installed : '').'
+						</div>';
 				if (1==2) {
-					$html = '<div class="cardHeader">Current revision: '.substr($revision,0,7).'<br>
-								Status: ERROR: Local file conflicts exist.<br>
+					$html = $header. '<div class="cardHeader">
+								Status: ERROR: Local file conflicts exist.<br><br>
 							</div><br>';
 					write_log("LOCAL CHANGES DETECTED.","ERROR");
 					return $html;
 				}
-				if ($result) {
-					write_log("The repo has been changed.");
-					$log = $repo->readLog('origin/master',$revision);
-					if (count($log)) {
-						$_SESSION['updateAvailable'] = count($log);
-						$html = parseLog($log);
-						$html = '<div>Current revision: '.$revision.'<br>Status:'.count($log).' commit(s) behind.<br>Missing Update(s):'.$html.'</div>';
-						if (($install) || ($autoUpdate)) {
-							write_log("Updating from repository - ".($install ? 'Manually triggered.' : 'Automatically triggered.'));
-							$result = $repo->pull('origin');
-							write_log("Pull result: ".$result);
-							logUpdate($log);
-							$html = '<div>Current revision: '.substr($revision,0,7).'<br>Status: Up-to-date<br>Last Update:</div>';
-						}
+
+				if (count($result)) {
+					if (isset($_SESSION['pollPlayer'])) {
+						$pp = true;
+						unset($_SESSION['pollPlayer']);
+					}
+					$log = $result;
+					$_SESSION['updateAvailable'] = count($log);
+					$html = parseLog($log);
+					$html = $header.'<div class="cardHeader">
+								Status: '.count($log).' commit(s) behind.<br><br>
+								Missing Update(s):'.$html.
+							'</div>';
+					if (($install) || ($autoUpdate)) {
+						write_log("Updating from repository - ".($install ? 'Manually triggered.' : 'Automatically triggered.'));
+						$result = $repo->pull('origin');
+						write_log("Pull result: ".$result);
+						logUpdate($log);
+
 					}
 				} else {
 					write_log("No changes detected.");
-					$logHistory = readUpdate();
 					if (count($logHistory)) {
 						$html = parseLog($logHistory[0]['commits']);
 						$installed = $logHistory[0]['installed'];
 					} else {
 						$html = parseLog($repo->readLog("origin/master", 0));
 					}
-					$html = '<div class="cardHeader">Current revision: '.substr($revision,0,7).'<br>
-								Status: Up-to-date<br>
+					$html = $header.'<div class="cardHeader">
+								Status: Up-to-date<br><br>
 								'.($installed ? "Installed: ".$installed : '').'
-							</div><br>
-							<h5 class="cardHeader">Last Update:</h5>'.$html;
+							Last Update:'.$html.'</div><br>';
 				}
 			} else {
 				write_log("Couldn't initialize git.", "ERROR");
@@ -783,6 +806,8 @@ function checkUpdates($install=false) {
 	} else {
 		write_log("Doesn't appear to be a cloned repository or git not available.","INFO");
 	}
+	if ($pp) $_SESSION['pollPlayer'] = true;
+
 	return $html;
 
 }
@@ -820,7 +845,7 @@ function getUrl($url) {
 			case 200:  # OK
 				break;
 			default:
-				write_log('Unexpected HTTP code: '. $http_code, "ERROR");
+				write_log('Unexpected HTTP code: '. $http_code.', URL: '.$url, "ERROR");
 				$content = false;
 		}
 	}
