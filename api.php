@@ -154,7 +154,9 @@ function initialize() {
 		if (preg_match("/IP/", $id)) {
 			$value = addScheme($value);
 		}
-		if ((preg_match("/Path/",$id)) && (substr($value,0,1) != "/")) $value = "/".$value;
+		if (preg_match("/Path/",$id)) {
+			if (substr($value,0,1) != "/") $value = "/".$value;
+		};
 
 		if (is_bool($value) === true) {
 			$GLOBALS['config']->setBool('user-_-' . $_SESSION['plexUserName'], $id, $value);
@@ -1961,7 +1963,7 @@ function fetchServerList($devices) {
 			$token = $client['token'];
 			$product = $client['product'];
 			$publicAddress = $client['publicUri'] ?? "";
-			$options .= '<option type="plexServerId" publicUri="'. $publicAddress .'" product="'.$product.'" value="'
+			$options .= '<option type="plexServer" publicUri="'. $publicAddress .'" product="'.$product.'" value="'
 				.$id
 				.'" uri="'.$uri.'" name="'.$name.'" '.' token="'.$token.'" '.($selected ? ' selected':'').'>'.ucwords($name).'</option>';
 		}
