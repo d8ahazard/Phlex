@@ -420,7 +420,6 @@ If you think you've found a bug or would like to make a feature request, feel fr
 1. Is Phlex using http or https?  
 1. If you're having issues with a specific command, please note the timestamp in the web UI, and take a look at Phlex and Phlex_error.log files.  Paste anything that looks related as well.
 
-
 ### DONATIONS
 
 Phlex/Flex TV is currently a one-person operation. There is no big team of people, there are no slick corporate sponsors. I cannot stand ad-sponsored projects or "freemium" apps, and will never try to use this garbage to gain revenue from users.
