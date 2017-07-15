@@ -3804,9 +3804,10 @@ function radarrDownload($command) {
 	$exists = $score = $tmdbId = $movie = $wanted = false;
 	$response = ['status'=>'ERROR'];
 	$radarrURL = $_SESSION['radarrIP'];
+	$radarrPath = $_SESSION['raddarPath'];
 	$radarrApiKey = $_SESSION['radarrAuth'];
 	$radarrPort = $_SESSION['radarrPort'];
-	$radarr = new Radarr($radarrURL.':'.$radarrPort, $radarrApiKey);
+	$radarr = new Radarr($radarrURL.':'.$radarrPort.$radarrPath, $radarrApiKey);
 	$rootArray = json_decode($radarr->getRootFolder(),true);
 	$movieCheck = json_decode($radarr->getMoviesLookup($command),true);
 	$movieArray = json_decode($radarr->getMovies(),true);
@@ -3866,9 +3867,10 @@ function radarrDownload($command) {
 function radarrDownload2($command) {
 	$response = false;
 	$radarrURL = $_SESSION['radarrIP'];
+	$radarrPath = $_SESSION['radarrPath'];
 	$radarrApiKey = $_SESSION['radarrAuth'];
 	$radarrPort = $_SESSION['radarrPort'];
-	$baseURL = $radarrURL.':'.$radarrPort.'/api';
+	$baseURL = $radarrURL.':'.$radarrPort.$radarrPath.'/api';
 
 	$searchString = '/movies/lookup?term='.urlencode($command);
 	$authString = '&apikey='.$radarrApiKey;
@@ -3926,8 +3928,8 @@ function radarrDownload2($command) {
 					$resultObject['year'] = $resultJSON['year'];
 					$resultObject['summary'] = $resultJSON['overview'];
 					$resultObject['type'] = 'movie';
-					$artUrl = $radarrURL.':'.$radarrPort.'/api/MediaCover/'. $movie['id'] . '/banner.jpg?apikey='.$radarrApiKey;
-					$thumbUrl = $radarrURL.':'.$radarrPort.'/api/MediaCover/'. $movie['id'] . '/poster.jpg?apikey='.$radarrApiKey;
+					$artUrl = $baseURL.'/MediaCover/'. $movie['id'] . '/banner.jpg?apikey='.$radarrApiKey;
+					$thumbUrl = $baseURL.'/MediaCover/'. $movie['id'] . '/poster.jpg?apikey='.$radarrApiKey;
 					write_log("Art URL Should be ".$artUrl);
 					$resultObject['art'] = cacheImage($artUrl);
 					$resultObject['thumb'] = $thumbUrl;
@@ -3952,7 +3954,7 @@ function radarrDownload2($command) {
 			if ($responseJSON) {
 				$response['status'] = 'SUCCESS: Media added to searcher.';
 				$response['mediaResult']['@attributes']['url'] = $putURL;
-				$artUrl = $radarrURL.':'.$radarrPort.'/api/MediaCover/'. $responseJSON['id'] . '/banner.jpg?apikey='.$radarrApiKey;
+				$artUrl = $baseURL.'/MediaCover/'. $responseJSON['id'] . '/banner.jpg?apikey='.$radarrApiKey;
 				write_log("Art URL Should be ".$artUrl);
 				$responseJSON['art'] = cacheImage($artUrl);
 				$responseJSON['type'] = 'movie';
@@ -4115,10 +4117,11 @@ function testConnection($serviceName) {
 
 		case "Radarr":
 			$radarrURL = $_SESSION['radarrIP'];
+			$radarrPath = $_SESSION['radarrPath'];
 			$radarrApikey = $_SESSION['radarrAuth'];
 			$radarrPort = $_SESSION['radarrPort'];
 			if (($radarrURL) && ($radarrApikey) && ($radarrPort)) {
-				$url = $radarrURL . ":" . $radarrPort . "/api/profile?apikey=".$radarrApikey;
+				$url = $radarrURL . ":" . $radarrPort . $radarrPath . "/api/profile?apikey=".$radarrApikey;
 				write_log("Request URL: ".$url);
 				$result = curlGet($url);
 				if ($result) {

@@ -33,6 +33,7 @@ function makeBody($newToken = false) {
     $_SESSION['ip_radarr'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'radarrIP', 'http://localhost');
 
     $_SESSION['path_couch'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'couchPath', '');
+    $_SESSION['path_radarr'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'radarrPath', '');
 
     $_SESSION['port_couch'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'couchPort', '5050');
     $_SESSION['port_ombi'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'ombiPort', '3579');
@@ -517,6 +518,11 @@ function makeBody($newToken = false) {
 		                                <div class="form-group">
 		                                    <label for="radarrIP" class="appLabel">Radarr IP/URL:
 		                                        <input id="radarrIP" class="appInput form-control Radarr appParam" type="text" value="' . $_SESSION["ip_radarr"] . '"/>
+		                                    </label>
+		                                </div>
+		                                <div class="form-group">
+		                                    <label for="radarrPath" class="appLabel">Radarr Path (Optional):
+		                                        <input id="radarrPath" class="appInput form-control Radarr appParam" type="text" value="' . $_SESSION["path_radarr"] . '"/>
 		                                    </label>
 		                                </div>
 		                                <div class="form-group">
