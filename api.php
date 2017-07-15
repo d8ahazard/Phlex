@@ -3753,13 +3753,14 @@ function couchDownload($command) {
 	$couchURL = $_SESSION['couchIP'];
 	$couchApikey = $_SESSION['couchAuth'];
 	$couchPort = $_SESSION['couchPort'];
+	$couchPath = $_SESSION['couchPath'];
 	$response = array();
 	$response['initialCommand'] = $command;
 	$response['parsedCommand'] = 'fetch the movie ' .$command;
 
 	// Send our initial request to search the movie
 
-	$url = $couchURL . ":" . $couchPort . "/api/" . $couchApikey . "/movie.search/?q=" . urlencode($command);
+	$url = $couchURL . ":" . $couchPort . $couchPath . "/api/" . $couchApikey . "/movie.search/?q=" . urlencode($command);
 	write_log("Sending request to " . $url);
 	$result = curlGet($url);
 
@@ -3786,7 +3787,7 @@ function couchDownload($command) {
 		$resultObject['summary'] = $plot;
 		$resultObject['subtitle'] = $subtitle;
 		$resultObject['type'] = 'movie';
-		$url2 = $couchURL . ":" . $couchPort . "/api/" . $couchApikey . "/movie.add/?identifier=" . $imdbID . "&title=" . urlencode($command).($_SESSION['couchProfile'] ? '&profile_id='.$_SESSION['couchProfile'] : '');
+		$url2 = $couchURL . ":" . $couchPort . $couchPath . "/api/" . $couchApikey . "/movie.add/?identifier=" . $imdbID . "&title=" . urlencode($command).($_SESSION['couchProfile'] ? '&profile_id='.$_SESSION['couchProfile'] : '');
 		write_log("Sending add request to: " . $url2);
 		curlGet($url2);
 		$response['status'] = 'SUCCESS: Media added successfully.';
@@ -4055,10 +4056,11 @@ function testConnection($serviceName) {
 
 		case "CouchPotato":
 			$couchURL = $_SESSION['couchIP'];
+			$couchPath = $_SESSION['couchPath'];
 			$couchApikey = $_SESSION['couchAuth'];
 			$couchPort = $_SESSION['couchPort'];
 			if (($couchURL) && ($couchApikey) && ($couchPort)) {
-				$url = $couchURL . ":" . $couchPort . "/api/" . $couchApikey . "/profile.list";
+				$url = $couchURL . ":" . $couchPort . $couchPath . "/api/" . $couchApikey . "/profile.list";
 				$result = curlGet($url);
 				if ($result) {
 					$resultJSON = json_decode($result,true);

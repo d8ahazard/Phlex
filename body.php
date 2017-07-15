@@ -32,6 +32,8 @@ function makeBody($newToken = false) {
     $_SESSION['ip_sick'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'sickIP', 'http://localhost');
     $_SESSION['ip_radarr'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'radarrIP', 'http://localhost');
 
+    $_SESSION['path_couch'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'couchPath', '');
+
     $_SESSION['port_couch'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'couchPort', '5050');
     $_SESSION['port_ombi'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'ombiPort', '3579');
     $_SESSION['port_sonarr'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'sonarrPort', '8989');
@@ -438,6 +440,11 @@ function makeBody($newToken = false) {
 		                                <div class="form-group">
 		                                    <label for="couchIP" class="appLabel">Couchpotato IP/URL:
 		                                        <input id="couchIP" class="appInput form-control CouchPotato appParam" type="text" value="' . $_SESSION["ip_couch"] . '"/>
+		                                    </label>
+		                                </div>
+		                                <div class="form-group">
+		                                    <label for="couchPath" class="appLabel">Couchpotato Path (Optional):
+		                                        <input id="couchPath" class="appInput form-control CouchPotato appParam" type="text" value="' . $_SESSION["path_couch"] . '"/>
 		                                    </label>
 		                                </div>
 		                                <div class="form-group">
