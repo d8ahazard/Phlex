@@ -3533,9 +3533,10 @@ function sonarrDownload($command,$season=false,$episode=false) {
 	$exists = $score = $seriesId = $show = $wanted = false;
 	$response = ['status'=>'ERROR'];
 	$sonarrURL = $_SESSION['sonarrIP'];
+	$sonarrPath = $_SESSION['sonarrPath'];
 	$sonarrApiKey = $_SESSION['sonarrAuth'];
 	$sonarrPort = $_SESSION['sonarrPort'];
-	$sonarr = new Sonarr($sonarrURL.':'.$sonarrPort, $sonarrApiKey);
+	$sonarr = new Sonarr($sonarrURL.':'.$sonarrPort.$sonarrPath, $sonarrApiKey);
 	$rootArray = json_decode($sonarr->getRootFolder(),true);
 	$seriesArray = json_decode($sonarr->getSeries(),true);
 	$root = $rootArray[0]['path'];
@@ -4088,10 +4089,11 @@ function testConnection($serviceName) {
 
 		case "Sonarr":
 			$sonarrURL = $_SESSION['sonarrIP'];
+			$sonarrPath = $_SESSION['sonarrPath'];
 			$sonarrApikey = $_SESSION['sonarrAuth'];
 			$sonarrPort = $_SESSION['sonarrPort'];
 			if (($sonarrURL) && ($sonarrApikey) && ($sonarrPort)) {
-				$url = $sonarrURL . ":" . $sonarrPort . "/api/profile?apikey=".$sonarrApikey;
+				$url = $sonarrURL . ":" . $sonarrPort . $sonarrPath . "/api/profile?apikey=".$sonarrApikey;
 				$result = curlGet($url);
 				if ($result) {
 					write_log("Result retrieved.");
