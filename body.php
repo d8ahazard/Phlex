@@ -32,6 +32,11 @@ function makeBody($newToken = false) {
     $_SESSION['ip_sick'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'sickIP', 'http://localhost');
     $_SESSION['ip_radarr'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'radarrIP', 'http://localhost');
 
+    $_SESSION['path_couch'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'couchPath', '');
+    $_SESSION['path_radarr'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'radarrPath', '');
+    $_SESSION['path_sick'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'sickPath', '');
+    $_SESSION['path_sonarr'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'sonarrPath', '');
+
     $_SESSION['port_couch'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'couchPort', '5050');
     $_SESSION['port_ombi'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'ombiPort', '3579');
     $_SESSION['port_sonarr'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'sonarrPort', '8989');
@@ -441,6 +446,11 @@ function makeBody($newToken = false) {
 		                                    </label>
 		                                </div>
 		                                <div class="form-group">
+		                                    <label for="couchPath" class="appLabel">Couchpotato Path (Optional):
+		                                        <input id="couchPath" class="appInput form-control CouchPotato appParam" type="text" value="' . $_SESSION["path_couch"] . '"/>
+		                                    </label>
+		                                </div>
+		                                <div class="form-group">
 		                                    <label for="couchPort" class="appLabel">Couchpotato Port:
 		                                        <input id="couchPort" class="appInput form-control CouchPotato appParam" type="text" value="' . $_SESSION["port_couch"] . '"/>
 		                                    </label>
@@ -513,6 +523,11 @@ function makeBody($newToken = false) {
 		                                    </label>
 		                                </div>
 		                                <div class="form-group">
+		                                    <label for="radarrPath" class="appLabel">Radarr Path (Optional):
+		                                        <input id="radarrPath" class="appInput form-control Radarr appParam" type="text" value="' . $_SESSION["path_radarr"] . '"/>
+		                                    </label>
+		                                </div>
+		                                <div class="form-group">
 		                                    <label for="radarrPort" class="appLabel">Radarr Port:
 		                                        <input id="radarrPort" class="appInput form-control Radarr appParam" type="text" value="' . $_SESSION["port_radarr"] . '"/>
 		                                    </label>
@@ -549,6 +564,11 @@ function makeBody($newToken = false) {
 		                                <div class="form-group">
 		                                    <label for="sickIP" class="appLabel">Sick IP/URL:
 		                                        <input id="sickIP" class="appInput form-control Sick appParam" type="text" value="' . $_SESSION["ip_sick"] . '"/>
+		                                    </label>
+		                                </div>
+		                                <div class="form-group">
+		                                    <label for="sickPath" class="appLabel">Sick Path (Optional):
+		                                        <input id="sickPath" class="appInput form-control Sick appParam" type="text" value="' . $_SESSION["path_sick"] . '"/>
 		                                    </label>
 		                                </div>
 		                                <div class="form-group">
@@ -589,6 +609,11 @@ function makeBody($newToken = false) {
 		                                <div class="form-group">
 		                                    <label for="sonarrIP" class="appLabel">Sonarr IP/URL:
 		                                        <input id="sonarrIP" class="appInput form-control Sonarr appParam" type="text" value="' . $_SESSION["ip_sonarr"] . '"/>
+		                                    </label>
+		                                </div>
+		                                <div class="form-group">
+		                                    <label for="sonarrPath" class="appLabel">Sonarr Path (Optional):
+		                                        <input id="sonarrPath" class="appInput form-control Sonarr appParam" type="text" value="' . $_SESSION["path_sonarr"] . '"/>
 		                                    </label>
 		                                </div>
 		                                <div class="form-group">

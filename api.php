@@ -165,6 +165,11 @@ function initialize() {
 			$_SESSION['useCast'] = $value;
 			scanDevices(true);
 		}
+		
+		if (preg_match("/Path/",$id)) {
+			if (substr($value,0,1) !== "/") $value = "/".$value;
+		}
+		
 		if (trim($id) === 'cleanLogs') {
 			$_SESSION['cleanLogs'] = $value;
 		}
@@ -3446,10 +3451,11 @@ function sickDownload($command,$season=false,$episode=false) {
 	write_log("Function fired");
 	$exists = $id = $response = $responseJSON = $resultID = $resultYear = $status = $results = $result = $show = false;
 	$sickURL = $_SESSION['sickIP'];
+	$sickPath = $_SESSION['sickPath'];
 	$sickApiKey = $_SESSION['auth_sick'];
 	$sickPort = $_SESSION['sickPort'];
 	$highest = 69;
-	$sick = new SickRage($sickURL.':'.$sickPort, $sickApiKey);
+	$sick = new SickRage($sickURL.':'.$sickPort.$sickPath, $sickApiKey);
 	$results = json_decode($sick->shows(), true)['data'];
 	foreach ($results as $show) {
 		if (cleanCommandString($show['show_name']) == cleanCommandString($command)) {
@@ -3532,9 +3538,10 @@ function sonarrDownload($command,$season=false,$episode=false) {
 	$exists = $score = $seriesId = $show = $wanted = false;
 	$response = ['status'=>'ERROR'];
 	$sonarrURL = $_SESSION['sonarrIP'];
+	$sonarrPath = $_SESSION['sonarrPath'];
 	$sonarrApiKey = $_SESSION['sonarrAuth'];
 	$sonarrPort = $_SESSION['sonarrPort'];
-	$sonarr = new Sonarr($sonarrURL.':'.$sonarrPort, $sonarrApiKey);
+	$sonarr = new Sonarr($sonarrURL.':'.$sonarrPort.$sonarrPath, $sonarrApiKey);
 	$rootArray = json_decode($sonarr->getRootFolder(),true);
 	$seriesArray = json_decode($sonarr->getSeries(),true);
 	$root = $rootArray[0]['path'];
@@ -3753,13 +3760,14 @@ function couchDownload($command) {
 	$couchURL = $_SESSION['couchIP'];
 	$couchApikey = $_SESSION['couchAuth'];
 	$couchPort = $_SESSION['couchPort'];
+	$couchPath = $_SESSION['couchPath'];
 	$response = array();
 	$response['initialCommand'] = $command;
 	$response['parsedCommand'] = 'fetch the movie ' .$command;
 
 	// Send our initial request to search the movie
 
-	$url = $couchURL . ":" . $couchPort . "/api/" . $couchApikey . "/movie.search/?q=" . urlencode($command);
+	$url = $couchURL . ":" . $couchPort . $couchPath . "/api/" . $couchApikey . "/movie.search/?q=" . urlencode($command);
 	write_log("Sending request to " . $url);
 	$result = curlGet($url);
 
@@ -3786,7 +3794,7 @@ function couchDownload($command) {
 		$resultObject['summary'] = $plot;
 		$resultObject['subtitle'] = $subtitle;
 		$resultObject['type'] = 'movie';
-		$url2 = $couchURL . ":" . $couchPort . "/api/" . $couchApikey . "/movie.add/?identifier=" . $imdbID . "&title=" . urlencode($command).($_SESSION['couchProfile'] ? '&profile_id='.$_SESSION['couchProfile'] : '');
+		$url2 = $couchURL . ":" . $couchPort . $couchPath . "/api/" . $couchApikey . "/movie.add/?identifier=" . $imdbID . "&title=" . urlencode($command).($_SESSION['couchProfile'] ? '&profile_id='.$_SESSION['couchProfile'] : '');
 		write_log("Sending add request to: " . $url2);
 		curlGet($url2);
 		$response['status'] = 'SUCCESS: Media added successfully.';
@@ -3803,9 +3811,10 @@ function radarrDownload($command) {
 	$exists = $score = $tmdbId = $movie = $wanted = false;
 	$response = ['status'=>'ERROR'];
 	$radarrURL = $_SESSION['radarrIP'];
+	$radarrPath = $_SESSION['raddarPath'];
 	$radarrApiKey = $_SESSION['radarrAuth'];
 	$radarrPort = $_SESSION['radarrPort'];
-	$radarr = new Radarr($radarrURL.':'.$radarrPort, $radarrApiKey);
+	$radarr = new Radarr($radarrURL.':'.$radarrPort.$radarrPath, $radarrApiKey);
 	$rootArray = json_decode($radarr->getRootFolder(),true);
 	$movieCheck = json_decode($radarr->getMoviesLookup($command),true);
 	$movieArray = json_decode($radarr->getMovies(),true);
@@ -3865,9 +3874,10 @@ function radarrDownload($command) {
 function radarrDownload2($command) {
 	$response = false;
 	$radarrURL = $_SESSION['radarrIP'];
+	$radarrPath = $_SESSION['radarrPath'];
 	$radarrApiKey = $_SESSION['radarrAuth'];
 	$radarrPort = $_SESSION['radarrPort'];
-	$baseURL = $radarrURL.':'.$radarrPort.'/api';
+	$baseURL = $radarrURL.':'.$radarrPort.$radarrPath.'/api';
 
 	$searchString = '/movies/lookup?term='.urlencode($command);
 	$authString = '&apikey='.$radarrApiKey;
@@ -3925,8 +3935,8 @@ function radarrDownload2($command) {
 					$resultObject['year'] = $resultJSON['year'];
 					$resultObject['summary'] = $resultJSON['overview'];
 					$resultObject['type'] = 'movie';
-					$artUrl = $radarrURL.':'.$radarrPort.'/api/MediaCover/'. $movie['id'] . '/banner.jpg?apikey='.$radarrApiKey;
-					$thumbUrl = $radarrURL.':'.$radarrPort.'/api/MediaCover/'. $movie['id'] . '/poster.jpg?apikey='.$radarrApiKey;
+					$artUrl = $baseURL.'/MediaCover/'. $movie['id'] . '/banner.jpg?apikey='.$radarrApiKey;
+					$thumbUrl = $baseURL.'/MediaCover/'. $movie['id'] . '/poster.jpg?apikey='.$radarrApiKey;
 					write_log("Art URL Should be ".$artUrl);
 					$resultObject['art'] = cacheImage($artUrl);
 					$resultObject['thumb'] = $thumbUrl;
@@ -3951,7 +3961,7 @@ function radarrDownload2($command) {
 			if ($responseJSON) {
 				$response['status'] = 'SUCCESS: Media added to searcher.';
 				$response['mediaResult']['@attributes']['url'] = $putURL;
-				$artUrl = $radarrURL.':'.$radarrPort.'/api/MediaCover/'. $responseJSON['id'] . '/banner.jpg?apikey='.$radarrApiKey;
+				$artUrl = $baseURL.'/MediaCover/'. $responseJSON['id'] . '/banner.jpg?apikey='.$radarrApiKey;
 				write_log("Art URL Should be ".$artUrl);
 				$responseJSON['art'] = cacheImage($artUrl);
 				$responseJSON['type'] = 'movie';
@@ -4055,10 +4065,11 @@ function testConnection($serviceName) {
 
 		case "CouchPotato":
 			$couchURL = $_SESSION['couchIP'];
+			$couchPath = $_SESSION['couchPath'];
 			$couchApikey = $_SESSION['couchAuth'];
 			$couchPort = $_SESSION['couchPort'];
 			if (($couchURL) && ($couchApikey) && ($couchPort)) {
-				$url = $couchURL . ":" . $couchPort . "/api/" . $couchApikey . "/profile.list";
+				$url = $couchURL . ":" . $couchPort . $couchPath . "/api/" . $couchApikey . "/profile.list";
 				$result = curlGet($url);
 				if ($result) {
 					$resultJSON = json_decode($result,true);
@@ -4083,10 +4094,11 @@ function testConnection($serviceName) {
 
 		case "Sonarr":
 			$sonarrURL = $_SESSION['sonarrIP'];
+			$sonarrPath = $_SESSION['sonarrPath'];
 			$sonarrApikey = $_SESSION['sonarrAuth'];
 			$sonarrPort = $_SESSION['sonarrPort'];
 			if (($sonarrURL) && ($sonarrApikey) && ($sonarrPort)) {
-				$url = $sonarrURL . ":" . $sonarrPort . "/api/profile?apikey=".$sonarrApikey;
+				$url = $sonarrURL . ":" . $sonarrPort . $sonarrPath . "/api/profile?apikey=".$sonarrApikey;
 				$result = curlGet($url);
 				if ($result) {
 					write_log("Result retrieved.");
@@ -4113,10 +4125,11 @@ function testConnection($serviceName) {
 
 		case "Radarr":
 			$radarrURL = $_SESSION['radarrIP'];
+			$radarrPath = $_SESSION['radarrPath'];
 			$radarrApikey = $_SESSION['radarrAuth'];
 			$radarrPort = $_SESSION['radarrPort'];
 			if (($radarrURL) && ($radarrApikey) && ($radarrPort)) {
-				$url = $radarrURL . ":" . $radarrPort . "/api/profile?apikey=".$radarrApikey;
+				$url = $radarrURL . ":" . $radarrPort . $radarrPath . "/api/profile?apikey=".$radarrApikey;
 				write_log("Request URL: ".$url);
 				$result = curlGet($url);
 				if ($result) {
@@ -4145,10 +4158,11 @@ function testConnection($serviceName) {
 
 		case "Sick":
 			$sickURL = $_SESSION['sickIP'];
+			$sickPath = $_SESSION['sickPath'];
 			$sickApiKey = $_SESSION['auth_sick'];
 			$sickPort = $_SESSION['sickPort'];
 			if (($sickURL) && ($sickApiKey) && ($sickPort)) {
-				$sick = new SickRage($sickURL.':'.$sickPort, $sickApiKey);
+				$sick = new SickRage($sickURL.':'.$sickPort.$sickPath, $sickApiKey);
 				try {
 					$result = $sick->sbGetDefaults();
 				} catch (\Kryptonit3\SickRage\Exceptions\InvalidException $e) {
