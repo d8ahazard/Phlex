@@ -137,7 +137,7 @@ If sockets are enabled and you STILL can't see all of your cast devices, I would
 
 Log into Phlex with your Plex.tv username and password.
 Click on the gear icon to open settings.
-In settings, under the general tab, make sure you fill in the "Public Address" box with the FULL address of your Phlex server.  Typically, you will just need to append /Phlex to the directory path, and a port if you changed it to something other than 80.
+In settings, under the Phlex tab, make sure you fill in the "Public Address" box with the FULL address of your Phlex server.  Typically, you will just need to append /Phlex to the directory path, and a port if you changed it to something other than 80.
 
 ### For example
 
