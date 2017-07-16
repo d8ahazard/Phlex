@@ -155,7 +155,7 @@ function initialize() {
 			$value = addScheme($value);
 		}
 		if (preg_match("/Path/",$id)) {
-			if (substr($value,0,1) != "/") $value = "/".$value;
+			if ((substr($value,0,1) != "/") && (trim($value) !== "")) $value = "/".$value;
 		};
 
 		if (is_bool($value) === true) {
