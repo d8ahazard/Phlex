@@ -389,7 +389,7 @@ Below are all of the recognized trigger phrases for Google Assistant commands.
 
 1. Click the "then that" button.
 
-1. Search for "Maker".
+1. Search for "Webhooks".
 
 1. Pick "Make a web request", the only option.
 
