@@ -13,16 +13,15 @@ jQuery(document).ready(function($) {
 
     loginForm.submit(function(e) {
         e.preventDefault();
+        if ($('.snackbar').length !== 0) $('.snackbar').snackbar("hide");
         $.snackbar({content: "One moment...",timeout:0});
         $.post("api.php", loginForm.serialize(), function(data) {
             if (data !== 'ERROR') {
                 bodyWrap.html(data);
             } else {
-                $('.snackbar').snackbar("hide");
+                $('.snackbar').hide();
                 $.snackbar({content: "Invalid password."});
             }
         });
-
     });
-
 });

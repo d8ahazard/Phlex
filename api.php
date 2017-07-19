@@ -48,7 +48,7 @@ function initialize() {
 		}
 		die();
 	}
-	write_log('Session Started',"INFO");
+	write_log('Session Started',"DEBUG");
 
 	if (!(isset($_SESSION['counter']))) {
 		$_SESSION['counter'] = 0;
@@ -61,7 +61,7 @@ function initialize() {
 		$handle = fopen($file, "r");
 		//Read first line, but do nothing with it
 		fgets($handle);
-		$contents = '[';
+		$contents = '';
 		//now read the rest of the file line by line, and explode data
 		while (!feof($handle)) {
 			$contents .= fgets($handle);
@@ -90,7 +90,7 @@ function initialize() {
 		$result = array();
 		$result['status'] = testConnection($_GET['test']);
 		header('Content-Type: application/json');
-		echo JSON_ENCODE($result);
+		echo json_encode($result);
 		die();
 	}
 
@@ -102,7 +102,7 @@ function initialize() {
 	}
 
 	if (isset($_GET['card'])) {
-		echo JSON_ENCODE(popCommand($_GET['card']));
+		echo json_encode(popCommand($_GET['card']));
 		die();
 	}
 
@@ -284,7 +284,7 @@ function initialize() {
 			$queryOut['commandType'] = 'play';
 			$result = json_encode($queryOut);
 			header('Content-Type: application/json');
-			log_command($result);
+			logCommand($result);
 			echo $result;
 			die();
 		}
@@ -301,8 +301,10 @@ function initialize() {
 			$newCommand['timestamp'] = timeStamp();
 			$result = json_encode($newCommand);
 			header('Content-Type: application/json');
-			log_command($result);
-			echo $result;
+			if (! isset($_GET['noLog'])) {
+				logCommand($result);
+				echo $result;
+			}
 			die();
 		}
 	}
@@ -315,7 +317,7 @@ function initialize() {
 			$result = parseFetchCommand($command);
 			$result['commandType'] = 'fetch';
 			$result['timestamp'] = timeStamp();
-			log_command(json_encode($result));
+			logCommand(json_encode($result));
 			header('Content-Type: application/json');
 			echo json_encode($result);
 			die();
@@ -459,7 +461,7 @@ function sessionData() {
 		"Git Enabled"=>checkGit(),
 		"Auto-Update Enabled"=>$_SESSION['autoUpdate']
 		];
-	write_log("Session Variables: ".json_encode($data),"INFO");
+	write_log("Session Variables: ".json_encode($data));
 }
 
 
@@ -903,7 +905,7 @@ function parseApiCommand($request) {
 		$speech = ($_SESSION['hookCustomReply']!="" ? $_SESSION['hookCustomReply'] : "Congratulations, you've fired the custom webhook command!");
 		$queryOut['speech'] = $speech;
 		returnSpeech($speech,"yes",false,false);
-		log_command(json_encode($queryOut));
+		logCommand(json_encode($queryOut));
 		die();
 	}
 	if ($control) $control = strtolower($control);
@@ -1039,7 +1041,7 @@ function parseApiCommand($request) {
 		$queryOut['card'] = $card;
 		$queryOut['speech'] = $speech;
 		returnSpeech($speech,$contextName,$card,true,false);
-		log_command(json_encode($queryOut));
+		logCommand(json_encode($queryOut));
 		unset($_SESSION['deviceArray']);
 		die();
 	}
@@ -1074,7 +1076,7 @@ function parseApiCommand($request) {
 		}
 		returnSpeech($speech,$contextName,$card);
 		$queryOut['speech'] = $speech;
-		log_command(json_encode($queryOut));
+		logCommand(json_encode($queryOut));
 		die();
 
 	}
@@ -1115,7 +1117,7 @@ function parseApiCommand($request) {
 			$queryOut['parsedCommand'] = "Change ".$typeString." to " . $command . ".";
 			$queryOut['speech'] = $speech;
 			$queryOut['mediaStatus'] = "Not a media command.";
-			log_command(json_encode($queryOut));
+			logCommand(json_encode($queryOut));
 			unset($_SESSION['deviceArray']);
 			unset($_SESSION['type']);
 			die();
@@ -1151,7 +1153,7 @@ function parseApiCommand($request) {
 
 			}
 
-			$card = [["title"=>$title,"subtitle"=>$tagline,"formatted_text"=>$summary,'image'=>['url'=>$thumb]]];
+			$card = [["title"=>$title,"subtitle"=>$tagline,"formattedText"=>$summary,'image'=>['url'=>$thumb]]];
 			$queryOut['card'] = $card;
 		} else {
 			$speech = "It doesn't look like there's anything playing right now.";
@@ -1162,7 +1164,7 @@ function parseApiCommand($request) {
 		$queryOut['speech'] = $speech;
 		$queryOut['mediaStatus'] = "Success: Player status retrieved";
 		$queryOut['mediaResult'] = $status['mediaResult'];
-		log_command(json_encode($queryOut));
+		logCommand(json_encode($queryOut));
 		unset($_SESSION['deviceArray']);
 		die();
 	}
@@ -1192,7 +1194,7 @@ function parseApiCommand($request) {
 				$i++;
 			}
 
-			if (! $_SESSION['amazonRequest']) $speech .= " If you'd like to watch something, just say the name, otherwise, you can say 'cancel'.";
+			$speech .= " If you'd like to watch something, just say the name, otherwise, you can say 'cancel'.";
 
 			$_SESSION['mediaList'] = $array;
 			$queryOut['card'] = $cards;
@@ -1207,10 +1209,10 @@ function parseApiCommand($request) {
 
 
 		$contextName = 'promptfortitle';
-		returnSpeech($speech,$contextName,$cards,! $_SESSION['amazonRequest']);
+		returnSpeech($speech,$contextName,$cards,! true);
 		$queryOut['parsedCommand'] = "Return a list of ".$action.' '.(($action == 'recent') ? $type : 'items').'.';
 		$queryOut['speech'] = $speech;
-		log_command(json_encode($queryOut));
+		logCommand(json_encode($queryOut));
 		unset($_SESSION['deviceArray']);
 		die();
 	}
@@ -1233,7 +1235,7 @@ function parseApiCommand($request) {
 			}
 			if ($days == 'tomorrow') $speech = "Tomorrow, ";
 			if ($days == 'weekend') $speech = "This weekend, ";
-			if (preg_match("/day/",$days)) $speech = "On ".$days.", ";
+			if (preg_match("/day/",$days)) $speech = "On ".ucfirst($days).", ";
 			$mids = ['you have ','I see ','I found '];
 			$speech .= $mids[array_rand($mids)];
 			$names = [];
@@ -1265,7 +1267,7 @@ function parseApiCommand($request) {
 					}
 				}
 			} else $speech .= $names[0];
-			$tails = [' on the schedule.',' set to record',' coming up.'];
+			$tails = [' on the schedule.',' set to record.',' coming up.'];
 			$speech .= $tails[array_rand($tails)];
 		} else {
 			if ($days == 'now') {
@@ -1277,11 +1279,11 @@ function parseApiCommand($request) {
 			}
 			$errors = ["Sorry, it doesn't look like you have any scheduled recordings for that day.","I don't have anything on the list for ".$days.".","You don't have anything scheduled for ".$days."."];
 			$speech = $errors[array_rand($errors)];
-			$cards = false;
 		}
-		returnSpeech($speech,$contextName,$cards,false);
+		returnSpeech($speech,$contextName,array_unique($cards),false);
 		$queryOut['speech'] = $speech;
-		log_command(json_encode($queryOut));
+		$queryOut['card'] = array_unique($cards);
+		logCommand(json_encode($queryOut));
 		die();
 	}
 
@@ -1431,7 +1433,7 @@ function parseApiCommand($request) {
 				write_log("Final Media Result: ".json_encode($queryOut['mediaResult']));
 				if (! preg_match("/http/",$thumb)) $thumb = transcodeImage(($thumb));
 				$card = [["title"=>$title,"subtitle"=>$tagline,'image'=>['url'=>$thumb]]];
-				if ($summary) $card[0]['formatted_text'] = $summary;
+				if ($summary) $card[0]['formattedText'] = $summary;
 				returnSpeech($speech,$contextName,$card);
 				$playResult = playMedia($mediaResult[0]);
 				$exact = $mediaResult[0]['@attributes']['exact'];
@@ -1439,7 +1441,7 @@ function parseApiCommand($request) {
 				$queryOut['card'] = $card;
 				$queryOut['mediaStatus'] = "SUCCESS: ".($exact ? 'Exact' : 'Fuzzy' )." result found";
 				$queryOut['playResult'] = $playResult;
-				log_command(json_encode($queryOut));
+				logCommand(json_encode($queryOut));
 				unset($_SESSION['deviceArray']);
 				die();
 			}
@@ -1481,7 +1483,7 @@ function parseApiCommand($request) {
 				$queryOut['mediaStatus'] = 'SUCCESS: Multiple Results Found, prompting user for more information';
 				$queryOut['speech'] = $speech;
 				$queryOut['playResult'] = "Not a media command.";
-				log_command(json_encode($queryOut));
+				logCommand(json_encode($queryOut));
 				unset($_SESSION['deviceArray']);
 				die();
 			}
@@ -1499,7 +1501,7 @@ function parseApiCommand($request) {
 					$queryOut['parsedCommand'] = "Play a media item with the title of '".$command.".'";
 					$queryOut['mediaStatus'] = 'ERROR: No results found, prompting to download.';
 					$queryOut['speech'] = $speech;
-					log_command(json_encode($queryOut));
+					logCommand(json_encode($queryOut));
 					die();
 				}
 			}
@@ -1547,7 +1549,7 @@ function parseApiCommand($request) {
 		$queryOut['parsedCommand'] = 'Switch '.$action.'.';
 		$queryOut['mediaStatus'] = 'Not a media command.';
 		$queryOut['speech'] = $speech;
-		log_command(json_encode($queryOut));
+		logCommand(json_encode($queryOut));
 		die();
 
 	}
@@ -1602,12 +1604,12 @@ function parseApiCommand($request) {
 			} else {
 				$speech = "Okay, I've added " . $resultTitle . " (" . $resultYear . ") to the fetch list.";
 			}
-			$card = [["title" => $resultTitle . " (" . $resultYear . ")", "subtitle" => $resultSubtitle, "formatted_text" => $resultSummary, 'image' => ['url' => $resultImage]]];
+			$card = [["title" => $resultTitle . " (" . $resultYear . ")", "subtitle" => $resultSubtitle, "formattedText" => $resultSummary, 'image' => ['url' => $resultImage]]];
 			returnSpeech($speech, $contextName, $card);
 			$queryOut['mediaStatus'] = $result['status'];
 			$queryOut['card'] = $card;
 			$queryOut['speech'] = $speech;
-			log_command(json_encode($queryOut));
+			logCommand(json_encode($queryOut));
 			unset($_SESSION['deviceArray']);
 			die();
 		} else {
@@ -1618,7 +1620,7 @@ function parseApiCommand($request) {
 			returnSpeech($speech,$contextName);
 			$queryOut['mediaStatus'] = $result['status'];
 			$queryOut['speech'] = $speech;
-			log_command(json_encode($queryOut));
+			logCommand(json_encode($queryOut));
 			unset($_SESSION['deviceArray']);
 			die();
 		}
@@ -1677,7 +1679,7 @@ function parseApiCommand($request) {
 		$newCommand = array_merge($newCommand,$queryOut);
 		$newCommand['timestamp'] = timeStamp();
 		$result = json_encode($newCommand);
-		log_command($result);
+		logCommand($result);
 		unset($_SESSION['deviceArray']);
 		die();
 
@@ -1691,7 +1693,7 @@ function parseApiCommand($request) {
 	$queryOut['parsedCommand'] = 'Command not recognized.';
 	$queryOut['mediaStatus'] = 'ERROR: Command not recognized.';
 	$queryOut['speech'] = $speech;
-	log_command(json_encode($queryOut));
+	logCommand(json_encode($queryOut));
 	unset($_SESSION['deviceArray']);
 	die();
 
@@ -2390,8 +2392,12 @@ function fetchHubList($section,$type=null) {
 }
 
 function fetchMediaExtra($ratingKey,$returnAll=false) {
-	$extraURL = $_SESSION['plexServerUri'] . "/library/metadata/" . $ratingKey . "?X-Plex-Token=" . $_SESSION['plexServerToken'];
-	write_log("Extras URL is " . $extraURL);
+	$extraURL = $_SESSION['plexServerUri'] . "/library/metadata/" . $ratingKey . "?X-Plex-Token=".$_SESSION['plexServerToken'];
+	if (isset($_SESSION['pollPlayer'])) {
+		unset($_SESSION['pollPlayer']);
+		write_log("Extras URL is " . $extraURL);
+		$_SESSION['pollPlayer'] = true;
+	}
 	$extra = curlGet($extraURL);
 	if ($extra) {
 		$extra = new SimpleXMLElement($extra);
@@ -3056,8 +3062,7 @@ function playerStatus($wait=0) {
 	if ($_SESSION['plexClientProduct'] == 'cast') {
 		return castStatus();
 	} else {
-		$url = $_SESSION['plexClientUri'].
-			'/player/timeline/poll?wait='.$wait.'&commandID='.$_SESSION['counter'];
+		$url = $_SESSION['plexClientUri'].'/player/timeline/poll?wait='.$wait.'&commandID='.$_SESSION['counter'];
 		$headers = clientHeaders();
 		$results = curlPost($url,false,false,$headers);
 		$status = array();
@@ -3209,16 +3214,18 @@ function castCommand($cmd) {
 
 // This should take our command objects and save them to the JSON file
 // read by the webUI.
-function log_command($resultObject) {
-	// Decode our incoming command, append a timestamp.
+function logCommand($resultObject) {
 	$newCommand = json_decode($resultObject,true);
+	write_log("WTF? ".json_encode($newCommand));
+	$newCommand['timecode'] = date_timestamp_get(new DateTime($newCommand['timestamp']));
+	if (isset($_GET['say'])) echo json_encode($newCommand);
 
 	// Check for our JSON file and make sure we can access it
 	$filename = "commands.php";
 	$handle = fopen($filename, "r");
 	//Read first line, but do nothing with it
 	fgets($handle);
-	$contents = '[';
+	$contents = '';
 	//now read the rest of the file line by line, and explode data
 	while (!feof($handle)) {
 		$contents .= fgets($handle);
@@ -3227,7 +3234,7 @@ function log_command($resultObject) {
 	// Read contents into an array
 	$jsondata = $contents;
 	$json_a = json_decode($jsondata);
-	if (empty($json_a)) $json_a = array();
+	if (empty($json_a)) $json_a = [];
 
 	// Append our newest command to the beginning
 	array_unshift($json_a,$newCommand);
@@ -3239,7 +3246,7 @@ function log_command($resultObject) {
 
 	// Triple-check we can write, write JSON to file
 	if (!$handle = fopen($filename, 'wa+')) die;
-	$cache_new = "'; <?php die('Access denied'); ?>";
+	$cache_new = "'; <?php die('Access denied'); ?>".PHP_EOL;
 	$cache_new .= json_encode($json_a, JSON_PRETTY_PRINT);
 	if (fwrite($handle, $cache_new) === FALSE) die;
 	fclose($handle);
@@ -3248,33 +3255,33 @@ function log_command($resultObject) {
 }
 
 function popCommand($id) {
-	write_log("Function fired.");
 	write_log("Popping ID of ".$id);
 	// Check for our JSON file and make sure we can access it
 	$filename = "commands.php";
 	$handle = fopen($filename, "r");
 	//Read first line, but do nothing with it
 	fgets($handle);
-	$contents = '[';
+	$contents = '';
 	//now read the rest of the file line by line, and explode data
 	while (!feof($handle)) {
 		$contents .= fgets($handle);
 	}
-
 	// Read contents into an array
 	$jsondata = $contents;
 	$json_a = json_decode($jsondata,true);
-	unset($json_a[$id]);
+	$json_b = [];
+	foreach($json_a as $command) {
+		if (strtotime($command['timestamp']) !== strtotime($id)) {
+			array_push($json_b,$command);
+		}
+	}
 	// Triple-check we can write, write JSON to file
 	if (!$handle = fopen($filename, 'wa+')) die;
-	$cache_new = "'; <?php die('Access denied'); ?>";
-	if (count($json_a)) {
-		$cache_new .= json_encode($json_a, JSON_PRETTY_PRINT);
-	}
+	$cache_new = "'; <?php die('Access denied'); ?>" . PHP_EOL . json_encode($json_b, JSON_PRETTY_PRINT);
 	if (fwrite($handle, $cache_new) === FALSE) return false;
 	fclose($handle);
-	if (! count($json_a)) $json_a = [];
-	return $json_a;
+	return $json_b;
+
 }
 
 // Write and save some data to the webUI for us to parse
@@ -3285,7 +3292,7 @@ function metaTags() {
 	$handle = fopen($filename, "r");
 	//Read first line, but do nothing with it
 	fgets($handle);
-	$contents = '[';
+	$contents = '';
 	//now read the rest of the file line by line, and explode data
 	while (!feof($handle)) {
 		$contents .= fgets($handle);
@@ -3303,34 +3310,18 @@ function metaTags() {
 		'<meta id="clientName" data="' . $_SESSION['plexClientName'] . '"/>' .
 		'<meta id="plexDvr" enable="' . $dvr . '" uri="' . $_SESSION['plexDvrUri'] . '"/>' .
 		'<meta id="rez" value="' . $_SESSION['plexDvrResolution'] . '"/>' .
-		'<meta id="couchpotato" enable="' . $_SESSION['couchEnabled'] . '" ip="' . ($_SESSION['couchIP'] ?? "http://localhost") . '" port="' . $_SESSION['couchPort'] . '" auth="' . $_SESSION['couchAuth'] . '"/>' .
-		'<meta id="sonarr" enable="' . $_SESSION['sonarrEnabled'] . '" ip="' . ($_SESSION['sonarrIP'] ?? "http://localhost") . '" port="' . ($_SESSION['sonarrPort'] ?? "8989") . '" auth="' . $_SESSION['sonarrAuth'] . '"/>' .
-		'<meta id="sick" enable="' . $_SESSION['sickEnabled'] . '" ip="' . $_SESSION['sickIP'] . '" port="' . $_SESSION['sickPort'] . '" auth="' . $_SESSION['auth_sick'] . '"/>' .
-		'<meta id="radarr" enable="' . $_SESSION['radarrEnabled'] . '" ip="' . ($_SESSION['radarrIP'] ?? "http://localhost") . '" port="' . $_SESSION['radarrPort'] . '" auth="' . $_SESSION['radarrAuth'] . '"/>' .
-		'<meta id="ombi" enable="' . $_SESSION['ombiEnabled'] . '" ip="' . ($_SESSION['sickIP'] ?? "http://localhost") . '" port="' . $_SESSION['ombiPort'] . '" auth="' . $_SESSION['auth_ombi'] . '"/>' .
+		'<meta id="couchpotato" enable=' . $_SESSION['couchEnabled'] . ' ip="' . ($_SESSION['couchIP'] ?? "http://localhost") . '" port="' . $_SESSION['couchPort'] . '" auth="' . $_SESSION['couchAuth'] . '"/>' .
+		'<meta id="sonarr" enable=' . $_SESSION['sonarrEnabled'] . ' ip="' . ($_SESSION['sonarrIP'] ?? "http://localhost") . '" port="' . ($_SESSION['sonarrPort'] ?? "8989") . '" auth="' . $_SESSION['sonarrAuth'] . '"/>' .
+		'<meta id="sick" enable=' . $_SESSION['sickEnabled'] . ' ip="' . $_SESSION['sickIP'] . '" port="' . $_SESSION['sickPort'] . '" auth="' . $_SESSION['auth_sick'] . '"/>' .
+		'<meta id="radarr" enable=' . $_SESSION['radarrEnabled'] . ' ip="' . ($_SESSION['radarrIP'] ?? "http://localhost") . '" port="' . $_SESSION['radarrPort'] . '" auth="' . $_SESSION['radarrAuth'] . '"/>' .
+		'<meta id="ombi" enable=' . $_SESSION['ombiEnabled'] . ' ip="' . ($_SESSION['sickIP'] ?? "http://localhost") . '" port="' . $_SESSION['ombiPort'] . '" auth="' . $_SESSION['auth_ombi'] . '"/>' .
 		'<meta id="logData" data="' . $commandData . '"/>';
 	return $tags;
 }
 
-function logData() {
-	$filename = "commands.php";
-	$handle = fopen($filename, "r");
-	//Read first line, but do nothing with it
-	fgets($handle);
-	$contents = '[';
-	//now read the rest of the file line by line, and explode data
-	while (!feof($handle)) {
-		$contents .= fgets($handle);
-	}
-	if ($contents == '[') $contents = '';
-	$commandData = urlencode($contents);
-	return '<meta id="logData" data="' . $commandData . '"/>';
-}
-
 function fetchAirings($days) {
 	$list = [];
-	$enableSick = ($_SESSION['sickEnabled']=="true");
-	$enableSonarr = ($_SESSION['sonarrEnabled']=="true");
+	$enableSonarr = $_SESSION['sonarrEnabled'];
 	$enableDvr = isset($_SESSION['plexDvrUri']);
 
 	switch ($days) {
@@ -3361,8 +3352,8 @@ function fetchAirings($days) {
 	$date2 = $endDate->format('Y-m-d');
 	$date1 = $startDate->format('Y-m-d');
 
-	if ($enableSick) {
-		$sick = new SickRage($_SESSION['sickIP'].':'.$_SESSION['sickPort'], $_SESSION['auth_sick']);
+	if ($_SESSION['sickEnabled']) {
+		$sick = new SickRage($_SESSION['sickIP'].':'.$_SESSION['sickPort'], $_SESSION['sickAuth']);
 		$scheduled = json_decode($sick->future('date','today|soon'),true);
 		if ($scheduled) {
 			$shows = $shows2 = [];
@@ -3377,8 +3368,19 @@ function fetchAirings($days) {
 				foreach($shows as $show) {
 					$airDate = DateTime::createFromFormat('Y-m-d', $show['airdate']);
 					if ($airDate >= $startDate && $airDate <= $endDate) {
-						$extra = fetchTVDBInfo($show['tvdbid']);
-						$item = ['title' => $show['show_name'] . " - ".$show['ep_name'], 'summary' => $show['ep_plot'], 'year' => explode('-', $show['airdate'])['0'], 'thumb' => $extra['thumb'], 'airdate' => $show['airdate'], 'type' =>'airing'];
+						$extra = fetchTMDBInfo(false,false,$show['tvdbid']);
+						$showName = $show['show_name'];
+						$year = "(".$extra['year'].")";
+						$showName = trim(str_replace($year,"",$showName));
+						$item = [
+							'title' => $showName . " - ".$show['ep_name'],
+							'summary' => $show['ep_plot'],
+							'year' => explode('-', $show['airdate'])['0'],
+							'thumb' => $extra['art'],
+							'airdate' => $show['airdate'],
+							'type' =>'airing'
+						];
+						write_log("Found a show on sick: ".json_encode($item),"INFO");
 						array_push($list, $item);
 					}
 				}
@@ -3391,12 +3393,14 @@ function fetchAirings($days) {
 		$scheduled = json_decode($sonarr->getCalendar($date1,$date2),true);
 		if ($scheduled) {
 			foreach ($scheduled as $show) {
-				$extra = fetchTVDBInfo($show['tvdbId']);
-				$item = ['title'=>$show['series']['title'],
+				$extra = fetchTMDBInfo(false,false,$show['series']['tvdbId']);
+				$item = [
+					'title'=>$show['series']['title'],
 					'summary'=>$show['overview'],
 					'year'=>$show['series']['year'],
-					'thumb'=>$extra['thumb'],
+					'thumb'=>$extra['art'],
 					'type'=>'airing'];
+				write_log("Found a show on Sonarr: ".json_encode($item),"INFO");
 				array_push($list,$item);
 			}
 		}
@@ -3404,7 +3408,6 @@ function fetchAirings($days) {
 
 	if ($enableDvr) {
 		$url = $_SESSION['plexDvrUri']."/media/subscriptions/scheduled?X-Plex-Token=".$_SESSION['plexDvrToken'];
-		write_log("DVR URL: ".protectURL($url));
 		$scheduledContainer = curlGet($url);
 		if ($scheduledContainer) {
 			$scheduledContainer = new SimpleXMLElement($scheduledContainer);
@@ -3412,12 +3415,20 @@ function fetchAirings($days) {
 			foreach($scheduled as $showItem) {
 				if ($showItem['@attributes']['status']==='scheduled') {
 					$show = $showItem['Video']['@attributes'];
-					$date = (isset($showItem['Video']['Media'][0]['@attributes']['beginsAt']) ? $showItem['Video']['Media'][0]['@attributes']['beginsAt'] : false);
-					if (! $date) $date = (isset($showItem['Video']['Media']['@attributes']['beginsAt']) ? $showItem['Video']['Media']['@attributes']['beginsAt'] : false);
+					$date = $showItem['Video']['Media'][0]['@attributes']['beginsAt'] ?? $showItem['Video']['Media']['@attributes']['beginsAt'] ?? false;
 					if ($date) {
 						$airDate = new DateTime("@$date");
 						if ($airDate >= $startDate && $airDate <= $endDate) {
-							$item = ['title' => $show['grandparentTitle']. " - ".$show['title'], 'summary' => $show['summary'], 'year' => $show['year'], 'thumb' => $show['grandparentThumb'], 'airdate' => $date, 'type' => 'airing'];
+							write_log("Found a show on Plex DVR: ".json_encode($show),"INFO");
+							$extra = fetchTMDBInfo($show['grandparentTitle'],false,false,'tv');
+							$item = [
+								'title' => $show['grandparentTitle']. " - ".$show['title'],
+								'summary' => $show['summary'],
+								'year' => $show['year'],
+								'thumb' => $extra['art'],
+								'airdate' => $date,
+								'type' => 'airing'
+							];
 							array_push($list, $item);
 						}
 					} else write_log("Unable to parse media date, tell your developer.","ERROR");
@@ -3425,8 +3436,7 @@ function fetchAirings($days) {
 			}
 		}
 	}
-	write_log("Final list: ".json_encode($list),"INFO");
-	return (count($list) ? $list : false);
+	return (count($list) ? array_unique($list) : false);
 }
 
 
@@ -3499,7 +3509,7 @@ function sickDownload($command,$season=false,$episode=false) {
 
 	if (($result) && isset($result['tvdbid'])) {
 		$id = $result['tvdbid'];
-		$show = fetchTVDBInfo($id);
+		$show = fetchTMDBInfo(false,false,$id);
 		$show['type'] = 'show';
 	} else {
 		$status = 'ERROR: No results.';
@@ -3643,7 +3653,7 @@ function sonarrDownload($command,$season=false,$episode=false) {
 	if (preg_match("/SUCCESS/",$response['status'])) {
 		if ($show) {
 			$seriesId = $show['tvdbId'];
-			$extras = fetchTVDBInfo($seriesId);
+			$extras = fetchTMDBInfo(false,false,$seriesId);
 			$mediaOut['thumb'] = $mediaOut['art'] = $extras['thumb'];
 			$mediaOut['year'] = $extras['year'];
 			$mediaOut['tagline'] = $extras['subtitle'];
@@ -3663,59 +3673,19 @@ function sonarrDownload($command,$season=false,$episode=false) {
 	return $response;
 }
 
-function fetchTVDBInfo($id) {
-	write_log("Function fired!");
-	$result = false;
-	$d = fetchDirectory(2);
-	$apikey = curlPost('https://api.thetvdb.com/login','{"apikey": '.$d.'}',true);
-	if ($apikey) $apikey = json_decode($apikey,true);
-	write_log("APIKEY: ".json_encode($apikey));
-	if (isset($apikey['token'])) {
-		$apikey = $apikey['token'];
-		$url = 'https://api.thetvdb.com/series/'.$id;
-		$show = curlGet($url,['Authorization: Bearer '.$apikey]);
-		$url = 'https://api.thetvdb.com/series/'.$id.'/images/query?keyType=fanart';
-		write_log("URL: ".$url);
-		write_log("APIKEY: ".$apikey);
-		$images = curlGet($url,['Authorization: Bearer '.$apikey],20);
-		if ($show) {
-			write_log("Found a show!");
-			$show = json_decode($show,true)['data'];
-			$result['title'] = $show['seriesName'];
-			$result['summary'] = $show['overview'];
-			$result['subtitle'] = $show['siteRating']. ' - '.$show['status'];
-			$result['year'] = explode('-',$show['firstAired'])[0];
-		}
-		if ($images) {
-			$score = 0;
-			$images = json_decode($images,true)['data'];
-			foreach($images as $image) {
-				if ($image['ratingInfo']['average'] >= $score) $result['thumb'] = 'http://thetvdb.com/banners/'.$image['fileName'];
-			}
-		}
-	}
-	write_log("Returning: ".json_encode($result));
-	return $result;
-}
-
-function fetchTMDBInfo($title=false,$tmdbId=false) {
-	write_log("Function fired");
-	$response = $type = false;
+function fetchTMDBInfo($title=false,$tmdbId=false,$tvdbId=false,$type=false) {
+	$response = false;
 	$url = 'https://api.themoviedb.org/3';
 	$d = fetchDirectory(1);
 	if ($title) {
-		$search = $url . '/search/multi?query='.urlencode($title).'&api_key='.$d.'&page=1';
-		write_log("URL: ".$search);
+		$search = $url . '/search/'.($type ? $type : 'multi').'?query='.urlencode($title).'&api_key='.$d.'&page=1';
 		$result = json_decode(curlGet($search),true);
-		write_log("Result1: ".json_encode($result));
 		$tmdbId = $result['results'][0]['id'] ?? false;
-		$type = $result['results'][0]['media_type'] ?? false;
+		$type = $type ?? $result['results'][0]['media_type'] ?? false;
 	}
 	if ($tmdbId) {
 		$url .='/'.($type ? $type : 'movie').'/'.$tmdbId.'?api_key='.$d;
-		write_log("URL: ".$url);
 		$result = json_decode(curlGet($url),true);
-		write_log("Result2: ".json_encode($result));
 		if (isset($result['overview'])) {
 			$year = explode("-",$result['release_date'])[0] ?? $result['first_air_date'];
 			$response = [
@@ -3723,8 +3693,25 @@ function fetchTMDBInfo($title=false,$tmdbId=false) {
 				'year'=>$year,
 				'summary'=>$result['overview'],
 				'tagline'=>$result['tagline'] ?? $year. " - ".$result['status'],
-				'art'=>'http://image.tmdb.org/t/p/original/'.$result['backdrop_path'],
-				'thumb'=>'http://image.tmdb.org/t/p/original/'.$result['poster_path']
+				'art'=>'https://image.tmdb.org/t/p/original/'.$result['backdrop_path'],
+				'thumb'=>'https://image.tmdb.org/t/p/original/'.$result['poster_path']
+			];
+			if ($type == 'tv') $type = 'show';
+			if ($type) $response['type'] = $type;
+		}
+	}
+	if ($tvdbId) {
+		$url.='/find/'.$tvdbId.'?api_key='.$d.'&external_source=tvdb_id';
+		$result = json_decode(curlGet($url),true)['tv_results'][0];
+		if (isset($result['overview'])) {
+			$year = explode("-",$result['first_ai   r_date'])[0];
+			$response = [
+				'title'=>$result['title'] ?? $result['name'],
+				'year'=>$year,
+				'summary'=>$result['overview'],
+				'tagline'=>$result['tagline'] ?? $year. " - ".$result['origin_country'][0],
+				'art'=>'https://image.tmdb.org/t/p/original/'.$result['backdrop_path'],
+				'thumb'=>'https://image.tmdb.org/t/p/original/'.$result['poster_path']
 			];
 			if ($type == 'tv') $type = 'show';
 			if ($type) $response['type'] = $type;
@@ -4160,7 +4147,7 @@ function testConnection($serviceName) {
 		case "Sick":
 			$sickURL = $_SESSION['sickIP'];
 			$sickPath = $_SESSION['sickPath'];
-			$sickApiKey = $_SESSION['auth_sick'];
+			$sickApiKey = $_SESSION['sickAuth'];
 			$sickPort = $_SESSION['sickPort'];
 			if (($sickURL) && ($sickApiKey) && ($sickPort)) {
 				$sick = new SickRage($sickURL.':'.$sickPort.$sickPath, $sickApiKey);
@@ -4206,6 +4193,7 @@ function testConnection($serviceName) {
 
 
 function returnSpeech($speech, $contextName, $cards=false, $waitForResponse=false, $suggestions=false) {
+	if (isset($_GET['say'])) return;
 	if ($_SESSION['amazonRequest']) {
 		returnAlexaSpeech($speech, $contextName, $cards, $waitForResponse, $suggestions);
 	} else {
@@ -4297,6 +4285,7 @@ function returnAlexaSpeech($speech, $contextName, $cards, $waitForResponse, $sug
 	write_log("Function fired!");
 	ob_start();
 	$endSession = ! $waitForResponse;
+	write_log("I ".($endSession ? "should ": "shouldn't ")."end the session.");
 	$response = [
 		"version"=>"1.0",
 		"response"=>[
@@ -4305,15 +4294,28 @@ function returnAlexaSpeech($speech, $contextName, $cards, $waitForResponse, $sug
 				"text"=>$speech
 			]
 		],
-		"shoudEndSession"=>$endSession
+		"reprompt"=>[
+			"outputSpeech"=>[
+				"type"=>"PlainText",
+				"text"=>"I'm sorry, I didn't catch that."
+			]
+		]
 	];
 	if ($cards) {
 		if (preg_match('/https/',$cards[0]['image']['url'])) {
-			$response['response']['card'] = ["type" => "Standard", "title" => $cards[0]['title'], "text" => $cards[0]['summary'] ?? $cards[0]['formattedText'] ?? $cards[0]['tagline'] ?? $cards[0]['description'] ?? $cards[0]['subtitle'] ?? '', "image" => ["smallImageUrl" => $cards[0]['image']['url'], "largeImageUrl" => $cards[0]['image']['url']]];
+			$response['response']['card'] = [
+				"type" => "Standard",
+				"title" => $cards[0]['title'],
+				"text" => $cards[0]['summary'] ?? $cards[0]['formattedText'] ?? $cards[0]['description'] ?? $cards[0]['tagline'] ??  $cards[0]['subtitle'] ?? '',
+				"image" => [
+					"smallImageUrl" => $cards[0]['image']['url'],
+					"largeImageUrl" => $cards[0]['image']['url']
+				]
+			];
 		}
 	}
 	$response['originalRequest'] = $_SESSION['lastRequest'];
-	write_log("Response: ".json_encode($response));
+	$response['shouldEndSession'] = $endSession;
 	ob_end_clean();
 	echo json_encode($response);
 	write_log("JSON out is ".json_encode($response));

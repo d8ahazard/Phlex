@@ -16,45 +16,41 @@ function makeBody($newToken = false) {
     $_SESSION['plexAvatar'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'plexAvatar', false);
     $_SESSION['plexEmail'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'plexEmail', false);
 
-    $_SESSION['enable_couch'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'couchEnabled', false);
-    $_SESSION['enable_ombi'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'ombiEnabled', false);
-    $_SESSION['enable_sonarr'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'sonarrEnabled', false);
-    $_SESSION['enable_sick'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'sickEnabled', false);
-    $_SESSION['enable_radarr'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'radarrEnabled', false);
-    $_SESSION['enable_apiai'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'apiEnabled', false);
-
+    $_SESSION['couchEnabled'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'couchEnabled', false);
+    $_SESSION['ombiEnabled'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'ombiEnabled', false);
+    $_SESSION['sonarrEnabled'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'sonarrEnabled', false);
+    $_SESSION['sickEnabled'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'sickEnabled', false);
+    $_SESSION['radarrEnabled'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'radarrEnabled', false);
+    
     $_SESSION['returnItems'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'returnItems', "6");
     $_SESSION['rescanTime'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'rescanTime', "6");
 
-    $_SESSION['ip_couch'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'couchIP', 'http://localhost');
-    $_SESSION['ip_ombi'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'ombiUrl', 'http://localhost');
-    $_SESSION['ip_sonarr'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'sonarrIP', 'http://localhost');
-    $_SESSION['ip_sick'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'sickIP', 'http://localhost');
-    $_SESSION['ip_radarr'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'radarrIP', 'http://localhost');
+    $_SESSION['couchIP'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'couchIP', 'http://localhost');
+    $_SESSION['ombiIP'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'ombiIP', 'http://localhost');
+    $_SESSION['sonarrIP'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'sonarrIP', 'http://localhost');
+    $_SESSION['sickIP'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'sickIP', 'http://localhost');
+    $_SESSION['radarrIP'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'radarrIP', 'http://localhost');
 
-    $_SESSION['path_couch'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'couchPath', '');
-    $_SESSION['path_radarr'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'radarrPath', '');
-    $_SESSION['path_sick'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'sickPath', '');
-    $_SESSION['path_sonarr'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'sonarrPath', '');
+    $_SESSION['couchPath'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'couchPath', '');
+    $_SESSION['radarrPath'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'radarrPath', '');
+    $_SESSION['sickPath'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'sickPath', '');
+    $_SESSION['sonarrPath'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'sonarrPath', '');
 
-    $_SESSION['port_couch'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'couchPort', '5050');
-    $_SESSION['port_ombi'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'ombiPort', '3579');
-    $_SESSION['port_sonarr'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'sonarrPort', '8989');
-    $_SESSION['port_sick'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'sickPort', '8083');
-    $_SESSION['port_radarr'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'radarrPort', '7878');
+    $_SESSION['couchPort'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'couchPort', '5050');
+    $_SESSION['ombiPort'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'ombiPort', '3579');
+    $_SESSION['sonarrPort'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'sonarrPort', '8989');
+    $_SESSION['sickPort'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'sickPort', '8083');
+    $_SESSION['radarrPort'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'radarrPort', '7878');
 
-    $_SESSION['auth_couch'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'couchAuth', '');
-	$_SESSION['auth_ombi'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'ombiAuth', '');
-    $_SESSION['auth_sonarr'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'sonarrAuth', '');
-    $_SESSION['auth_sick'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'sickAuth', '');
-    $_SESSION['auth_radarr'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'radarrAuth', '');
-
-    $_SESSION['apiai_client_token'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'apiClientToken', '');
-    $_SESSION['apiai_dev_token'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'apiDevToken', '');
-
-    $_SESSION['use_cast'] = $config->getBool('user-_-'.$_SESSION['plexUserName'], 'useCast', false);
+    $_SESSION['couchAuth'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'couchAuth', '');
+	$_SESSION['ombiAuth'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'ombiAuth', '');
+    $_SESSION['sonarrAuth'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'sonarrAuth', '');
+    $_SESSION['sickAuth'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'sickAuth', '');
+    $_SESSION['radarrAuth'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'radarrAuth', '');
+	
+    $_SESSION['useCast'] = $config->getBool('user-_-'.$_SESSION['plexUserName'], 'useCast', false);
 	$_SESSION['autoUpdate'] = $config->getBool('user-_-'.$_SESSION['plexUserName'], 'autoUpdate', false);
-	$_SESSION['clean_logs'] = $config->getBool('user-_-'.$_SESSION['plexUserName'], 'cleanLogs', true);
+	$_SESSION['cleanLogs'] = $config->getBool('user-_-'.$_SESSION['plexUserName'], 'cleanLogs', true);
     $_SESSION['darkTheme'] = $config->getBool('user-_-'.$_SESSION['plexUserName'], 'darkTheme', false);
 
     $_SESSION['dvr_resolution'] = $config->getBool('user-_-'.$_SESSION['plexUserName'], 'dvr_resolution', "0");
@@ -194,7 +190,7 @@ function makeBody($newToken = false) {
 		                            </div>
 		                            <div class="togglebutton">
 		                                <label for="cleanLogs" class="appLabel checkLabel">Obscure Sensitive Data in Logs
-		                                    <input id="cleanLogs" type="checkbox" class="appInput appToggle" ' . ($_SESSION["clean_logs"] ? "checked" : "") . '/>
+		                                    <input id="cleanLogs" type="checkbox" class="appInput appToggle" ' . ($_SESSION["cleanLogs"] ? "checked" : "") . '/>
 		                                </label>
 		                            </div>
 		                            <div class="togglebutton">
@@ -360,7 +356,7 @@ function makeBody($newToken = false) {
 				                                    <br><br>
 				                                    <div class="togglebutton">
 				                                        <label for="useCast" class="appLabel checkLabel">Use Cast Devices
-				                                            <input id="useCast" type="checkbox" class="appInput appToggle" ' . ($_SESSION["use_cast"] ? "checked" : "") . '/>
+				                                            <input id="useCast" type="checkbox" class="appInput appToggle" ' . ($_SESSION["useCast"] ? "checked" : "") . '/>
 				                                        </label>
 				                                    </div>
 				                                </div>
@@ -442,22 +438,22 @@ function makeBody($newToken = false) {
 		                            <div class="form-group" id="couchGroup">
 		                                <div class="form-group">
 		                                    <label for="couchIP" class="appLabel">Couchpotato IP/URL:
-		                                        <input id="couchIP" class="appInput form-control CouchPotato appParam" type="text" value="' . $_SESSION["ip_couch"] . '"/>
+		                                        <input id="couchIP" class="appInput form-control CouchPotato appParam" type="text" value="' . $_SESSION["couchIP"] . '"/>
 		                                    </label>
 		                                </div>
 		                                <div class="form-group">
 		                                    <label for="couchPath" class="appLabel">Couchpotato Path (Optional):
-		                                        <input id="couchPath" class="appInput form-control CouchPotato appParam" type="text" value="' . $_SESSION["path_couch"] . '"/>
+		                                        <input id="couchPath" class="appInput form-control CouchPotato appParam" type="text" value="' . $_SESSION["couchPath"] . '"/>
 		                                    </label>
 		                                </div>
 		                                <div class="form-group">
 		                                    <label for="couchPort" class="appLabel">Couchpotato Port:
-		                                        <input id="couchPort" class="appInput form-control CouchPotato appParam" type="text" value="' . $_SESSION["port_couch"] . '"/>
+		                                        <input id="couchPort" class="appInput form-control CouchPotato appParam" type="text" value="' . $_SESSION["couchPort"] . '"/>
 		                                    </label>
 		                                </div>
 		                                <div class="form-group">
 		                                    <label for="couchAuth" class="appLabel">Couchpotato Token:
-		                                        <input id="couchAuth" class="appInput form-control CouchPotato appParam" type="text" value="' . $_SESSION["auth_couch"] . '"/>
+		                                        <input id="couchAuth" class="appInput form-control CouchPotato appParam" type="text" value="' . $_SESSION["couchAuth"] . '"/>
 		                                    </label>
 		                                </div>
 		                                <div class="form-group">
@@ -486,17 +482,17 @@ function makeBody($newToken = false) {
 		                            <div class="form-group" id="ombiGroup">
 		                                <div class="form-group">
 		                                    <label for="ombiUrl" class="appLabel">Ombi IP/URL:
-		                                        <input id="ombiUrl" class="appInput form-control ombiUrl appParam" type="text"  value="' . $_SESSION["ip_ombi"] . '" />
+		                                        <input id="ombiUrl" class="appInput form-control ombiUrl appParam" type="text"  value="' . $_SESSION["ombiIP"] . '" />
 		                                    </label>
 		                                </div>
 		                                <div class="form-group">
 		                                    <label for="ombiPort" class="appLabel">Ombi Port:
-		                                        <input id="ombiPort" class="appInput form-control Ombi appParam" type="text" value="' . $_SESSION["port_ombi"] . '"/>
+		                                        <input id="ombiPort" class="appInput form-control Ombi appParam" type="text" value="' . $_SESSION["ombiPort"] . '"/>
 		                                    </label>
 		                                </div>
 		                                <div class="form-group">
 		                                    <label for="ombiAuth" class="appLabel">Ombi Token:
-		                                        <input id="ombiAuth" class="appInput form-control Ombi appParam" type="text" value="' . $_SESSION["auth_ombi"] . '"/>
+		                                        <input id="ombiAuth" class="appInput form-control Ombi appParam" type="text" value="' . $_SESSION["ombiAuth"] . '"/>
 		                                    </label>
 		                                </div>
 		                                <div class="text-center">
@@ -519,22 +515,22 @@ function makeBody($newToken = false) {
 		                            <div class="form-group" id="radarrGroup">
 		                                <div class="form-group">
 		                                    <label for="radarrIP" class="appLabel">Radarr IP/URL:
-		                                        <input id="radarrIP" class="appInput form-control Radarr appParam" type="text" value="' . $_SESSION["ip_radarr"] . '"/>
+		                                        <input id="radarrIP" class="appInput form-control Radarr appParam" type="text" value="' . $_SESSION["radarrIP"] . '"/>
 		                                    </label>
 		                                </div>
 		                                <div class="form-group">
 		                                    <label for="radarrPath" class="appLabel">Radarr Path (Optional):
-		                                        <input id="radarrPath" class="appInput form-control Radarr appParam" type="text" value="' . $_SESSION["path_radarr"] . '"/>
+		                                        <input id="radarrPath" class="appInput form-control Radarr appParam" type="text" value="' . $_SESSION["radarrPath"] . '"/>
 		                                    </label>
 		                                </div>
 		                                <div class="form-group">
 		                                    <label for="radarrPort" class="appLabel">Radarr Port:
-		                                        <input id="radarrPort" class="appInput form-control Radarr appParam" type="text" value="' . $_SESSION["port_radarr"] . '"/>
+		                                        <input id="radarrPort" class="appInput form-control Radarr appParam" type="text" value="' . $_SESSION["radarrPort"] . '"/>
 		                                    </label>
 		                                </div>
 		                                <div class="form-group">
 		                                    <label for="radarrAuth" class="appLabel">Radarr Token:
-		                                        <input id="radarrAuth" class="appInput form-control Radarr appParam" type="text" value="' . $_SESSION["auth_radarr"] . '"/>
+		                                        <input id="radarrAuth" class="appInput form-control Radarr appParam" type="text" value="' . $_SESSION["radarrAuth"] . '"/>
 		                                    </label>
 		                                </div>
 		                                <div class="form-group">
@@ -563,23 +559,23 @@ function makeBody($newToken = false) {
 		                            <div class="form-group" id="sickGroup">
 		                                <div class="form-group">
 		                                    <label for="sickIP" class="appLabel">Sick IP/URL:
-		                                        <input id="sickIP" class="appInput form-control Sick appParam" type="text" value="' . $_SESSION["ip_sick"] . '"/>
+		                                        <input id="sickIP" class="appInput form-control Sick appParam" type="text" value="' . $_SESSION["sickIP"] . '"/>
 		                                    </label>
 		                                </div>
 		                                <div class="form-group">
 		                                    <label for="sickPath" class="appLabel">Sick Path (Optional):
-		                                        <input id="sickPath" class="appInput form-control Sick appParam" type="text" value="' . $_SESSION["path_sick"] . '"/>
+		                                        <input id="sickPath" class="appInput form-control Sick appParam" type="text" value="' . $_SESSION["sickPath"] . '"/>
 		                                    </label>
 		                                </div>
 		                                <div class="form-group">
 		                                    <label for="sickPort" class="appLabel">Sick Port:
-		                                        <input id="sickPort" class="appInput form-control Sick appParam" type="text" value="' . $_SESSION["port_sick"] . '"/>
+		                                        <input id="sickPort" class="appInput form-control Sick appParam" type="text" value="' . $_SESSION["sickPort"] . '"/>
 		                                        <span class="bmd-help">8085/8081</span>
 		                                    </label>
 		                                </div>
 		                                <div class="form-group">
 		                                    <label for="sickAuth" class="appLabel">Sick Token:
-		                                        <input id="sickAuth" class="appInput form-control Sick appParam" type="text" value="' . $_SESSION["auth_sick"] . '"/>
+		                                        <input id="sickAuth" class="appInput form-control Sick appParam" type="text" value="' . $_SESSION["sickAuth"] . '"/>
 		                                    </label>
 		                                </div>
 		                                <div class="form-group">
@@ -608,22 +604,22 @@ function makeBody($newToken = false) {
 		                            <div class="form-group" id="sonarrGroup">
 		                                <div class="form-group">
 		                                    <label for="sonarrIP" class="appLabel">Sonarr IP/URL:
-		                                        <input id="sonarrIP" class="appInput form-control Sonarr appParam" type="text" value="' . $_SESSION["ip_sonarr"] . '"/>
+		                                        <input id="sonarrIP" class="appInput form-control Sonarr appParam" type="text" value="' . $_SESSION["sonarrIP"] . '"/>
 		                                    </label>
 		                                </div>
 		                                <div class="form-group">
 		                                    <label for="sonarrPath" class="appLabel">Sonarr Path (Optional):
-		                                        <input id="sonarrPath" class="appInput form-control Sonarr appParam" type="text" value="' . $_SESSION["path_sonarr"] . '"/>
+		                                        <input id="sonarrPath" class="appInput form-control Sonarr appParam" type="text" value="' . $_SESSION["sonarrPath"] . '"/>
 		                                    </label>
 		                                </div>
 		                                <div class="form-group">
 		                                    <label for="sonarrPort" class="appLabel">Sonarr Port:
-		                                        <input id="sonarrPort" class="appInput form-control Sonarr appParam" type="text" value="' . $_SESSION["port_sonarr"] . '"/>
+		                                        <input id="sonarrPort" class="appInput form-control Sonarr appParam" type="text" value="' . $_SESSION["sonarrPort"] . '"/>
 		                                    </label>
 		                                </div>
 		                                <div class="form-group">
 		                                    <label for="sonarrAuth" class="appLabel">Sonarr Token:
-		                                        <input id="sonarrAuth" class="appInput form-control Sonarr appParam" type="text" value="' . $_SESSION["auth_sonarr"] . '"/>
+		                                        <input id="sonarrAuth" class="appInput form-control Sonarr appParam" type="text" value="' . $_SESSION["sonarrAuth"] . '"/>
 		                                    </label>
 		                                </div>
 		                                <div class="form-group">
@@ -693,6 +689,15 @@ function makeBody($newToken = false) {
                 <h4><span id="mediaTitle"></span></h4>
                 <span id="mediaSummary"></span>
                 <div id="progressSlider" class="slider shor slider-material-orange"></div>
+                <div id="controlBar">
+                	<button class="controlBtn btn btn-default" id="skipPreviousBtn"><span class="material-icons">skip_previous</span></button>
+                	<button class="controlBtn btn btn-default" id="stepBackBtn"><span class="material-icons">fast_rewind</span></button>
+                	<button class="controlBtn btn btn-default" id="playBtn"><span class="material-icons">play_circle_filled</span></button>
+                	<button class="controlBtn btn btn-default" id="pauseBtn"><span class="material-icons">pause_circle_filled</span></button>
+                	<button class="controlBtn btn btn-default" id="stopBtn"><span class="material-icons">stop</span></button>
+                	<button class="controlBtn btn btn-default" id="skipNextBtn"><span class="material-icons">fast_forward</span></button>
+                	<button class="controlBtn btn btn-default" id="stepForwardBtn"><span class="material-icons">skip_next</span></button>
+				</div>
             </div>
         </div>
 

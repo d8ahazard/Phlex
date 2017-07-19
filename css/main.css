@@ -49,13 +49,22 @@ html {
 	transition: top 1.25s;
 }
 
+
 .cardClose {
-	float: right;
-	border: 0;
-	background: #FFF;
+	right: 20px;
+	top: 12px;
+	position: absolute;
+	color: #0f0f0f;
+	z-index:10;
+	background: transparent;
+	border: none;
+	width: 25px;
+}
+
+.close {
+	right: 20px;
+	top: 7px;
 	position: relative;
-	top: -8px;
-	right: -8px;
 }
 
 .login-box {
@@ -95,6 +104,31 @@ html {
 	background-image:url("https://unsplash.it/1920/1080?random");
 }
 
+#mediaSummary {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 2;
+	line-height: 23px;
+	max-height: 46px;
+}
+
+#controlBar {
+	text-align: center;
+	padding-top: 10px;
+}
+
+.controlBtn {
+	width: 25px;
+	margin: 0;
+	padding: 0;
+}
+
+.controlBtn > span {
+	color: #3277d8;
+}
+
 .bgLoaded {
 
 }
@@ -103,7 +137,6 @@ html {
 	padding-left: 34px;
 	padding-right: 34px;
 	color: #3277d8;
-
 }
 
 .btnAdd {
@@ -126,6 +159,11 @@ html {
 	}
 }
 
+.alert span {
+	display: inline-block;
+	word-wrap: break-word;
+	width: 100%;
+}
 
 .load-bar {
 	position: relative;
@@ -160,6 +198,18 @@ html {
 	from {left: 50%; width: 0;z-index:100;}
 	33.3333% {left: 0; width: 100%;z-index: 10;}
 	to {left: 0; width: 100%;}
+}
+
+@media only screen and (max-width: 340px) {
+	#mediaSummary {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		display: -webkit-box;
+		-webkit-box-orient: vertical;
+		-webkit-line-clamp: 1;
+		line-height: 23px;
+		max-height: 23px;
+	}
 }
 
 @media only screen and (max-width: 374px) {
@@ -235,12 +285,6 @@ p.card-subtitle {
 #logFrame {
 	width:100%;
 	height:100%;
-}
-
-.close {
-	right: 20px;
-	top: 7px;
-	position: relative;
 }
 
 
@@ -647,6 +691,7 @@ select{
 }
 
 .resultDiv, .bootstrap-dialog-message {
+	margin-bottom:25px;
     white-space: pre-wrap; /* css-3 */    
     white-space: -moz-pre-wrap; /* Mozilla, since 1999 */
     white-space: -pre-wrap; /* Opera 4-6 */    

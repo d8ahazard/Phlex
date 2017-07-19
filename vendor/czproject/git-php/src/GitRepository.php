@@ -402,14 +402,11 @@
 			$this->begin();
 			$commits = [];
 			if (!is_numeric($limit)) {
-				write_log("Searching origin for revision ".$limit);
 				$command = "git log $limit..$branch --oneline";
-				write_log("Command: ".$command);
 				exec($command,$shorts);
 			}
 			if (count($shorts)) $limit = count($shorts)-1;
 			if (is_numeric($limit)) {
-				write_log("Fetching $limit lines of log.");
 				$i = 0;
 				do {
 					$command = "git log $branch -1 --pretty=format:";

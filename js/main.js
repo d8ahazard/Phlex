@@ -1,10 +1,13 @@
 var action = "play";
-var appName, autoUpdate, token, newToken, deviceID, resultDuration, lastUpdate, logLevel, lastLog, itemJSON, apiToken, ombi, couch, sonarr, radarr, sick, publicIP, dvr, weatherClass, city, state, updateAvailable, weatherHtml;
+var appName, autoUpdate, bgs, bgWrap, token, newToken, deviceID, resultDuration, logLevel, lastLog, itemJSON, apiToken, ombi, couch, sonarr, radarr, sick, publicIP, dvr, weatherClass, city, state, updateAvailable, weatherHtml;
 var condition = null;
+var lastUpdate = [];
 
 jQuery(document).ready(function($) {
 
-    var loginBox = $('.login-box');
+    bgs = $('.bg');
+    bgWrap = $('#bgwrap');
+	var loginBox = $('.login-box');
     if (loginBox.length > 0) {
         console.log("Hiding login box.");
         loginBox.css({"top":"-1000px"});
@@ -13,9 +16,8 @@ jQuery(document).ready(function($) {
 
     }
 	logLevel = "ALL";
-    var bgDiv = $('.bg');
-    if (bgDiv.css('display') === 'none') {
-        bgDiv.fadeIn(1000);
+    if (bgs.css('display') === 'none') {
+        bgs.fadeIn(1000);
     }
     $('#mainwrap').css({"top": 0});
     setTimeout(
@@ -31,13 +33,13 @@ jQuery(document).ready(function($) {
 	token = $('#tokenData').attr('data');
 	deviceID = $('#deviceID').attr('data');
 	publicIP = $('#publicIP').attr('data');
-    newToken = $('#newToken').attr('enable');
-	sonarr = $('#sonarr').attr('enable');
-    sick = $('#sick').attr('enable');
-    couch = $('#couchpotato').attr('enable');
-    radarr = $('#radarr').attr('enable');
-    ombi = $('#ombi').attr('enable');
-    autoUpdate = $('#autoUpdate').attr('enable');
+    newToken = $('#newToken').attr('enable')==="true";
+	sonarr = $('#sonarr').attr('enable')==="true";
+    sick = $('#sick').attr('enable')==="true";
+    couch = $('#couchpotato').attr('enable')==="true";
+    radarr = $('#radarr').attr('enable')==="true";
+    ombi = $('#ombi').attr('enable')==="true";
+    autoUpdate = $('#autoUpdate').attr('enable')==="true";
     updateAvailable = $('#updateAvailable').attr('data');
     $.material.init();
 	var Logdata = $('#logData').attr('data');
@@ -90,7 +92,7 @@ jQuery(document).ready(function($) {
 				value = $(this).val();
 			}
 			if ($(this).id === 'publicAddress') {
-				resetApiUrl($(this).val());
+				value = resetApiUrl($(this).val());
 			}
 
 			apiToken = $('#apiTokenData').attr('data');
@@ -131,14 +133,13 @@ jQuery(document).ready(function($) {
     });
 
 	$('#logout').click(function(){
-        var bgDiv = $('.bg');
-		$('#results').css({"top":"-2000px","max-height":0,"overflow":"hidden"})
-
+        var bgs = $('.bg');
+		$('#results').css({"top":"-2000px","max-height":0,"overflow":"hidden"});
         setTimeout(
             function()
             {
                 $('#mainwrap').css({"top": "-200px"});
-                bgDiv.fadeOut(1000);
+                bgs.fadeOut(1000);
                 $('.castArt').fadeOut(1000);
             }, 500);
 
@@ -256,23 +257,26 @@ jQuery(document).ready(function($) {
 
 			})
 			.done(function(data) {
-				var dataArray = [data];
+                setTimeout(function(){
+                    $('.load-bar').hide();
+                },1500);
+				var dataArray = [JSON.parse(data)];
 				updateCommands(dataArray, true);
-			})
+			},dataType="json")
 			.always(function() {
 				setTimeout(function(){
 					$('.load-bar').hide();
-				},1000);
+				},1500);
 
-			},dataType="json");
+			});
 		}
 		
 	});
-
-	$('#client').click(function() {
+	var client = $('#client');
+	client.click(function() {
 		console.log("CLICKED CLIENT!");
-        var pos = $('#client').position();
-        var width = $('#client').outerWidth();
+        var pos = client.position();
+        var width = client.outerWidth();
 
         //show the menu directly over the placeholder
         $("#plexClient").css({
@@ -280,7 +284,7 @@ jQuery(document).ready(function($) {
             top: pos.bottom + "px",
             left: (pos.left - width) + "px"
         });
-	})
+	});
 
 
 	
@@ -494,14 +498,11 @@ jQuery(document).ready(function($) {
     });
 	
 	// Update our status every 10 seconds?  Should this be longer?  Shorter?  IDK...
-	var sliderWidth = $('.statusText').width();
-	$("#progressSlider").css('width',sliderWidth);
 	var IPString = $('#publicAddress').val() + "/api.php?";
 	if (IPString.substring(0,4) !== 'http') {
 		IPString = document.location.protocol + '//' + IPString;
 	}
 	var sayString = IPString + "say&apiToken="+apiToken+"&command={{TextField}}";
-	var apiString = publicIP + "/api.php";
 	$('#sayURL').val(sayString);
 
 	var clientList = $.get('api.php?clientList&apiToken=' + apiToken,function(clientData) {
@@ -520,45 +521,69 @@ jQuery(document).ready(function($) {
         setWeather();
     }, 10 * 1000 * 60);
 
+    $('.controlBtn').click(function() {
+    	var myId = $(this).attr("id");
+    	myId = myId.replace("Btn","");
+    	console.log("Firing " + myId + " command.");
+    	if (myId === "play") {
+            $('#playBtn').hide();
+            $('#pauseBtn').show();
+		}
+        if (myId === "pause") {
+            $('#playBtn').show();
+            $('#pauseBtn').hide();
+        }
+        $.get('api.php?control&noLog=true&command=' + myId + "&apiToken="+apiToken);
+	});
+    scaleElements();
 });
 
+$(window).resize(function() {
+	scaleElements();
+});
 
+function scaleElements() {
+    var winWidth = $(window).width();
+    console.log("Scaling: "+ winWidth);
+    var commandTest = $('#actionLabel');
+    if (winWidth <=340) commandTest.html("How can I help?");
+    if ((winWidth >=341) && (winWidth <=400)) commandTest.html("Hi, I'm Flex TV.  How can I help?");
+    if (winWidth >=401) commandTest.html("Hi, I'm Flex TV.  What can I do for you?");
+    var sliderWidth = $('.statusWrapper').width() - $('#statusImage').width()-60;
+    $("#progressSlider").css('width',sliderWidth);
+
+}
 
 function setBackground() {
-    console.log("Caching background image.");
-    var bgString = '<div class="bg"></div>';
-    bgs = $('.bg');
-    bgs.after(bgString);
-    bgs = $('.bg');
+    //Add your images, we'll set the path in the next step
+	console.log("Caching background image.");
+    //var bgWrap = document.getElementById('bgwrap');
+    $('#bgwrap').append("<div class='bg'></div>");
     var urls = "https://unsplash.it/1920/1080?random&v=" + (Math.floor(Math.random()*(1084)));
     $('<img />').attr('src',urls,).attr("onload","setBg(this.src)").addClass("imgHolder").appendTo('body').css('display','none');
-
 }
 
 function setBg(imgUrl) {
+	bgs = $('.bg');
+    var bgWrap = document.getElementById('bgwrap');
 	console.log("Image cached, loading.");
     bgs.last().css('background-image','url('+imgUrl+')');
     bgs.last().fadeIn(1000);
-
     setTimeout(
-        function()
-        {
+        function () {
             console.log("Removing first background");
-            bgs.first().fadeOut(1000).remove();
+            while (bgWrap.childNodes.length > 1) {
+				bgWrap.removeChild(bgWrap.firstChild);
+			}
             $('.imgHolder').remove();
-
         }, 1500);
 }
-
 
 function resetApiUrl(newUrl) {
 	if (newUrl.substring(0,4) !== 'http') {
 		newUrl = document.location.protocol + '://' + newUrl;
 	}
-	playString = newUrl + "play&apiToken="+apiToken+"&command={{TextField}}";
-	controlString = newUrl + "control&apiToken="+apiToken+"&command={{TextField}}";
-	fetchString = newUrl + "fetch&apiToken="+apiToken+"&command={{TextField}}";
-	
+	return newUrl;
 }
 
 function updateStatus() {
@@ -588,7 +613,19 @@ function updateStatus() {
 			$('.ddLabel').html(ddText);
 			data.playerStatus = JSON.parse(data.playerStatus);
 			var TitleString;
+			var playBtn = $('#playBtn');
+			var pauseBtn = $('#pauseBtn');
 			if ((data.playerStatus.status === 'playing') || (data.playerStatus.status === 'paused')) {
+				switch(data.playerStatus.status) {
+					case 'playing':
+						playBtn.hide();
+                        pauseBtn.show();
+						break;
+					case 'paused':
+						pauseBtn.hide();
+                        playBtn.show();
+						break;
+				}
                 var mr = data.playerStatus.mediaResult;
                 if (hasContent(mr)) {
 					var resultTitle = mr.title;
@@ -600,7 +637,6 @@ function updateStatus() {
 					if (resultSummary === "") resultSummary = mr.tagline;
 					var resultOffset = data.playerStatus.time;
 					resultDuration = mr.duration;
-					console.log("Time: "+ resultOffset + " Duration: " + resultDuration);
 					var progressSlider = document.getElementById('progressSlider');
                     TitleString = resultTitle;
 					if (resultType === "episode") TitleString = "S" + mr.parentIndex + "E"+mr.index + " - " + resultTitle;
@@ -608,7 +644,7 @@ function updateStatus() {
 						console.log("The title should be right, fucker.");
 						TitleString = mr.grandparentTitle + " - " + resultTitle;
                     }
-					
+					console.log("Width: " + resultOffset/resultDuration*100)
 					progressSlider.noUiSlider.set((resultOffset/resultDuration)*100);
 					if (thumbPath !== false) {
 						$('#statusImage').attr('src',thumbPath).show();
@@ -622,10 +658,8 @@ function updateStatus() {
 					if ((!(footer.is(":visible")))&& (!(footer.hasClass('reHide')))) {
 						footer.slideDown(1000);
 						footer.addClass("playing");
-						setTimeout( function(){
-							var sliderWidth = $('.statusWrapper').width() - $('#statusImage').width()-60;
-							$("#progressSlider").css('width',sliderWidth);
-						}  , 300 );
+                        var sliderWidth = $('.statusWrapper').width() - $('#statusImage').width()-60;
+                        $("#progressSlider").css('width',sliderWidth);
 					} 
 				}
 			} else {
@@ -643,34 +677,22 @@ function updateStatus() {
 
 }
 
-function msToTime(duration) {
-    var milliseconds = parseInt((duration%1000)/100)
-        , seconds = parseInt((duration/1000)%60)
-        , minutes = parseInt((duration/(1000*60))%60)
-        , hours = parseInt((duration/(1000*60*60))%24);
-
-    hours = (hours < 10) ? "0" + hours : hours;
-    minutes = (minutes < 10) ? "0" + minutes : minutes;
-    seconds = (seconds < 10) ? "0" + seconds : seconds;
-
-    return hours + ":" + minutes + ":" + seconds + "." + milliseconds;
-}
-
 function updateCommands(data,prepend) {
 	
-	if (JSON.stringify(lastUpdate) !== JSON.stringify(data)) {
-		lastUpdate = data;
-
-		if (!(prepend)) $('#resultsInner').html("");
+	if (JSON.stringify(lastUpdate) !== JSON.stringify(data) || prepend) {
+		if (! prepend) {
+			lastUpdate = data;
+            $('#resultsInner').html("");
+        }
 
         $.each(data, function(i, value) {
+        	if (value === []) return true;
             try {
-				var initialCommand = ucFirst(value.initialCommand);
+            	var initialCommand = ucFirst(value.initialCommand);
 				var timeStamp = ($.inArray('timeStamp',value) ? $.trim(value.timestamp) : '');
 				speech = (value.speech ? value.speech : "");
                 if ($(window).width() < 700) speech = speech.substring(0,100);
-                console.log("SPEECH: "+ speech);
-				var status = (value.mediaStatus ? value.mediaStatus : "");
+                var status = (value.mediaStatus ? value.mediaStatus : "");
 				itemJSON = value;
 				var JSONdiv = '<a href="javascript:void(0)" id="JSON'+i+'" class="JSONPop" data="'+encodeURIComponent(JSON.stringify(value,null,2))+'" title="Result JSON">{JSON}</a>';
 				var mediaDiv = false;
@@ -690,11 +712,12 @@ function updateCommands(data,prepend) {
                     '</ul><br>';
                 }
 
+				var cardClose = '<button id="CARDCLOSE'+i+'" class="cardClose"><span class="material-icons">close</span></button>';
 
 				var outLine =
-						"<div class='resultDiv card hiddenCard'>" +
+						"<div class='resultDiv card hiddenCard' id='"+timeStamp+"'>" + cardClose +
                         	mediaDiv +
-						"</div><br>";
+						"</div>";
 				
 				if (prepend) {
 					$('#resultsInner').prepend(outLine);
@@ -727,25 +750,22 @@ function updateCommands(data,prepend) {
 					});
 			});
 
-            $('.cardClose').click(function() {
-            	$(this).open();
-                var id = $(this).attr("id");
-                console.log("We need to remove card with id of " + id);
-                $(this).parent().parent().slideUp();
-                $.get('api.php?apiToken=' + apiToken + '&card='+id, function(data) {
-                    if (data !== "") {
-                        dataArray = [data];
-                        updateCommands(dataArray,true);
-                    }
-                    if (data === "[]") $('#resultsInner').html("");
-
+            $('#CARDCLOSE'+i).click(function() {
+            	var id = $(this).attr("id").replace("CARDCLOSE","");
+            	var stamp = $(this).parent().attr("id");
+				console.log("Removing card with id of " + id);
+                $(this).parent().slideUp(750, function() {
+                    $(this).remove();
+                });
+                $.get('api.php?apiToken=' + apiToken + '&card='+stamp, function(data) {
+					lastUpdate = data;
                 });
             })
             Swiped.init({
                 query: '.resultDiv',
                 left: 1000,
                 onOpen: function() {
-                    this.destroy(true)
+                	$('#CARDCLOSE'+i).click();
                 }
             });
 		})
@@ -793,10 +813,10 @@ function formatLog(logJSON) {
                 }
                 htmlOut = htmlOut + '<div class="' + alertClass + '">' +
                     '<span class="badge badge-default"><b>' + line.time +
-                    '</span></b> - ' +
-                    '<span class="badge badge-primary">' + line.caller +
-                    '</span><br>' + line.message + logHTML +
-                    '</div>';
+                    '</b> - ' +
+                    line.caller +
+                    '</span><br><span>' + line.message + logHTML +
+                    '</span></div>';
             }
         });
         if (htmlOut == '') htmlOut = '<div class="alert alert-info">' +
@@ -865,7 +885,7 @@ function buildCards(value,i) {
     	var card = cardArray[0];
         // Determine if we should be using a Plex path, or a full path
         subtitle = ((card.hasOwnProperty('subtitle') && (card.subtitle != null)) ? '<h6 class="card-subtitle text-muted cardtagline">' + card.subtitle + '</h6>' : '');
-        formatted_text = ((card.hasOwnProperty('formatted_text')) ? '<br><p class="card-text cardsummary">' + card.formatted_text + '</p>' : '');
+        formatted_text = ((card.hasOwnProperty('formattedText')) ? '<br><p class="card-text cardsummary">' + card.formattedText + '</p>' : ((card.hasOwnProperty('description')) ? '<br><p class="card-text cardsummary">' + card.description + '</p>' : ''));
         cardDiv = '' +
             '<img src="' + card.image.url + '" onerror="imgError(this);" class="card-img-top"/>' +
             '<div class="card-img-overlay card-inverse">' +
@@ -929,11 +949,12 @@ function hasContent(obj) {
 }
 
 function ucFirst(string) {
-	if (string != '') {
-        return string.charAt(0).toUpperCase() + string.slice(1);
-    } else {
-		return '';
-	}
+	if (string !== undefined && string !== null){
+		if (string.length !== 0) {
+			return string.charAt(0).toUpperCase() + string.slice(1);
+		}
+    }
+    return '';
 }
 
 function notify() {

@@ -72,9 +72,7 @@ require_once dirname(__FILE__) . '/vendor/autoload.php';
 	
 	// Generate a timestamp and return it
 	function timeStamp() {
-		$php_timestamp = time();
-		$stamp = date(" h:i:s A - m/d/Y", $php_timestamp);
-		return $stamp;
+		return date(DATE_RFC2822,time());
 	}
 	
 	// Recursively filter empty keys from an array
@@ -304,15 +302,14 @@ require_once dirname(__FILE__) . '/vendor/autoload.php';
 	// Write log information to $filename
 	// Auto rotates files larger than 2MB
 	function write_log($text,$level=null) {
-		//if (isset($_GET['pollPlayer'])) return;
-		$text = preg_replace( '/[^[:print:]]/', '',$text);
 		if ($level === null) {
 			$level = 'DEBUG';
 		}
+		if (isset($_GET['pollPlayer'])) return;
 		$caller = getCaller();
 		$filename = file_build_path(dirname(__FILE__),'logs',"Phlex.log");
 		//$filename = 'Phlex.log';
-		$text = '['.date(DATE_RFC2822) . '] ['.$level.'] ['.$caller . "] - " . $text . PHP_EOL;
+		$text = '['.date(DATE_RFC2822) . '] ['.$level.'] ['.$caller . "] - " . trim($text) . PHP_EOL;
 		if (!file_exists($filename)) { touch($filename); chmod($filename, 0666); }
 		if (filesize($filename) > 2*1024*1024) {
 			$filename2 = "$filename.old";
@@ -601,7 +598,7 @@ function checkSetDeviceID() {
 
 function fetchDirectory($id=1) {
     if ($id==1) return base64_decode("Y2QyMjlmNTU5NWZjYWEyNzI3MGI0NDU4OTIyOGE0OTI=");
-	if ($id==2) return base64_decode("MTlEOUExODFEQTcyMkM4Nw==");
+	if ($id==2) return base64_decode("Njk0Nzg2RjBBMkVCNEUwOQ==");
 	if ($id==3) return base64_decode("Y2NiODRhNTU3MDljNGYxOWFmMzlmN2RiZjZiNGQ1Mjg=");
 	return false;
 }
@@ -724,7 +721,7 @@ function getContent($file,$url,$hours = 24,$fn = '',$fn_args = '') {
 
 
 function toBool($var) {
-	if (!is_string($var)) $var;
+	if (!is_string($var)) return $var;
 	switch (strtolower($var)) {
 		case 'true':
 			return true;
@@ -766,10 +763,6 @@ function checkUpdates($install=false) {
 				}
 
 				if (count($result)) {
-					if (isset($_SESSION['pollPlayer'])) {
-						$pp = true;
-						unset($_SESSION['pollPlayer']);
-					}
 					$log = $result;
 					$_SESSION['updateAvailable'] = count($log);
 					$html = parseLog($log);
@@ -778,9 +771,14 @@ function checkUpdates($install=false) {
 								Missing Update(s):'.$html.
 							'</div>';
 					if (($install) || ($autoUpdate)) {
+						if (isset($_SESSION['pollPlayer'])) {
+							$pp = true;
+							unset($_SESSION['pollPlayer']);
+						}
 						write_log("Updating from repository - ".($install ? 'Manually triggered.' : 'Automatically triggered.'));
 						$result = $repo->pull('origin');
 						write_log("Pull result: ".$result);
+						if ($pp) $_SESSION['pollPlayer'] = true;
 						logUpdate($log);
 
 					}
@@ -806,8 +804,6 @@ function checkUpdates($install=false) {
 	} else {
 		write_log("Doesn't appear to be a cloned repository or git not available.","INFO");
 	}
-	if ($pp) $_SESSION['pollPlayer'] = true;
-
 	return $html;
 
 }
