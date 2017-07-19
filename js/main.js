@@ -44,7 +44,13 @@ jQuery(document).ready(function($) {
 	var Logdata = $('#logData').attr('data');
 	if (Logdata !== "") {
 		Logdata = decodeURIComponent(Logdata.replace(/\+/g, '%20'));
-		updateCommands(JSON.parse(Logdata),false);
+		var logArray = [];
+		try {
+            logArray = JSON.parse(Logdata);
+        } catch (e) {
+			console.log("Error parsing JSON.");
+		}
+		updateCommands(logArray,false);
 	}
 	var plexClientURI = $('#clientURI').attr('data');
 	$(".select").dropdown({"optionClass": "withripple"});
