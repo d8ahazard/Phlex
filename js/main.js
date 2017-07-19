@@ -4,14 +4,13 @@ var condition = null;
 var lastUpdate = [];
 
 jQuery(document).ready(function($) {
-
+    $('.snackbar').hide();
     bgs = $('.bg');
     bgWrap = $('#bgwrap');
 	var loginBox = $('.login-box');
     if (loginBox.length > 0) {
         console.log("Hiding login box.");
         loginBox.css({"top":"-1000px"});
-        $('.snackbar').snackbar("hide");
         $.snackbar({content: "Login successful!"});
 
     }
