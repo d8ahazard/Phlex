@@ -25,7 +25,7 @@ class mDNS {
 			$errormsg = socket_strerror($errorcode);
 			write_log("Couldn't create socket: [$errorcode] $errormsg","ERROR");
 		}
-		if ((PHP_OS === "Darwin") || (PHP_OS === "FreeBSD")) {
+		if (PHP_OS === "Darwin" || PHP_OS === "FreeBSD") {
 			socket_set_option($this->mdnssocket, SOL_SOCKET, SO_REUSEPORT, 1);
 		} else {
 			socket_set_option($this->mdnssocket,SOL_SOCKET,SO_REUSEADDR, 1);
@@ -89,6 +89,12 @@ class mDNS {
 		}
 		$p = new DNSPacket();
 		$p->load($bytes);
+		return $p;
+	}
+	
+	public function load($data) {
+		$p = new DNSPacket();
+		$p->load($data);
 		return $p;
 	}
 	

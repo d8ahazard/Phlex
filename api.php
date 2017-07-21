@@ -928,6 +928,7 @@ function parseApiCommand($request) {
 	$queryOut['initialCommand'] = $rawspeech;
 	$queryOut['timestamp'] = timeStamp();
 	write_log("Action is currently ".$action);
+
 	$contexts=$result["contexts"];
 	$inputs = ['originalRequest']['data']['inputs'];
 	foreach ($inputs as $input) {
@@ -1042,7 +1043,6 @@ function parseApiCommand($request) {
 		$queryOut['speech'] = $speech;
 		returnSpeech($speech,$contextName,$card,true,false);
 		logCommand(json_encode($queryOut));
-		unset($_SESSION['deviceArray']);
 		die();
 	}
 
@@ -1082,7 +1082,7 @@ function parseApiCommand($request) {
 	}
 
 	if (($action == 'changeDevice') && ($command)) {
-		$list = $_SESSION['deviceArray'];
+		$list = $_SESSION['deviceList'];
 		$type = $_SESSION['type'];
 		if (isset($list) && isset($type)) {
 			$typeString = (($type == 'player') ? 'client' : 'server');
@@ -1118,7 +1118,7 @@ function parseApiCommand($request) {
 			$queryOut['speech'] = $speech;
 			$queryOut['mediaStatus'] = "Not a media command.";
 			logCommand(json_encode($queryOut));
-			unset($_SESSION['deviceArray']);
+			
 			unset($_SESSION['type']);
 			die();
 		} else write_log("No list or type to pick from.","ERROR");
@@ -1165,7 +1165,6 @@ function parseApiCommand($request) {
 		$queryOut['mediaStatus'] = "Success: Player status retrieved";
 		$queryOut['mediaResult'] = $status['mediaResult'];
 		logCommand(json_encode($queryOut));
-		unset($_SESSION['deviceArray']);
 		die();
 	}
 
@@ -1213,7 +1212,6 @@ function parseApiCommand($request) {
 		$queryOut['parsedCommand'] = "Return a list of ".$action.' '.(($action == 'recent') ? $type : 'items').'.';
 		$queryOut['speech'] = $speech;
 		logCommand(json_encode($queryOut));
-		unset($_SESSION['deviceArray']);
 		die();
 	}
 
@@ -1397,6 +1395,12 @@ function parseApiCommand($request) {
 					case (strpos($titlelower, 'star wars') !== false):
 						$affirmative = "These are not the droids you're looking for.  ";
 						break;
+					case (strpos($titlelower, 'resident evil') !== false):
+						$affirmative = "T-minus 1 minute until infection.  ";
+						break;
+					case (strpos($titlelower, 'attack the block') !== false):
+						$affirmative = "Are you the Doctor? ";
+						break;
 					default:
 						$affirmative = false;
 						break;
@@ -1442,7 +1446,6 @@ function parseApiCommand($request) {
 				$queryOut['mediaStatus'] = "SUCCESS: ".($exact ? 'Exact' : 'Fuzzy' )." result found";
 				$queryOut['playResult'] = $playResult;
 				logCommand(json_encode($queryOut));
-				unset($_SESSION['deviceArray']);
 				die();
 			}
 
@@ -1477,14 +1480,12 @@ function parseApiCommand($request) {
 				$speech = $questions[array_rand($questions)]. $speechString;
 				$contextName = "promptfortitle";
 				$_SESSION['promptfortitle'] = true;
-				if (isset($_SESSION['mediaList'])) unset($_SESSION['mediaList']);
 				returnSpeech($speech,$contextName,$cards,true);
 				$queryOut['parsedCommand'] = 'Play a media item named '.$command.'. (Multiple results found)';
 				$queryOut['mediaStatus'] = 'SUCCESS: Multiple Results Found, prompting user for more information';
 				$queryOut['speech'] = $speech;
 				$queryOut['playResult'] = "Not a media command.";
 				logCommand(json_encode($queryOut));
-				unset($_SESSION['deviceArray']);
 				die();
 			}
 			if (! count($mediaResult)) {
@@ -1511,7 +1512,7 @@ function parseApiCommand($request) {
 
 	if (($action == 'player') || ($action == 'server')) {
 		$speechString = '';
-		unset($_SESSION['deviceArray']);
+		unset($_SESSION['deviceList']);
 		$type = (($action == 'player') ? 'clients' : 'servers');
 		$list = $_SESSION['list_plexdevices'] ?? scanDevices();
 		$list = $list[$type];
@@ -1520,7 +1521,7 @@ function parseApiCommand($request) {
 		$waitForResponse = false;
 		if (count($list) >=2) {
 			$suggestions = [];
-			$_SESSION['deviceArray'] = $list;
+			$_SESSION['deviceList'] = $list;
 			$_SESSION['type'] = $action;
 			$count = 0;
 			foreach($list as $device) {
@@ -1549,6 +1550,7 @@ function parseApiCommand($request) {
 		$queryOut['parsedCommand'] = 'Switch '.$action.'.';
 		$queryOut['mediaStatus'] = 'Not a media command.';
 		$queryOut['speech'] = $speech;
+		
 		logCommand(json_encode($queryOut));
 		die();
 
@@ -1576,7 +1578,7 @@ function parseApiCommand($request) {
 	if ($action == 'fetchAPI') {
 		$response = $request["result"]['parameters']["YesNo"];
 		if ($response == 'yes') {
-
+			write_log("Setting action to fetch.");
 			$action = 'fetch';
 		} else {
 			$speech = "Okay, let me know if you change your mind.";
@@ -1610,7 +1612,6 @@ function parseApiCommand($request) {
 			$queryOut['card'] = $card;
 			$queryOut['speech'] = $speech;
 			logCommand(json_encode($queryOut));
-			unset($_SESSION['deviceArray']);
 			die();
 		} else {
 			$errors = ["Unfortunately, I was not able to find anything with that title to download.",
@@ -1621,7 +1622,6 @@ function parseApiCommand($request) {
 			$queryOut['mediaStatus'] = $result['status'];
 			$queryOut['speech'] = $speech;
 			logCommand(json_encode($queryOut));
-			unset($_SESSION['deviceArray']);
 			die();
 		}
 	}
@@ -1680,7 +1680,6 @@ function parseApiCommand($request) {
 		$newCommand['timestamp'] = timeStamp();
 		$result = json_encode($newCommand);
 		logCommand($result);
-		unset($_SESSION['deviceArray']);
 		die();
 
 	}
@@ -1694,7 +1693,6 @@ function parseApiCommand($request) {
 	$queryOut['mediaStatus'] = 'ERROR: Command not recognized.';
 	$queryOut['speech'] = $speech;
 	logCommand(json_encode($queryOut));
-	unset($_SESSION['deviceArray']);
 	die();
 
 
