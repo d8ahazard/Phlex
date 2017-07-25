@@ -3933,6 +3933,7 @@ function radarrDownload2($command) {
 			write_log("Made it to the next CURL");
 			$content = json_encode($resultObject);
 			$curl = curl_init($putURL);
+			curl_setopt($curl, CURLOPT_TIMEOUT, 2);
 			curl_setopt($curl, CURLOPT_HEADER, false);
 			curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
 			curl_setopt ($curl, CURLOPT_CAINFO, dirname(__FILE__) . "/cert/cacert.pem");
@@ -3958,6 +3959,7 @@ function radarrDownload2($command) {
 				$fetchMe['name'] = 'MovieSearch';
 				$fetchMe['movieId'] = $movieID;
 				$curl = curl_init($scanURL);
+				curl_setopt($curl, CURLOPT_TIMEOUT, 2);
 				curl_setopt($curl, CURLOPT_HEADER, false);
 				curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
 				curl_setopt ($curl, CURLOPT_CAINFO, dirname(__FILE__) . "/cert/cacert.pem");

@@ -212,6 +212,7 @@ require_once dirname(__FILE__) . '/vendor/autoload.php';
 	function checkRemoteFile($url) {
     	$certPath = file_build_path(dirname(__FILE__),"cert","cacert.pem");
 		$ch = curl_init();
+		curl_setopt($ch, CURLOPT_TIMEOUT, 2);
 		curl_setopt($ch, CURLOPT_URL,$url);
 		curl_setopt ($ch, CURLOPT_CAINFO, $certPath);
 		curl_setopt($ch, CURLOPT_NOBODY, 1);
@@ -832,6 +833,7 @@ function checkGit() {
 /* gets content from a URL via curl */
 function getUrl($url) {
 	$ch = curl_init();
+	curl_setopt($ch, CURLOPT_TIMEOUT, 2);
 	curl_setopt($ch,CURLOPT_URL,$url);
 	curl_setopt($ch,CURLOPT_RETURNTRANSFER,1);
 	curl_setopt($ch,CURLOPT_CONNECTTIMEOUT,5);
