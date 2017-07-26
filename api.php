@@ -3542,8 +3542,11 @@ function sickDownload($command,$season=false,$episode=false,$tmdbResult=false) {
 
 	if (!$season && $id && $episode) {
 		write_log("Looking for episode number $episode.");
+		$seasons = json_decode($sick->showSeasonList($id,'asc'),true);
+		write_log("Season List: ".json_encode($seasons));
+		$i = $seasons['data'][0] ?? 0;
 		$result = json_decode($sick->showSeasons($id),true);
-		$f = 1 + $i = 0;
+		$f = 1;
 		$epsList = [];
 		$winner = false;
 		foreach($result['data'] as $seasonItem) {

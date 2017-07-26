@@ -755,7 +755,7 @@ function checkUpdates($install=false) {
 							Current revision: '.substr($revision,0,7).'<br>
 							'.($installed ? "Last Update: ".$installed : '').'
 						</div>';
-				if ($local) {
+				if (1==2) {
 					$html = $header. '<div class="cardHeader">
 								Status: ERROR: Local file conflicts exist.<br><br>
 							</div><br>';
