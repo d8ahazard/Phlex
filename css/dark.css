@@ -1,4 +1,4 @@
-.card, .dropdown-menu, .modal-title {
+.card, .dropdown-menu, .modal-title, .queryBg {
     background: rgba(0, 0, 0, 0.88);
     color:#fff;
 }
@@ -122,6 +122,6 @@ pre {
     color: #dfdfdf;
 }
 
-.cardClose {
+.cardClose, #settingsClose {
     color:#f0f0f0;
 }

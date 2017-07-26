@@ -40,13 +40,14 @@
         <meta name="apple-mobile-web-app-capable" content="yes">
         <link href="./css/bootstrap-reboot.css" rel="stylesheet">
         <link href="./css/bootstrap.min.css" rel="stylesheet">
+	    <link href="./css/bootstrap-grid.min.css" rel="stylesheet">
         <link href="./css/font-awesome.min.css" rel="stylesheet">
         <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Roboto:300,400,500,700">
         <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/icon?family=Material+Icons">
         <link href="./css/material.css" rel="stylesheet">
         <link href="./css/snackbar.min.css" rel="stylesheet">
         <link href="./css/bootstrap-material-design.min.css" rel="stylesheet">
-        <link href="./css/bootstrap-dialog.css" rel="stylesheet">
+        <link href="./css/bootstrap-dialog.min.css" rel="stylesheet">
         <link href="./css/ripples.min.css" rel="stylesheet">
         <link href="./css/jquery-ui.min.css" rel="stylesheet">
         <link href="./css/main.css" rel="stylesheet">
@@ -92,16 +93,18 @@
         <script type="text/javascript" src="./js/run_prettify.js"></script>
         <script type="text/javascript" src="./js/jquery-3.2.1.min.js"></script>
         <script type="text/javascript" src="./js/jquery-ui.min.js"></script>
-        <script type="text/javascript" src="./js/snackbar.min.js"></script>
+        <script type="text/javascript" src="./js/tether.min.js"></script>
         <script type="text/javascript" src="./js/clipboard.min.js"></script>
         <script type="text/javascript" src="./js/jquery.simpleWeather.min.js"></script>
         <script type="text/javascript" src="./js/bootstrap.min.js"></script>
-        <script type="text/javascript" src="./js/bootstrap-dialog.js"></script>
+        <script type="text/javascript" src="./js/snackbar.min.js"></script>
+        <script type="text/javascript" src="./js/bootstrap-dialog.min.js"></script>
         <script type="text/javascript" src="./js/arrive.min.js"></script>
         <script type="text/javascript" src="./js/material.min.js"></script>
         <script type="text/javascript" src="./js/ripples.min.js"></script>
         <script type="text/javascript" src="./js/nouislider.min.js"></script>
         <script type="text/javascript" src="./js/swiped.min.js"></script>
+        <script type="text/javascript" src="./js/ie10-viewport-bug-workaround.js"></script>
     </head>
 
     <body style="background-color:black">

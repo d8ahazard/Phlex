@@ -817,11 +817,9 @@ function formatLog(logJSON) {
 
                 }
                 htmlOut = htmlOut + '<div class="' + alertClass + '">' +
-                    '<span class="badge badge-default"><b>' + line.time +
-                    '</b> - ' +
-                    line.caller +
-                    '</span><br><span>' + line.message + logHTML +
-                    '</span></div>';
+                    '<p class="badge badge-custom"><b>' + line.time + '</b></p>' +
+					'<p class="badge badge-default">' + line.caller + '</p><br>' +
+					'<span>' + line.message + logHTML + '</span></div>';
             }
         });
         if (htmlOut == '') htmlOut = '<div class="alert alert-info">' +

@@ -190,8 +190,8 @@ require_once dirname(__FILE__) . '/vendor/autoload.php';
 	}
 
 	function transcodeImage($path,$uri="",$token="") {
-    	if ($path) {
-		    if ($uri) $server = $uri;
+    	if (preg_match("/library/",$path)) {
+    		if ($uri) $server = $uri;
 		    $server = $server ?? $_SESSION['plexServerPublicUri'] ?? $_SESSION['plexServerUri'] ?? false;
 		    if ($token) $serverToken = $token;
 		    $token = $serverToken ?? $_SESSION['plexServerToken'];
@@ -204,7 +204,8 @@ require_once dirname(__FILE__) . '/vendor/autoload.php';
 		    $cachePath = $server . $path . "?X-Plex-Token=" . $token;
 		    $path = cacheImage($cachePath);
 	    } else {
-		    $path = cacheImage(file_build_path(dirname(__FILE__),"img","phlex.png"));
+    		write_log("Invalid image path, returning generic image.","WARN");
+		    $path = 'https://phlexchat.com/img/avatar.png';
 	    }
 		return $path;
 	}
@@ -217,6 +218,7 @@ require_once dirname(__FILE__) . '/vendor/autoload.php';
 		curl_setopt($ch, CURLOPT_NOBODY, 1);
 		curl_setopt($ch, CURLOPT_FAILONERROR, 1);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+		curl_setopt($ch, CURLOPT_TIMEOUT, 2);
 		if(curl_exec($ch)!==FALSE)
 		{
 			return true;
@@ -647,7 +649,6 @@ function checkFiles() {
             array_push($messages,$error);
         }
     }
-    $cert = file_build_path(dirname(__FILE__),'cacert.pem');
     $extensions = ['sockets','curl','xml'];
     foreach ($extensions as $extension) {
         if (! extension_loaded($extension)) {
@@ -754,7 +755,7 @@ function checkUpdates($install=false) {
 							Current revision: '.substr($revision,0,7).'<br>
 							'.($installed ? "Last Update: ".$installed : '').'
 						</div>';
-				if (1==2) {
+				if ($local) {
 					$html = $header. '<div class="cardHeader">
 								Status: ERROR: Local file conflicts exist.<br><br>
 							</div><br>';
@@ -776,8 +777,8 @@ function checkUpdates($install=false) {
 							unset($_SESSION['pollPlayer']);
 						}
 						write_log("Updating from repository - ".($install ? 'Manually triggered.' : 'Automatically triggered.'));
-						$result = $repo->pull('origin');
-						write_log("Pull result: ".$result);
+						$repo->pull('origin');
+						//write_log("Pull result: ".$result);
 						if ($pp) $_SESSION['pollPlayer'] = true;
 						logUpdate($log);
 
@@ -833,6 +834,7 @@ function checkGit() {
 function getUrl($url) {
 	$ch = curl_init();
 	curl_setopt($ch,CURLOPT_URL,$url);
+	curl_setopt($ch, CURLOPT_TIMEOUT, 2);
 	curl_setopt($ch,CURLOPT_RETURNTRANSFER,1);
 	curl_setopt($ch,CURLOPT_CONNECTTIMEOUT,5);
 	$content = curl_exec($ch);
@@ -860,7 +862,6 @@ function tail($filename, $lines = 50, $buffer = 4096){
 	fseek($f, -1, SEEK_END);
 	if(fread($f, 1) != "\n") $lines -= 1;
 	$output = '';
-	$chunk = '';
 	while(ftell($f) > 0 && $lines >= 0)
 	{
 		$seek = min(ftell($f), $buffer);

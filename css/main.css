@@ -61,11 +61,23 @@ html {
 	width: 25px;
 }
 
+#settingsClose {
+	right: 20px;
+	top: 5px;
+	position: absolute;
+	color: #0f0f0f;
+	z-index:10;
+	background: transparent;
+	border: none;
+	width: 25px;
+}
+
 .close {
 	right: 20px;
 	top: 7px;
 	position: relative;
 }
+
 
 .login-box {
 	position: fixed;
@@ -157,6 +169,10 @@ html {
 		-o-transform: translateX(-50%);
 		transform: translateX(-50%);
 	}
+
+	.btn-toolbar {
+		margin-left: 0;
+	}
 }
 
 .alert span {
@@ -200,7 +216,38 @@ html {
 	to {left: 0; width: 100%;}
 }
 
-@media only screen and (max-width: 340px) {
+@media only screen and (max-width: 767px) {
+	.cardtagline {
+		display:none;
+	}
+}
+
+@media only screen and (max-width: 424px) {
+	.reply-text {
+		display: none;
+	}
+
+	.badge-default {
+		max-width: 95px;
+	}
+
+}
+
+@media only screen and (max-width: 374px) {
+	.JSONPop {
+		display:none;
+	}
+
+	.badge-default {
+		max-width: 90px;
+	}
+
+	.nav-link {
+		padding: .5em .5em;
+	}
+}
+
+@media only screen and (max-width: 319px) {
 	#mediaSummary {
 		overflow: hidden;
 		text-overflow: ellipsis;
@@ -210,28 +257,16 @@ html {
 		line-height: 23px;
 		max-height: 23px;
 	}
-}
 
-@media only screen and (max-width: 374px) {
-	.JSONPop {
-		display:none;
+	.badge-default {
+		max-width: 60px;
 	}
 
-}
-
-@media only screen and (max-width: 450px) {
-	.reply-text {
-		display: none;
+	.badge-custom {
+		max-width: 170px;
 	}
 }
 
-@media only screen and (max-width: 700px) {
-
-	.cardtagline {
-		display:none;
-	}
-
-}
 
 div.card-img-overlay > p.card-text.card-base {
 	margin-top: 5px;
@@ -266,14 +301,14 @@ p.card-subtitle {
 
 
   .query {
-	  padding: 0;
+	  padding: 0 !important;
 	  width: 100%;
 	  min-width: 0 !important;
   }
   
   .queryWrap {
 		margin-top: 0 !important;
-		padding: 0;
+		padding: 0 !important;
 		
   }
 }
@@ -287,6 +322,26 @@ p.card-subtitle {
 	height:100%;
 }
 
+#logGroup {
+	width:100%;
+	margin:0;
+}
+
+.logControl {
+	padding: 0 15px 0 15px;
+}
+
+.badge-custom {
+	background-color: #ffffff;
+	color: #000000;
+}
+
+.badge {
+	overflow-x: hidden;
+	text-overflow: ellipsis;
+	margin-bottom: 5px !important;
+	vertical-align: bottom !important;
+}
 
 .nav-link.active {
 	color:white !important;
@@ -371,10 +426,24 @@ p.card-subtitle {
 	display: none;
 }
 
-.card {
-	z-index: 10;
+.card, .queryBg {
 	background: rgba(255, 255, 255, 0.88);
+}
 
+@media (min-width: 1024px) {
+
+	.modal-dialog {
+		max-width: 600px;
+		margin: 30px auto;
+	}
+}
+
+@media (min-width: 2560px) {
+
+	.modal-dialog {
+		max-width: 750px;
+		margin: 30px auto;
+	}
 }
 
 .bootstrap-dialog.type-primary .modal-header {
@@ -485,10 +554,6 @@ p.card-subtitle {
 	max-height: 50px;
 	max-width:64px;
 	
-}
-
-.btn-toolbar {
-	margin-left: 0;
 }
 
 .queryGroup {
@@ -655,14 +720,22 @@ select{
 }
 
 .userGroup {
-	width: 50%;
-	margin: 0 auto;
+	width: 100%;
 }
 
 .avatar {
 	float: left;
-	margin-right: 15px;
 	border-radius: 5px;
+}
+
+.no-gutters {
+	margin-right: 0;
+	margin-left: 0;
+}
+.no-gutters	> .col,
+.no-gutters> [class*="col-"] {
+	padding-right: 0;
+	padding-left: 0;
 }
 
 .appInput:NOT(checkbox) {

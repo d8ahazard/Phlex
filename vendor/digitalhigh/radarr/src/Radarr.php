@@ -509,7 +509,7 @@ class Radarr
 				]
 			);
 		} catch ( \Exception $e ) {
-			echo json_encode(array(
+			return json_encode(array(
 				'error' => array(
 					'msg' => $e->getMessage(),
 					'code' => $e->getCode(),

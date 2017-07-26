@@ -57,7 +57,7 @@ class CCPlexPlayer extends CCBaseSender
 			$this->chromecast->transportid = "";
 			$r = "";
 			$count = 0;
-			while ((!preg_match("/Plex/",$r) && !preg_match("/Default Media Receiver/",$r)) && ($count < $this->chromecast->breakout)) {
+			while ((!preg_match("/Plex/",$r) && !preg_match("/Default Media Receiver/",$r)) && ($count <= $this->chromecast->breakout)) {
 				$r = $this->chromecast->getStatus();
 				write_log("Gettingstatus 3");
 				$count++;
