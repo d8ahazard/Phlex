@@ -49,6 +49,7 @@ function makeBody($newToken = false) {
     $_SESSION['radarrAuth'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'radarrAuth', '');
 	
     $_SESSION['useCast'] = $config->getBool('user-_-'.$_SESSION['plexUserName'], 'useCast', false);
+	$_SESSION['noLoop'] = $config->getBool('user-_-'.$_SESSION['plexUserName'], 'noLoop', false);
 	$_SESSION['autoUpdate'] = $config->getBool('user-_-'.$_SESSION['plexUserName'], 'autoUpdate', false);
 	$_SESSION['cleanLogs'] = $config->getBool('user-_-'.$_SESSION['plexUserName'], 'cleanLogs', true);
     $_SESSION['darkTheme'] = $config->getBool('user-_-'.$_SESSION['plexUserName'], 'darkTheme', false);
@@ -172,7 +173,7 @@ function makeBody($newToken = false) {
 					                                <div class="form-group">
 					                                    <label for="publicAddress" class="appLabel">Public Address:
 					                                        <input id="publicAddress" class="appInput form-control formpop" type="text" value="' . $_SESSION["publicAddress"] . '" />
-					                                        <span class="bmd-help">Make sure this works from a cellphone with wifi turned off.</span>
+					                                        
 					                                    </label>
 					                                </div>
 					                            </div>
@@ -363,6 +364,15 @@ function makeBody($newToken = false) {
 				                                        </label>
 				                                    </div>
 				                                </div>
+				                                <div class="form-group">
+				                                    <div class="togglebutton">
+				                                        <label for="noLoop" class="appLabel checkLabel">No Plex.Direct
+				                                            <input id="noLoop" type="checkbox" class="appInput appToggle" ' . ($_SESSION["noLoop"] ? "checked" : "") . '/><br>
+			                                            </label>
+			                                            <span class="bmd-help">(EXPERIMENTAL) Enable this if you can\'t connect to your server.</span>
+				                                    </div>
+				                                </div>
+				                                
 				                                <div class="text-center">
 				                                    <div class="form-group btn-group">
 				                                        <button value="Plex" class="testInput btn btn-raised btn-info btn-100" type="button">Test</button>

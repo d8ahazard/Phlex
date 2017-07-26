@@ -1770,8 +1770,8 @@ function scanDevices($force=false) {
 		if ($_SESSION['useCast']) {
 			$castDevices = fetchCastDevices();
 		}
-
-		$url = 'https://plex.tv/api/resources?includeHttps=1&includeRelay=0&X-Plex-Token=' . $_SESSION['plexToken'];
+		$useHttps = $_SESSION['noLoop'] ? "0" : "1";
+		$url = 'https://plex.tv/api/resources?includeHttps='.$useHttps.'&includeRelay=0&X-Plex-Token=' . $_SESSION['plexToken'];
 
 		write_log('URL is: ' . protectURL($url));
 		$container = simplexml_load_string(curlGet($url));
