@@ -1,6 +1,7 @@
 <?PHP
 use Cz\Git\GitRepository;
 
+
 require_once dirname(__FILE__) . '/vendor/autoload.php';
 
 	// Checks whether an API Token exists for the current user, generates and saves one if none exists.
@@ -46,6 +47,48 @@ require_once dirname(__FILE__) . '/vendor/autoload.php';
         $result = implode(" ",$stringArray);
         return $result;
     }
+
+function flattenXML($xml){
+	libxml_use_internal_errors(true);
+	$return = [];
+	if (is_string($xml)) {
+		$xml = new SimpleXMLElement($xml);
+	}
+	if(!($xml instanceof SimpleXMLElement)){return false;}
+	$_value = trim((string)$xml);
+	if(strlen($_value)==0){$_value = null;};
+	if($_value!==null){
+		$return = $_value;
+	}
+	$children = array();
+	$first = true;
+	foreach($xml->children() as $elementName => $child){
+		$value = flattenXML($child);
+		if(isset($children[$elementName])){
+			if($first){
+				$temp = $children[$elementName];
+				unset($children[$elementName]);
+				$children[$elementName][] = $temp;
+				$first=false;
+			}
+			$children[$elementName][] = $value;
+		}
+		else{
+			$children[$elementName] = $value;
+		}
+	}
+	if(count($children)>0){
+		$return = array_merge($return,$children);
+	}
+	$attributes = array();
+	foreach($xml->attributes() as $name=>$value){
+		$attributes[$name] = trim($value);
+	}
+	if(count($attributes)>0){
+		$return = array_merge($return, $attributes);
+	}
+	return $return;
+}
 
 
 // Generate a random token using the first available PHP function
@@ -195,39 +238,13 @@ require_once dirname(__FILE__) . '/vendor/autoload.php';
 		    $server = $server ?? $_SESSION['plexServerPublicUri'] ?? $_SESSION['plexServerUri'] ?? false;
 		    if ($token) $serverToken = $token;
 		    $token = $serverToken ?? $_SESSION['plexServerToken'];
-		    if ($server) {
-			    $image = $server . "/photo/:/transcode?width=1920&height=1920&minSize=1&url=" . urlencode($path) . "%3FX-Plex-Token%3D" . $token . "&X-Plex-Token=" . $token;
-			    if (checkRemoteFile($image)) {
-				    return $image;
-			    }
+		    if ($server && $token) {
+			    return $server . "/photo/:/transcode?width=1920&height=1920&minSize=1&url=" . urlencode($path) . "%3FX-Plex-Token%3D" . $token . "&X-Plex-Token=" . $token;
 		    }
-		    $cachePath = $server . $path . "?X-Plex-Token=" . $token;
-		    $path = cacheImage($cachePath);
-	    } else {
-    		write_log("Invalid image path, returning generic image.","WARN");
-		    $path = 'https://phlexchat.com/img/avatar.png';
 	    }
-		return $path;
-	}
-
-	function checkRemoteFile($url) {
-    	$certPath = file_build_path(dirname(__FILE__),"cert","cacert.pem");
-		$ch = curl_init();
-		curl_setopt($ch, CURLOPT_URL,$url);
-		curl_setopt ($ch, CURLOPT_CAINFO, $certPath);
-		curl_setopt($ch, CURLOPT_NOBODY, 1);
-		curl_setopt($ch, CURLOPT_FAILONERROR, 1);
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-		curl_setopt($ch, CURLOPT_TIMEOUT, 2);
-		if(curl_exec($ch)!==FALSE)
-		{
-			return true;
-		}
-		else
-		{
-			write_log("Failure finding remote file.","ERROR");
-			return false;
-		}
+	    write_log("Invalid image path, returning generic image.","WARN");
+		$path = 'https://phlexchat.com/img/avatar.png';
+	    return $path;
 	}
 
 	// Check if string is present in an array
@@ -303,12 +320,12 @@ require_once dirname(__FILE__) . '/vendor/autoload.php';
 	
 	// Write log information to $filename
 	// Auto rotates files larger than 2MB
-	function write_log($text,$level=null) {
+	function write_log($text,$level=null,$caller=false) {
 		if ($level === null) {
 			$level = 'DEBUG';
 		}
 		if (isset($_GET['pollPlayer'])) return;
-		$caller = getCaller();
+		$caller = $caller ? $caller : getCaller();
 		$filename = file_build_path(dirname(__FILE__),'logs',"Phlex.log");
 		//$filename = 'Phlex.log';
 		$text = '['.date(DATE_RFC2822) . '] ['.$level.'] ['.$caller . "] - " . trim($text) . PHP_EOL;
@@ -369,6 +386,20 @@ require_once dirname(__FILE__) . '/vendor/autoload.php';
         );
     }
 
+	function clientHeaderArray() {
+		return [
+			'X-Plex-Client-Identifier'=> checkSetDeviceID(),
+			'X-Plex-Target-Client-Identifier'=> $_SESSION['plexClientId'],
+			'X-Plex-Device'=>'PhlexWeb',
+			'X-Plex-Device-Name'=>'Phlex',
+			'X-Plex-Device-Screen-Resolution'=>'1520x707,1680x1050,1920x1080',
+			'X-Plex-Platform'=>'Web',
+			'X-Plex-Platform-Version'=>'1.0.0',
+			'X-Plex-Product'=>'Phlex',
+			'X-Plex-Version'=>'3.9.1'
+		];
+	}
+
 function clientString() {
 	$string = '&X-Plex-Product=Phlex'.
 		'&X-Plex-Version=3.9.1'.
@@ -397,7 +428,7 @@ function clientString() {
 					break;
 				}
 			}
-			if ($event['function'] == 'write_log') {
+			if (($event['function'] == 'write_log') || ($event['function'] == 'doRequest')) {
 				$useNext = true;
 				// Set our caller as the calling file until we get a function
 				$file = pathinfo($event['file']);
@@ -425,23 +456,47 @@ function clientString() {
 	function protectURL($string) {
     	if ($_SESSION['cleanLogs']) {
             $keys = parse_url($string);
-            $cleaned = str_repeat("X", strlen($keys['host']));
+		    $parts = explode(".",$keys['host']);
+		    if (count($parts) >= 2) {
+			    $i = 0;
+			    foreach($parts as $part) {
+				    if ($i != 0) {
+					    $parts[$i] = str_repeat("X", strlen($part));
+				    }
+				    $i++;
+			    }
+			    $cleaned = implode(".",$parts);
+		    } else {
+			    $cleaned = str_repeat("X", strlen($keys['host']));
+		    }
+		    $string = str_replace($keys['host'], $cleaned, $string);
+
+		    $cleaned = str_repeat("X", strlen($keys['host']));
             $string = str_replace($keys['host'], $cleaned, $string);
             $pairs = array();
             if ($keys['query']) {
-                $params = explode('&', $keys['query']);
-                foreach ($params as $key) {
-                    $set = explode('=', $key);
-                    if (count($set) == 2) {
-                        $pairs[$set[0]] = $set[1];
-                    }
-                }
-            }
-            if (!empty($pairs)) {
+            	parse_str($keys['query'],$pairs);
                 foreach ($pairs as $key => $value) {
-                    if ((preg_match("/token/", $key)) || (preg_match("/Token/", $key)) || (preg_match("/address/", $key))) {
+                    if ((preg_match("/token/", $key)) || (preg_match("/Token/", $key))) {
                         $cleaned = str_repeat("X", strlen($value));
                         $string = str_replace($value, $cleaned, $string);
+                    }
+                    if (preg_match("/address/", $key)) {
+                    	$parts = explode(".",$value);
+                    	write_log("Parts: ".json_encode($parts));
+                    	if (count($parts) >= 2) {
+                    		$i = 0;
+                    		foreach($parts as &$part) {
+                    			if ($i <= count($parts) - 1) {
+                    				$part = str_repeat("X", strlen($part));
+			                    }
+			                    $i++;
+		                    }
+		                    $cleaned = implode(".",$parts);
+	                    } else {
+		                    $cleaned = str_repeat("X", strlen($value));
+	                    }
+	                    $string = str_replace($value, $cleaned, $string);
                     }
                 }
             }
@@ -700,7 +755,7 @@ function addScheme($url, $scheme = 'http://')
 // Shamelessly stolen from https://davidwalsh.name/php-cache-function
 // But slightly updated to do what I needed it to do.
 
-function getContent($file,$url,$hours = 24,$fn = '',$fn_args = '') {
+function getContent($file,$url,$hours = 56,$fn = '',$fn_args = '') {
 	$current_time = time(); $expire_time = $hours * 60 * 60; $file_time = filemtime($file);
 	if(file_exists($file) && ($current_time - $expire_time < $file_time)) {
 		return $file;
@@ -746,7 +801,6 @@ function checkUpdates($install=false) {
 			if ($repo) {
 
 				$repo->fetch('origin');
-				$local = $repo->hasLocalChanges();
 				$result = $repo->readLog('origin','HEAD');
 				$revision = $repo->getRev();
 				$logHistory = readUpdate();
@@ -755,6 +809,7 @@ function checkUpdates($install=false) {
 							Current revision: '.substr($revision,0,7).'<br>
 							'.($installed ? "Last Update: ".$installed : '').'
 						</div>';
+				// This never works right when you're developing the app...
 				if (1==2) {
 					$html = $header. '<div class="cardHeader">
 								Status: ERROR: Local file conflicts exist.<br><br>
@@ -900,5 +955,83 @@ function formatLog($logData) {
 		}
 	}
 	return json_encode($records);
+}
+
+
+function doRequest($parts,$timeout=3) {
+	$type = isset($parts['type']) ? $parts['type'] : 'get';
+	$response = false;
+	$options = [];
+	$cert = getContent(file_build_path(dirname(__FILE__),"cacert.pem"),'https://curl.haxx.se/ca/cacert.pem');
+	if (!$cert) $cert = file_build_path(dirname(__FILE__),"cert","cacert.pem");
+	if (is_array($parts)) {
+		if (!isset($parts['uri'])) $parts['uri'] = $_SESSION['plexServerUri'];
+		if (isset($parts['query'])) {
+			if (!is_string($parts['query'])) {
+				$string = '?';
+				$i = 0;
+				foreach ($parts['query'] as $key => $value) {
+					if (!is_array($value)) {
+						if ($i > 0) $string .= '&';
+						$string .= $key . '=' . $value;
+						$i++;
+					} else {
+						foreach ($value as $subkey => $subval) {
+							if ($i > 0) $string .= '&';
+							$string .= $subkey . '=' . urlencode($subval);
+							$i++;
+						}
+					}
+				}
+				$parts['query'] = $string;
+			}
+		}
+
+		$parts = array_merge(parse_url($parts['uri']), $parts);
+
+		$url = (isset($parts['scheme']) ? "{$parts['scheme']}:" : '') .
+			((isset($parts['user']) || isset($parts['host'])) ? '//' : '') .
+			(isset($parts['user']) ? "{$parts['user']}" : '') .
+			(isset($parts['pass']) ? ":{$parts['pass']}" : '') .
+			(isset($parts['user']) ? '@' : '') .
+			(isset($parts['host']) ? "{$parts['host']}" : '') .
+			(isset($parts['port']) ? ":{$parts['port']}" : '') .
+			(isset($parts['path']) ? "{$parts['path']}" : '') .
+			(isset($parts['query']) ? "{$parts['query']}" : '') .
+			(isset($parts['fragment']) ? "#{$parts['fragment']}" : '');
+	} else {
+		$url = $parts;
+	}
+	write_log("URL is ".protectURL($url),"INFO",getCaller());
+
+	$client = new GuzzleHttp\Client(['timeout'=>$timeout,'verify'=>$cert]);
+
+	try {
+		if ($type == 'get') {
+			$response = $client->get($url,$options);
+		}
+
+		if ($type == 'post') {
+			if (isset($parts['headers'])) $options['headers'] = $parts['headers'];
+			$response = $client->post($url,$options);
+		}
+	} catch (Throwable $e) {
+		write_log("An exception occurred: ".$e->getMessage(),"ERROR");
+		if ($e->getCode() == 401) {
+			write_log("Unauthorized error, rescanning devices...","WARN");
+			//scanDevices(true);
+			return false;
+		}
+	}
+	if ($response) {
+		$code = $response->getStatusCode();
+		if ($code == 200) {
+			return $response->getBody()->getContents();
+		} else {
+			write_log("An error has occurred: ".$response->getReasonPhrase(),"ERROR");
+			return false;
+		}
+	}
+	return false;
 }
 

@@ -19,6 +19,9 @@
     color: #aaa;
 }
 
+.btnAdd, .btn-default {
+    color: #FFFFFF !important;
+}
 
 .barBtn, .clientBtn, .sendBtn, #actionLabel, .dd-selected, a, .appLabel, label {
     color:#3277d8 !important;

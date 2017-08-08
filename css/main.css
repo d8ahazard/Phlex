@@ -73,9 +73,9 @@ html {
 }
 
 .close {
-	right: 20px;
-	top: 7px;
-	position: relative;
+	right: 25px;
+	top: 25px;
+	position: absolute;
 }
 
 
@@ -773,7 +773,7 @@ select{
 }
 
 .resultDiv.card {
-	border:0;
+	max-height:456px;
 }
 
 .card-base {
@@ -788,6 +788,14 @@ select{
 	overflow: hidden;
 	max-height: 9em;
 	line-height: 1.5em;
+}
+
+.cardBG {
+	max-height: 456px;
+	background-size: cover;
+	margin: 0 auto;
+	display: block;
+	padding: 2px;
 }
 
 #results {

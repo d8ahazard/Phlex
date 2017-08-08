@@ -47,7 +47,7 @@
         <link href="./css/material.css" rel="stylesheet">
         <link href="./css/snackbar.min.css" rel="stylesheet">
         <link href="./css/bootstrap-material-design.min.css" rel="stylesheet">
-        <link href="./css/bootstrap-dialog.min.css" rel="stylesheet">
+        <link href="./css/bootstrap-dialog.css" rel="stylesheet">
         <link href="./css/ripples.min.css" rel="stylesheet">
         <link href="./css/jquery-ui.min.css" rel="stylesheet">
         <link href="./css/main.css" rel="stylesheet">
@@ -98,7 +98,7 @@
         <script type="text/javascript" src="./js/jquery.simpleWeather.min.js"></script>
         <script type="text/javascript" src="./js/bootstrap.min.js"></script>
         <script type="text/javascript" src="./js/snackbar.min.js"></script>
-        <script type="text/javascript" src="./js/bootstrap-dialog.min.js"></script>
+        <script type="text/javascript" src="./js/bootstrap-dialog.js"></script>
         <script type="text/javascript" src="./js/arrive.min.js"></script>
         <script type="text/javascript" src="./js/material.min.js"></script>
         <script type="text/javascript" src="./js/ripples.min.js"></script>
@@ -131,6 +131,7 @@
                 </div>
             </div>
         </div>
+        <img id="holder" src="">
         <div id="bgwrap">
             <div class="bg bgLoaded"></div>
         </div>

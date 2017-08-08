@@ -54,13 +54,13 @@ function makeBody($newToken = false) {
 	$_SESSION['cleanLogs'] = $config->getBool('user-_-'.$_SESSION['plexUserName'], 'cleanLogs', true);
     $_SESSION['darkTheme'] = $config->getBool('user-_-'.$_SESSION['plexUserName'], 'darkTheme', false);
 
-    $_SESSION['dvr_resolution'] = $config->getBool('user-_-'.$_SESSION['plexUserName'], 'dvr_resolution', "0");
-    $_SESSION['dvr_newairings'] = $config->getBool('user-_-'.$_SESSION['plexUserName'], 'dvr_newairings', true);
+    $_SESSION['plexDvrResolution'] = $config->getBool('user-_-'.$_SESSION['plexUserName'], 'plexDvrResolution', "0");
+    $_SESSION['plexDvrNewAirings'] = $config->getBool('user-_-'.$_SESSION['plexUserName'], 'plexDvrNewAirings', true);
     $_SESSION['dvr_replacelower'] = $config->getBool('user-_-'.$_SESSION['plexUserName'], 'dvr_replacelower', true);
     $_SESSION['dvr_recordpartials'] = $config->getBool('user-_-'.$_SESSION['plexUserName'], 'dvr_recordpartials', false);
-    $_SESSION['dvr_startoffset'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'dvr_startoffset', 2);
-    $_SESSION['dvr_endoffset'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'dvr_endoffset', 2);
-    $_SESSION['resolution'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'resolution', 0);
+    $_SESSION['plexDvrStartOffset'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'plexDvrStartOffset', 2);
+    $_SESSION['plexDvrEndOffset'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'plexDvrEndOffset', 2);
+    $_SESSION['plexDvrResolution'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'plexDvrResolution', 0);
 
 	$_SESSION['hookEnabled'] = $config->getBool('user-_-'.$_SESSION['plexUserName'], 'hookEnabled', false);
 	$_SESSION['hookSplit'] = $config->getBool('user-_-'.$_SESSION['plexUserName'], 'hookSplit', false);
@@ -392,32 +392,32 @@ function makeBody($newToken = false) {
 					                                </div>
 					                                <div class="form-group">
 					                                    <label class="appLabel" for="resolution">Resolution:</label>
-					                                    <select class="form-control appInput" id="resolution">
-					                                        <option value="0" '.($_SESSION["resolution"] == 0 ? "selected" : "") .' >Any </option>
-					                                        <option value="720" '. ($_SESSION["resolution"] == 720 ? "selected" : "") .' >High-Definition </option>
+					                                    <select class="form-control appInput" id="plexDvrResolution">
+					                                        <option value="0" '.($_SESSION["plexDvrResolution"] == 0 ? "selected" : "") .' >Any </option>
+					                                        <option value="720" '. ($_SESSION["plexDvrResolution"] == 720 ? "selected" : "") .' >High-Definition </option>
 					                                    </select>
 					                                </div>
 					                                <br>
 					                                <div class="togglebutton">
-					                                    <label for="dvr_newairings" class="appLabel checkLabel">Record new Airings Only
-					                                        <input id="dvr_newairings" type="checkbox" class="appInput" '.($_SESSION["dvr_newairings"] ? "checked" : "") . ' />
+					                                    <label for="plexDvrNewAirings" class="appLabel checkLabel">Record new Airings Only
+					                                        <input id="plexDvrNewAirings" type="checkbox" class="appInput" '.($_SESSION["plexDvrNewAirings"] ? "checked" : "") . ' />
 					                                    </label>
 					                                </div>
 					                                <br>
 					                                <div class="togglebutton">
-					                                    <label for="dvr_replacelower" class="appLabel checkLabel">Replace Lower Quality Recordings
-					                                        <input id="dvr_replacelower" type="checkbox" class="appInput" '. ($_SESSION["dvr_replacelower"] ? " checked " : "") . ' />
+					                                    <label for="plexDvrReplaceLower" class="appLabel checkLabel">Replace Lower Quality Recordings
+					                                        <input id="plexDvrReplaceLower" type="checkbox" class="appInput" '. ($_SESSION["plexDvrReplaceLower"] ? " checked " : "") . ' />
 					                                    </label>
 					                                </div>
 					                                <br>
 					                                <div class="togglebutton">
-					                                    <label for="dvr_recordpartials" class="appLabel checkLabel">Record partial episodes
-					                                        <input id="dvr_recordpartials" type="checkbox" class="appInput" '. ($_SESSION["dvr_recordpartials"] ? "checked" : "") . ' />
+					                                    <label for="plexDvrRecordPartials" class="appLabel checkLabel">Record partial episodes
+					                                        <input id="plexDvrRecordPartials" type="checkbox" class="appInput" '. ($_SESSION["plexDvrRecordPartials"] ? "checked" : "") . ' />
 					                                    </label>
 					                                </div>
 					                                <div class="form-group">
-					                                    <label for="dvr_startoffset" class="appLabel">Start Offset (Minutes):
-					                                        <input id="dvr_startoffset" class="appInput form-control" type="number" min="1" max="30" value="' . $_SESSION["dvr_startoffset"] . '" />
+					                                    <label for="plexDvrStartOffset" class="appLabel">Start Offset (Minutes):
+					                                        <input id="plexDvrStartOffset" class="appInput form-control" type="number" min="1" max="30" value="' . $_SESSION["plexDvrStartOffset"] . '" />
 					                                    </label>
 					                                </div>
 					                                <div class="form-group">

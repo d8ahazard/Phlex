@@ -7,7 +7,7 @@ jQuery(document).ready(function($) {
     $('.snackbar').hide();
     bgs = $('.bg');
     bgWrap = $('#bgwrap');
-	var loginBox = $('.login-box');
+    var loginBox = $('.login-box');
     if (loginBox.length > 0) {
         console.log("Hiding login box.");
         loginBox.css({"top":"-1000px"});
@@ -237,6 +237,7 @@ jQuery(document).ready(function($) {
 	});
 	
 	$("#dvrList").change(function(){
+		console.log("DVR Changed!");
 		var serverID = $(this).val();
 		var element = $(this).find('option:selected'); 
 		var serverUri = element.attr('uri');
@@ -244,8 +245,9 @@ jQuery(document).ready(function($) {
 		var serverName = element.attr('name');
 		var serverToken = element.attr('token');
 		var serverProduct = element.attr('product');
+        var serverKey = element.attr('key');
 		apiToken = $('#apiTokenData').attr('data');
-		$.get('api.php?apiToken=' + apiToken, {device:'plexServer',id:serverID,uri:serverUri,publicUri:serverPublicUri,name:serverName,token:serverToken,product:serverProduct});
+		$.get('api.php?apiToken=' + apiToken, {device:'plexDvr',id:serverID,uri:serverUri,key:serverKey,publicUri:serverPublicUri,name:serverName,token:serverToken,product:serverProduct});
 	});
 
 
@@ -562,27 +564,71 @@ function scaleElements() {
 function setBackground() {
     //Add your images, we'll set the path in the next step
 	console.log("Caching background image.");
-    //var bgWrap = document.getElementById('bgwrap');
-    $('#bgwrap').append("<div class='bg'></div>");
-    var urls = "https://unsplash.it/1920/1080?random&v=" + (Math.floor(Math.random()*(1084)));
-    $('<img />').attr('src',urls,).attr("onload","setBg(this.src)").addClass("imgHolder").appendTo('body').css('display','none');
-}
+    var image = new Image();
+    image.src = "https://unsplash.it/1920/1080?random&v=" + (Math.floor(Math.random()*(1084)));
+    setTimeout
+    (
+        function()
+        {
+            if ( !image.complete || !image.naturalWidth )
+            {
+                image.src = "./img/bg/"+~~(Math.random() * 10)+".jpg";
+                console.log("Returning cached image: " + image.src);
+            }
+        },
+        1000
+    );
 
-function setBg(imgUrl) {
-	bgs = $('.bg');
+    $('#bgwrap').append("<div class='bg'></div>");
+    bgs = $('.bg');
     var bgWrap = document.getElementById('bgwrap');
-	console.log("Image cached, loading.");
-    bgs.last().css('background-image','url('+imgUrl+')');
+    bgs.last().css('background-image','url('+image.src+')');
     bgs.last().fadeIn(1000);
     setTimeout(
         function () {
             console.log("Removing first background");
             while (bgWrap.childNodes.length > 1) {
-				bgWrap.removeChild(bgWrap.firstChild);
-			}
+                bgWrap.removeChild(bgWrap.firstChild);
+            }
             $('.imgHolder').remove();
         }, 1500);
 }
+
+function loadImage(url, altUrl) {
+    var timer;
+    function clearTimer() {
+        if (timer) {
+            clearTimeout(timer);
+            timer = null;
+        }
+    }
+
+    function handleFail() {
+        // kill previous error handlers
+        this.onload = this.onabort = this.onerror = function() {};
+        // stop existing timer
+        clearTimer();
+        // switch to alternate url
+        if (this.src === url) {
+            this.src = altUrl;
+        }
+    }
+
+    var img = new Image();
+    img.onerror = img.onabort = handleFail;
+    img.onload = function() {
+        clearTimer();
+    };
+    img.src = url;
+    timer = setTimeout(function(theImg) {
+        return function() {
+            handleFail.call(theImg);
+        };
+    }(img), 1000);
+    return(img);
+}
+
+
 
 function resetApiUrl(newUrl) {
 	if (newUrl.substring(0,4) !== 'http') {
@@ -703,8 +749,12 @@ function updateCommands(data,prepend) {
 				var mediaDiv = false;
 				// Build our card
 				if (value.hasOwnProperty('card')) {
-					if (($.inArray('card',value)) && (value.card !== 'false')) {
-						mediaDiv = buildCards(value,i);
+					if (($.inArray('card',value)) && (value.card instanceof Array)) {
+                        if(value.card.length > 0) {
+                            if (value.card[0].image.url !== null) {
+                                mediaDiv = buildCards(value, i);
+                            }
+                        }
 					}
 				}
 				if (! mediaDiv) {
@@ -752,7 +802,7 @@ function updateCommands(data,prepend) {
 						}
 					
 					}]
-					});
+				});
 			});
 
             $('#CARDCLOSE'+i).click(function() {
@@ -890,7 +940,7 @@ function buildCards(value,i) {
         subtitle = ((card.hasOwnProperty('subtitle') && (card.subtitle != null)) ? '<h6 class="card-subtitle text-muted cardtagline">' + card.subtitle + '</h6>' : '');
         formatted_text = ((card.hasOwnProperty('formattedText')) ? '<br><p class="card-text cardsummary">' + card.formattedText + '</p>' : ((card.hasOwnProperty('description')) ? '<br><p class="card-text cardsummary">' + card.description + '</p>' : ''));
         cardDiv = '' +
-            '<img src="' + card.image.url + '" onerror="imgError(this);" class="card-img-top"/>' +
+            '<img src="' + card.image.url + '" onerror="imgError(this);" class="card-img-top cardBG"/>' +
             '<div class="card-img-overlay card-inverse">' +
             '<p class="card-subtitle">' + $.trim(timeStamp) + '</p>' +
             '<h4 class="card-title">' + card.title + '</h4>' +
