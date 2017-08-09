@@ -26,6 +26,8 @@
 			if(basename($repository) === '.git')
 			{
 				$repository = dirname($repository);
+				// Fix the errrrrors.
+				exec('git config --global http.sslVerify false');
 			}
 
 			$this->repository = realpath($repository);
