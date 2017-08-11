@@ -1,0 +1,13 @@
+#snackbar-container {
+    left: 50%;
+    width: auto;
+    -webkit-transform: translateX(-50%);
+    -moz-transform: translateX(-50%);
+    -ms-transform: translateX(-50%);
+    -o-transform: translateX(-50%);
+    transform: translateX(-50%);
+}
+
+.btn-toolbar {
+    margin-left: 0;
+}

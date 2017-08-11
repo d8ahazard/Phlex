@@ -173,7 +173,7 @@ function flattenXML($xml){
 	// Grab an image from a server and save it locally
 	function cacheImage($url,$image=false) {
     	write_log("Function fired, caching ".$url);
-        $path = '';
+        $path = $url;
         $cached_filename = false;
 		try {
 			$URL_REF = $_SESSION['publicAddress'] ?? 'https://'.$_SERVER['HTTP_HOST'];
@@ -230,6 +230,35 @@ function flattenXML($xml){
 			write_log('Exception: ' . $e->getMessage());
 		}
 		return $path;
+	}
+
+	function setStartUrl($url) {
+    	$manifest = dirname(__FILE__)."/manifest.json";
+		$reading = fopen($manifest, 'r');
+		$writing = fopen("$manifest.tmp", 'w');
+
+		$replaced = false;
+
+		while (!feof($reading)) {
+			$line = fgets($reading);
+			if (stristr($line,'start_url')) {
+				write_log("Changing start URL");
+				$newLine = '"start_url":"'.$url.'",'.PHP_EOL;
+				if ($line !== $newLine) $line = $newLine;
+				$replaced = true;
+			}
+			fputs($writing, $line);
+		}
+		fclose($reading); fclose($writing);
+// might as well not overwrite the file if we didn't replace anything
+		if ($replaced)
+		{
+			rename("$manifest.tmp", $manifest);
+		} else {
+			unlink("$manifest.tmp");
+		}
+
+
 	}
 
 	function transcodeImage($path,$uri="",$token="") {
@@ -340,6 +369,30 @@ function flattenXML($xml){
 		if (!$handle = fopen($filename, 'a+')) die;
 		if (fwrite($handle, $text) === FALSE) die;
 		fclose($handle);
+	}
+
+	function isDomainAvailible($domain) {
+		//check, if a valid url is provided
+		if(!filter_var($domain, FILTER_VALIDATE_URL))
+		{
+			return false;
+		}
+
+		//initialize curl
+		$curlInit = curl_init($domain);
+		curl_setopt($curlInit,CURLOPT_CONNECTTIMEOUT,10);
+		curl_setopt($curlInit,CURLOPT_HEADER,true);
+		curl_setopt($curlInit,CURLOPT_NOBODY,true);
+		curl_setopt($curlInit,CURLOPT_RETURNTRANSFER,true);
+
+		//get answer
+		$response = curl_exec($curlInit);
+
+		curl_close($curlInit);
+
+		if ($response) return true;
+
+		return false;
 	}
 
 	function logUpdate(array $log) {
@@ -786,6 +839,46 @@ function toBool($var) {
 		default:
 			return $var;
 	}
+}
+
+function checkSetLanguage($source="") {
+    $locale = false;
+    $locales = ["en","fr"];
+	$defaultLocale = locale_get_default();
+	write_log("Source: $source");
+	// If a session language is set
+	if (isset($_SESSION['appLanguage'])) {
+		$locale = $_SESSION['appLanguage'];
+		write_log("Detected session language: $locale","INFO");
+	} else {
+		if (file_exists(dirname(__FILE__) . "/config.ini.php") && isset($_SESSION['plexUserName'])) {
+			$config = new Config_Lite('config.ini.php');
+			$locale = $config->get('user-_-' . $_SESSION['plexUserName'],"appLanguage",false);
+			if ($locale) $_SESSION['appLanguage'] = $locale;
+			write_log("Locale not set for session, but saved in config: $locale");
+		} else {
+			write_log("No session username, can't look in settings.","ERROR");
+		}
+	}
+	if (! $locale) {
+		write_log("No saved locale set, detecting from system.","INFO");
+		if (trim($defaultLocale) != "") {
+			$locale = explode("-",$locale)[0];
+			write_log("Locale set from default: $locale","INFO");
+			if (trim($locale) == "") $locale = false;
+		}
+	}
+	if (!$locale) {
+		write_log("Couldn't detect a default or saved locale, defaulting to English.","WARN");
+		$locale = "en";
+	}
+	if (file_exists(dirname(__FILE__)."/lang/".$locale.".php")) {
+		include(dirname(__FILE__) . "/lang/" . $locale . ".php");
+	} else {
+		write_log("Couldn't find the selected locale, defaulting to 'Murica.");
+		include(dirname(__FILE__) . "/lang/en.php");
+	}
+	return $lang;
 }
 
 function checkUpdates($install=false) {

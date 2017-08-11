@@ -49,13 +49,14 @@ function initialize() {
 		die();
 	}
 	write_log('Session Started',"DEBUG");
-
+	$_SESSION['lang'] = checkSetLanguage("API");
 	if (!(isset($_SESSION['counter']))) {
 		$_SESSION['counter'] = 0;
 	}
 
 
 	if (isset($_GET['pollPlayer'])) {
+		if (substr_count($_SERVER["HTTP_ACCEPT_ENCODING"], "gzip")) ob_start("ob_gzhandler"); else ob_start();
 		$result['playerStatus'] = playerStatus();
 		$file = 'commands.php';
 		$handle = fopen($file, "r");
@@ -164,6 +165,7 @@ function initialize() {
 		saveConfig($GLOBALS['config']);
 		if ((trim($id) === 'useCast') || (trim($id) === 'noLoop')) scanDevices(true);
 		setSessionVariables();
+		if ($id == "appLanguage")checkSetLanguage("api: settings");
 		die();
 	}
 
@@ -325,6 +327,7 @@ function setSessionVariables() {
 		$GLOBALS['config']->set('user-_-'.$_SESSION['plexUserName'],'publicAddress', $ip);
 		saveConfig($GLOBALS['config']);
 	}
+	setStartUrl($ip);
 	$devices = $GLOBALS['config']->get('user-_-'.$_SESSION['plexUserName'], 'dlist', false);
 	if ($devices) $_SESSION['list_plexdevices'] = json_decode(base64_decode($devices),true);
 	$devices = scanDevices();
@@ -397,7 +400,7 @@ function setSessionVariables() {
 		}
 	}
 
-	$defaults = ['returnItems'=>'6', 'rescanTime'=>'6', 'couchIP'=>'http://localhost', 'ombiIP'=>'http://localhost', 'sonarrIP'=>'http://localhost', 'sickIP'=>'http://localhost', 'radarrIP'=>'http://localhost', 'couchPort'=>'5050', 'ombiPort'=>'3579', 'sonarrPort'=>'8989', 'sickPort'=>'8083', 'radarrPort'=>'7878', 'apiClientToken'=>'', 'apiDevToken'=>'', 'dvr_resolution'=>'0', 'plexDvrNewAirings'=>'true','plexDvrStartOffset'=>'2','plexDvrEndOffset'=>'2','plexDvrResolution'=>'0'];
+	$defaults = ['returnItems'=>'6', 'rescanTime'=>'6', 'couchIP'=>'http://localhost', 'ombiIP'=>'http://localhost', 'sonarrIP'=>'http://localhost', 'sickIP'=>'http://localhost', 'radarrIP'=>'http://localhost', 'couchPort'=>'5050', 'ombiPort'=>'3579', 'sonarrPort'=>'8989', 'sickPort'=>'8083', 'radarrPort'=>'7878', 'apiClientToken'=>'', 'apiDevToken'=>'', 'dvr_resolution'=>'0', 'plexDvrNewAirings'=>'true','plexDvrStartOffset'=>'2','plexDvrEndOffset'=>'2','plexDvrResolution'=>'0','appLanguage'=>'en'];
 	foreach ($defaults as $key=>$value) {
 		if (! isset($_SESSION[$key])) $_SESSION[$key] = $value;
 	}
@@ -884,7 +887,7 @@ function parseApiCommand($request) {
 		fireHook(false,"Custom");
 		write_log("Custom phrase triggered: ".$_SESSION['hookCustomPhrase'],"INFO");
 		$queryOut['initialCommand'] = $rawspeech;
-		$speech = ($_SESSION['hookCustomReply']!="" ? $_SESSION['hookCustomReply'] : "Congratulations, you've fired the custom webhook command!");
+		$speech = ($_SESSION['hookCustomReply']!="" ? $_SESSION['hookCustomReply'] : $_SESSION['lang']['speechHookCustomDefault']);
 		$queryOut['speech'] = $speech;
 		returnSpeech($speech,"yes",false,false);
 		logCommand(json_encode($queryOut));
@@ -1012,13 +1015,12 @@ function parseApiCommand($request) {
 	$resultData = array();
 
 	if ($greeting) {
-		$greetings = array("Hi, I'm Flex TV.  What can I do for you today?","Greetings! How can I help you?","Hello there. Try asking me to play something.'");
+		$greetings = $_SESSION['lang']['speechGreetingArray'];
 		$speech = $greetings[array_rand($greetings)];
-		$speech .= " If you'd like a list of commands, you can say 'Help' or 'What are your commands?'";
+		$speech .= $_SESSION['lang']['speechGreetingHelpPrompt'];
 		$contextName = 'PlayMedia';
-		$button = [['title'=>'View Readme','openUrlAction'=>['url'=>'https://github.com/d8ahazard/Phlex/blob/master/readme.md']]];
-		$card = [['title'=>"Welcome to Flex TV!",'formattedText'=>'','image'=>['url'=>'https://phlexchat.com/img/avatar.png'],'buttons'=>$button]];
-		//$card = [['title'=>"Welcome to Flex TV!",'image'=>['url'=>'https://phlexchat.com/img/avatar.png'],'subtitle'=>'']];
+		$button = [['title'=>$_SESSION['lang']['cardReadmeButton'],'openUrlAction'=>['url'=>'https://github.com/d8ahazard/Phlex/blob/master/readme.md']]];
+		$card = [['title'=>$_SESSION['lang']['cardGreetingText'],'formattedText'=>'','image'=>['url'=>'https://phlexchat.com/img/avatar.png'],'buttons'=>$button]];
 		$queryOut['card'] = $card;
 		$queryOut['speech'] = $speech;
 		returnSpeech($speech,$contextName,$card,true,false);
@@ -1048,7 +1050,7 @@ function parseApiCommand($request) {
 			$childMedia['queueID'] = $queueId;
 			$childMedia['key'] = $key;
 			write_log("Media: ".json_encode($childMedia));
-			$speech = "Okay, shuffling all episodes of ".$media['title'].".";
+			$speech = $_SESSION['lang']['speechShuffleResponse'].$media['title'].".";
 			$card = [
 				[
 					'title'=>$childMedia['title'],
@@ -1083,8 +1085,8 @@ function parseApiCommand($request) {
 				$title = $result['title'];
 				$year = $result['year'];
 				$type = $result['type'];
-				$queryOut['parsedCommand'] = 'Add the '.$type.' named '.$title.' ('.$year.') to the recording schedule.';
-				$speech = "Hey, look at that.  I've added the ".$type." named ".$title." (".$year.") to the recording schedule.";
+				$queryOut['parsedCommand'] = $_SESSION['lang']['parsedDvrSuccessStart'].$type.$_SESSION['lang']['parsedDvrSuccessNamed'].$title.' ('.$year.') '.$_SESSION['lang']['speechDvrSuccessEnd'];
+				$speech = $_SESSION['lang']['speechDvrSuccessStart'].$type.$_SESSION['lang']['parsedDvrSuccessNamed'].$title." (".$year.") ".$_SESSION['lang']['speechDvrSuccessEnd'];
 				$card = [['title'=>$title,'image'=>['url'=>$result['thumb']],'subtitle'=>'']];
 				$results['url'] = $result['url'];
 				$results['status'] = "Success.";
@@ -1093,14 +1095,14 @@ function parseApiCommand($request) {
 				$queryOut['mediaStatus'] = 'SUCCESS: Not a media command';
 				$queryOut['commandType'] = 'dvr';
 			} else {
-				$queryOut['parsedCommand'] = 'Add the media named '.$command;
-				$speech = "I wasn't able to find any results in the episode guide that match '".ucwords($command)."'.";
+				$queryOut['parsedCommand'] = $_SESSION['lang']['parsedDvrFailStart'].$command;
+				$speech = $_SESSION['lang']['speechDvrNoDevice'].ucwords($command)."'.";
 				$results['url'] = $result['url'];
 				$card = false;
 				$results['status'] = "No results.";
 			}
 		} else {
-			$speech = "I'm sorry, but I didn't find any instances of Plex DVR to use.";
+			$speech = $_SESSION['lang']['speechDvrNoDevice'];
 			$card = false;
 		}
 		returnSpeech($speech,$contextName,$card);
@@ -1125,7 +1127,7 @@ function parseApiCommand($request) {
 				}
 			}
 			if ($result) {
-				$speech = "Okay, I've switched the " . $typeString . " to " . $command . ".";
+				$speech = $_SESSION['lang']['speechChangeDeviceSuccessStart'] . $typeString . $_SESSION['lang']['speechWordTo'] . $command . ".";
 				$contextName = 'waitforplayer';
 				returnSpeech($speech, $contextName);
 				$name = (($result['product'] == 'Plex Media Server') ? 'plexServerId' : 'plexClientId');
@@ -1138,7 +1140,7 @@ function parseApiCommand($request) {
 				setSessionVariables();
 				$queryOut['playResult']['status'] = 'SUCCESS: ' . $typeString . ' changed to ' . $command . '.';
 			} else {
-				$speech = "I'm sorry, but I couldn't find " . $command . " in the device list.";
+				$speech = $_SESSION['lang']['speechChangeDeviceFailureStart'] . $command . $_SESSION['lang']['speechChangeDeviceFailureEnd'];
 				$contextName = 'waitforplayer';
 				returnSpeech($speech, $contextName);
 				$queryOut['playResult']['status'] = 'ERROR: No device to select.';
@@ -1185,7 +1187,7 @@ function parseApiCommand($request) {
 			$card = [["title"=>$title,"subtitle"=>$tagline,"formattedText"=>$summary,'image'=>['url'=>$thumb]]];
 			$queryOut['card'] = $card;
 		} else {
-			$speech = "It doesn't look like there's anything playing right now.";
+			$speech = $_SESSION['lang']['speechStatusNothingPlaying'];
 		}
 		$contextName = 'PlayMedia';
 		returnSpeech($speech,$contextName,$card);
@@ -1203,7 +1205,7 @@ function parseApiCommand($request) {
 		$cards = false;
 		if ($list) {
 			$array = json_decode($list,true);
-			$speech = (($action=='recent')? "Here's a list of recent ".$type."s: " : "Here's a list of on deck items: ");
+			$speech = (($action=='recent')? $_SESSION['lang']['speechReturnRecent'].$type."s: " : $_SESSION['lang']['speechReturnOndeck']);
 			$i = 1;
 			$count = count($array);
 			$cards = [];
@@ -1222,7 +1224,7 @@ function parseApiCommand($request) {
 				$i++;
 			}
 
-			$speech .= " If you'd like to watch something, just say the name, otherwise, you can say 'cancel'.";
+			$speech .= $_SESSION['lang']['speechReturnOndeckRecentTail'];
 
 			$_SESSION['mediaList'] = $array;
 			$queryOut['card'] = $cards;
@@ -1232,7 +1234,7 @@ function parseApiCommand($request) {
 		} else {
 			write_log("Error fetching hub list.","ERROR");
 			$queryOut['mediaStatus'] = "ERROR: Could not fetch hub list.";
-			$speech = "Unfortunately, I wasn't able to find any results for that.  Please try again later.";
+			$speech = $_SESSION['lang']['speechReturnOndeckRecentError'];
 		}
 
 
@@ -1254,19 +1256,19 @@ function parseApiCommand($request) {
 			write_log("List retrieved.");
 			$_SESSION['mediaList']=$list;
 			$i = 1;
-			$speech = "Here's a list of scheduled recordings: ";
+			$speech = $_SESSION['lang']['speechAiringsReturn'];
 			if ($days == 'now') {
 				$time = date('H');
 				$speech = 'Today';
-				if ($time >= 12) $speech = 'This afternoon';
-				if ($time >= 17) $speech = 'Tonight';
+				if ($time >= 12) $speech = $_SESSION['lang']['speechAiringsAfternoon'];
+				if ($time >= 17) $speech = $_SESSION['lang']['speechAiringsTonight'];
 				$days = $speech;
 				$speech .=", ";
 			}
-			if ($days == 'tomorrow') $speech = "Tomorrow, ";
-			if ($days == 'weekend') $speech = "This weekend, ";
+			if ($days == 'tomorrow') $speech = $_SESSION['lang']['speechAiringsTomorrow'];
+			if ($days == 'weekend') $speech = $_SESSION['lang']['speechAiringsWeekend'];
 			if (preg_match("/day/",$days)) $speech = "On ".ucfirst($days).", ";
-			$mids = ['you have ','I see ','I found '];
+			$mids = $_SESSION['lang']['speechAiringsMids'];
 			$speech .= $mids[array_rand($mids)];
 			$names = [];
 			foreach ($list as $upcoming) {
@@ -1298,7 +1300,7 @@ function parseApiCommand($request) {
 					}
 				}
 			} else $speech .= $names[0];
-			$tails = [' on the schedule.',' set to record.',' coming up.'];
+			$tails = $_SESSION['lang']['speechAiringsTails'];
 			$speech .= $tails[array_rand($tails)];
 		} else {
 			if ($days == 'now') {
@@ -1308,8 +1310,8 @@ function parseApiCommand($request) {
 				if ($time >= 17) $days = 'tonight';
 
 			}
-			$errors = ["Sorry, it doesn't look like you have any scheduled recordings for that day.","I don't have anything on the list for ".$days.".","You don't have anything scheduled for ".$days."."];
-			$speech = $errors[array_rand($errors)];
+			$errors = $_SESSION['lang']['speechAiringsErrors'];
+			$speech = $errors[array_rand($errors)] . $days.".";
 		}
 		returnSpeech($speech,$contextName,$cards,false);
 		$queryOut['speech'] = $speech;
@@ -1384,56 +1386,56 @@ function parseApiCommand($request) {
 				$thumb = $queryOut['mediaResult']['art'];
 				$queryOut['parsedCommand'] = 'Play the '.(($searchType == '') ? $type : $searchType). ' named '. $title.'.';
 				unset($affirmatives);
-				$affirmatives = array("Yes captain, ","Okay, ","Sure, ","No problem, ","Yes master, ","You got it, ","As you command, ","Allrighty then, ");
+				$affirmatives = $_SESSION['lang']['speechPlaybackAffirmatives'];
 				$titlelower = strtolower($title);
 				switch($titlelower) {
 					case (strpos($titlelower, 'batman') !== false):
-						$affirmative = "Holy pirated media!  ";
+						$affirmative = $_SESSION['lang']['speechEggBatman'];
 						break;
 					case (strpos($titlelower, 'ghostbusters') !== false):
-						$affirmative = "Who you gonna call?  ";
+						$affirmative = $_SESSION['lang']['speechEggGhostbusters'];
 						break;
 					case (strpos($titlelower, 'iron man') !== false):
-						$affirmative = "Yes Mr. Stark, ";
+						$affirmative = $_SESSION['lang']['speechEggIronMan'];
 						break;
 					case (strpos($titlelower, 'avengers') !== false):
-						$affirmative = "Family assemble! ";
+						$affirmative = $_SESSION['lang']['speechEggAvengers'];
 						break;
 					case (strpos($titlelower, 'frozen') !== false):
-						$affirmative = "Let it go! ";
+						$affirmative = $_SESSION['lang']['speechEggFrozen'];
 						break;
 					case (strpos($titlelower, 'space odyssey') !== false):
-						$affirmative = "I am afraid I can't do that Dave.  Okay, fine, ";
+						$affirmative = $_SESSION['lang']['speechEggOdyssey'];
 						break;
 					case (strpos($titlelower, 'big hero') !== false):
-						$affirmative = "Hello, I am Baymax, I am going to be ";
+						$affirmative = $_SESSION['lang']['speechEggBigHero'];
 						break;
 					case (strpos($titlelower, 'wall-e') !== false):
-						$affirmative = "Thank you for shopping Buy and Large, and enjoy as we begin ";
+						$affirmative = $_SESSION['lang']['speechEggWallE'];
 						break;
 					case (strpos($titlelower, 'evil dead') !== false):
-						$affirmative = "Hail to the king, baby! "; //"playing Evil Dead 1/2/3/(2013)"
+						$affirmative = $_SESSION['lang']['speechEggEvilDead']; //"playing Evil Dead 1/2/3/(2013)"
 						break;
 					case (strpos($titlelower, 'fifth element') !== false):
-						$affirmative = "Leeloo Dallas Mul-ti-Pass! "; //"playing The Fifth Element"
+						$affirmative = $_SESSION['lang']['speechEggFifthElement']; //"playing The Fifth Element"
 						break;
 					case (strpos($titlelower, 'game of thrones') !== false):
-						$affirmative = "Brace yourself...";
+						$affirmative = $_SESSION['lang']['speechEggGameThrones'];
 						break;
 					case (strpos($titlelower, 'they live') !== false):
-						$affirmative = "I'm here to chew bubblegum and ";
+						$affirmative = $_SESSION['lang']['speechEggTheyLive'];
 						break;
 					case (strpos($titlelower, 'heathers') !== false):
-						$affirmative = "Well, charge me gently with a chainsaw.  ";
+						$affirmative = $_SESSION['lang']['speechEggHeathers'];
 						break;
 					case (strpos($titlelower, 'star wars') !== false):
-						$affirmative = "These are not the droids you're looking for.  ";
+						$affirmative = $_SESSION['lang']['speechEggStarWars'];
 						break;
 					case (strpos($titlelower, 'resident evil') !== false):
-						$affirmative = "T-minus 1 minute until infection.  ";
+						$affirmative = $_SESSION['lang']['speechEggResidentEvil'];
 						break;
 					case (strpos($titlelower, 'attack the block') !== false):
-						$affirmative = "Are you the Doctor? ";
+						$affirmative = $_SESSION['lang']['speechEggAttackTheBlock'];
 						break;
 					default:
 						$affirmative = false;
@@ -1453,16 +1455,16 @@ function parseApiCommand($request) {
 
 				if ($type == 'episode') {
 					$seriesTitle = $queryOut['mediaResult']['grandparentTitle'];
-					$speech = $affirmative. "Playing ".$title.".";
+					$speech = $affirmative.$_SESSION['lang']['speechPlaying'] .$title.".";
 					$title = $seriesTitle . ' - '.$title." (".$year.")";
 				} else if (($type == 'track') || ($type == 'album')) {
 					$artist = $queryOut['mediaResult']['grandparentTitle'];
 					$title = $artist . ' - '.$title;
 					$tagline = $queryOut['mediaResult']['parentTitle']." (".$year.")";
-					$speech = $affirmative. "Playing ".$title. " by ".$artist.".";
+					$speech = $affirmative.$_SESSION['lang']['speechPlaying'].$title. $_SESSION['lang']['speechBy'].$artist.".";
 				} else {
 					$title = $title." (".$year.")";
-					$speech = $affirmative. "Playing ".$title.".";
+					$speech = $affirmative.$_SESSION['lang']['speechPlaying'].$title.".";
 				}
 				if ($_SESSION['promptfortitle'] == true) {
 					$contextName = 'promptfortitle';
@@ -1510,7 +1512,7 @@ function parseApiCommand($request) {
 					array_push($cards,$card);
 				}
 				$queryOut['card'] = $cards;
-				$questions = ["I found several possible results for that, were one of these what you wanted? ","Which one did you mean? ","You have a few things that could match that search, are one of these it? "];
+				$questions = $_SESSION['lang']['speechMultiResultArray'];
 				$speech = $questions[array_rand($questions)]. $speechString;
 				$contextName = "promptfortitle";
 				$_SESSION['promptfortitle'] = true;
@@ -1528,10 +1530,10 @@ function parseApiCommand($request) {
 						$command = $_SESSION['cleaned_search'];
 						unset($_SESSION['cleaned_search']);
 					}
-					$errors = ["I couldn't find ".$command." in your library.  Should I try to add it to the watch lists?","I didn't find anything named '".$command."' to play.  Should I try to fetch it for you?'","I couldn't find that in the library, do you want me to try downloading '".$command."'?"];
+					$errors = [$_SESSION['lang']['speechPlayErrorStart1'].$command.$_SESSION['lang']['speechPlayErrorEnd1'],$_SESSION['lang']['speechPlayErrorStart2'].$command.$_SESSION['lang']['speechPlayErrorEnd2'],$_SESSION['lang']['speechPlayError3']];
 					$speech = $errors[array_rand($errors)];
 					$contextName = 'yes';
-					$suggestions = ['Yes','No'];
+					$suggestions = $_SESSION['lang']['suggestionYesNo'];
 					returnSpeech($speech,$contextName,false,true,$suggestions);
 					$queryOut['parsedCommand'] = "Play a media item with the title of '".$command.".'";
 					$queryOut['mediaStatus'] = 'ERROR: No results found, prompting to download.';
@@ -1548,6 +1550,7 @@ function parseApiCommand($request) {
 		$speechString = '';
 		unset($_SESSION['deviceList']);
 		$type = (($action == 'player') ? 'clients' : 'servers');
+		$deviceString = (($action == 'player') ? $_SESSION['lang']['speechPlayer'] : $_SESSION['lang']['speechServer']);
 		$list = $_SESSION['list_plexdevices'] ?? scanDevices();
 		$list = $list[$type];
 		$speech = "There was an error retrieving the list of devices, please try again later.";
@@ -1567,14 +1570,14 @@ function parseApiCommand($request) {
 					$speechString .= " ".$device['name'].",";
 				}
 			}
-			$speech = "Change ".$action.", sure.  What device would you like to use? ".$speechString;
+			$speech = $_SESSION['lang']['speechChange'].$deviceString.$_SESSION['lang']['speechChangeDevicePrompt'].$speechString;
 			$contextName = "waitforplayer";
 			$waitForResponse = true;
 		}
 		if (count($list) == 1) {
 			$suggestions = false;
-			$errors = ["I'm sorry, I've only got a ".$action." named '".$list[0]['name']."' to select.",
-				"I'd like to help you with that, but I only see one ".$action." that I can currently talk to.",
+			$errors = ["I'm sorry, I've only got the ".$deviceString." '".$list[0]['name']."' to select.",
+				"I'd like to help you with that, but I only see one ".$deviceString." that I can currently talk to.",
 				"Unfortunately, I only see ".$list[0]['name']." right now, and it's already selected."];
 			$speech = $errors[array_rand($errors)];
 			$contextName = "waitforplayer";
@@ -4449,7 +4452,7 @@ function checkSignIn() {
 			$userString = "user-_-" . $username;
 			$authToken = $token['authToken'];
 			$email = $token['email'];
-			$avatar = $token['thumb'];
+			$avatar = cacheImage($token['thumb']);
 			$apiToken = checkSetApiToken($username);
 			if ($_SESSION['newToken']) write_log("New token found.","INFO");
 

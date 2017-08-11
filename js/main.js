@@ -102,7 +102,10 @@ jQuery(document).ready(function($) {
 
 			apiToken = $('#apiTokenData').attr('data');
 			$.get('api.php?apiToken=' + apiToken, {id:id, value:value}, function() {
-                if (id==='darkTheme') setTimeout( function() { location.reload(); }, 200);
+                if (id==='darkTheme') {
+                	setTimeout( function() { location.reload(); }, 1000);
+                    $.snackbar({content: "Theme changed, reloading page."});
+                }
 			});
 			if ($(this).hasClass("appParam")) {
 				id = $(this).parent().parent().parent().attr('id').replace("Group","");
@@ -235,6 +238,14 @@ jQuery(document).ready(function($) {
 		apiToken = $('#apiTokenData').attr('data');
 		$.get('api.php?apiToken=' + apiToken, {id:service,value:index});
 	});
+
+    $("#appLanguage").change(function(){
+        var lang = $(this).find('option:selected').attr('value');
+        apiToken = $('#apiTokenData').attr('data');
+        $.get('api.php?apiToken=' + apiToken, {id:"appLanguage",value:lang});
+        $.snackbar({content: "Language changed, reloading page."});
+        setTimeout( function() { location.reload(); }, 1000);
+    });
 	
 	$("#dvrList").change(function(){
 		console.log("DVR Changed!");
@@ -565,7 +576,7 @@ function setBackground() {
     //Add your images, we'll set the path in the next step
 	console.log("Caching background image.");
     var image = new Image();
-    image.src = "https://phlexchat.com/img.php?random&v=" + (Math.floor(Math.random()*(1084)));
+    image.src = "https://phlexchat.com/img.php?random&height="+$(document).height()+"&width="+$(document).width()+"&v=" + (Math.floor(Math.random()*(1084)));
     setTimeout
     (
         function()
@@ -748,29 +759,11 @@ function updateCommands(data,prepend) {
 				var JSONdiv = '<a href="javascript:void(0)" id="JSON'+i+'" class="JSONPop" data="'+encodeURIComponent(JSON.stringify(value,null,2))+'" title="Result JSON">{JSON}</a>';
 				var mediaDiv = false;
 				// Build our card
-				if (value.hasOwnProperty('card')) {
-					if (($.inArray('card',value)) && (value.card instanceof Array)) {
-                        if(value.card.length > 0) {
-                            if (value.card[0].image.url !== null) {
-                                mediaDiv = buildCards(value, i);
-                            }
-                        }
-					}
-				}
-				if (! mediaDiv) {
-					timeLine = '<li class="list-group-item">' + timeStamp + '</li><br>';
-					mediaDiv = '<ul class="list-group list-group-flush">' +
-                    '<li class="list-group-item">' + timeLine + '</li>' +
-                    '<li class="list-group-item"><b>You said: </b>"' + initialCommand + '."</li>' +
-					'<li class="list-group-item"><b>My reply:</b> "' +speech + '</li><br>' +
-					'<li class="list-group-item">' + JSONdiv + '</li>' +
-                    '</ul><br>';
-                }
-
-				var cardClose = '<button id="CARDCLOSE'+i+'" class="cardClose"><span class="material-icons">close</span></button>';
+				mediaDiv = buildCards(value,i);
 
 				var outLine =
-						"<div class='resultDiv card hiddenCard' id='"+timeStamp+"'>" + cardClose +
+						"<div class='resultDiv card hiddenCard' id='"+timeStamp+"'>" +
+                    		'<button id="CARDCLOSE'+i+'" class="cardClose"><span class="material-icons">close</span></button>' +
                         	mediaDiv +
 						"</div>";
 				
@@ -923,74 +916,55 @@ function recurseJSON(json) {
 
 }
 function buildCards(value,i) {
-    var initialCommand = ucFirst(value.initialCommand);
+    var cardBg = '';
     var timeStamp = ($.inArray('timeStamp',value) ? $.trim(value.timestamp) : '');
-    speech = (value.speech ? value.speech : "");
-    if ($(window).width() < 700) speech = speech.substring(0,100);
+    var title = '';
+    var subtitle = '';
+    var description = '';
+    var initialCommand = ucFirst(value.initialCommand);
+    var speech = (value.speech ? value.speech : "");
     var status = (value.mediaStatus ? value.mediaStatus : "");
-    itemJSON = value;
+    var itemJSON = value;
     var JSONdiv = '<a href="javascript:void(0)" id="JSON'+i+'" class="JSONPop" data="'+encodeURIComponent(JSON.stringify(value,null,2))+'" title="Result JSON">{JSON}</a>';
-    console.log("We got a card here...");
-    var cardDiv = '';
-    var cardArray = value.card;
-    //Get our general variables about this media object
-    if (cardArray.length === 1) {
-    	var card = cardArray[0];
-        // Determine if we should be using a Plex path, or a full path
-        subtitle = ((card.hasOwnProperty('subtitle') && (card.subtitle != null)) ? '<h6 class="card-subtitle text-muted cardtagline">' + card.subtitle + '</h6>' : '');
-        formatted_text = ((card.hasOwnProperty('formattedText')) ? '<br><p class="card-text cardsummary">' + card.formattedText + '</p>' : ((card.hasOwnProperty('description')) ? '<br><p class="card-text cardsummary">' + card.description + '</p>' : ''));
-        cardDiv = '' +
-            '<img src="' + card.image.url + '" onerror="imgError(this);" class="card-img-top cardBG"/>' +
-            '<div class="card-img-overlay card-inverse">' +
-            '<p class="card-subtitle">' + $.trim(timeStamp) + '</p>' +
-            '<h4 class="card-title">' + card.title + '</h4>' +
-            subtitle +
-            formatted_text+
-            '<p class="card-text card-base">' +
-            '<b>You said: </b>"' + initialCommand + '"' +
-            '<br><b>My reply: </b>"' + speech + '"<br><br>' +
-            JSONdiv +
-            '</p><br>' +
-            '</div>';
+
+    if ($(window).width() < 700) speech = speech.substring(0,100);
+
+    if (value.hasOwnProperty('card')) {
+    	console.log("CARD: ",value.card);
+        if ((value.card.length > 0) && (value.card instanceof Array)) {
+            console.log("We got a card here...");
+            var cardArray = value.card;
+            var card = cardArray[0];
+            //Get our general variables about this media object
+            if (cardArray.length === 1) {
+                title = ((card.hasOwnProperty('title') && (card.title !== null)) ? card.title : '');
+                subtitle = ((card.hasOwnProperty('subtitle') && (card.subtitle !== null)) ? card.subtitle : '');
+                description = ((card.hasOwnProperty('formattedText')) ? card.formattedText : ((card.hasOwnProperty('description')) ? card.description : ''));
+            }
+            if (cardArray.length >= 2) {
+                card = cardArray[Math.floor(Math.random() * cardArray.length - 1)];
+            }
+            if (card.hasOwnProperty('image')) {
+                if (card.image.url !== null) cardBg = '<img class="card-img-top card-bg"   style="width:100%" src="' + card.image.url + '">';
+            }
+        }
     }
-    if (cardArray.length >= 2) {
-        cardDiv = '<div class="card-img-top">';
-        var count = cardArray.length;
-        $.each(cardArray, function(l, subCard) {
-            var newLine = '';
-            var width = '';
-            if (count >= 2) width = '50%';
-            if (count >= 6) width = '33.3%';
 
-            if (((count === 4 || count === 5) && (l===1)) || ((count >= 6) && ((l===2) || (l===5)))) newLine='<br>';
 
-            cardDiv += '<img class="card-imgs-top" onerror="imgError(this);"  style="width:' + width + '" src="' + subCard.image.url + '" alt="' + subCard.title + '"></img>' +
-                newLine;
-
-            if ((count === 2 || count === 3) && (l ===1)) {
-                return false;
-            }
-            if ((count === 4 || count === 5) && (l ===3)) {
-                return false;
-            }
-            if ((count >= 6 && count <= 8) && (l ===5)) {
-                return false;
-            }
-            if ((count >= 9) && (l ===8)) {
-                return false;
-            }
-        })
-
-        cardDiv += '</div><div class="card-img-overlay card-inverse">' +
-            '<p class="card-subtitle">' + $.trim(timeStamp) + '</p><br>' +
-            '<p class="card-text card-base">' +
-            '<p class="reques-text card-text"><b>You said: </b>"' + initialCommand + '"</p>' +
-            '<p class="reply-text card-text"><b>My reply: </b>"' + speech + '"</p>' +
-            JSONdiv +
-            '</p><br>' +
-            '</div>';
-    }
-    return cardDiv;
+    return '' +
+        //<div class="card-img-overlay card-inverse">' +
+		cardBg +
+		'<ul class="card-list">' +
+			'<li class="card-timestamp">' + timeStamp + '</li>' +
+			'<li class="card-title">' + title + '</li>' +
+			'<li class="card-subtitle">' + subtitle + '</li>' +
+			'<li class="card-description">' + description + '</li>' +
+			'<li class="card-request card-text"><b>You said: </b>"' + initialCommand + '."</li>' +
+			'<li class="card-reply card-text"><b>My reply:</b> "' + speech + '</li>' +
+			'<li class="card-json">' + JSONdiv + '</li>' +
+        '</ul>' +
+        '<br>';
+    	//'</div>';
 }
 
 function hasContent(obj) {
@@ -1147,6 +1121,6 @@ function setWeather() {
 
 function imgError(image) {
     image.onerror = "";
-    image.src = "https://phlexchat.com/img.php?random&v=" + (Math.floor(Math.random()*(1084)));
+    image.src = "https://phlexchat.com/img.php?random&height="+$(document).height()+"&width="+$(document).width()+"&v=" + (Math.floor(Math.random()*(1084)));
     return true;
 }

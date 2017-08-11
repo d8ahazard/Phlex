@@ -1,6 +1,15 @@
 <?php
     require_once dirname(__FILE__) . '/vendor/autoload.php';
     require_once dirname(__FILE__) . '/util.php';
+    if(empty($_SERVER['HTTPS']) || $_SERVER['HTTPS'] == "off"){
+        $redirect = 'https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+        if (isDomainAvailible($redirect)) {
+	        header('HTTP/1.1 301 Moved Permanently');
+	        header('Location: ' . $redirect);
+	        exit();
+        }
+    }
+    if (substr_count($_SERVER["HTTP_ACCEPT_ENCODING"], "gzip")) ob_start("ob_gzhandler"); else ob_start();
     session_start();
     $messages = checkFiles();
     if (count($messages)) {
@@ -38,25 +47,38 @@
         <meta name="msapplication-config" content="./img/browserconfig.xml">
         <meta name="theme-color" content="#ffffff">
         <meta name="apple-mobile-web-app-capable" content="yes">
-        <link href="./css/bootstrap-reboot.css" rel="stylesheet">
+        <link href="css/fonts.css" rel="stylesheet">
+
         <link href="./css/bootstrap.min.css" rel="stylesheet">
-	    <link href="./css/bootstrap-grid.min.css" rel="stylesheet">
+        <link href="./css/bootstrap-grid.min.css" rel="stylesheet">
         <link href="./css/font-awesome.min.css" rel="stylesheet">
-        <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Roboto:300,400,500,700">
-        <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/icon?family=Material+Icons">
+
         <link href="./css/material.css" rel="stylesheet">
         <link href="./css/snackbar.min.css" rel="stylesheet">
         <link href="./css/bootstrap-material-design.min.css" rel="stylesheet">
         <link href="./css/bootstrap-dialog.css" rel="stylesheet">
         <link href="./css/ripples.min.css" rel="stylesheet">
         <link href="./css/jquery-ui.min.css" rel="stylesheet">
-        <link href="./css/main.css" rel="stylesheet">
 
+        <link href="./css/main.css" rel="stylesheet">
+        <link rel="stylesheet" media="(max-width: 400px)" href="css/main_max_400.css" />
+        <link rel="stylesheet" media="(max-width: 600px)" href="css/main_max_600.css" />
+        <link rel="stylesheet" media="(min-width: 600px)" href="css/main_min_600.css" />
+        <link rel="stylesheet" media="(min-width: 2000px)" href="css/main_min_2000.css" />
         <!--[if lt IE 9]>
         <link href="/css/bootstrap-ie8.css" rel="stylesheet">
         <script src="https://cdn.jsdelivr.net/g/html5shiv@3.7.3,respond@1.4.2"></script>
         <![endif]-->
         <script type="text/javascript">
+            if('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('service-worker.js').then(function(registration) {
+                    // Registration was successful
+                }).catch(function(err) {
+                    // registration failed :(
+                    console.log('ServiceWorker registration failed: ', err);
+                });
+            }
+
             function showMessage(title,message,url='') {
                 if (Notification.permission === 'granted') {
                     var notification = new Notification(title, {
@@ -90,24 +112,38 @@
                 window.history.pushState({}, "Hide", '<?php echo $_SERVER['PHP_SELF'];?>');
             }
         </script>
-        <script type="text/javascript" src="./js/run_prettify.js"></script>
+
         <script type="text/javascript" src="./js/jquery-3.2.1.min.js"></script>
         <script type="text/javascript" src="./js/jquery-ui.min.js"></script>
         <script type="text/javascript" src="./js/tether.min.js"></script>
-        <script type="text/javascript" src="./js/clipboard.min.js"></script>
-        <script type="text/javascript" src="./js/jquery.simpleWeather.min.js"></script>
         <script type="text/javascript" src="./js/bootstrap.min.js"></script>
-        <script type="text/javascript" src="./js/snackbar.min.js"></script>
-        <script type="text/javascript" src="./js/bootstrap-dialog.js"></script>
-        <script type="text/javascript" src="./js/arrive.min.js"></script>
-        <script type="text/javascript" src="./js/material.min.js"></script>
-        <script type="text/javascript" src="./js/ripples.min.js"></script>
-        <script type="text/javascript" src="./js/nouislider.min.js"></script>
-        <script type="text/javascript" src="./js/swiped.min.js"></script>
+
+        <script type="text/javascript" src="./js/run_prettify.js" defer></script>
+        <script type="text/javascript" src="./js/clipboard.min.js" defer></script>
+        <script type="text/javascript" src="./js/jquery.simpleWeather.min.js" defer></script>
+        <script type="text/javascript" src="./js/snackbar.min.js" defer></script>
+        <script type="text/javascript" src="./js/bootstrap-dialog.js" defer></script>
+        <script type="text/javascript" src="./js/arrive.min.js" defer></script>
+        <script type="text/javascript" src="./js/material.min.js" defer></script>
+        <script type="text/javascript" src="./js/ripples.min.js" defer></script>
+        <script type="text/javascript" src="./js/nouislider.min.js" defer></script>
+        <script type="text/javascript" src="./js/swiped.min.js" defer></script>
         <script type="text/javascript" src="./js/ie10-viewport-bug-workaround.js"></script>
+
     </head>
 
     <body style="background-color:black">
+    <img id="holder" src="">
+    <script>
+        var width = window.innerWidth
+            || document.documentElement.clientWidth
+            || document.body.clientWidth;
+
+        var height = window.innerHeight
+            || document.documentElement.clientHeight
+            || document.body.clientHeight;
+        document.getElementById("holder").setAttribute("src","https://phlexchat.com/img.php?random&width="+width+"&height="+height);
+    </script>
         <div id="bodyWrap">
 	        <?php
 	        if (isset($_SESSION['plexToken']))  {
@@ -131,7 +167,7 @@
                 </div>
             </div>
         </div>
-        <img id="holder" src="">
+
         <div id="bgwrap">
             <div class="bg bgLoaded"></div>
         </div>
@@ -165,7 +201,7 @@
                                 </div>
                             </div>
                         </div>
-                        <script type="text/javascript" src="./js/login.js"></script>';
+                        <script type="text/javascript" src="./js/login.js" async></script>';
 	        die();
         }
         ?>

@@ -5,12 +5,13 @@ require_once dirname(__FILE__) . '/util.php';
 require_once dirname(__FILE__) . '/api.php';
 
 function makeBody($newToken = false) {
-    write_log("Function fired.");
+	write_log("Function fired.");
     if (!defined('LOGGED_IN')) {
         write_log("Dying because not logged in?","ERROR");
         die();
     }
     $config = new Config_Lite('config.ini.php');
+    $lang = checkSetLanguage("body");
     // Check our config file exists
     $_SESSION['apiToken'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'apiToken', checkSetApiToken($_SESSION['plexUserName']));
     $_SESSION['plexAvatar'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'plexAvatar', false);
@@ -77,30 +78,25 @@ function makeBody($newToken = false) {
 		curl_setopt($ch, CURLOPT_URL, $url);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt($ch, CURLOPT_CAINFO, dirname(__FILE__) . "/cert/cacert.pem");
-		$_SESSION['realIP']  = curl_exec($ch);
+		$result = curl_exec($ch);
 		curl_close($ch);
+		$result = str_replace(array("\n", "\r"), '', $result);
+		$_SESSION['realIP'] = $result;
 		$config->set('user-_-'.$_SESSION['plexUserName'], 'realIP',$_SESSION['realIP']);
 		saveConfig($config);
 	}
 	$ipString = (((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')	|| $_SERVER['SERVER_PORT'] == 443) ? 'https://' : 'http://') . $_SESSION['realIP']  . '/Phlex';
     $_SESSION['publicAddress'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'publicAddress', $ipString);
-    write_log("Reloaded, dark theme is ".($_SESSION['darkTheme'] ? 'enabled.' : 'disabled.'));
     $bodyText = ($_SESSION['darkTheme'] ? '<link href="./css/dark.css" rel="stylesheet">' : '') . PHP_EOL.
-	'			<div id="body">
-				<div class="wrapper" id="mainwrap">
+	'			<div id="body" class="row justify-content-center">
+				<div class="wrapper col-xs-12 col-lg-8 col-xl-5" id="mainwrap">
 			        <div class="queryWrap col-xs-12">
-			        <div class="col-xs-12 col-lg-6 col-md-offset-1 query">
+			        <div class="query">
 			            <div class="queryBg">
 			                <div class="btn-toolbar row">
-			                    <div class="queryGroup form-group label-floating col-xs-10 col-md-7 col-lg-7">
+			                    <div class="queryGroup form-group label-floating col-xs-10 col-md-7 col-lg-6">
 			                        <div class="inputWrap">
-				                        <div class="cssload-thecube">
-											<div class="cssload-cube cssload-c1"></div>
-											<div class="cssload-cube cssload-c2"></div>
-											<div class="cssload-cube cssload-c4"></div>
-											<div class="cssload-cube cssload-c3"></div>
-										</div>
-			                            <label id="actionLabel" for="commandTest" class="control-label">Hi, I\'m Flex TV.  What can I do for you?</label>
+				                        <label id="actionLabel" for="commandTest" class="control-label">'.$lang['uiGreetingDefault'].'</label>
 				                        <input type="text" class="form-control" id="commandTest"/>
 				                        <div class="load-bar">
 											<div class="bar"></div>
@@ -117,7 +113,7 @@ function makeBody($newToken = false) {
 			                                <i class="material-icons barIcon clientBtn">cast</i>
 			                            </div>
 			                            <div class="dropdown-menu" id="plexClient" aria-labelledby="dropdownMenuLink">
-			                                <h6 class="dropdown-header">Select a player to control.</h6>
+			                                <h6 class="dropdown-header">'.$lang['uiPlayerSelectPrompt'].'</h6>
 			                                <div id="clientWrapper">
 			                                </div>
 			                            </div>
@@ -130,23 +126,23 @@ function makeBody($newToken = false) {
 			            </div>
 			        </div>
 			    </div>
-			        <div id="results" class="queryWrap col-xs-12">
-			        <div id="resultsInner"  class="col-xs-8 col-lg-6 col-xs-offset-1 query"></div>
+			        <div id="results" class="queryWrap">
+			        <div id="resultsInner"  class=""></div>
 			    </div>
 			        <div class="modal fade" id="settingsModal">
 			        <div class="modal-dialog" role="document">
 			            <ul class="nav nav-tabs" id="tabContent" role="tablist">
 						    <li class="nav-item active">
-						        <a href="#generalSettingsTab" class="nav-link" data-toggle="tab" role="tab">Phlex</a>
+						        <a href="#generalSettingsTab" class="nav-link" data-toggle="tab" role="tab">'.$lang['uiSettingHeaderPhlex'].'</a>
 					        </li>
 					        <li class="nav-item">
-						        <a href="#plexSettingsTab" class="nav-link" data-toggle="tab" role="tab">Plex</a>
+						        <a href="#plexSettingsTab" class="nav-link" data-toggle="tab" role="tab">'.$lang['uiSettingHeaderPlex'].'</a>
 					        </li>
 					        <li class="nav-item">
-						        <a href="#fetcherSettingsTab" class="nav-link" data-toggle="tab" role="tab">Fetchers</a>
+						        <a href="#fetcherSettingsTab" class="nav-link" data-toggle="tab" role="tab">'.$lang['uiSettingHeaderFetchers'].'</a>
 					        </li>
 					        <li class="nav-item">
-						        <a href="#logTab" class="nav-link" data-toggle="tab" role="tab">Logs</a>
+						        <a href="#logTab" class="nav-link" data-toggle="tab" role="tab">'.$lang['uiSettingHeaderLogs'].'</a>
 					        </li>
 					            <button type="button" id="settingsClose" data-dismiss="modal" aria-label="Close">
 				                    <span class="material-icons" aria-hidden="true">close</span>
@@ -161,59 +157,66 @@ function makeBody($newToken = false) {
 			                        <div class="modal-body">
 					                    <div class="appContainer card">
 					                        <div class="card-body">
-					                            <h4 class="cardHeader">General</h4>
+					                            <h4 class="cardHeader">'.$lang['uiSettingGeneral'].'</h4>
+					                            <div class="form-group">
+				                                    <label class="appLabel" for="appLanguage">'.$lang['uiSettingLanguage'].'</label>
+				                                    <select class="form-control custom-select" id="appLanguage">
+				                                    	<option value="en" id="en"'.($_SESSION["appLanguage"] == "en" ? 'selected' : '').'>'.$lang['uiSettingLangEnglish'].'</option>
+				                                    	<option value="fr" id="fr"'.($_SESSION["appLanguage"] == "fr" ? 'selected' : '').'>'.$lang['uiSettingLangFrench'].'</option>
+				                                    </select>
+				                                    <br><br>
+			                                    </div>
 					                            <div class="form-group">
 					                                <div class="form-group">
-					                                    <label for="apiToken" class="appLabel">API Key:
+					                                    <label for="apiToken" class="appLabel">'.$lang['uiSettingApiKey'].'
 					                                        <input id="apiToken" class="appInput form-control" type="text" value="' . $_SESSION["apiToken"] . '" readonly="readonly"/>
 					                                    </label>
 					                                </div>
 					                            </div>
 					                            <div class="form-group">
 					                                <div class="form-group">
-					                                    <label for="publicAddress" class="appLabel">Public Address:
+					                                    <label for="publicAddress" class="appLabel">'.$lang['uiSettingPublicAddress'].'
 					                                        <input id="publicAddress" class="appInput form-control formpop" type="text" value="' . $_SESSION["publicAddress"] . '" />
-					                                        
 					                                    </label>
 					                                </div>
 					                            </div>
 					                            <div class="form-group">
 					                                <div class="form-group">
-					                                    <label for="rescanTime" class="appLabel">Device Rescan Interval (Minutes):
+					                                    <label for="rescanTime" class="appLabel">'.$lang['uiSettingRescanInterval'].'
 					                                        <input id="rescanTime" class="appInput form-control" type="number" min="5" max="30" value="' . $_SESSION["rescanTime"] . '" />
-					                                        <span class="bmd-help">How frequently to re-cache devices.</span>
+					                                        <span class="bmd-help">'.$lang['uiSettingRescanHint'].'</span>
 					                                    </label>
 					                                </div>
 					                            </div>
 					                            <div class="togglebutton">
-					                                <label for="cleanLogs" class="appLabel checkLabel">Obscure Sensitive Data in Logs
+					                                <label for="cleanLogs" class="appLabel checkLabel">'.$lang['uiSettingObscureLogs'].'
 					                                    <input id="cleanLogs" type="checkbox" class="appInput appToggle" ' . ($_SESSION["cleanLogs"] ? "checked" : "") . '/>
 					                                </label>
 					                            </div>
 					                            <div class="togglebutton">
-					                                <label for="darkTheme" class="appLabel checkLabel">Use Dark Theme
+					                                <label for="darkTheme" class="appLabel checkLabel">'.$lang['uiSettingThemeColor'].'
 					                                    <input id="darkTheme" class="appInput" type="checkbox" ' . ($_SESSION["darkTheme"] ? "checked" : "") . '/>
 					                                </label>
 					                            </div>
 					                            <div class="form-group text-center">
 					                                <div class="form-group">
-					                                    <label for="linkAccount">Account Linking:</label><br>
-					                                    <button id="linkAccount" class="btn btn-raised linkBtn btn-danger">Link Google</button>
-					                                    <button id="linkAmazonAccount" class="btn btn-raised alexaBtn btn-info">Link Amazon</button>
+					                                    <label for="linkAccount">'.$lang['uiSettingAccountLinking'].'</label><br>
+					                                    <button id="linkAccount" class="btn btn-raised linkBtn btn-danger">'.$lang['uiSettingLinkGoogle'].'</button>
+					                                    <button id="linkAmazonAccount" class="btn btn-raised alexaBtn btn-info">'.$lang['uiSettingLinkAmazon'].'</button>
 					                                </div>
 					                            </div>
 					                            <div class="text-center">
-					                                <label for="sel1">Click to copy IFTTT URL:</label><br>
+					                                <label for="sel1">'.$lang['uiSettingCopyIFTTT'].'</label><br>
 					                                <button id="sayURL" class="copyInput btn btn-raised btn-primary btn-70" type="button"><i class="material-icons">message</i></button>
 					                            </div>
 					                        </div>
 					                    </div>'.(checkGit() ?
 					                    '<div class="appContainer card updateDiv">
 					                        <div class="card-body">
-					                            <h4 class="cardHeader">Updates</h4>
+					                            <h4 class="cardHeader">'.$lang['uiSettingUpdates'].'</h4>
 					                            <div class="form-group">
 					                                <div class="togglebutton">
-					                                    <label for="autoUpdate" class="appLabel checkLabel">Automatically Install Updates
+					                                    <label for="autoUpdate" class="appLabel checkLabel">'.$lang['uiSettingAutoUpdate'].'
 					                                        <input id="autoUpdate" type="checkbox" class="appInput" ' . ($_SESSION["autoUpdate"] ? "checked" : "") . '/>
 					                                    </label>
 					                                </div>
@@ -223,8 +226,8 @@ function makeBody($newToken = false) {
 					                                </div>
 					                                <div class="text-center">
 					                                    <div class="form-group btn-group">
-					                                        <button id="checkUpdates" value="checkUpdates" class="btn btn-raised btn-info btn-100" type="button">Refresh</button>
-					                                        <button id="installUpdates" value="installUpdates" class="btn btn-raised btn-warning btn-100" type="button">Install</button>
+					                                        <button id="checkUpdates" value="checkUpdates" class="btn btn-raised btn-info btn-100" type="button">'.$lang['uiSettingRefreshUpdates'].'</button>
+					                                        <button id="installUpdates" value="installUpdates" class="btn btn-raised btn-warning btn-100" type="button">'.$lang['uiSettingInstallUpdates'].'</button>
 					                                    </div>
 					                                </div>
 					                            </div>
@@ -232,95 +235,95 @@ function makeBody($newToken = false) {
 					                    </div>' : '').
 					                    '<div class="appContainer card">
 					                        <div class="card-body">
-					                            <h4 class="cardHeader">Webhooks</h4>
+					                            <h4 class="cardHeader">'.$lang['uiSettingHookLabel'].'</h4>
 					                            <div class="togglebutton">
-					                                <label for="hookEnabled" class="appLabel checkLabel">Enable
+					                                <label for="hookEnabled" class="appLabel checkLabel">'.$lang['uiSettingEnable'].'
 					                                    <input id="hookEnabled" type="checkbox" class="appInput appToggle" '.($_SESSION["hookEnabled"] ? 'checked' : '').'/>
 					                                </label>
 					                            </div>
 					                            <div class="form-group" id="hookGroup">
 						                            <div class="togglebutton">
-						                                <label for="hookSplit" class="appLabel checkLabel">Separate URLs
+						                                <label for="hookSplit" class="appLabel checkLabel">'.$lang['uiSettingSeparateHookUrl'].'
 						                                    <input id="hookSplit" type="checkbox" class="appInput appToggle" '.($_SESSION["hookSplit"] ? 'checked' : '').'/>
 						                                </label>
 						                            </div>
 						                            <div class="form-group" id="hookUrlGroup">
-					                                    <label for="hookUrl" class="appLabel">Webhook URL:
+					                                    <label for="hookUrl" class="appLabel">'.$lang['uiSettingHookUrlGeneral'].'
 					                                        <input id="hookUrl" class="appInput form-control Webhooks" type="text" value="' . $_SESSION["hookUrl"] . '"/>
-					                                        <span class="bmd-help">?param={{media/command}} will be appended</span>
+					                                        <span class="bmd-help">'.$lang['uiSettingHookPlayHint'].'</span>
 					                                    </label>
 					                                </div>
 					                                <div class="togglebutton">
-						                                <label for="hookPlay" class="appLabel checkLabel">Playback
+						                                <label for="hookPlay" class="appLabel checkLabel">'.$lang['uiSettingHookPlayback'].'
 						                                    <input id="hookPlay" type="checkbox" class="appInput hookToggle" '.($_SESSION["hookPlay"] ? 'checked' : '').'/>
 						                                </label>
 						                            </div>
 						                            <div class="hookLabel">
 						                                <div class="form-group urlGroup" id="hookPlayGroup">
-						                                    <label for="hookPlayUrl" class="appLabel">URL:
+						                                    <label for="hookPlayUrl" class="appLabel">'.$lang['uiSettingHookGeneric'].'
 						                                        <input id="hookPlayUrl" class="appInput form-control Webhooks" type="text" value="' . $_SESSION["hookPlayUrl"] . '"/>
-						                                        <span class="bmd-help">?param={{media name}} will be appended</span>
+						                                        <span class="bmd-help">'.$lang['uiSettingHookPlayHint'].'</span>
 						                                    </label>
 						                                </div>
 					                                </div>
 					                                <div class="togglebutton">
-						                                <label for="hookPaused" class="appLabel checkLabel">Pause
+						                                <label for="hookPaused" class="appLabel checkLabel">'.$lang['uiSettingHookPause'].'
 						                                    <input id="hookPaused" type="checkbox" class="appInput hookToggle" '.($_SESSION["hookPaused"] ? 'checked' : '').'/>
 						                                </label>
 						                            </div>
 						                            <div class="hookLabel">
 						                                <div class="form-group urlGroup" id="hookPausedGroup">
-						                                    <label for="hookPausedUrl" class="appLabel">URL:
+						                                    <label for="hookPausedUrl" class="appLabel">'.$lang['uiSettingHookGeneric'].'
 						                                        <input id="hookPausedUrl" class="appInput form-control Webhooks" type="text" value="' . $_SESSION["hookPausedUrl"] . '"/>
 						                                    </label>
 						                                </div>
 					                                </div>
 					                                <div class="togglebutton">
-						                                <label for="hookStop" class="appLabel checkLabel">Stop
+						                                <label for="hookStop" class="appLabel checkLabel">'.$lang['uiSettingHookStop'].'
 						                                    <input id="hookStop" type="checkbox" class="appInput hookToggle"/ '.($_SESSION["hookStop"] ? 'checked' : '').'>
 						                                </label>
 						                            </div>
 						                            <div class="hookLabel">
 						                                <div class="form-group urlGroup" id="hookStopGroup">
-						                                    <label for="hookStopUrl" class="appLabel">URL:
+						                                    <label for="hookStopUrl" class="appLabel">'.$lang['uiSettingHookGeneric'].'
 						                                        <input id="hookStopUrl" class="appInput form-control Webhooks" type="text" value="' . $_SESSION["hookStopUrl"] . '"/>
 						                                    </label>
 						                                </div>
 					                                </div>
 					                                <div class="togglebutton">
-						                                <label for="hookFetch" class="appLabel checkLabel">Fetch
+						                                <label for="hookFetch" class="appLabel checkLabel">'.$lang['uiSettingHookFetch'].'
 						                                    <input id="hookFetch" type="checkbox" class="appInput hookToggle" '.($_SESSION["hookFetch"] ? 'checked' : '').'/>
 						                                </label>
 						                            </div>
 						                            <div class="hookLabel">
 						                                <div class="form-group urlGroup" id="hookFetchGroup">
-						                                    <label for="hookFetchUrl" class="appLabel">URL:
+						                                    <label for="hookFetchUrl" class="appLabel">'.$lang['uiSettingHookGeneric'].'
 						                                        <input id="hookFetchUrl" class="appInput form-control Webhooks" type="text" value="' . $_SESSION["hookFetchUrl"] . '"/>
 						                                    </label>
 						                                </div>
 					                                </div>
 					                                <div class="togglebutton">
-						                                <label for="hookCustom" class="appLabel checkLabel">Custom
+						                                <label for="hookCustom" class="appLabel checkLabel">'.$lang['uiSettingHookCustom'].'
 						                                    <input id="hookCustom" type="checkbox" class="appInput hookToggle" '.($_SESSION["hookCustom"] ? 'checked' : '').'/>
 						                                </label>
 						                            </div>
 					                                <div class="form-group" id="hookCustomPhraseGroup">
 						                                <div class="hookLabel">
-						                                    <label for="hookCustomUrl" class="appLabel">URL:
+						                                    <label for="hookCustomUrl" class="appLabel">'.$lang['uiSettingHookGeneric'].'
 						                                        <input id="hookCustomUrl" class="appInput form-control Webhooks" type="text" value="' . $_SESSION["hookCustomUrl"] . '"/>
 						                                    </label>
 					                                    </div>
-					                                    <label for="hookCustomPhrase" class="appLabel">Custom Phrase:
+					                                    <label for="hookCustomPhrase" class="appLabel">'.$lang['uiSettingHookCustomPhrase'].'
 					                                        <input id="hookCustomPhrase" class="appInput form-control Webhooks" type="text" value="' . $_SESSION["hookCustomPhrase"] . '"/>
 					                                    </label>
-					                                    <label for="hookCustomReply" class="appLabel">Custom Phrase:
+					                                    <label for="hookCustomReply" class="appLabel">'.$lang['uiSettingHookCustomResponse'].'
 					                                        <input id="hookCustomReply" class="appInput form-control Webhooks" type="text" value="' . $_SESSION["hookCustomReply"] . '"/>
 					                                    </label>
 					                                </div>
 					                                <div class="text-center">
 					                                    <div class="form-group btn-group">
-					                                        <button value="Webhooks" class="testInput btn btn-raised btn-info" type="button">Test</button>
-					                                        <button id="resetCouch" value="Webhooks" class="resetInput btn btn-raised btn-danger btn-100" type="button">Reset</button>
+					                                        <button value="Webhooks" class="testInput btn btn-raised btn-info" type="button">'.$lang['uiSettingBtnTest'].'</button>
+					                                        <button id="resetCouch" value="Webhooks" class="resetInput btn btn-raised btn-danger btn-100" type="button">'.$lang['uiSettingBtnReset'].'</button>
 					                                    </div>
 					                                </div>
 					                            </div>
@@ -343,86 +346,86 @@ function makeBody($newToken = false) {
 			                        <div class="card">
 			                            <div class="appContainer card">
 	                                        <div class="card-body">
-					                            <h4 class="cardHeader">General</h4>
+					                            <h4 class="cardHeader">'.$lang['uiSettingGeneral'].'</h4>
 				                                <div class="form-group">
-				                                    <label class="appLabel" for="serverList">Playback Server:</label>
+				                                    <label class="appLabel" for="serverList">'.$lang['uiSettingPlaybackServer'].'</label>
 				                                    <select class="form-control custom-select" id="serverList">
 				                                    </select>
 				                                    <br><br>
 			                                    </div>
 			                                    <div class="form-group">
 					                                <div class="form-group">
-					                                    <label for="returnItems" class="appLabel">Number of On-Deck/Recent Items to Return:
+					                                    <label for="returnItems" class="appLabel">'.$lang['uiSettingOndeckRecent'].'
 					                                        <input id="returnItems" class="appInput form-control" type="number" min="1" max="20" value="' . $_SESSION["returnItems"] . '" />
 					                                    </label>
 					                                </div>
 					                            </div>
 				                                <div class="form-group">
 				                                    <div class="togglebutton">
-				                                        <label for="useCast" class="appLabel checkLabel">Use Cast Devices
+				                                        <label for="useCast" class="appLabel checkLabel">'.$lang['uiSettingUseCast'].'
 				                                            <input id="useCast" type="checkbox" class="appInput appToggle" ' . ($_SESSION["useCast"] ? "checked" : "") . '/>
 				                                        </label>
 				                                    </div>
 				                                </div>
 				                                <div class="form-group">
 				                                    <div class="togglebutton">
-				                                        <label for="noLoop" class="appLabel checkLabel">No Plex.Direct
+				                                        <label for="noLoop" class="appLabel checkLabel">'.$lang['uiSettingNoPlexDirect'].'
 				                                            <input id="noLoop" type="checkbox" class="appInput appToggle" ' . ($_SESSION["noLoop"] ? "checked" : "") . '/><br>
 			                                            </label>
-			                                            <span class="bmd-help">(EXPERIMENTAL) Enable this if you can\'t connect to your server.</span>
+			                                            <span class="bmd-help">'.$lang['uiSettingNoPlexDirectHint'].'</span>
 				                                    </div>
 				                                </div>
 				                                
 				                                <div class="text-center">
 				                                    <div class="form-group btn-group">
-				                                        <button value="Plex" class="testInput btn btn-raised btn-info btn-100" type="button">Test</button>
+				                                        <button value="Plex" class="testInput btn btn-raised btn-info btn-100" type="button">'.$lang['uiSettingsBtnTest'].'</button>
 				                                    </div>
 				                                </div>
 					                        </div>
 					                    </div>
 					                    <div class="appContainer card dvrGroup">
 					                        <div class="card-body">
-					                            <h4 class="cardHeader">Plex DVR</h4>
+					                            <h4 class="cardHeader">'.$lang['uiSettingPlexDVR'].'</h4>
 					                            <div class="form-group">
 					                                <div class="form-group">
-					                                    <label class="appLabel" for="dvrList">DVR Server:</label>
+					                                    <label class="appLabel" for="dvrList">'.$lang['uiSettingDvrServer'].'</label>
 					                                    <select class="form-control custom-select" id="dvrList">
 					
 					                                    </select>
 					                                </div>
 					                                <div class="form-group">
-					                                    <label class="appLabel" for="resolution">Resolution:</label>
+					                                    <label class="appLabel" for="resolution">'.$lang['uiSettingDvrResolution'].'</label>
 					                                    <select class="form-control appInput" id="plexDvrResolution">
-					                                        <option value="0" '.($_SESSION["plexDvrResolution"] == 0 ? "selected" : "") .' >Any </option>
-					                                        <option value="720" '. ($_SESSION["plexDvrResolution"] == 720 ? "selected" : "") .' >High-Definition </option>
+					                                        <option value="0" '.($_SESSION["plexDvrResolution"] == 0 ? "selected" : "") .' >'.$lang['uiSettingDvrResolutionAny'].'</option>
+					                                        <option value="720" '. ($_SESSION["plexDvrResolution"] == 720 ? "selected" : "") .' >'.$lang['uiSettingDvrResolutionHD'].'</option>
 					                                    </select>
 					                                </div>
 					                                <br>
 					                                <div class="togglebutton">
-					                                    <label for="plexDvrNewAirings" class="appLabel checkLabel">Record new Airings Only
+					                                    <label for="plexDvrNewAirings" class="appLabel checkLabel">'.$lang['uiSettingDvrNewAirings'].'
 					                                        <input id="plexDvrNewAirings" type="checkbox" class="appInput" '.($_SESSION["plexDvrNewAirings"] ? "checked" : "") . ' />
 					                                    </label>
 					                                </div>
 					                                <br>
 					                                <div class="togglebutton">
-					                                    <label for="plexDvrReplaceLower" class="appLabel checkLabel">Replace Lower Quality Recordings
+					                                    <label for="plexDvrReplaceLower" class="appLabel checkLabel">'.$lang['uiSettingDvrReplaceLower'].'
 					                                        <input id="plexDvrReplaceLower" type="checkbox" class="appInput" '. ($_SESSION["plexDvrReplaceLower"] ? " checked " : "") . ' />
 					                                    </label>
 					                                </div>
 					                                <br>
 					                                <div class="togglebutton">
-					                                    <label for="plexDvrRecordPartials" class="appLabel checkLabel">Record partial episodes
+					                                    <label for="plexDvrRecordPartials" class="appLabel checkLabel">'.$lang['uiSettingDvrRecordPartials'].'
 					                                        <input id="plexDvrRecordPartials" type="checkbox" class="appInput" '. ($_SESSION["plexDvrRecordPartials"] ? "checked" : "") . ' />
 					                                    </label>
 					                                </div>
 					                                <div class="form-group">
-					                                    <label for="plexDvrStartOffset" class="appLabel">Start Offset (Minutes):
-					                                        <input id="plexDvrStartOffset" class="appInput form-control" type="number" min="1" max="30" value="' . $_SESSION["plexDvrStartOffset"] . '" />
+					                                    <label for="plexDvrStartOffset" class="appLabel">'.$lang['uiSettingDvrStartOffset'].'
+					                                        <input id="plexDvrStartOffset" class="appInput form-control" type="number" min="1" max="30" value="' . $_SESSION["plexDvrStartOffset"]. '" />
 					                                    </label>
 					                                </div>
 					                                <div class="form-group">
-					                                    <label for="dvr_endoffset" class="appLabel">End Offset (Minutes):
-					                                        <input id="dvr_endoffset" class="appInput form-control" type="number" min="1" max="30" value="' . $_SESSION["dvr_endoffset"] . '" />
+					                                    <label for="dvr_endoffset" class="appLabel">'.$lang['uiSettingDvrEndOffset'].'
+					                                        <input id="dvr_endoffset" class="appInput form-control" type="number" min="1" max="30" value="' . $_SESSION["dvr_endoffset"]. '" />
 					                                    </label>
 					                                </div>
 					
@@ -439,7 +442,7 @@ function makeBody($newToken = false) {
 					                        <div class="card-body">
 					                            <h4 class="cardHeader">CouchPotato</h4>
 					                            <div class="togglebutton">
-					                                <label for="couchEnabled" class="appLabel checkLabel">Enable
+					                                <label for="couchEnabled" class="appLabel checkLabel">'.$lang['uiSettingEnable'].'
 					                                    <input id="couchEnabled" type="checkbox" class="appInput appToggle"/>
 					                                </label>
 					                            </div>
@@ -450,30 +453,30 @@ function makeBody($newToken = false) {
 					                                    </label>
 					                                </div>
 					                                <div class="form-group">
-					                                    <label for="couchPath" class="appLabel">Couchpotato Path (Optional):
+					                                    <label for="couchPath" class="appLabel">Couchpotato '.$lang['uiSettingFetcherPath'].':
 					                                        <input id="couchPath" class="appInput form-control CouchPotato appParam" type="text" value="' . $_SESSION["couchPath"] . '"/>
 					                                    </label>
 					                                </div>
 					                                <div class="form-group">
-					                                    <label for="couchPort" class="appLabel">Couchpotato Port:
+					                                    <label for="couchPort" class="appLabel">Couchpotato '.$lang['uiSettingFetcherPort'].':
 					                                        <input id="couchPort" class="appInput form-control CouchPotato appParam" type="text" value="' . $_SESSION["couchPort"] . '"/>
 					                                    </label>
 					                                </div>
 					                                <div class="form-group">
-					                                    <label for="couchAuth" class="appLabel">Couchpotato Token:
+					                                    <label for="couchAuth" class="appLabel">Couchpotato '.$lang['uiSettingFetcherToken'].':
 					                                        <input id="couchAuth" class="appInput form-control CouchPotato appParam" type="text" value="' . $_SESSION["couchAuth"] . '"/>
 					                                    </label>
 					                                </div>
 					                                <div class="form-group">
-					                                    <label class="appLabel" for="couchProfile">Quality Profile:</label>
+					                                    <label class="appLabel" for="couchProfile">'.$lang['uiSettingFetcherQualityProfile'].':</label>
 					                                    <select class="form-control profileList" id="couchProfile">
 															'. fetchList("couch") .'
 					                                    </select>
 					                                </div>
 					                                <div class="text-center">
 					                                    <div class="form-group btn-group">
-					                                        <button value="CouchPotato" class="testInput btn btn-raised btn-info" type="button">Test</button>
-					                                        <button id="resetCouch" value="CouchPotato" class="resetInput btn btn-raised btn-danger btn-100" type="button">Reset</button>
+					                                        <button value="CouchPotato" class="testInput btn btn-raised btn-info" type="button">'.$lang['uiSettingBtnTest'].'<button>
+					                                        <button id="resetCouch" value="CouchPotato" class="resetInput btn btn-raised btn-danger btn-100" type="button">'.$lang['uiSettingBtnReset'].'<button>
 					                                    </div>
 					                                </div>
 					                            </div>
@@ -483,7 +486,7 @@ function makeBody($newToken = false) {
 					                        <div class="card-body">
 					                            <h4 class="cardHeader">Ombi</h4>
 					                            <div class="togglebutton">
-					                                <label for="ombiEnabled" class="appLabel checkLabel">Enable
+					                                <label for="ombiEnabled" class="appLabel checkLabel">'.$lang['uiSettingEnable'].'
 					                                    <input id="ombiEnabled" type="checkbox" class="appInput appToggle"/>
 					                                </label>
 					                            </div>
@@ -494,19 +497,19 @@ function makeBody($newToken = false) {
 					                                    </label>
 					                                </div>
 					                                <div class="form-group">
-					                                    <label for="ombiPort" class="appLabel">Ombi Port:
+					                                    <label for="ombiPort" class="appLabel">Ombi '.$lang['uiSettingFetcherPort'].':
 					                                        <input id="ombiPort" class="appInput form-control Ombi appParam" type="text" value="' . $_SESSION["ombiPort"] . '"/>
 					                                    </label>
 					                                </div>
 					                                <div class="form-group">
-					                                    <label for="ombiAuth" class="appLabel">Ombi Token:
+					                                    <label for="ombiAuth" class="appLabel">Ombi '.$lang['uiSettingFetcherToken'].':
 					                                        <input id="ombiAuth" class="appInput form-control Ombi appParam" type="text" value="' . $_SESSION["ombiAuth"] . '"/>
 					                                    </label>
 					                                </div>
 					                                <div class="text-center">
 					                                    <div class="form-group btn-group">
-					                                        <button value="Ombi" class="testInput btn btn-raised btn-info btn-100" type="button">Test</button>
-					                                        <button id="resetOmbi" value="Ombi" class="resetInput btn btn-raised btn-danger btn-100" type="button">Reset</button>
+					                                        <button value="Ombi" class="testInput btn btn-raised btn-info btn-100" type="button">'.$lang['uiSettingBtnTest'].'<button>
+					                                        <button id="resetOmbi" value="Ombi" class="resetInput btn btn-raised btn-danger btn-100" type="button">'.$lang['uiSettingBtnReset'].'<button>
 					                                    </div>
 					                                </div>
 					                            </div>
@@ -516,7 +519,7 @@ function makeBody($newToken = false) {
 					                        <div class="card-body">
 					                            <h4 class="cardHeader">Radarr</h4>
 					                            <div class="togglebutton">
-					                                <label for="radarrEnabled" class="appLabel checkLabel">Enable
+					                                <label for="radarrEnabled" class="appLabel checkLabel">'.$lang['uiSettingEnable'].'
 					                                    <input id="radarrEnabled" type="checkbox" class="appInput appToggle"/>
 					                                </label>
 					                            </div>
@@ -527,30 +530,30 @@ function makeBody($newToken = false) {
 					                                    </label>
 					                                </div>
 					                                <div class="form-group">
-					                                    <label for="radarrPath" class="appLabel">Radarr Path (Optional):
+					                                    <label for="radarrPath" class="appLabel">Radarr '.$lang['uiSettingFetcherPath'].':
 					                                        <input id="radarrPath" class="appInput form-control Radarr appParam" type="text" value="' . $_SESSION["radarrPath"] . '"/>
 					                                    </label>
 					                                </div>
 					                                <div class="form-group">
-					                                    <label for="radarrPort" class="appLabel">Radarr Port:
+					                                    <label for="radarrPort" class="appLabel">Radarr '.$lang['uiSettingFetcherPort'].':
 					                                        <input id="radarrPort" class="appInput form-control Radarr appParam" type="text" value="' . $_SESSION["radarrPort"] . '"/>
 					                                    </label>
 					                                </div>
 					                                <div class="form-group">
-					                                    <label for="radarrAuth" class="appLabel">Radarr Token:
+					                                    <label for="radarrAuth" class="appLabel">Radarr '.$lang['uiSettingFetcherToken'].':
 					                                        <input id="radarrAuth" class="appInput form-control Radarr appParam" type="text" value="' . $_SESSION["radarrAuth"] . '"/>
 					                                    </label>
 					                                </div>
 					                                <div class="form-group">
-					                                    <label class="appLabel" for="radarrProfile">Quality Profile:</label>
+					                                    <label class="appLabel" for="radarrProfile">'.$lang['uiSettingFetcherQualityProfile'].':</label>
 					                                    <select class="form-control profileList" id="radarrProfile">
 					                                        '. fetchList("radarr") .'
 					                                    </select>
 					                                </div>
 					                                <div class="text-center">
 					                                    <div class="form-group btn-group">
-					                                        <button value="Radarr" class="testInput btn btn-raised btn-info btn-100" type="button">Test</button>
-					                                        <button id="resetRadarr" value="Radarr" class="resetInput btn btn-raised btn-danger btn-100" type="button">Reset</button>
+					                                        <button value="Radarr" class="testInput btn btn-raised btn-info btn-100" type="button">'.$lang['uiSettingBtnTest'].'<button>
+					                                        <button id="resetRadarr" value="Radarr" class="resetInput btn btn-raised btn-danger btn-100" type="button">'.$lang['uiSettingBtnReset'].'<button>
 					                                    </div>
 					                                </div>
 					                            </div>
@@ -560,7 +563,7 @@ function makeBody($newToken = false) {
 					                        <div class="card-body">
 					                            <h4 class="cardHeader">Sickbeard/SickRage</h4>
 					                            <div class="togglebutton">
-					                                <label for="sickEnabled" class="appLabel checkLabel">Enable
+					                                <label for="sickEnabled" class="appLabel checkLabel">'.$lang['uiSettingEnable'].'
 					                                    <input id="sickEnabled" type="checkbox" class="appInput appToggle"/>
 					                                </label>
 					                            </div>
@@ -571,31 +574,31 @@ function makeBody($newToken = false) {
 					                                    </label>
 					                                </div>
 					                                <div class="form-group">
-					                                    <label for="sickPath" class="appLabel">Sick Path (Optional):
+					                                    <label for="sickPath" class="appLabel">Sick '.$lang['uiSettingFetcherPath'].':
 					                                        <input id="sickPath" class="appInput form-control Sick appParam" type="text" value="' . $_SESSION["sickPath"] . '"/>
 					                                    </label>
 					                                </div>
 					                                <div class="form-group">
-					                                    <label for="sickPort" class="appLabel">Sick Port:
+					                                    <label for="sickPort" class="appLabel">Sick '.$lang['uiSettingFetcherPort'].':
 					                                        <input id="sickPort" class="appInput form-control Sick appParam" type="text" value="' . $_SESSION["sickPort"] . '"/>
 					                                        <span class="bmd-help">8085/8081</span>
 					                                    </label>
 					                                </div>
 					                                <div class="form-group">
-					                                    <label for="sickAuth" class="appLabel">Sick Token:
+					                                    <label for="sickAuth" class="appLabel">Sick '.$lang['uiSettingFetcherToken'].':
 					                                        <input id="sickAuth" class="appInput form-control Sick appParam" type="text" value="' . $_SESSION["sickAuth"] . '"/>
 					                                    </label>
 					                                </div>
 					                                <div class="form-group">
-					                                    <label class="appLabel" for="sickProfile">Quality Profile:</label>
+					                                    <label class="appLabel" for="sickProfile">'.$lang['uiSettingFetcherQualityProfile'].':</label>
 					                                    <select class="form-control appInput profileList" id="sickProfile">
 					                                        '. fetchList("sick") .'
 					                                    </select>
 					                                </div>
 					                                <div class="text-center">
 					                                    <div class="form-group btn-group">
-					                                        <button value="Sick" class="testInput btn btn-raised btn-info btn-100" type="button">Test</button>
-					                                        <button id="resetSick" value="Sick" class="resetInput btn btn-raised btn-danger btn-100" type="button">Reset</button>
+					                                        <button value="Sick" class="testInput btn btn-raised btn-info btn-100" type="button">'.$lang['uiSettingBtnTest'].'<button>
+					                                        <button id="resetSick" value="Sick" class="resetInput btn btn-raised btn-danger btn-100" type="button">'.$lang['uiSettingBtnReset'].'<button>
 					                                    </div>
 					                                </div>
 					                            </div>
@@ -605,7 +608,7 @@ function makeBody($newToken = false) {
 					                        <div class="card-body">
 					                            <h4 class="cardHeader">Sonarr</h4>
 					                            <div class="togglebutton">
-					                                <label for="sonarrEnabled" class="appLabel checkLabel">Enable
+					                                <label for="sonarrEnabled" class="appLabel checkLabel">'.$lang['uiSettingEnable'].'
 					                                    <input id="sonarrEnabled" type="checkbox" class="appInput appToggle"/>
 					                                </label>
 					                            </div>
@@ -616,30 +619,30 @@ function makeBody($newToken = false) {
 					                                    </label>
 					                                </div>
 					                                <div class="form-group">
-					                                    <label for="sonarrPath" class="appLabel">Sonarr Path (Optional):
+					                                    <label for="sonarrPath" class="appLabel">Sonarr '.$lang['uiSettingFetcherPath'].':
 					                                        <input id="sonarrPath" class="appInput form-control Sonarr appParam" type="text" value="' . $_SESSION["sonarrPath"] . '"/>
 					                                    </label>
 					                                </div>
 					                                <div class="form-group">
-					                                    <label for="sonarrPort" class="appLabel">Sonarr Port:
+					                                    <label for="sonarrPort" class="appLabel">Sonarr '.$lang['uiSettingFetcherPort'].':
 					                                        <input id="sonarrPort" class="appInput form-control Sonarr appParam" type="text" value="' . $_SESSION["sonarrPort"] . '"/>
 					                                    </label>
 					                                </div>
 					                                <div class="form-group">
-					                                    <label for="sonarrAuth" class="appLabel">Sonarr Token:
+					                                    <label for="sonarrAuth" class="appLabel">Sonarr '.$lang['uiSettingFetcherToken'].':
 					                                        <input id="sonarrAuth" class="appInput form-control Sonarr appParam" type="text" value="' . $_SESSION["sonarrAuth"] . '"/>
 					                                    </label>
 					                                </div>
 					                                <div class="form-group">
-					                                    <label class="appLabel" for="sonarrProfile">Quality Profile:</label>
+					                                    <label class="appLabel" for="sonarrProfile">'.$lang['uiSettingFetcherQualityProfile'].':</label>
 					                                    <select class="form-control profileList" id="sonarrProfile">
 					                                        '. fetchList("sonarr") .'
 					                                    </select>
 					                                </div>
 					                                <div class="text-center">
 					                                    <div class="form-group btn-group">
-					                                        <button value="Sonarr" class="testInput btn btn-raised btn-info btn-100" type="button">Test</button>
-					                                        <button id="resetSonarr" value="Sonarr" class="resetInput btn btn-raised btn-danger btn-100" type="button">Reset</button>
+					                                        <button value="Sonarr" class="testInput btn btn-raised btn-info btn-100" type="button">'.$lang['uiSettingBtnTest'].'<button>
+					                                        <button id="resetSonarr" value="Sonarr" class="resetInput btn btn-raised btn-danger btn-100" type="button">'.$lang['uiSettingBtnReset'].'<button>
 					                                    </div>
 					                                </div>
 					                            </div>
@@ -650,7 +653,7 @@ function makeBody($newToken = false) {
 			                <div class="tab-pane fade" id="logTab" role="tabpanel">
 			                    <div class="modal-header">
 				                    <div class="form-group" id="logGroup">
-			                            <label for="logLimit" class="logControl">Count:
+			                            <label for="logLimit" class="logControl">'.$lang['uiSettingLogCount'].'
 				                            <select id="logLimit" class="form-control">
 						                        <option value="10">10</option>
 						                        <option value="50" selected>50</option>
@@ -659,7 +662,7 @@ function makeBody($newToken = false) {
 						                        <option value="1000">1000</option>
 					                        </select>
 				                        </label>
-				                        <label for="logLimit" class="logControl">Level:
+				                        <label for="logLimit" class="logControl">'.$lang['uiSettingLogLevel'].'
 					                        <select id="logLevel" class="form-control logControl">
 						                        <option value="DEBUG" selected>ALL</option>
 						                        <option value="INFO">Info</option>
@@ -672,7 +675,7 @@ function makeBody($newToken = false) {
 			                    <div class="modal-body" id="logBody">
 			                        <div class="card">
 			                            <div class="card-body">
-			                                <h4 class="cardHeader" id="updateHeader">Updates</h4>
+			                                <h4 class="cardHeader" id="updateHeader">'.$lang['uiSettingLogupdate'].'</h4>
 			                                <div class="form-group" id="logBody"/>
 										</div>
 									</div>
