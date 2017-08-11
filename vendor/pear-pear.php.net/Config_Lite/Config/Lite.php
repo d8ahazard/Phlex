@@ -200,6 +200,9 @@ class Config_Lite implements ArrayAccess, IteratorAggregate, Countable, Serializ
         } elseif (is_numeric($value)) {
             return $value;
         }
+        if (is_string($value)) {
+        	$value = preg_replace('~[\r\n]+~', '', $value);
+        }
         if ($this->quoteStrings) {
             $value = $this->delim . $value . $this->delim;
         }
