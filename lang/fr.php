@@ -27,6 +27,8 @@ $lang["uiSettingRescanInterval"] = "Intervalle de rééchantillonnage de l'appar
 $lang["uiSettingRescanHint"] = "À quelle fréquence re-mettre en cache les périphériques.";
 $lang["uiSettingObscureLogs"] = "Données sensibles obscures dans les grumes";
 $lang["uiSettingThemeColor"] = "Utiliser un Thème Sombre";
+$lang['uiSettingForceSSL'] = "Force SSL";
+$lang['uiSettingForceSSLHint'] = "Force SSL si disponible. Nécessaire pour les applications Web progressives.";
 $lang["uiSettingAccountLinking"] = "Lien de Compte:";
 $lang["uiSettingLinkGoogle"] = "LINK GOOGLE";
 $lang["uiSettingLinkAmazon"] = "LINK AMAZON";
@@ -70,48 +72,48 @@ $lang["uiSettingLogLevel"] = "Niveau:";
 $lang["uiSettingLogUpdate"] = "Compter:";
 
 // Fetcher labels
-$lang['uiSettingfetcherPath'] = "Chemin d'accès (facultatif)";
-$lang['uiSettingfetcherPort'] = "Port";
-$lang['uiSettingfetcherToken'] = "Jeton";
-$lang['uiSettingfetcherQualityProfile'] = "Profil de qualité";
+$lang['uiSettingFetcherPath'] = "Chemin d'accès (facultatif)";
+$lang['uiSettingFetcherPort'] = "Port";
+$lang['uiSettingFetcherToken'] = "Jeton";
+$lang['uiSettingFetcherQualityProfile'] = "Profil de qualité";
 
 //TODO
 // Speech Responses (God help me)
-$lang['speechHookCustomDefault'] = "Congratulations, you've fired the custom webhook command!";
+$lang['speechHookCustomDefault'] = "Félicitations, vous avez lancé la commande custom webhook!";
 $lang['speechGreetingArray'] = [
-	"Hi, I'm Flex TV.  What can I do for you today?",
-	"Greetings! How can I help you?",
-	"Hello there. Try asking me to play something.'"
+	"Salut, je suis Flex TV. Que puis-je faire pour vous aujourd'hui?",
+	"Salutations! Comment puis-je t'aider?",
+	"Bonjour. Essayez de me demander de jouer quelque chose."
 ];
-$lang['speechGreetingHelpPrompt'] = " If you'd like a list of commands, you can say 'Help' or 'What are your commands?'";
-$lang['cardReadmeButton'] = "View Readme";
-$lang['cardGreetingText'] = "Welcome to Flex TV!";
-$lang['speechShuffleResponse'] = "Okay, shuffling all episodes of ";
-$lang['speechDvrSuccessStart'] = "Hey, look at that.  I've added the ";
-$lang['speechDvrSuccessEnd'] = "to the recording schedule.";
-$lang['parsedDvrSuccessStart'] = "Add the ";
-$lang['parsedDvrSuccessNamed'] = " named ";
-$lang['parsedDvrFailStart'] = 'Add the media named ';
-$lang['speechDvrFailStart'] = "I wasn't able to find any results in the episode guide that match '";
-$lang['speechDvrNoDevice'] = "I'm sorry, but I didn't find any instances of Plex DVR to use.";
-$lang['speechChangeDeviceSuccessStart'] = "Okay, I've switched the ";
-$lang['speechWordTo'] = " to ";
-$lang['speechChangDeviceFailureStart'] = "I'm sorry, but I couldn't find ";
-$lang['speechChangeDeviceFailEnd'] = " in the device list.";
-$lang['speechStatusNothingPlaying'] = "It doesn't look like there's anything playing right now.";
-$lang['speechReturnRecent'] = "Here's a list of recent ";
-$lang['speechReturnOndeck'] = "Here's a list of on deck items: ";
-$lang['speechOndeckRecentTail'] = " If you'd like to watch something, just say the name, otherwise, you can say 'cancel'.";
-$lang['speechOndeckRecentError'] = "Unfortunately, I wasn't able to find any results for that.  Please try again later.";
-$lang['speechAiringsReturn'] = "Here's a list of scheduled recordings: ";
-$lang['speechAiringsAfternoon'] = "This afternoon, ";
-$lang['speechAiringsTonight'] = "Tonight, ";
-$lang['speechAiringsTomorrow'] = "Tomorrow, ";
-$lang['speechAiringsWeekend'] = "This weekend, ";
-$lang['speechAiringsMids'] = ['you have ','I see ','I found '];
-$lang['speechAiringTails'] = [' on the schedule.',' set to record.',' coming up.'];
-$lang['speechAiringsErrors'] = ["I don't have anything on the list for ","You don't have anything scheduled for "];
-$lang['speechPlaybackAffirmatives'] = ["Yes captain, ","Okay, ","Sure, ","No problem, ","Yes master, ","You got it, ","As you command, ","Allrighty then, "];
-$lang['speechEggBatman'] = "Holy pirated media!  ";
-$lang['speechEggGhostbusters'] = "Who you gonna call?  ";
-$lang['speechEggIronMan'] = "Yes Mr. Stark, ";
+$lang['speechGreetingHelpPrompt'] = "Si vous souhaitez une liste de commandes, vous pouvez dire «Aide» ou «Quelles sont vos commandes?";
+$lang['cardReadmeButton'] = "Voir Readme";
+$lang['cardGreetingText'] = "Bienvenue sur Flex TV!";
+$lang['speechShuffleResponse'] = "D'accord, mélangeant tous les épisodes de ";
+$lang['speechDvrSuccessStart'] = "Hé, regarde ça. J'ai ajouté le ";
+$lang['speechDvrSuccessEnd'] = "au calendrier d'enregistrement.";
+$lang['parsedDvrSuccessStart'] = "Ajouter le ";
+$lang['parsedDvrSuccessNamed'] = " nommé";
+$lang['parsedDvrFailStart'] = 'Ajouter les médias appelés ';
+$lang['speechDvrFailStart'] = "Je n'ai pas pu trouver de résultats dans le guide de l'épisode qui correspond à '";
+$lang['speechDvrNoDevice'] = "Je suis désolé, mais je n'ai trouvé aucun cas de Plex DVR à utiliser.";
+$lang['speechChangeDeviceSuccessStart'] = "D'accord, j'ai changé ";
+$lang['speechWordTo'] = " à ";
+$lang['speechChangDeviceFailureStart'] = "Je suis désolé, mais je n'ai pas pu trouver ";
+$lang['speechChangeDeviceFailEnd'] = " dans la liste des périphériques.";
+$lang['speechStatusNothingPlaying'] = "Il ne semble pas qu'il y ait quoi de quoi jouer en ce moment.";
+$lang['speechReturnRecent'] = "Voici une liste des récents ";
+$lang['speechReturnOndeck'] = "Voici une liste des objets sur le pont: ";
+$lang['speechOndeckRecentTail'] = " Si vous souhaitez regarder quelque chose, dites simplement le nom, sinon, vous pouvez dire «annuler».";
+$lang['speechOndeckRecentError'] = "Malheureusement, je n'ai pas pu trouver de résultats pour cela. Veuillez réessayer plus tard.";
+$lang['speechAiringsReturn'] = "Voici une liste d'enregistrements programmés: ";
+$lang['speechAiringsAfternoon'] = "Cet après midi, ";
+$lang['speechAiringsTonight'] = "Ce soir, ";
+$lang['speechAiringsTomorrow'] = "Demain, ";
+$lang['speechAiringsWeekend'] = "Cette fin de semaine, ";
+$lang['speechAiringsMids'] = ['vous avez', 'je vois', "j'ai trouvé"];
+$lang['speechAiringTails'] = [' Sur l\'horaire.',' prêt à enregistrer.',' à venir.'];
+$lang['speechAiringsErrors'] = ["Je n'ai rien sur la liste", "Vous n'avez rien prévu pour"];
+$lang['speechPlaybackAffirmatives'] = ["Oui capitaine", "D'accord", "Bien sûr", "Pas de problème", "Oui maître", "Vous l'avez compris", "Comme vous le commandez", "Allrighty alors"];
+$lang['speechEggBatman'] = "Les médias piratés sainte!  ";
+$lang['speechEggGhostbusters'] = "À qui vous allez appeler?  ";
+$lang['speechEggIronMan'] = "Oui M. Stark, ";

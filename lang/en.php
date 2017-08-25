@@ -1,13 +1,5 @@
 <?php
-// English strings file
-//
-// DO NOT EDIT.  If you want to contribute a new language, copy this and rename
-// it to the language code you want to add.
-//
-// This file should consist of array/key pairs for each language string used
-// in the application.  The corresponding file will be included in each page
-// by default, and all language words will be substituted when the pages are
-// rendered.
+
 
 $lang['uiPageTitle'] = 'Phlex Web';
 $lang['uiGreetingDefault'] = "Hi, I'm Flex TV. What can I do for you?";
@@ -32,6 +24,8 @@ $lang['uiSettingRescanInterval'] = "Device Rescan Interval (Minutes):";
 $lang['uiSettingRescanHint'] = "How frequently to re-cache devices.";
 $lang['uiSettingObscureLogs'] = "Obscure Sensitive Data in Logs";
 $lang['uiSettingThemeColor'] = "Use Dark Theme";
+$lang['uiSettingForceSSL'] = "Force SSL";
+$lang['uiSettingForceSSLHint'] = "Force SSL if available.  Required for Progressive Web Apps.";
 $lang['uiSettingAccountLinking'] = "Account Linking:";
 $lang['uiSettingLinkGoogle'] = "LINK GOOGLE";
 $lang['uiSettingLinkAmazon'] = "LINK AMAZON";
@@ -78,10 +72,10 @@ $lang['uiSettingLogLevel'] = "Level:";
 $lang['uiSettingLogUpdate'] = "Update";
 
 // Fetcher labels
-$lang['uiSettingfetcherPath'] = "Path (Optional)";
-$lang['uiSettingfetcherPort'] = "Port";
-$lang['uiSettingfetcherToken'] = "Token";
-$lang['uiSettingfetcherQualityProfile'] = "Quality Profile";
+$lang['uiSettingFetcherPath'] = "Path (Optional)";
+$lang['uiSettingFetcherPort'] = "Port";
+$lang['uiSettingFetcherToken'] = "Token";
+$lang['uiSettingFetcherQualityProfile'] = "Quality Profile";
 
 // Speech Responses (God help me)
 $lang['speechHookCustomDefault'] = "Congratulations, you've fired the custom webhook command!";
@@ -163,13 +157,6 @@ $lang['suggestionYesNo'] = ['Yes','No'];
 $lang['speechChange'] = 'Change ';
 $lang['speechPlayer'] = "player";
 $lang['speechServer'] = "server";
-
-
-
-
-
-
-
 
 
 

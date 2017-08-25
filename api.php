@@ -3,6 +3,7 @@ require_once dirname(__FILE__) . '/vendor/autoload.php';
 require_once dirname(__FILE__) . '/cast/Chromecast.php';
 require_once dirname(__FILE__) . '/util.php';
 require_once dirname(__FILE__) . '/body.php';
+
 //require_once dirname(__FILE__) . '/new_body.php';
 
 use digitalhigh\Radarr\Radarr;
@@ -28,12 +29,17 @@ if ($user['valid']) {
 	write_log("Sorry, couldn't validate user.");
 	if (isset($_GET['testclient'])) {
 		write_log("API Link Test FAILED!  Invalid API Token.");
+
+		echo json_encode(['error'=>'Invalid API Token Specified, please re-link your account through the Phlex Web UI.']);
+		write_log("ERROR: Unauthenticated access detected.  Originating IP - ".$_SERVER['REMOTE_ADDR'],"ERROR");
+		$entityBody = file_get_contents('php://input');
+		if ($_SERVER['REQUEST_METHOD'] === 'POST') write_log("Post BODY: ".$entityBody);
+		die();
+	} else {
+		write_log("Invalid API Token, forcing logout.");
+		header("Location: ".serverProtocol().$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'].'?logout');
+		die();
 	}
-	echo json_encode(['error'=>'Invalid API Token Specified, please re-link your account through the Phlex Web UI.']);
-	write_log("ERROR: Unauthenticated access detected.  Originating IP - ".$_SERVER['REMOTE_ADDR'],"ERROR");
-	$entityBody = file_get_contents('php://input');
-	if ($_SERVER['REQUEST_METHOD'] === 'POST') write_log("Post BODY: ".$entityBody);
-	die();
 }
 
 function initialize() {
@@ -155,11 +161,11 @@ function initialize() {
 		write_log('Setting parameter changed:"' . $id . ' : ' . $value.'"',"INFO");
 		if (preg_match("/IP/", $id)) $value = addScheme($value);
 		if (preg_match("/Path/",$id)) if ((substr($value,0,1) != "/") && (trim($value) !== "")) $value = "/".$value;
-
+		$section = ($id === 'forceSSL') ? 'general' : 'user-_-' . $_SESSION['plexUserName'];
 		if (is_bool($value) === true) {
-			$GLOBALS['config']->setBool('user-_-' . $_SESSION['plexUserName'], $id, $value);
+			$GLOBALS['config']->setBool( $section, $id, $value);
 		} else {
-			$GLOBALS['config']->set('user-_-' . $_SESSION['plexUserName'], $id, $value);
+			$GLOBALS['config']->set($section, $id, $value);
 		}
 
 		saveConfig($GLOBALS['config']);
@@ -1149,7 +1155,7 @@ function parseApiCommand($request) {
 			$queryOut['speech'] = $speech;
 			$queryOut['mediaStatus'] = "Not a media command.";
 			logCommand(json_encode($queryOut));
-			
+
 			unset($_SESSION['type']);
 			die();
 		} else write_log("No list or type to pick from.","ERROR");

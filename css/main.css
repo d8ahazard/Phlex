@@ -636,7 +636,7 @@ select{
 }
 
 .resultDiv.card {
-
+	background: rgba(255, 255, 255, 0) !important;
 }
 
 .card-base {
@@ -656,7 +656,7 @@ select{
 	max-height:24px;
 }
 
-.card-img-overlay {
+.cardImg {
 	background:radial-gradient(rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.75));
 	overflow:hidden;
 }
@@ -932,5 +932,15 @@ select{
 
 @media (min-width: 2000px) {
 
+
+}
+
+.cardColors, .cardImg {
+	height: 100%;
+	width: 100%;
+	position: absolute;
+	top: 0;
+	left: 0;
+	z-index: -1;
 
 }

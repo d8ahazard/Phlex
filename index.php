@@ -1,14 +1,18 @@
 <?php
     require_once dirname(__FILE__) . '/vendor/autoload.php';
     require_once dirname(__FILE__) . '/util.php';
-    if(empty($_SERVER['HTTPS']) || $_SERVER['HTTPS'] == "off"){
+    $config = new Config_Lite('config.ini.php');
+
+    $forceSSL = $config->getBool('general','forceSsl',false);
+    if ((empty($_SERVER['HTTPS']) || $_SERVER['HTTPS'] == "off") && $forceSSL) {
         $redirect = 'https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
         if (isDomainAvailible($redirect)) {
-	        header('HTTP/1.1 301 Moved Permanently');
-	        header('Location: ' . $redirect);
-	        exit();
+            header('HTTP/1.1 301 Moved Permanently');
+            header('Location: ' . $redirect);
+            exit();
         }
     }
+
     if (substr_count($_SERVER["HTTP_ACCEPT_ENCODING"], "gzip")) ob_start("ob_gzhandler"); else ob_start();
     session_start();
     $messages = checkFiles();
@@ -21,7 +25,6 @@
         }
     }
     setDefaults();
-    $config = new Config_Lite('config.ini.php');
     if (isset($_GET['logout'])) {
         clearSession();
         echo '<script language="javascript">
@@ -114,11 +117,11 @@
         </script>
 
         <script type="text/javascript" src="./js/jquery-3.2.1.min.js"></script>
-        <script type="text/javascript" src="./js/jquery-ui.min.js"></script>
         <script type="text/javascript" src="./js/tether.min.js"></script>
         <script type="text/javascript" src="./js/bootstrap.min.js"></script>
 
         <script type="text/javascript" src="./js/run_prettify.js" defer></script>
+        <script type="text/javascript" src="./js/jquery-ui.min.js" defer></script>
         <script type="text/javascript" src="./js/clipboard.min.js" defer></script>
         <script type="text/javascript" src="./js/jquery.simpleWeather.min.js" defer></script>
         <script type="text/javascript" src="./js/snackbar.min.js" defer></script>

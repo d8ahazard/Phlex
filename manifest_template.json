@@ -1,0 +1,25 @@
+{
+  "name": "Phlex",
+  "icons": [
+    {
+      "src": "img\/android-icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image\/png"
+    },
+    {
+      "src": "img\/android-icon-256x256.png",
+      "sizes": "256x256",
+      "type": "image\/png"
+    },
+    {
+      "src": "img\/android-icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image\/png"
+    }
+  ],
+  "theme_color": "#3277d8",
+  "background_color": "#213a5f",
+  "scope": "\/",
+  "start_url": "/",
+  "display": "standalone"
+}

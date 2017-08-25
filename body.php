@@ -11,8 +11,10 @@ function makeBody($newToken = false) {
         die();
     }
     $config = new Config_Lite('config.ini.php');
+
     $lang = checkSetLanguage("body");
-    // Check our config file exists
+    write_log("Language: ".json_encode($lang));
+	// Check our config file exists
     $_SESSION['apiToken'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'apiToken', checkSetApiToken($_SESSION['plexUserName']));
     $_SESSION['plexAvatar'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'plexAvatar', false);
     $_SESSION['plexEmail'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'plexEmail', false);
@@ -54,6 +56,7 @@ function makeBody($newToken = false) {
 	$_SESSION['autoUpdate'] = $config->getBool('user-_-'.$_SESSION['plexUserName'], 'autoUpdate', false);
 	$_SESSION['cleanLogs'] = $config->getBool('user-_-'.$_SESSION['plexUserName'], 'cleanLogs', true);
     $_SESSION['darkTheme'] = $config->getBool('user-_-'.$_SESSION['plexUserName'], 'darkTheme', false);
+	$_SESSION['forceSSL'] = $config->getBool('general', 'forceSSL', false);
 
     $_SESSION['plexDvrResolution'] = $config->getBool('user-_-'.$_SESSION['plexUserName'], 'plexDvrResolution', "0");
     $_SESSION['plexDvrNewAirings'] = $config->getBool('user-_-'.$_SESSION['plexUserName'], 'plexDvrNewAirings', true);
@@ -89,7 +92,7 @@ function makeBody($newToken = false) {
     $_SESSION['publicAddress'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'publicAddress', $ipString);
     $bodyText = ($_SESSION['darkTheme'] ? '<link href="./css/dark.css" rel="stylesheet">' : '') . PHP_EOL.
 	'			<div id="body" class="row justify-content-center">
-				<div class="wrapper col-xs-12 col-lg-8 col-xl-5" id="mainwrap">
+				<div class="wrapper col-xs-12 col-lg-8 col-xl-4" id="mainwrap">
 			        <div class="queryWrap col-xs-12">
 			        <div class="query">
 			            <div class="queryBg">
@@ -197,6 +200,12 @@ function makeBody($newToken = false) {
 					                                <label for="darkTheme" class="appLabel checkLabel">'.$lang['uiSettingThemeColor'].'
 					                                    <input id="darkTheme" class="appInput" type="checkbox" ' . ($_SESSION["darkTheme"] ? "checked" : "") . '/>
 					                                </label>
+					                            </div>
+					                            <div class="togglebutton">
+					                                <label for="forceSSL" class="appLabel checkLabel">'.$lang['uiSettingForceSSL'].'
+					                                    <input id="forceSSL" class="appInput" type="checkbox" ' . ($_SESSION["forceSSL"] ? "checked" : "") . '/>
+					                                </label>
+					                                <span class="bmd-help">'.$lang['uiSettingForceSSLHint'].'</span>
 					                            </div>
 					                            <div class="form-group text-center">
 					                                <div class="form-group">
@@ -475,8 +484,8 @@ function makeBody($newToken = false) {
 					                                </div>
 					                                <div class="text-center">
 					                                    <div class="form-group btn-group">
-					                                        <button value="CouchPotato" class="testInput btn btn-raised btn-info" type="button">'.$lang['uiSettingBtnTest'].'<button>
-					                                        <button id="resetCouch" value="CouchPotato" class="resetInput btn btn-raised btn-danger btn-100" type="button">'.$lang['uiSettingBtnReset'].'<button>
+					                                        <button value="CouchPotato" class="testInput btn btn-raised btn-info">'.$lang['uiSettingBtnTest'].'</button>
+					                                        <button id="resetCouch" value="CouchPotato" class="resetInput btn btn-raised btn-danger btn-100">'.$lang['uiSettingBtnReset'].'</button>
 					                                    </div>
 					                                </div>
 					                            </div>
@@ -508,8 +517,8 @@ function makeBody($newToken = false) {
 					                                </div>
 					                                <div class="text-center">
 					                                    <div class="form-group btn-group">
-					                                        <button value="Ombi" class="testInput btn btn-raised btn-info btn-100" type="button">'.$lang['uiSettingBtnTest'].'<button>
-					                                        <button id="resetOmbi" value="Ombi" class="resetInput btn btn-raised btn-danger btn-100" type="button">'.$lang['uiSettingBtnReset'].'<button>
+					                                        <button value="Ombi" class="testInput btn btn-raised btn-info btn-100" type="button">'.$lang['uiSettingBtnTest'].'</button>
+					                                        <button id="resetOmbi" value="Ombi" class="resetInput btn btn-raised btn-danger btn-100" type="button">'.$lang['uiSettingBtnReset'].'</button>
 					                                    </div>
 					                                </div>
 					                            </div>
@@ -552,8 +561,8 @@ function makeBody($newToken = false) {
 					                                </div>
 					                                <div class="text-center">
 					                                    <div class="form-group btn-group">
-					                                        <button value="Radarr" class="testInput btn btn-raised btn-info btn-100" type="button">'.$lang['uiSettingBtnTest'].'<button>
-					                                        <button id="resetRadarr" value="Radarr" class="resetInput btn btn-raised btn-danger btn-100" type="button">'.$lang['uiSettingBtnReset'].'<button>
+					                                        <button value="Radarr" class="testInput btn btn-raised btn-info btn-100" type="button">'.$lang['uiSettingBtnTest'].'</button>
+					                                        <button id="resetRadarr" value="Radarr" class="resetInput btn btn-raised btn-danger btn-100" type="button">'.$lang['uiSettingBtnReset'].'</button>
 					                                    </div>
 					                                </div>
 					                            </div>
@@ -597,8 +606,8 @@ function makeBody($newToken = false) {
 					                                </div>
 					                                <div class="text-center">
 					                                    <div class="form-group btn-group">
-					                                        <button value="Sick" class="testInput btn btn-raised btn-info btn-100" type="button">'.$lang['uiSettingBtnTest'].'<button>
-					                                        <button id="resetSick" value="Sick" class="resetInput btn btn-raised btn-danger btn-100" type="button">'.$lang['uiSettingBtnReset'].'<button>
+					                                        <button value="Sick" class="testInput btn btn-raised btn-info btn-100" type="button">'.$lang['uiSettingBtnTest'].'</button>
+					                                        <button id="resetSick" value="Sick" class="resetInput btn btn-raised btn-danger btn-100" type="button">'.$lang['uiSettingBtnReset'].'</button>
 					                                    </div>
 					                                </div>
 					                            </div>
@@ -641,8 +650,8 @@ function makeBody($newToken = false) {
 					                                </div>
 					                                <div class="text-center">
 					                                    <div class="form-group btn-group">
-					                                        <button value="Sonarr" class="testInput btn btn-raised btn-info btn-100" type="button">'.$lang['uiSettingBtnTest'].'<button>
-					                                        <button id="resetSonarr" value="Sonarr" class="resetInput btn btn-raised btn-danger btn-100" type="button">'.$lang['uiSettingBtnReset'].'<button>
+					                                        <button value="Sonarr" class="testInput btn btn-raised btn-info btn-100" type="button">'.$lang['uiSettingBtnTest'].'</button>
+					                                        <button id="resetSonarr" value="Sonarr" class="resetInput btn btn-raised btn-danger btn-100" type="button">'.$lang['uiSettingBtnReset'].'</button>
 					                                    </div>
 					                                </div>
 					                            </div>

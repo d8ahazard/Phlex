@@ -232,33 +232,16 @@ function flattenXML($xml){
 		return $path;
 	}
 
-	function setStartUrl($url) {
-    	$manifest = dirname(__FILE__)."/manifest.json";
-		$reading = fopen($manifest, 'r');
-		$writing = fopen("$manifest.tmp", 'w');
-
-		$replaced = false;
-
-		while (!feof($reading)) {
-			$line = fgets($reading);
-			if (stristr($line,'start_url')) {
-				write_log("Changing start URL");
-				$newLine = '"start_url":"'.$url.'",'.PHP_EOL;
-				if ($line !== $newLine) $line = $newLine;
-				$replaced = true;
-			}
-			fputs($writing, $line);
+	function setStartUrl() {
+		$fileOut = dirname(__FILE__)."/manifest.json";
+		$file = (file_exists($fileOut)) ? $fileOut : dirname(__FILE__)."/manifest_template.json";
+		$json = json_decode(file_get_contents($file),true);
+		$url = 'https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+		write_log("JSON: ".json_encode($json));
+		if ($json['start_url'] !== $url) {
+			$json['start_url'] = $url;
+			file_put_contents($fileOut, json_encode($json,JSON_PRETTY_PRINT));
 		}
-		fclose($reading); fclose($writing);
-// might as well not overwrite the file if we didn't replace anything
-		if ($replaced)
-		{
-			rename("$manifest.tmp", $manifest);
-		} else {
-			unlink("$manifest.tmp");
-		}
-
-
 	}
 
 	function transcodeImage($path,$uri="",$token="") {
@@ -878,6 +861,7 @@ function checkSetLanguage($source="") {
 		write_log("Couldn't find the selected locale, defaulting to 'Murica.");
 		include(dirname(__FILE__) . "/lang/en.php");
 	}
+	// This gets added automagically, ignore IDE warnings about it...
 	return $lang;
 }
 

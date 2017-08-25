@@ -565,8 +565,8 @@ function scaleElements() {
     console.log("Scaling: "+ winWidth);
     var commandTest = $('#actionLabel');
     if (winWidth <=340) commandTest.html("How can I help?");
-    if ((winWidth >=341) && (winWidth <=400)) commandTest.html("Hi, I'm Flex TV.  How can I help?");
-    if (winWidth >=401) commandTest.html("Hi, I'm Flex TV.  What can I do for you?");
+    if ((winWidth >=341) && (winWidth <=400)) commandTest.html("How can I help?");
+    if (winWidth >=401) commandTest.html("What can I do for you?");
     var sliderWidth = $('.statusWrapper').width() - $('#statusImage').width()-60;
     $("#progressSlider").css('width',sliderWidth);
 
@@ -759,23 +759,26 @@ function updateCommands(data,prepend) {
 				var JSONdiv = '<a href="javascript:void(0)" id="JSON'+i+'" class="JSONPop" data="'+encodeURIComponent(JSON.stringify(value,null,2))+'" title="Result JSON">{JSON}</a>';
 				var mediaDiv = false;
 				// Build our card
-				mediaDiv = buildCards(value,i);
-
+				var cardResult = buildCards(value,i);
+				mediaDiv = cardResult[0];
+				var bgImage = cardResult[1];
+				var style = bgImage ? "style='background-image:url("+bgImage+");background-size:cover' " : 'background-color:';
 				var outLine =
-						"<div class='resultDiv card hiddenCard' id='"+timeStamp+"'>" +
-                    		'<button id="CARDCLOSE'+i+'" class="cardClose"><span class="material-icons">close</span></button>' +
+						"<div class='resultDiv card' id='"+timeStamp+"'>" +
+							'<button id="CARDCLOSE'+i+'" class="cardClose"><span class="material-icons">close</span></button>' +
                         	mediaDiv +
-						"</div>";
+                    		"<div class='cardColors'>" +
+								"<div class='cardImg'"+style+"></div>" +
+								"<div class='card-img-overlay'></div>"
+							"</div>";
 				
 				if (prepend) {
 					$('#resultsInner').prepend(outLine);
-                    $('.hiddenCard').show("slide", { direction: "up" }, 500);
-                    $('.hiddenCard').removeClass('hiddenCard');
 				} else {
 					$('#resultsInner').append(outLine);
-                    $('.hiddenCard').show();
-                    $('.hiddenCard').removeClass('hiddenCard');
 				}
+
+
 
 			} catch(e) {
 				console.error(e, e.stack);
@@ -916,7 +919,7 @@ function recurseJSON(json) {
 
 }
 function buildCards(value,i) {
-    var cardBg = '';
+    var cardBg = false;
     var timeStamp = ($.inArray('timeStamp',value) ? $.trim(value.timestamp) : '');
     var title = '';
     var subtitle = '';
@@ -945,15 +948,14 @@ function buildCards(value,i) {
                 card = cardArray[Math.floor(Math.random() * cardArray.length - 1)];
             }
             if (card.hasOwnProperty('image')) {
-                if (card.image.url !== null) cardBg = '<img class="card-img-top card-bg"   style="width:100%" src="' + card.image.url + '">';
+                if (card.image.url !== null) cardBg = card.image.url;
             }
         }
     }
 
 
-    return '' +
+    var htmlResult =  '' +
         //<div class="card-img-overlay card-inverse">' +
-		cardBg +
 		'<ul class="card-list">' +
 			'<li class="card-timestamp">' + timeStamp + '</li>' +
 			'<li class="card-title">' + title + '</li>' +
@@ -965,6 +967,7 @@ function buildCards(value,i) {
         '</ul>' +
         '<br>';
     	//'</div>';
+	return[htmlResult,cardBg];
 }
 
 function hasContent(obj) {
