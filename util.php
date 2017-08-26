@@ -827,7 +827,7 @@ function toBool($var) {
 function checkSetLanguage($source="") {
     $locale = false;
     $locales = ["en","fr"];
-	$defaultLocale = locale_get_default();
+	$defaultLocale = setlocale(LC_ALL, 0);
 	write_log("Source: $source");
 	// If a session language is set
 	if (isset($_SESSION['appLanguage'])) {
@@ -846,7 +846,8 @@ function checkSetLanguage($source="") {
 	if (! $locale) {
 		write_log("No saved locale set, detecting from system.","INFO");
 		if (trim($defaultLocale) != "") {
-			$locale = explode("-",$locale)[0];
+			if (preg_match("/en_/",$defaultLocale)) $locale = 'en';
+			if (preg_match("/fr_/",$defaultLocale)) $locale = 'fr';
 			write_log("Locale set from default: $locale","INFO");
 			if (trim($locale) == "") $locale = false;
 		}
