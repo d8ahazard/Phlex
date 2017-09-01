@@ -824,6 +824,15 @@ function toBool($var) {
 	}
 }
 
+function checkSSL() {
+    	$forceSSL = false;
+	if (file_exists(dirname(__FILE__) . "/config.ini.php")) {
+		$config = new Config_Lite('config.ini.php');
+		$forceSSL = $config->getBool('general', 'forceSsl', false);
+	}
+	return $forceSSL;
+}
+
 function checkSetLanguage($source="") {
     $locale = false;
     $locales = ["en","fr"];
@@ -864,6 +873,10 @@ function checkSetLanguage($source="") {
 	}
 	// This gets added automagically, ignore IDE warnings about it...
 	return $lang;
+}
+
+function hasGzip() {
+    return (function_exists('ob_gzhandler') && ini_get('zlib.output_compression'));
 }
 
 function checkUpdates($install=false) {
