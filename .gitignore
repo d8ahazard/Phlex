@@ -3,11 +3,7 @@
 #################
 /commands*
 /config*
-/Phlex.log*
-/Phlex_error.log*
-/PhlexREQ.log*
 /composer.lock
-/img/cache/*
 /.idea/*
 new_body.html
 new_body.php
@@ -18,6 +14,5 @@ new_js/
 /cacert.pem
 
 /logs/
-/img/bg/*
 /img/cache/
 /manifest.json
