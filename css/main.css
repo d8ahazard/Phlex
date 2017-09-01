@@ -212,6 +212,11 @@ div.card-img-overlay > p.card-text.card-base {
 	display: block;
 }
 
+.card-img-overlay {
+	background: radial-gradient(rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.75));
+	overflow: hidden;
+}
+
 p.card-subtitle {
 	margin-bottom:5px;
 }
@@ -656,10 +661,6 @@ select{
 	max-height:24px;
 }
 
-.cardImg {
-	background:radial-gradient(rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.75));
-	overflow:hidden;
-}
 
 .card-img-overlay > * {
 	color:#000;

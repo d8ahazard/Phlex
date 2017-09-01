@@ -92,7 +92,7 @@ function makeBody($newToken = false) {
     $_SESSION['publicAddress'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'publicAddress', $ipString);
     $bodyText = ($_SESSION['darkTheme'] ? '<link href="./css/dark.css" rel="stylesheet">' : '') . PHP_EOL.
 	'			<div id="body" class="row justify-content-center">
-				<div class="wrapper col-xs-12 col-lg-8 col-xl-4" id="mainwrap">
+				<div class="wrapper col-xs-12 col-lg-8 col-xl-5" id="mainwrap">
 			        <div class="queryWrap col-xs-12">
 			        <div class="query">
 			            <div class="queryBg">
