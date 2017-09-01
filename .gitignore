@@ -20,3 +20,4 @@ new_js/
 /logs/
 /img/bg/*
 /img/cache/
+/manifest.json
