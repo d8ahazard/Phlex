@@ -26,7 +26,8 @@ class mDNS {
 			write_log("Couldn't create socket: [$errorcode] $errormsg","ERROR");
 		}
 		write_log("PHP is detecting the OS as ".PHP_OS);
-		if (PHP_OS === "Darwin" || PHP_OS === "FreeBSD") {
+		$os = strtolower(PHP_OS);
+		if (preg_match("/darwin/",$os) || preg_match("/bsd/",$os)) {
 			socket_set_option($this->mdnssocket, SOL_SOCKET, SO_REUSEPORT, 1);
 		} else {
 			socket_set_option($this->mdnssocket,SOL_SOCKET,SO_REUSEADDR, 1);
