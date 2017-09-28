@@ -1838,7 +1838,6 @@ function scanDevices($force=false) {
 
 		if (isset($_SESSION['plexServerUri'])) {
 			$query = '/clients?X-Plex-Token='.$_SESSION['plexServerToken'];
-			write_log("SCANNING FOR LOCALS HERE!");
 			$localContainer = simplexml_load_string(doRequest(['uri'=>$_SESSION['plexServerUri'],'query'=>$query]));
 		}
 
@@ -1861,11 +1860,9 @@ function scanDevices($force=false) {
 
 			// If local devices are found, merge them too.
 			if ($localContainer) {
-				write_log("Got some locals here!!");
 				$localDevices = $localContainer;
 				foreach ($localDevices->Server as $localDevice) {
 					$localDevice = json_decode(json_encode($localDevice),true)['@attributes'];
-					write_log("LOCALDEVICE: ".json_encode($localDevice));
 					$add = true;
 					foreach ($devices as $device) {
 						if ($localDevice['machineIdentifier'] == $device['clientIdentifier']) {
@@ -1890,7 +1887,6 @@ function scanDevices($force=false) {
 							'platform' => $localDevice['deviceClass'],
 							'owned'=>"1"
 						];
-						write_log("Data to push: ".json_encode($device2));
 						array_push($devices, $device2);
 					}
 				}
@@ -1899,7 +1895,6 @@ function scanDevices($force=false) {
 			$nameArray = [];
 			// Clean up and sort merged device list
 			foreach ($devices as $device) {
-				write_log("Device: ".$device['name']);
 				$device = [
 					'name' => $device['name'],
 					'id' => $device['clientIdentifier'],
@@ -1944,7 +1939,7 @@ function scanDevices($force=false) {
 							}
 						}
 						if ((boolval($device['publicAddressMatches'])) && $connection['protocol'] === 'https' && !isset($device['publicUri'])) {
-							write_log("This is a local shop, for local people.");
+							write_log("This is a local shop, for local people.  Are you local?","WARN");
 							$device['publicUri'] = $connection['uri'];
 						}
 					}
@@ -1958,8 +1953,6 @@ function scanDevices($force=false) {
 
 			// Clients are so much easier!
 			foreach ($devices['clients'] as $device) {
-				write_log("Checking for ".$device['name']);
-				write_log("JSON: ".json_encode($device));
 				foreach ($device['connections'] as $connection) {
 					if ($connection['local'] === "1") {
 						$con = $connection['uri']."/resources?X-Plex-Token=".$device['token'];
