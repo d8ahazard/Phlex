@@ -644,6 +644,8 @@ select{
 	background: rgba(255, 255, 255, 0) !important;
 }
 
+
+
 .card-base {
 	vertical-align: bottom;
 	position: absolute;
@@ -672,6 +674,39 @@ select{
 
 .card-link {
 	color: #0062ec;
+}
+
+#deviceSettingsTab, #deviceSettingsHeader {
+	display: none;
+}
+
+#deviceBody {
+	padding-bottom: 80px;
+}
+
+#deviceFab {
+	position: absolute;
+	bottom: 0px;
+	right: 10px;
+}
+
+.fab{
+	width:60px;
+	height:60px;
+	bottom:40px;
+	right:40px;
+	padding: 0 !important;
+	background-color:#0062ec !important;
+	color:#FFF !important;
+	border-radius:50px;
+	text-align:center;
+	box-shadow: 2px 2px 3px #999 !important;
+}
+
+.fab:hover {
+	background-color:#0062ec !important;
+	color:#FFF !important;
+	box-shadow: 3px 3px 4px #757575 !important;
 }
 
 .card-timestamp {

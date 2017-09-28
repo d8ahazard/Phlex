@@ -8,9 +8,9 @@ $lang['uiPlayerSelectPrompt'] = "Select a player to control.";
 // Setting Headers
 $lang['uiSettingHeaderPhlex'] = "Phlex";
 $lang['uiSettingHeaderPlex'] = "Plex";
+$lang['uiSettingHeaderDevices'] = "Devices";
 $lang['uiSettingHeaderFetchers'] = "Fetchers";
 $lang['uiSettingHeaderLogs'] = "Logs";
-
 $lang['uiSettingBtnTest'] = "TEST";
 $lang['uiSettingBtnReset'] = "RESET";
 $lang['uiSettingEnable'] = "Enable";
@@ -65,6 +65,11 @@ $lang['uiSettingDvrReplaceLower'] = "Replace Lower Quality Recordings";
 $lang['uiSettingDvrRecordPartials'] = "Record Partial Episodes";
 $lang['uiSettingDvrStartOffset'] = "Start Offset (Minutes):";
 $lang['uiSettingDvrEndOffset'] = "End Offset (Minutes):";
+
+// Device tab
+$lang['uiSettingDevices'] = "Static Devices";
+$lang['uiSettingDevicesAddNew'] = "Add New Device";
+$lang['uiSettingDevicesNameLabel'] = "Device Name";
 
 // Log labels
 $lang['uiSettingLogCount'] = "Count:";

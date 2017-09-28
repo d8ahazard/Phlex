@@ -73,6 +73,17 @@ function initialize() {
 		while (!feof($handle)) {
 			$contents .= fgets($handle);
 		}
+		$devs = [];
+		foreach($_SESSION as $var=>$value) {
+			if (preg_match("/device_[0-9]/",$var)) {
+				write_log("Got a device variable: $var = $value");
+				$vars = explode("_",$var);
+				write_log("Vars: ".json_encode($vars));
+				$devs[$vars[1]][$vars[2]] = $value;
+			}
+		}
+		write_log("Devs: ".json_encode($devs));
+		$result['devs'] = $devs;
 		$result['commands'] = urlencode(($contents));
 		$devices = scanDevices();
 		$result['players'] = fetchClientList($devices);
@@ -123,6 +134,17 @@ function initialize() {
 		die();
 	}
 
+	if (isset($_GET['newDevice'])) {
+		$devJSON = json_decode($_GET['newDevice'],true);
+		write_log("Device JSON? ".json_encode($devJSON));
+		$device = 'device_'.$devJSON['id'].'_';
+		$GLOBALS['config']->set('user-_-' . $_SESSION['plexUserName'],$device.'Name',$devJSON['name']);
+		$GLOBALS['config']->set('user-_-' . $_SESSION['plexUserName'],$device.'IP',$devJSON['ip']);
+		$GLOBALS['config']->set('user-_-' . $_SESSION['plexUserName'],$device.'Port',$devJSON['port']);
+		saveConfig($GLOBALS['config']);
+	}
+
+
 	if (isset($_GET['device'])) {
 		$type = $_GET['device'];
 		$id = $_GET['id'];
@@ -159,7 +181,7 @@ function initialize() {
 		$id = $_GET['id'];
 		$value = $_GET['value'];
 		write_log('Setting parameter changed:"' . $id . ' : ' . $value.'"',"INFO");
-		if (preg_match("/IP/", $id)) $value = addScheme($value);
+		if (preg_match("/IP/", $id) && !preg_match("/device/", $id)) $value = addScheme($value);
 		if (preg_match("/Path/",$id)) if ((substr($value,0,1) != "/") && (trim($value) !== "")) $value = "/".$value;
 		$section = ($id === 'forceSSL') ? 'general' : 'user-_-' . $_SESSION['plexUserName'];
 		if (is_bool($value) === true) {
@@ -1816,6 +1838,7 @@ function scanDevices($force=false) {
 
 		if (isset($_SESSION['plexServerUri'])) {
 			$query = '/clients?X-Plex-Token='.$_SESSION['plexServerToken'];
+			write_log("SCANNING FOR LOCALS HERE!");
 			$localContainer = simplexml_load_string(doRequest(['uri'=>$_SESSION['plexServerUri'],'query'=>$query]));
 		}
 
@@ -1831,24 +1854,44 @@ function scanDevices($force=false) {
 					if ($httpsDevice['clientIdentifier'] == $httpDevice['clientIdentifier']) {
 						$connections = array_merge($httpsDevice['Connection'], $httpDevice['Connection']);
 						$httpDevice['Connection'] = array_reverse($connections);
-						if ($httpDevice['presence'] == "1") array_push($devices, $httpDevice);
+						if ($httpDevice['presence'] == "1" && count($httpDevice['Connection'])) array_push($devices, $httpDevice);
 					}
 				}
 			}
 
 			// If local devices are found, merge them too.
 			if ($localContainer) {
-				$localDevices = flattenXML($localContainer);
-				foreach ($localDevices['Device'] as $localDevice) {
+				write_log("Got some locals here!!");
+				$localDevices = $localContainer;
+				foreach ($localDevices->Server as $localDevice) {
+					$localDevice = json_decode(json_encode($localDevice),true)['@attributes'];
+					write_log("LOCALDEVICE: ".json_encode($localDevice));
 					$add = true;
 					foreach ($devices as $device) {
-						if ($localDevice['clientIdentifier'] == $device['clientIdentifier']) {
-							$add = false;
+						if ($localDevice['machineIdentifier'] == $device['clientIdentifier']) {
+							//$add = false;
 						}
 					}
-					if ($add && $localDevice['presence'] == "1") {
+					if ($add) {
 						write_log("Pushing local device: " . $localDevice['name']);
-						array_push($devices, $localDevice);
+						$device2 = [
+							'name'=>$localDevice['name'],
+							'clientIdentifier'=>$localDevice['machineIdentifier'],
+							'publicAddress'=>'http://'.$localDevice['address'].":".$localDevice['port'],
+							'httpsRequired'=>false,
+							'Connection' =>[
+								'protocol'=>'http',
+								'uri'=>'http://'.$localDevice['address'].":".$localDevice['port'],
+								'address'=>$localDevice['address'],
+								'port'=>$localDevice['port'],
+								'local'=>"1"
+							],
+							'product' => $localDevice['product'],
+							'platform' => $localDevice['deviceClass'],
+							'owned'=>"1"
+						];
+						write_log("Data to push: ".json_encode($device2));
+						array_push($devices, $device2);
 					}
 				}
 			}
@@ -1856,7 +1899,19 @@ function scanDevices($force=false) {
 			$nameArray = [];
 			// Clean up and sort merged device list
 			foreach ($devices as $device) {
-				$device = ['name' => $device['name'], 'id' => $device['clientIdentifier'], 'token' => $device['accessToken'] ?? $_SESSION['plexToken'], 'product' => $device['product'], 'httpsRequired' => $device['httpsRequired'] === "1" ? true : false, 'publicAddress' => $device['httpsRequired'] === "1" ? 'https://' : 'http://' . $device['publicAddress'], 'owned' => $device['owned'] === "1" ? true : false, 'platform' => $device['platform'], 'publicAddressMatches' => $device['publicAddressMatches'] === "1" ? true : false, 'connections' => (is_array($device['Connection'][0]) ? $device['Connection'] : [$device['Connection']])];
+				write_log("Device: ".$device['name']);
+				$device = [
+					'name' => $device['name'],
+					'id' => $device['clientIdentifier'],
+					'token' => $device['accessToken'] ?? $_SESSION['plexToken'],
+					'product' => $device['product'],
+					'httpsRequired' => $device['httpsRequired'] === "1" ? true : false,
+					'publicAddress' => $device['httpsRequired'] === "1" ? 'https://' : 'http://' . $device['publicAddress'],
+					'owned' => $device['owned'] === "1" ? true : false,
+					'platform' => $device['platform'],
+					'publicAddressMatches' => $device['publicAddressMatches'] === "1" ? true : false,
+					'connections' => (is_array($device['Connection'][0]) ? $device['Connection'] : [$device['Connection']])
+				];
 
 				// Check for and clean up duplicate device name
 				$i = 2;
@@ -1903,10 +1958,12 @@ function scanDevices($force=false) {
 
 			// Clients are so much easier!
 			foreach ($devices['clients'] as $device) {
+				write_log("Checking for ".$device['name']);
+				write_log("JSON: ".json_encode($device));
 				foreach ($device['connections'] as $connection) {
 					if ($connection['local'] === "1") {
 						$con = $connection['uri']."/resources?X-Plex-Token=".$device['token'];
-						if (check_url($con,$device['token'])) $device['uri'] = $connection['uri'];
+						if ((check_url($con,$device['token'])) || ($device['product'] == 'PlexKodiConnect')) $device['uri'] = $connection['uri'];
 						break;
 					}
 				}
@@ -2910,6 +2967,7 @@ function playMedia($media) {
 				$result = playMediaCast($media);
 				break;
 			case (preg_match('/Roku/', $clientProduct) ? $clientProduct : !$clientProduct):
+			//case 'PlexKodiConnect':
 				$result = playMediaRelayed($media);
 				break;
 			case 'Plex for Android':

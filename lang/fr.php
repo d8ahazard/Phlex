@@ -71,6 +71,11 @@ $lang["uiSettingLogCount"] = "Compter:";
 $lang["uiSettingLogLevel"] = "Niveau:";
 $lang["uiSettingLogUpdate"] = "Compter:";
 
+// Device tabs (NEEDS TRANSLATION)
+$lang['uiSettingDevices'] = "Devices";
+$lang['uiSettingHeaderDevices'] = "Devices";
+$lang['uiSettingDevicesAddNew'] = "Add New Device";
+
 // Fetcher labels
 $lang['uiSettingFetcherPath'] = "Chemin d'accès (facultatif)";
 $lang['uiSettingFetcherPort'] = "Port";

@@ -141,6 +141,9 @@ function makeBody($newToken = false) {
 					        <li class="nav-item">
 						        <a href="#plexSettingsTab" class="nav-link" data-toggle="tab" role="tab">'.$lang['uiSettingHeaderPlex'].'</a>
 					        </li>
+					        <li class="nav-item" id="deviceSettingsHeader">
+						        <a href="#deviceSettingsTab" class="nav-link" data-toggle="tab" role="tab">'.$lang['uiSettingHeaderDevices'].'</a>
+					        </li>
 					        <li class="nav-item">
 						        <a href="#fetcherSettingsTab" class="nav-link" data-toggle="tab" role="tab">'.$lang['uiSettingHeaderFetchers'].'</a>
 					        </li>
@@ -445,6 +448,14 @@ function makeBody($newToken = false) {
 									</div>
 			                    </div>
 			                </div> 
+			                <div class="tab-pane fade" id="deviceSettingsTab" role="tabpanel">
+			                    <div class="modal-body" id="deviceBody">
+                                    <h4 class="cardHeader">'.$lang['uiSettingDevices'].'</h4>
+					                <button type="button" class="btn btn-primary fab" id="deviceFab" data-toggle="tooltip" data-placement="left" title="'.$lang['uiSettingDevicesAddNew'].'">
+										<i class="material-icons">add</i>
+									</button>
+			                    </div>
+		                    </div>
 			                <div class="tab-pane fade" id="fetcherSettingsTab" role="tabpanel">
 			                    <div class="modal-body" id="fetcherBody">
 			                        <div class="appContainer card">

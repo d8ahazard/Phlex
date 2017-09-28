@@ -1,7 +1,9 @@
 var action = "play";
 var appName, autoUpdate, bgs, bgWrap, token, newToken, deviceID, resultDuration, logLevel, lastLog, itemJSON, apiToken, ombi, couch, sonarr, radarr, sick, publicIP, dvr, weatherClass, city, state, updateAvailable, weatherHtml;
+var lastDevices = "foo";
 var condition = null;
-var lastUpdate = [];
+var devices = lastUpdate = [];
+
 
 jQuery(document).ready(function($) {
     $('.snackbar').hide();
@@ -86,35 +88,7 @@ jQuery(document).ready(function($) {
 	});
 			
 	// Handle our input changes and zap them to PHP for immediate saving
-	$("input").change(function(){
-		var id;
-		if ($(this).hasClass("appInput")) {
-			id = $(this).attr('id');
-			var value;
-			if (($(this).attr('type') === 'checkbox') || ($(this).attr('type') === 'radio')) {
-				value = $(this).is(':checked');
-			} else {
-				value = $(this).val();
-			}
-			if ($(this).id === 'publicAddress') {
-				value = resetApiUrl($(this).val());
-			}
-
-			apiToken = $('#apiTokenData').attr('data');
-			$.get('api.php?apiToken=' + apiToken, {id:id, value:value}, function() {
-                if (id==='darkTheme') {
-                	setTimeout( function() { location.reload(); }, 1000);
-                    $.snackbar({content: "Theme changed, reloading page."});
-                }
-			});
-			if ($(this).hasClass("appParam")) {
-				id = $(this).parent().parent().parent().attr('id').replace("Group","");
-				$.get('api.php?apiToken=' + apiToken + '&fetchList=' + id, function(data){
-					$('#'+id + 'Profile').html(data);
-				})
-			}
-		}
-	});
+	setListeners();
 
 	$('#logLevel').change(function(){
         logLevel = $(this).val();
@@ -290,6 +264,18 @@ jQuery(document).ready(function($) {
 		}
 		
 	});
+
+	$('#deviceFab').click(function() {
+		var newDev = createStaticDevice();
+		$('#deviceBody').append(newDev[0]);
+		setListeners();
+        apiToken = $('#apiTokenData').attr('data');
+        console.log("Dev1? ",newDev[1]);
+
+		$.get('api.php?apiToken=' + apiToken+'&newDevice='+JSON.stringify(newDev[1]));
+
+	});
+
 	var client = $('#client');
 	client.click(function() {
 		console.log("CLICKED CLIENT!");
@@ -661,7 +647,7 @@ function updateStatus() {
             } catch(e) {
                 //alert(e); // error in the above string (in this case, yes)!
             }
-	}
+		}
 		try {
 			$('#clientWrapper').html(data.players);	
 			$('#serverList').html(data.servers);
@@ -671,6 +657,23 @@ function updateStatus() {
 			if (data.hasOwnProperty(updateAvailable)) {
 				showMessage("An update is available.","An update is available for Phlex.  Click here to install it now.",'api.php?apiToken=' + apiToken + '&installUpdates=true');
 			}
+
+			//devices = data.devs;
+			var devHtml = "";
+			var devCount = devices.length;
+			console.log("DevLengt: "+devCount);
+			if (JSON.stringify(devices) !== JSON.stringify(lastDevices)) {
+				console.log("Firing something here...");
+                $.each(data.devs, function (id, device) {
+                    console.log("DEVICE: ", device, device.Name, device.IP, device.Port, id);
+                    var devString = createStaticDevice(device.Name, device.IP, device.Port, id);
+                    devHtml += devString[0];
+                });
+                $('#deviceBody').append(devHtml);
+                setListeners();
+                if (devices.length !== devCount) lastDevices = devices;
+            }
+
 			ddText = $('.dd-selected').text();
 			$('.ddLabel').html(ddText);
 			data.playerStatus = JSON.parse(data.playerStatus);
@@ -1126,4 +1129,75 @@ function imgError(image) {
     image.onerror = "";
     image.src = "https://phlexchat.com/img.php?random&height="+$(document).height()+"&width="+$(document).width()+"&v=" + (Math.floor(Math.random()*(1084)));
     return true;
+}
+
+function createStaticDevice(name,ip,port,id) {
+	console.log("Devices length " + devices.length);
+    if (!id) id = devices.length + 1;
+	if (!name) name = "New Device " + id;
+	if (!ip) ip = "0.0.0.0";
+	if (!port) port = "8009";
+	var nameString = 'device_' + id + '_Name';
+	var ipString = 'device_' + id + '_IP';
+    var portString = 'device_' + id + '_Port';
+    var device = {
+    	'name':name,
+		'ip':ip,
+		'port':port
+	};
+
+
+	console.log("DEVICE2: ",device);
+	devices.push({id:device});
+	device['id'] = id;
+	var dataString = "<div class='card'>" +
+        "<div class='card-header'>" +
+        '<label for="device_' + id + '_Name" class="appLabel">Device Name:' +
+        "<input type='text' id='device_" + id + "_Name' value='" + name + "' class='appInput form-control'/>" +
+        '</label>' +
+        '<label for="device_' + id + '_IP" class="appLabel">IP Address:' +
+        "<input type='text' id='device_" + id + "_IP' value='" + ip + "' required pattern=\"^([0-9]{1,3}\\.){3}[0-9]{1,3}$\" class='appInput form-control'/>" +
+        '</label>' +
+        '<label for="device_' + id + '_Port" class="appLabel">Port:' +
+        "<input type='text' id='device_" + id + "_Port' value='" + port + "' required pattern=\"^([0-9]{1,4}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$\" class='appInput form-control'/>" +
+        '</label>' +
+        "</div>" +
+        "</div>";
+	return [dataString,device];
+}
+
+function deleteStaticDevice(id) {
+
+}
+
+function setListeners() {
+    $("input").change(function(){
+        var id;
+        if ($(this).hasClass("appInput")) {
+            id = $(this).attr('id');
+            var value;
+            if (($(this).attr('type') === 'checkbox') || ($(this).attr('type') === 'radio')) {
+                value = $(this).is(':checked');
+            } else {
+                value = $(this).val();
+            }
+            if ($(this).id === 'publicAddress') {
+                value = resetApiUrl($(this).val());
+            }
+
+            apiToken = $('#apiTokenData').attr('data');
+            $.get('api.php?apiToken=' + apiToken, {id:id, value:value}, function() {
+                if (id==='darkTheme') {
+                    setTimeout( function() { location.reload(); }, 1000);
+                    $.snackbar({content: "Theme changed, reloading page."});
+                }
+            });
+            if ($(this).hasClass("appParam")) {
+                id = $(this).parent().parent().parent().attr('id').replace("Group","");
+                $.get('api.php?apiToken=' + apiToken + '&fetchList=' + id, function(data){
+                    $('#'+id + 'Profile').html(data);
+                })
+            }
+        }
+    });
 }
