@@ -84,18 +84,31 @@ You will also need the CURL and openSSL extensions enabled, and sockets if you h
 3. Install PHP XML and mbstrings (missing from previous guide)
 
         sudo apt-get install php-xml php7.0-mbstring
+        
+4.  Install GIT
 
-4. Change ownership of Phlex folder to www-data
+        sudo apt-get install git
+
+5.  Create a phlex directory
+
+        sudo mkdir /var/www/html/Phlex/
+        
+6.  Clone Phlex
+
+        sudo git clone https://github.com/d8ahazard/Phlex.git /var/www/html/Phlex
+        
+
+7. Change ownership of Phlex folder to www-data
 
         sudo chown -R www-data /var/www/html/Phlex/
 
-5. Add writeable folders to `/etc/php/7.0/apache2/php.ini`
+8. Add writeable folders to `/etc/php/7.0/apache2/php.ini`
 
    Add this line to the file, near the guidance notes for open_basedir :
 
         open_basedir = /var/www/html/Phlex/
 
-6. Edit php.ini for Dynamic Extensions.  Add lines:
+9. Edit php.ini for Dynamic Extensions.  Add lines:
 
         extension=curl.so
         extension=openssl.so
