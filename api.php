@@ -4407,6 +4407,7 @@ function returnAssistantSpeech($speech, $contextName, $cards, $waitForResponse, 
 		} else {
 			$carousel = [];
 			foreach ($cards as $card) {
+				$cardTitle = $card['title'];
 				$item = [];
 				$img = $card['image']['url'];
 				if (! (preg_match("/http/",$card['image']['url']))) $img = transcodeImage($card['image']['url']);
