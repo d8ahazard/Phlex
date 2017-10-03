@@ -4397,8 +4397,13 @@ function returnAssistantSpeech($speech, $contextName, $cards, $waitForResponse, 
 
 	if (is_array($cards)) {
 		if (count($cards) == 1) {
-			$cards[0]['image']['accessibilityText'] = 'foo';
-			array_push($items, ['basicCard' => $cards[0]]);
+			$cardTitle = $cards[0]['title'];
+			$cards[0]['image']['accessibilityText'] = "Image for $cardTitle.";
+			if (preg_match("/https/",$cards[0]['image']['url'])) {
+				array_push($items, ['basicCard' => $cards[0]]);
+			} else {
+				write_log("Not displaying card for $cardTitle because image is not https.","INFO");
+			}
 
 
 		} else {
@@ -4407,12 +4412,16 @@ function returnAssistantSpeech($speech, $contextName, $cards, $waitForResponse, 
 				$item = [];
 				$img = $card['image']['url'];
 				if (! (preg_match("/http/",$card['image']['url']))) $img = transcodeImage($card['image']['url']);
-				$item['image']['url'] = $img;
-				$item['image']['accessibilityText'] = $card['title'];
-				$item['title'] = $card['title'];
-				$item['description'] = $card['description'];
-				$item['optionInfo']['key'] = 'play '.$card['title'];
-				array_push($carousel, $item);
+				if (preg_match("/https/",$img)) {
+					$item['image']['url'] = $img;
+					$item['image']['accessibilityText'] = $card['title'];
+					$item['title'] = $card['title'];
+					$item['description'] = $card['description'];
+					$item['optionInfo']['key'] = 'play ' . $card['title'];
+					array_push($carousel, $item);
+				} else {
+					write_log("Not displaying card for $cardTitle because image is not https.","INFO");
+				}
 			}
 			$output['data']['google']['systemIntent']['intent'] = 'actions.intent.OPTION';
 			$output['data']['google']['systemIntent']['data']['@type'] = 'type.googleapis.com/google.actions.v2.OptionValueSpec';
@@ -4459,16 +4468,19 @@ function returnAlexaSpeech($speech, $contextName, $cards, $waitForResponse, $sug
 		]
 	];
 	if ($cards) {
+		$cardTitle = $cards[0]['title'];
 		if (preg_match('/https/',$cards[0]['image']['url'])) {
 			$response['response']['card'] = [
 				"type" => "Standard",
-				"title" => $cards[0]['title'],
+				"title" => $cardTitle,
 				"text" => $cards[0]['summary'] ?? $cards[0]['formattedText'] ?? $cards[0]['description'] ?? $cards[0]['tagline'] ??  $cards[0]['subtitle'] ?? '',
 				"image" => [
 					"smallImageUrl" => $cards[0]['image']['url'],
 					"largeImageUrl" => $cards[0]['image']['url']
 				]
 			];
+		} else {
+			write_log("Not displaying card for $cardTitle because image is not https.","INFO");
 		}
 	}
 	$response['originalRequest'] = $_SESSION['lastRequest'];
