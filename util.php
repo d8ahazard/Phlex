@@ -895,6 +895,11 @@ function checkUpdates($install=false) {
 				$result = $repo->readLog('origin','HEAD');
 				$revision = $repo->getRev();
 				$logHistory = readUpdate();
+				if ($revision) {
+					$config = new Config_Lite('config.ini.php');
+					$config->set('general','revision',$revision);
+					saveConfig($config);
+				}
 				if (count($logHistory)) $installed = $logHistory[0]['installed'];
 				$header = '<div class="cardHeader">
 							Current revision: '.substr($revision,0,7).'<br>

@@ -13,6 +13,12 @@ use Kryptonit3\Sonarr\Sonarr;
 
 $config = new Config_Lite('config.ini.php');
 setDefaults();
+if (isset($_GET['revision'])) {
+	$rev = $config->get('general','revision',false);
+	echo $rev ? substr($rev,0,8) : "unknown";
+	die;
+}
+
 checkSignIn();
 $user = validateCredentials();
 if ($user['valid']) {
@@ -355,7 +361,7 @@ function setSessionVariables($rescan=true) {
 		$GLOBALS['config']->set('user-_-'.$_SESSION['plexUserName'],'publicAddress', $ip);
 		saveConfig($GLOBALS['config']);
 	}
-	setStartUrl($ip);
+	setStartUrl();
 	$devices = $GLOBALS['config']->get('user-_-'.$_SESSION['plexUserName'], 'dlist', false);
 	if ($devices) $_SESSION['list_plexdevices'] = json_decode(base64_decode($devices),true);
 	if($rescan) $devices = scanDevices();
@@ -1994,7 +2000,6 @@ function scanDevices($force=false) {
 				}
 			}
 		}
-
 		if ($castDevices) {
 			write_log("Found cast devices: ".json_encode($castDevices),"INFO");
 			foreach($castDevices as $device) {
@@ -3993,7 +3998,7 @@ function downloadMovie($command,$tmdbResult=false) {
 
 	if ($enableCouch) {
 		write_log("Using Couchpotoato for Movie agent");
-		$response = couchDownload($command,$tmdbResult);
+		$response = couchDownload($command);
 	}
 
 	if ($enableRadarr) {
@@ -4003,7 +4008,7 @@ function downloadMovie($command,$tmdbResult=false) {
 	return $response;
 }
 
-function couchDownload($command,$tmdbResult=false) {
+function couchDownload($command) {
 	$couchURL = $_SESSION['couchIP'];
 	$couchApikey = $_SESSION['couchAuth'];
 	$couchPort = $_SESSION['couchPort'];
