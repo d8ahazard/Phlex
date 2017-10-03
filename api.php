@@ -1863,32 +1863,30 @@ function scanDevices($force=false) {
 				$localDevices = $localContainer;
 				foreach ($localDevices->Server as $localDevice) {
 					$localDevice = json_decode(json_encode($localDevice),true)['@attributes'];
-					$add = true;
-					foreach ($devices as $device) {
+					foreach ($devices as &$device) {
 						if ($localDevice['machineIdentifier'] == $device['clientIdentifier']) {
-							//$add = false;
+							unset($device['clientIdentifier']);
+							write_log("Unsetting device ".$device['name']. " because a local version was found.","INFO");
 						}
 					}
-					if ($add) {
-						write_log("Pushing local device: " . $localDevice['name']);
-						$device2 = [
-							'name'=>$localDevice['name'],
-							'clientIdentifier'=>$localDevice['machineIdentifier'],
-							'publicAddress'=>'http://'.$localDevice['address'].":".$localDevice['port'],
-							'httpsRequired'=>false,
-							'Connection' =>[
-								'protocol'=>'http',
-								'uri'=>'http://'.$localDevice['address'].":".$localDevice['port'],
-								'address'=>$localDevice['address'],
-								'port'=>$localDevice['port'],
-								'local'=>"1"
-							],
-							'product' => $localDevice['product'],
-							'platform' => $localDevice['deviceClass'],
-							'owned'=>"1"
-						];
-						array_push($devices, $device2);
-					}
+					write_log("Pushing local device: " . $localDevice['name']);
+					$device2 = [
+						'name'=>$localDevice['name'],
+						'clientIdentifier'=>$localDevice['machineIdentifier'],
+						'publicAddress'=>'http://'.$localDevice['address'].":".$localDevice['port'],
+						'httpsRequired'=>false,
+						'Connection' =>[
+							'protocol'=>'http',
+							'uri'=>'http://'.$localDevice['address'].":".$localDevice['port'],
+							'address'=>$localDevice['address'],
+							'port'=>$localDevice['port'],
+							'local'=>"1"
+						],
+						'product' => $localDevice['product'],
+						'platform' => $localDevice['deviceClass'],
+						'owned'=>"1"
+					];
+					array_push($devices, $device2);
 				}
 			}
 
