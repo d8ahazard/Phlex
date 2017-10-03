@@ -192,7 +192,7 @@ function initialize() {
 
 		saveConfig($GLOBALS['config']);
 		if ((trim($id) === 'useCast') || (trim($id) === 'noLoop')) scanDevices(true);
-		setSessionVariables();
+		setSessionVariables(false);
 		if ($id == "appLanguage")checkSetLanguage("api: settings");
 		die();
 	}
@@ -345,7 +345,7 @@ function initialize() {
 	DO NOT SET ANY SESSION VARIABLES UNTIL THIS IS CALLED HERE
 
 	*/
-function setSessionVariables() {
+function setSessionVariables($rescan=true) {
 	$_SESSION['mc'] = initMCurl();
 	$_SESSION['deviceID'] = checkSetDeviceID();
 	$ip = $GLOBALS['config']->get('user-_-'.$_SESSION['plexUserName'],'publicAddress', false);
@@ -358,7 +358,7 @@ function setSessionVariables() {
 	setStartUrl($ip);
 	$devices = $GLOBALS['config']->get('user-_-'.$_SESSION['plexUserName'], 'dlist', false);
 	if ($devices) $_SESSION['list_plexdevices'] = json_decode(base64_decode($devices),true);
-	$devices = scanDevices();
+	if($rescan) $devices = scanDevices();
 	// See if we have a server saved in settings
 	$_SESSION['plexServerId'] = $GLOBALS['config']->get('user-_-'.$_SESSION['plexUserName'], 'plexServerId', false);
 	if (!($_SESSION['plexServerId'])) {
