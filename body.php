@@ -12,7 +12,7 @@ function makeBody($newToken = false) {
     }
     $config = new Config_Lite('config.ini.php');
 
-    $lang = checkSetLanguage("body");
+    $lang = checkSetLanguage();
     write_log("Language: ".json_encode($lang));
 	// Check our config file exists
     $_SESSION['apiToken'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'apiToken', checkSetApiToken($_SESSION['plexUserName']));
@@ -167,8 +167,7 @@ function makeBody($newToken = false) {
 					                            <div class="form-group">
 				                                    <label class="appLabel" for="appLanguage">'.$lang['uiSettingLanguage'].'</label>
 				                                    <select class="form-control custom-select" id="appLanguage">
-				                                    	<option value="en" id="en"'.($_SESSION["appLanguage"] == "en" ? 'selected' : '').'>'.$lang['uiSettingLangEnglish'].'</option>
-				                                    	<option value="fr" id="fr"'.($_SESSION["appLanguage"] == "fr" ? 'selected' : '').'>'.$lang['uiSettingLangFrench'].'</option>
+				                                    	'.listLocales().'
 				                                    </select>
 				                                    <br><br>
 			                                    </div>
@@ -752,6 +751,7 @@ function makeBody($newToken = false) {
 			    </div>
 			    <div id="metaTags">
 			        <meta id="apiTokenData" data="' . $_SESSION["apiToken"] . '" property="" content=""/>
+			        <meta id="strings" data-array="'.urlencode(json_encode($lang['javaStrings'])).'"/>
 			        <meta id="newToken" data="' . ($newToken ? 'true': 'false') . '" property="" content=""/>'.
 				    metaTags() . '
 			    </div>

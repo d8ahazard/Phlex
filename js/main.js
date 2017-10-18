@@ -3,10 +3,14 @@ var appName, autoUpdate, bgs, bgWrap, token, newToken, deviceID, resultDuration,
 var lastDevices = "foo";
 var condition = null;
 var devices = lastUpdate = [];
+var javaStrings;
 
 
 jQuery(document).ready(function($) {
     $('.snackbar').hide();
+    javaStrings = decodeURIComponent($('#strings').data('array'));
+    javaStrings = javaStrings.replace(/\+/g,' ');
+    javaStrings = JSON.parse(javaStrings);
     bgs = $('.bg');
     bgWrap = $('#bgwrap');
     var loginBox = $('.login-box');
@@ -550,9 +554,9 @@ function scaleElements() {
     var winWidth = $(window).width();
     console.log("Scaling: "+ winWidth);
     var commandTest = $('#actionLabel');
-    if (winWidth <=340) commandTest.html("How can I help?");
-    if ((winWidth >=341) && (winWidth <=400)) commandTest.html("How can I help?");
-    if (winWidth >=401) commandTest.html("What can I do for you?");
+    if (winWidth <=340) commandTest.html(javaStrings[1]);
+    if ((winWidth >=341) && (winWidth <=400)) commandTest.html(javaStrings[1]);
+    if (winWidth >=401) commandTest.html(javaStrings[0]);
     var sliderWidth = $('.statusWrapper').width() - $('#statusImage').width()-60;
     $("#progressSlider").css('width',sliderWidth);
 
@@ -964,8 +968,8 @@ function buildCards(value,i) {
 			'<li class="card-title">' + title + '</li>' +
 			'<li class="card-subtitle">' + subtitle + '</li>' +
 			'<li class="card-description">' + description + '</li>' +
-			'<li class="card-request card-text"><b>You said: </b>"' + initialCommand + '."</li>' +
-			'<li class="card-reply card-text"><b>My reply:</b> "' + speech + '</li>' +
+			'<li class="card-request card-text"><b>'+javaStrings[2]+' </b>"' + initialCommand + '."</li>' +
+			'<li class="card-reply card-text"><b>'+javaStrings[3]+' </b> "' + speech + '</li>' +
 			'<li class="card-json">' + JSONdiv + '</li>' +
         '</ul>' +
         '<br>';
