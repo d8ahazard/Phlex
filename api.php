@@ -93,7 +93,7 @@ function initialize() {
 		$result['devs'] = $devs;
 		$result['commands'] = urlencode(($contents));
 		$devices = scanDevices();
-		$result['players'] = fetchClientList($devices);
+		$result['players'] = $devices['clients'];
 		$result['servers'] = fetchServerList($devices);
 		$result['dvrs'] = fetchDVRList($devices);
 		$result['updates'] = checkUpdates();
@@ -166,7 +166,9 @@ function initialize() {
 				$GLOBALS['config']->set('user-_-' . $_SESSION['plexUserName'], $type . 'Token', $token);
 			}
 			if ($type == 'plexDvr') $GLOBALS['config']->set('user-_-' . $_SESSION['plexUserName'], $type . 'Key', $_GET['key']);
-
+			if ($type=='plexClient') {
+				$_SESSION['plexClientId'] = $id;
+			}
 			$GLOBALS['config']->set('user-_-' . $_SESSION['plexUserName'], $type, $id);
 			$GLOBALS['config']->set('user-_-' . $_SESSION['plexUserName'], $type . 'Id', $id);
 			$GLOBALS['config']->set('user-_-' . $_SESSION['plexUserName'], $type . 'Uri', $uri);
@@ -355,13 +357,9 @@ function initialize() {
 function setSessionVariables($rescan=true) {
 	$_SESSION['mc'] = initMCurl();
 	$_SESSION['deviceID'] = checkSetDeviceID();
-	$ip = $GLOBALS['config']->get('user-_-'.$_SESSION['plexUserName'],'publicAddress', false);
-	if (!($ip)) {
-		$ip = doRequest(['uri'=>'https://plex.tv/pms/:/ip']);
-		$ip = serverProtocol() . $ip . '/Phlex';
+	$ip = $GLOBALS['config']->get('user-_-'.$_SESSION['plexUserName'],'publicAddress', fetchUrl());
 		$GLOBALS['config']->set('user-_-'.$_SESSION['plexUserName'],'publicAddress', $ip);
 		saveConfig($GLOBALS['config']);
-	}
 	setStartUrl();
 	$devices = $GLOBALS['config']->get('user-_-'.$_SESSION['plexUserName'], 'dlist', false);
 	if ($devices) $_SESSION['list_plexdevices'] = json_decode(base64_decode($devices),true);
@@ -1870,12 +1868,14 @@ function scanDevices($force=false) {
 			// If local devices are found, merge them too.
 			if ($localContainer) {
 				$localDevices = $localContainer;
+				$devices2 = [];
 				foreach ($localDevices->Server as $localDevice) {
 					$localDevice = json_decode(json_encode($localDevice),true)['@attributes'];
 					foreach ($devices as &$device) {
-						if ($localDevice['machineIdentifier'] == $device['clientIdentifier']) {
-							unset($device['clientIdentifier']);
-							write_log("Unsetting device ".$device['name']. " because a local version was found.","INFO");
+						if ($localDevice['machineIdentifier'] !== $device['clientIdentifier']) {
+							array_push($devices2,$device);
+						} else {
+							write_log("Skipping device ".$device['name']);
 						}
 					}
 					write_log("Pushing local device: " . $localDevice['name']);
@@ -1895,8 +1895,9 @@ function scanDevices($force=false) {
 						'platform' => $localDevice['deviceClass'],
 						'owned'=>"1"
 					];
-					array_push($devices, $device2);
+					array_push($devices2, $device2);
 				}
+				$devices = $devices2;
 			}
 
 			$nameArray = [];
@@ -2006,6 +2007,8 @@ function scanDevices($force=false) {
 		if ($castDevices) {
 			write_log("Found cast devices: ".json_encode($castDevices),"INFO");
 			foreach($castDevices as $device) {
+				$skip = false;
+				$ip = parse_url($device['uri'])['host'];
 				$i=2;
 				foreach($clients as $check) {
 					$dname = preg_replace("/[^a-zA-Z]/", "", $device['name']);
@@ -2014,14 +2017,25 @@ function scanDevices($force=false) {
 						$device['name'] .= " ($i)";
 						$i++;
 					}
+					foreach($check['connections'] as $connection) {
+						if ($connection['address'] === $ip) {
+							write_log("Skipping device: ".$dname);
+							$skip = true;
+						}
+					}
 				}
-				array_push($clients,$device);
+				if (!$skip) array_push($clients,$device);
 			}
 		}
 		if (count($clients)) {
-			foreach ($clients as $client) {
+			foreach ($clients as &$client) {
 				if (isset($_SESSION['plexClientId'])) {
-					if ($_SESSION['plexClientId'] == $client['id']) $_SESSION['plexClientUri'] = $client['uri'];
+					if ($_SESSION['plexClientId'] == $client['id']) {
+						$_SESSION['plexClientUri'] = $client['uri'];
+						$client['selected'] = true;
+					} else {
+						$client['selected'] = false;
+					}
 				}
 			}
 		}
@@ -2034,7 +2048,25 @@ function scanDevices($force=false) {
 		saveConfig($GLOBALS['config']);
 		write_log("Final device array: ".json_encode($results),"INFO");
 
-	} else $results = $list;
+	} else {
+		$clients = $list['clients'];
+		$clients2 = [];
+		if (count($clients)) {
+			foreach ($clients as &$client) {
+				if (isset($_SESSION['plexClientId'])) {
+					if ($_SESSION['plexClientId'] == $client['id']) {
+						$_SESSION['plexClientUri'] = $client['uri'];
+						$client['selected'] = true;
+					} else {
+						$client['selected'] = false;
+					}
+				}
+				array_push($clients2,$client);
+			}
+		}
+		$list['clients'] = $clients2;
+		$results = $list;
+	}
 
 	return $results;
 }
@@ -2065,7 +2097,7 @@ function fetchSections() {
 function fetchClientList($devices) {
 	$options = "";
 	if (isset($devices['clients'])) {
-		foreach($devices['clients'] as $key => $client) {
+		foreach($devices['clients'] as $client) {
 			$selected = (trim($client['id']) == trim($_SESSION['plexClientId']));
 			$id = $client['id'];
 			$name = $client['name'];

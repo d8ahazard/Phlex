@@ -25,9 +25,10 @@
     setDefaults();
     if (isset($_GET['logout'])) {
         clearSession();
-        echo '<script language="javascript">
-                    document.location.href="/";
-                    </script>';
+        $url = fetchUrl();
+        echo "<script language='javascript'>
+                    document.location.href='$url';
+                    </script>";
 
     }
 ?>

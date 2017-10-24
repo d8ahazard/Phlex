@@ -74,21 +74,8 @@ function makeBody($newToken = false) {
 	$_SESSION['hookFetch'] = $config->getBool('user-_-'.$_SESSION['plexUserName'], 'hookFetch', false);
 	$_SESSION['hookCustom'] = $config->getBool('user-_-'.$_SESSION['plexUserName'], 'hookCustom', false);
 	$_SESSION['hookCustomReply'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'hookCustomReply', "");
-	$_SESSION['realIP'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'realIP', false);
-	if (! $_SESSION['realIP']) {
-		$url = 'https://plex.tv/pms/:/ip';
-		$ch = curl_init();
-		curl_setopt($ch, CURLOPT_URL, $url);
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($ch, CURLOPT_CAINFO, dirname(__FILE__) . "/cert/cacert.pem");
-		$result = curl_exec($ch);
-		curl_close($ch);
-		$result = str_replace(array("\n", "\r"), '', $result);
-		$_SESSION['realIP'] = $result;
-		$config->set('user-_-'.$_SESSION['plexUserName'], 'realIP',$_SESSION['realIP']);
-		saveConfig($config);
-	}
-	$ipString = (((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')	|| $_SERVER['SERVER_PORT'] == 443) ? 'https://' : 'http://') . $_SESSION['realIP']  . '/Phlex';
+
+	$ipString = fetchUrl();
     $_SESSION['publicAddress'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'publicAddress', $ipString);
     $bodyText = ($_SESSION['darkTheme'] ? '<link href="./css/dark.css" rel="stylesheet">' : '') . PHP_EOL.
 	'			<div id="body" class="row justify-content-center">
@@ -212,8 +199,9 @@ function makeBody($newToken = false) {
 					                            <div class="form-group text-center">
 					                                <div class="form-group">
 					                                    <label for="linkAccount">'.$lang['uiSettingAccountLinking'].'</label><br>
-					                                    <button id="linkAccount" class="btn btn-raised linkBtn btn-danger">'.$lang['uiSettingLinkGoogle'].'</button>
-					                                    <button id="linkAmazonAccount" class="btn btn-raised alexaBtn btn-info">'.$lang['uiSettingLinkAmazon'].'</button>
+					                                    <button id="testServer" data-action="test" class="btn btn-raised linkBtn btn-warn">'.$lang['uiSettingTestServer'].'</button><br>
+					                                    <button id="linkAccount" data-action="google" class="btn btn-raised linkBtn btn-danger">'.$lang['uiSettingLinkGoogle'].'</button>
+					                                    <button id="linkAmazonAccount" data-action="amazon" class="btn btn-raised linkBtn btn-info">'.$lang['uiSettingLinkAmazon'].'</button>
 					                                </div>
 					                            </div>
 					                            <div class="text-center">

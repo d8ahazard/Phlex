@@ -53,9 +53,9 @@
     "speechControlConfirm1": "Senden eines Befehls an",
     "speechControlConfirmGenericArray": [
         "Betrachten Sie es als erledigt.",
-        "Du hast es.",
+        "Nat\u00fcrlich.",
         "Okay.",
-        "Sichere Sache."
+        "Klar doch."
     ],
     "speechControlConfirmPauseArray": [
         "Okay, ich habe den Fernseher f\u00fcr dich unterbrochen.",
@@ -84,7 +84,7 @@
     ],
     "speechControlGeneric1": "Senden eines Befehls an",
     "speechControlGeneric2": "Okay, ich werde Plex sagen,",
-    "speechControlVolumeDown": "Okay, ich drehe es ein wenig ab.",
+    "speechControlVolumeDown": "Okay, ich drehe es ein wenig runter.",
     "speechControlVolumeSet": "Okay, die Lautst\u00e4rke einstellen",
     "speechControlVolumeUp": "Okay, ich werde es ein wenig aufdrehen.",
     "speechDeviceListError": "Beim Abrufen der Liste der Ger\u00e4te ist ein Fehler aufgetreten. Bitte versuchen Sie es sp\u00e4ter erneut.",
@@ -95,10 +95,10 @@
     ],
     "speechDontUnderstand1": "Es tut mir leid aber '",
     "speechDontUnderstand2": "&quot;scheint nichts zu tun, was ich gerade gesagt habe.",
-    "speechDownloadAdded1": "Okay, ich habe hinzugef\u00fcgt",
-    "speechDownloadAdded2": "zur Abrufliste.",
+    "speechDownloadAdded1": "Okay, ich habe",
+    "speechDownloadAdded2": "zur Abrufliste hinzugef\u00fcgt.",
     "speechDownloadErrorArray": [
-        "Das ist peinlich. Ich kann das nirgendwo zu finden scheinen.",
+        "Das ist peinlich. Ich kann das nirgendwo finden.",
         "Leider konnte ich mit dem Titel nichts herunterladen.",
         "Tut mir leid, aber ich konnte das in keinem deiner Sucher finden."
     ],
@@ -134,7 +134,7 @@
     "speechMoreInfoArray": [
         "Hier finden Sie weitere Informationen dazu.",
         "Hier ist was ich f\u00fcr diesen Gegenstand gefunden habe.",
-        "Ich habe das nach dir gesucht."
+        "Ich habe das f\u00fcr dich gesucht."
     ],
     "speechMultiResultArray": [
         "Du hast ein paar Dinge, die mit dieser Suche \u00fcbereinstimmen k\u00f6nnten, geh\u00f6ren die dazu?",
@@ -143,7 +143,7 @@
         "Welches meintest du?"
     ],
     "speechNotUndertoodArray": [
-        "Gefahr wird Robinson! Ich verstehe den Befehl '",
+        "Danger Will Robinson! Ich verstehe nicht den Befehl '",
         "Ich f\u00fcrchte, ich verstehe nicht, was Sie unter",
         "Leider konnte ich nicht herausfinden, wann Sie &quot;"
     ],
@@ -187,7 +187,7 @@
     "suggestionCancel": "Stornieren.",
     "suggestionCouch": "Laden Sie den Film Tron herunter.",
     "suggestionDvr": "DVR Jeopardy.",
-    "suggestionSick": "Holen Sie sich die Show Weeds.",
+    "suggestionSick": "Lade die Show Weeds.",
     "suggestionYesNo": [
         "Ja",
         "Nein"

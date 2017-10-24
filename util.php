@@ -42,7 +42,7 @@ require_once dirname(__FILE__) . '/vendor/autoload.php';
 	    $string = preg_replace("/tell Flex TV/","",$string);
 	    $string = preg_replace("/Flex TV/","",$string);
         $stringArray = explode(" "	,$string);
-        $stripIn = array("of","the","an","a","at","th","nd","in","from","and");
+        $stripIn = array("of","an","a","at","th","nd","in","from","and");
         $stringArray = array_diff($stringArray,array_intersect($stringArray,$stripIn));
         $result = implode(" ",$stringArray);
         return $result;
@@ -176,7 +176,7 @@ function flattenXML($xml){
         $path = $url;
         $cached_filename = false;
 		try {
-			$URL_REF = $_SESSION['publicAddress'] ?? 'https://'.$_SERVER['HTTP_HOST'];
+			$URL_REF = $_SESSION['publicAddress'] ?? fetchUrl(true);
 			$cacheDir = file_build_path(dirname(__FILE__),"img","cache");
 			if (!file_exists($cacheDir)) {
 				write_log("No cache directory found, creating.","INFO");
@@ -1609,13 +1609,16 @@ function doRequest($parts,$timeout=3) {
 	return false;
 }
 
-function fetchUrl() {
+function fetchUrl($https=false) {
+	if ($https) $protocol = 'https://' ;else {
 	$protocol = (((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')	|| $_SERVER['SERVER_PORT'] == 443) ? 'https://' : 'http://');
+	}
 	$actual_link = "$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
 	$url = explode("/",$actual_link);
 	$len = count($url);
 	if (preg_match("/.php/",$url[$len-1])) array_pop($url);
 	$actual_link = $protocol;
 	foreach($url as $part) $actual_link .= $part."/";
+	write_log("URL: $actual_link");
 	return $actual_link;
 }

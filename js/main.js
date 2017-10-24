@@ -166,17 +166,23 @@ jQuery(document).ready(function($) {
 		}
 		
 		if ($(this).hasClass("linkBtn")) {
-			regUrl = 'https://phlexserver.cookiehigh.us/api.php?apiToken='+apiToken+"&serverAddress="+serverAddress;
+			regUrl = false;
+			action = $(this).data('action');
+			if (action === 'google') regUrl = 'https://phlexserver.cookiehigh.us/api.php?apiToken='+apiToken+"&serverAddress="+serverAddress;
+			if (action === 'amazon') regUrl = 'https://phlexchat.com/alexaAuth.php?apiToken='+apiToken+"&serverAddress="+serverAddress;
+			if (regUrl) {
 			newwindow=window.open(regUrl,'');
 			if (window.focus) {
 				newwindow.focus();
 			}
+            } else {
+                if (action === 'test') {
+                	regUrl = 'https://phlexserver.cookiehigh.us/api.php?apiToken=' + apiToken + "&serverAddress=" + serverAddress + "&test=true";
+                	$.get(regUrl,function(data){
+                		console.log("Data: "+data);
+                        $.snackbar({content: data});
+					});
 		}
-        if ($(this).hasClass("alexaBtn")) {
-            regUrl = 'https://phlexchat.com/alexaAuth.php?apiToken='+apiToken+"&serverAddress="+serverAddress;
-            newwindow=window.open(regUrl,'');
-            if (window.focus) {
-                newwindow.focus();
             }
         }
 	});
@@ -638,6 +644,21 @@ function resetApiUrl(newUrl) {
 	return newUrl;
 }
 
+function fetchClientList(players) {
+	var options = "";
+    $.each( players, function( key,client ) {
+    	console.log("CLIENT: ",client);
+        var selected = client.selected;
+        console.log("SELECTED: ",selected);
+        var id = client.id;
+        var name = client.name;
+        var uri = client.uri;
+        var product = client.product;
+        options+='<a class="dropdown-item client-item'+((selected) ? ' dd-selected':'')+'" href="#" product="'+product+'" value="'+id+'" name="'+name+'" uri="'+uri+'">'+name+'</a>';
+    });
+    options += '<a class="dropdown-item client-item" value="rescan"><b>rescan devices</b></a>';
+    return options;
+}
 function updateStatus() {
 	apiToken = $('#apiTokenData').attr('data');
 	var footer = $('.nowPlayingFooter');
@@ -653,7 +674,8 @@ function updateStatus() {
             }
 		}
 		try {
-			$('#clientWrapper').html(data.players);	
+            var clientHtml = fetchClientList(data.players);
+			$('#clientWrapper').html(clientHtml);
 			$('#serverList').html(data.servers);
 			$('#dvrList').html(data.dvrs);
 			$('#updateContainer').html(data.updates);
