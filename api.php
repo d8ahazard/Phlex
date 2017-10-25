@@ -1052,7 +1052,7 @@ function parseApiCommand($request) {
 	if ($greeting) {
 		$greetings = $_SESSION['lang']['speechGreetingArray'];
 		$speech = $greetings[array_rand($greetings)];
-		$speech .= buildSpeech($speech,$_SESSION['lang']['speechGreetingHelpPrompt']);
+		$speech = buildSpeech($speech,$_SESSION['lang']['speechGreetingHelpPrompt']);
 		$contextName = 'PlayMedia';
 		$button = [['title'=>$_SESSION['lang']['cardReadmeButton'],'openUrlAction'=>['url'=>'https://github.com/d8ahazard/Phlex/blob/master/readme.md']]];
 		$card = [['title'=>$_SESSION['lang']['cardGreetingText'],'formattedText'=>'','image'=>['url'=>'https://phlexchat.com/img/avatar.png'],'buttons'=>$button]];
@@ -1632,15 +1632,17 @@ function parseApiCommand($request) {
 	if ($action == 'help') {
 		$errors = $_SESSION['lang']['errorHelpSuggestionsArray'];
 		$speech = $errors[array_rand($errors)];
+		write_log("Speech: $speech");
 		$button = [['title'=>$_SESSION['lang']['btnReadmePrompt'],'openUrlAction'=>['url'=>'https://github.com/d8ahazard/Phlex/blob/master/readme.md']]];
 		$card = [['title'=>$_SESSION['lang']['cardReadmeTitle'],'formattedText'=>'','image'=>['url'=>'https://phlexchat.com/img/avatar.png'],'buttons'=>$button]];
 		$contextName = 'yes';
-		$suggestions = $_SESSION['lang']['errorHelpSuggestionsArray'];
+		$suggestions = $_SESSION['lang']['errorHelpCommandsArray'];
 		if ($_SESSION['plexDvrUri']) array_push($suggestions,$_SESSION['lang']['suggestionDvr']);
 		if (($_SESSION['couchEnabled']) || ($_SESSION['radarrEnabled'])) array_push($suggestions,$_SESSION['lang']['suggestionCouch']);
 		if (($_SESSION['sickEnabled']) || ($_SESSION['sonarrEnabled'])) array_push($suggestions,$_SESSION['lang']['suggestionSick']);
 		array_push($suggestions,$_SESSION['lang']['suggestionCancel']);
 		foreach ($suggestions as $suggestion) $speech = buildSpeech($speech,$suggestion);
+		write_log("Speech: $speech");
 		if (! $GLOBALS['screen']) $card = $suggestions = false;
 		returnSpeech($speech,$contextName,$card,true,$suggestions);
 		die();

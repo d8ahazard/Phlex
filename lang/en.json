@@ -8,6 +8,12 @@
 		"Here are some possible commands.",
 		"Sure, why don't you try one of these?"
 	],
+	"errorHelpCommandsArray": [
+		"What's on deck?",
+		"What new movies do I have?",
+		"Pause playback.",
+		"Play Batman Begins."
+	],
 	"javaStrings": [
 		"How can I help?",
 		"What can I do for you?",
@@ -257,6 +263,7 @@
 	"uiSettingRescanInterval": "Device Rescan Interval (Minutes):",
 	"uiSettingSeparateHookUrl": "Separate URLs",
 	"uiSettingTestButton": "TEST",
+	"uiSettingTestServer": "Test Connectivity",
 	"uiSettingThemeColor": "Use Dark Theme",
 	"uiSettingUpdates": "Updates",
 	"uiSettingUseCast": "Use Cast Devices"

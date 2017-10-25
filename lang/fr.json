@@ -8,6 +8,12 @@
         "Voici quelques commandes possibles.",
         "Voici quelques suggestions que vous pouvez essayer."
     ],
+    "errorHelpCommandsArray": [
+        "Qu'est-ce qu'il y a sur le pont?",
+        "Quels nouveaux films ai-je?",
+        "Suspendre la lecture",
+        "Jouer Batman commence."
+    ],
     "javaStrings": [
         "Comment puis-je aider?",
         "Que puis-je faire pour vous?",

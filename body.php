@@ -80,7 +80,7 @@ function makeBody($newToken = false) {
     $bodyText = ($_SESSION['darkTheme'] ? '<link href="./css/dark.css" rel="stylesheet">' : '') . PHP_EOL.
 	'			<div id="body" class="row justify-content-center">
 				<div class="wrapper col-xs-12 col-lg-8 col-xl-5" id="mainwrap">
-			        <div class="queryWrap col-xs-12">
+			        <div class="queryWrap col-xs-12" id="queryCard">
 			        <div class="query">
 			            <div class="queryBg">
 			                <div class="btn-toolbar row">

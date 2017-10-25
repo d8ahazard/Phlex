@@ -8,6 +8,12 @@
         "Im Folgenden sind einige Vorschl\u00e4ge aufgef\u00fchrt, die Sie ausprobieren k\u00f6nnen.",
         "Sicher, warum versuchst du nicht eins davon?"
     ],
+    "errorHelpCommandsArray": [
+        "Was ist an Deck?",
+        "Welche neuen Filme habe ich?",
+        "Wiedergabe pausieren.",
+        "Spielen Batman beginnt."
+    ],
     "javaStrings": [
         "Wie kann ich helfen?",
         "Was kann ich für Sie tun?",
