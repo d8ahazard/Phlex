@@ -505,14 +505,15 @@ function parseFetchCommand($command,$type=false) {
 	$episode = $remove = $season = $tmdbResult = $useNext = false;
 	//Sanitize our string and try to rule out synonyms for commands
 	$result['initialCommand'] = $command;
+	$command = translateControl(strtolower($command),$_SESSION['lang']['fetchSynonymsArray']);
 	$commandArray = explode(' ',strtolower($command));
 	if (arrayContains('movie',$commandArray)) {
 		$commandArray = array_diff($commandArray,array('movie'));
 		$command = implode(" ",$commandArray);
 		$type = 'movie';
 	}
-	if (arrayContains('show',$commandArray) || arrayContains('series',$commandArray)) {
-		$commandArray = array_diff($commandArray,array('show','series'));
+	if (arrayContains('show',$commandArray)) {
+		$commandArray = array_diff($commandArray,array('show'));
 		$command = implode(" ",$commandArray);
 		$type = 'show';
 	}
@@ -542,7 +543,7 @@ function parseFetchCommand($command,$type=false) {
 			if ($word == 'episode') {
 				$useNext = true;
 			}
-			if (($word == 'latest') || ($word == 'new') || ($word == 'newest')) {
+			if (($word == 'latest')) {
 				$remove = $word;
 				$episode = -1;
 				break;
@@ -608,35 +609,31 @@ function parseFetchCommand($command,$type=false) {
 	return $result;
 }
 
+function translateControl($string,$searchArray) {
+	foreach($searchArray as $replace =>$search) {
+		$string = str_replace($search,$replace,$string);
+	}
+	return $string;
+}
+
 
 function parseControlCommand($command) {
 	//Sanitize our string and try to rule out synonyms for commands
+	$synonyms = $_SESSION['lang']['commandSynonymsArray'];
 	$queryOut['initialCommand'] = $command;
-	$command = str_replace("resume","play",$command);
-	$command = str_replace("jump","skip",$command);
-	$command = str_replace("go","skip",$command);
-	$command = str_replace("seek","step",$command);
-	$command = str_replace("ahead","forward",$command);
-	$command = str_replace("backward","back",$command);
-	$command = str_replace("rewind","seek back",$command);
-	$command = str_replace("fast", "seek",$command);
-	$command = str_replace("skip forward","skipNext",$command);
-	$command = str_replace("fast forward","stepForward",$command);
-	$command = str_replace("seek forward","stepForward",$command);
-	$command = str_replace("seek back","stepBack",$command);
-	$command = str_replace("skip back","skipPrevious",$command);
+	$command = translateControl(strtolower($command),$synonyms);
 	$adjust = $cmd = false;
 	$queryOut['parsedCommand'] = "";
 	$commandArray = array("play","pause","stop","skipNext","stepForward","stepBack","skipPrevious","volume");
 	if (strpos($command,"volume")) {
 		$int = filter_var($command, FILTER_SANITIZE_NUMBER_INT);
 		if (! $int) {
-			if (preg_match("/UP/",$command)) {
+			if (preg_match("/up/",$command)) {
 				$adjust = true;
 				$int = 10;
 			}
 
-			if (preg_match("/DOWN/",$command)) {
+			if (preg_match("/down/",$command)) {
 				$adjust = true;
 				$int = -10;
 			}
@@ -792,16 +789,16 @@ function parsePlayCommand($command,$year=false,$artist=false,$type=false) {
 	$commandArray = explode(" "	,$command);
 	// An array of words which don't do us any good
 	// Adding the apostrophe and 's' are necessary for the movie "Daddy's Home", which Google Inexplicably returns as "Daddy ' s Home"
-	$stripIn = array("of","the","an","a","at","th","nd","in","it","from","'","s","and");
+	$stripIn = $_SESSION['lang']['parseStripArray'];
 
 	// An array of words that indicate what kind of media we'd like
-	$mediaIn = array("season","series","show","episode","movie","film","beginning","rest","end","minutes","minute","hours","hour","seconds","second");
+	$mediaIn = $_SESSION['lang']['parseMediaArray'];
 
 	// An array of words that would modify or filter our search
-	$filterIn = array("genre","year","actor","director","directed","starring","featuring","with","made","created","released","filmed");
+	$filterIn = $_SESSION['lang']['parseFilterArray'];
 
 	// An array of words that would indicate which specific episode or media we want
-	$numberWordIn = array("first","pilot","second","third","last","final","latest","random");
+	$numberWordIn = $_SESSION['lang']['parseNumberArray'];
 
 	foreach($_SESSION['list_plexdevices']['clients'] as $client) {
 		if ($client['name'] != "") {

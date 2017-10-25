@@ -4,9 +4,10 @@ require_once dirname(__FILE__) . '/cast/Chromecast.php';
 require_once dirname(__FILE__) . '/util.php';
 require_once dirname(__FILE__) . '/api.php';
 
+
 function makeBody($newToken = false) {
 	write_log("Function fired.");
-    if (!defined('LOGGED_IN')) {
+	if (!defined('LOGGED_IN')) {
         write_log("Dying because not logged in?","ERROR");
         die();
     }

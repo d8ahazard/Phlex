@@ -14,11 +14,41 @@
         "Wiedergabe pausieren.",
         "Spielen Batman beginnt."
     ],
+	"fetchSynonymsArray": {
+		"season":["jahreszeit","staffel"],
+		"episode":["folge"],
+		"movie":["film"],
+		"show":["zeigen", "serie"],
+		"latest":["neueste", "neue", "neueste", "neueste", "neueste", "neueste"]
+	},
     "javaStrings": [
         "Wie kann ich helfen?",
         "Was kann ich für Sie tun?",
         "Du sagtest:",
         "Meine Antwort:"
+    ],
+    "parseStripArray":[
+        "von",
+        "das",
+        "ein",
+        "ein",
+        "beim",
+        "th",
+        "nd",
+        "im",
+        "von",
+        "'",
+        "s",
+        "und"
+    ],
+    "parseMediaArray":[
+        "zeit", "minute", "minute", "stunden", "stunden", "zeit", "zeit","sekunden","sekunde"
+    ],
+    "parseFilterArray":[
+        "genre","jahr","darsteller","direktor","wurde von","mit","mit","mit","hergestellt von","erstellt von","veröffentlicht","gefilmt"
+    ],
+    "parseNumberArray":[
+        "erste", "pilot", "zweite", "dritte", "letzte", "letzte"
     ],
     "parsedDvrFailStart": "F\u00fcge die Medien hinzu mit dem Namen",
     "parsedDvrSuccessNamed": "genannt",
@@ -187,6 +217,22 @@
     "speechServer": "Server",
     "speechShuffleResponse": "Okay, zuf\u00e4llige Wiedergabe aller Episoden von",
     "speechStatusNothingPlaying": "Es sieht nicht so aus, als ob gerade etwas abgespielt wird.",
+	"commandSynonymsArray": {
+		"play":["resume"],
+		"skip":["springen","gehen"],
+		"step":["suchen"],
+		"forward":["voraus"],
+		"back":["rückwärts"],
+		"seekBack":["rückspulen"],
+		"seek":["schnell"],
+		"skipNext":["überspringen vorwärts"],
+		"skipPrevious":["zurückspringen"],
+		"stepForward":["schnell vorwärts", "vorwärts suchen"],
+		"stepBack":["suche zurück"],
+		"volume up":["lauter"],
+		"volume down":["leiser"],
+        "volume":["volumen","lautstärke"]
+	},
     "speechWordAnd": "und",
     "speechWordOkay": "okay",
     "speechWordTo": "zu",

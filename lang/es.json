@@ -3,6 +3,21 @@
     "cardGreetingText": "Bienvenido a Flex TV!",
     "cardReadmeButton": "Ver leéme",
     "cardReadmeTitle": "¡Bienvenido!",
+    "commandSynonymsArray": {
+        "play":["reanudar","jugar"],
+        "skip":["jump","go"],
+        "step":["seek"],
+        "forward":["ahead"],
+        "back":["backward"],
+        "seekBack":["rewind"],
+        "seek":["fast"],
+        "skipNext":["saltar hacia adelante"],
+        "skipPrevious":["saltar hacia atrás"],
+        "stepForward":["avance rápido", "buscar hacia adelante"],
+        "stepBack":["buscar de nuevo"],
+        "volume up":["sube el volumen","más fuerte"],
+        "volume down":["bajar volumen","más tranquilo"]
+    },
     "errorHelpSuggestionsArray": [
         "A continuación hay algunas sugerencias que puedes probar.",
         "Aquí hay algunos comandos posibles.",
@@ -11,14 +26,44 @@
     "errorHelpCommandsArray": [
         "¿Qué hay en cubierta?",
         "¿Qué películas nuevas tengo?",
-        "Pausa la reproducción".
-        "Play Batman Begins".
+        "Pausa la reproducción",
+        "Play Batman Begins"
     ],
+    "fetchSynonymsArray": {
+        "season":["temporada"],
+        "episode":["episodio"],
+        "movie":["película","flime","cinta","cámara cinematográfica"],
+        "show":["programa","series"],
+        "latest":["último","más reciente","novísimo","el más nuevo"]
+    },
     "javaStrings": [
         "¿Cómo puedo ayudar?",
         "¿Qué puedo hacer por ti?",
         "Tu dijiste:",
         "Mi respuesta:"
+    ],
+    "parseStripArray":[
+        "de",
+        "el",
+        "un",
+        "un",
+        "a",
+        "th",
+        "nd",
+        "en",
+        "de",
+        "'",
+        "s",
+        "y"
+    ],
+    "parseMediaArray":[
+        "temporada", "serie", "mostrar", "episodio", "película", "película", "principio", "descanso", "fin", "minutos", "minuto", "horas", "hora","segundos","segundo"
+    ],
+    "parseFilterArray":[
+        "género", "año", "actor", "director", "dirigido", "protagonizado", "presentando", "con", "hecho", "creado", "liberado", "filmado"
+    ],
+    "parseNumberArray":[
+        "primero", "piloto", "segundo", "tercero", "último", "final", "último", "aleatorio"
     ],
     "parsedDvrFailStart": "Agregue los medios nombrados",
     "parsedDvrSuccessNamed": "llamado",
