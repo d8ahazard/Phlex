@@ -14,11 +14,41 @@
         "Suspendre la lecture",
         "Jouer Batman commence."
     ],
+    "fetchSynonymsArray": {
+        "season":["saison"],
+        "episode":["épisode"],
+        "movie":["film"],
+        "show":["show", "série"],
+        "latest":["dernier", "nouveau", "nouveau", "le plus récent", "le dernier", "le plus récent"]
+    },
     "javaStrings": [
         "Comment puis-je aider?",
         "Que puis-je faire pour vous?",
         "Tu as dit:",
         "Ma réponse:"
+    ],
+    "parseStripArray":[
+        "de",
+        "la",
+        "un",
+        "une",
+        "à",
+        "th",
+        "nd",
+        "dans",
+        "de",
+        "'",
+        "s",
+        "et"
+    ],
+    "parseMediaArray":[
+        "saison", "série", "spectacle", "épisode", "film", "film", "début", "repos", "fin", "minutes", "minute", "heures", "heure","secondes","seconde"
+    ],
+    "parseFilterArray":[
+        "genre", "année", "acteur", "réalisateur", "réalisé", "mettant en vedette", "mettant en vedette", "avec", "fait", "créé", "libéré", "filmé"
+    ],
+    "parseNumberArray":[
+        "premier", "pilote", "deuxième", "troisième", "dernier", "final", "dernier", "aléatoire"
     ],
     "parsedDvrFailStart": "Ajouter le média nommé",
     "parsedDvrSuccessNamed": "nommé",

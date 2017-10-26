@@ -1865,7 +1865,6 @@ function scanDevices($force=false) {
 				}
 			}
 
-			write_log("Devices NOW: ".json_encode($devices));
 			// If local devices are found, merge them too.
 			if (is_array($localContainer) && count($localContainer)) {
 				$localDevices = $localContainer;
@@ -1874,13 +1873,11 @@ function scanDevices($force=false) {
 					$localDevice = json_decode(json_encode($localDevice),true)['@attributes'];
 					foreach ($devices as &$device) {
 						if ($localDevice['machineIdentifier'] !== $device['clientIdentifier']) {
-							write_log("Pushing device: ".$device['name']);
 							array_push($devices2,$device);
 						} else {
 							write_log("Removing global device ".$device['name']);
 						}
 					}
-					write_log("Pushing local device: " . $localDevice['name']);
 					$device2 = [
 						'name'=>$localDevice['name'],
 						'clientIdentifier'=>$localDevice['machineIdentifier'],
@@ -1901,11 +1898,9 @@ function scanDevices($force=false) {
 				}
 				if (count($devices2)) $devices = $devices2;
 			}
-			write_log("Devices after merging locals: ".json_encode($devices));
 			$nameArray = [];
 			// Clean up and sort merged device list
 			foreach ($devices as $device) {
-				write_log("Found device: ".json_encode($device));
 				$device = [
 					'name' => $device['name'],
 					'id' => $device['clientIdentifier'],
