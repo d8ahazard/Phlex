@@ -13,7 +13,7 @@ require_once dirname(__FILE__) . '/vendor/autoload.php';
 		foreach ($config as $section => $user) {
 		    if ($section != "general") {
 		    	if (($userName == urlencode($user['plexUserName'])) || ($userName == urlencode($user['email']))) {
-		    		write_log("Found matching token for user ".$user['plexUserName']);
+		    		write_log("Found matching token for ".$user['plexUserName'].".");
                     $apiToken = $user['apiToken'] ?? false;
                     break;
                 }
@@ -237,7 +237,6 @@ function flattenXML($xml){
 		$file = (file_exists($fileOut)) ? $fileOut : dirname(__FILE__)."/manifest_template.json";
 		$json = json_decode(file_get_contents($file),true);
 		$url = 'https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
-		write_log("JSON: ".json_encode($json));
 		if ($json['start_url'] !== $url) {
 			$json['start_url'] = $url;
 			file_put_contents($fileOut, json_encode($json,JSON_PRETTY_PRINT));
@@ -707,17 +706,23 @@ function setDefaults() {
 	$errorLogPath = file_build_path(dirname(__FILE__),'logs',"Phlex_error.log");
     ini_set("error_log", $errorLogPath);
     date_default_timezone_set((date_default_timezone_get() ? date_default_timezone_get() : "America/Chicago"));
-    checkFiles();
 }
 
 function checkFiles() {
 	$messages = [];
     $logDir = file_build_path(dirname(__FILE__),"logs");
     if(!is_dir($logDir) && !mkdir($logDir, 0777, true)) {
-        die("Cannot create logs folder");
+        //die("Cannot create logs folder");
+	    $error = [
+	    	'title'=>"Unable to create /logs directory",
+		    'message'=>"Unable to create log directory.  Please check permissions on the Phlex folder and try again.",
+		    'url'=>false
+	    ];
+	    array_push($messages,$error);
     }
     $logPath = file_build_path($logDir,"Phlex.log");
-    $errorLogPath = file_build_path($logDir,"Phlex_error.log");
+	$errorLogPath = file_build_path($logDir,"Phlex_error.log");
+	$extensions = ['sockets','curl','xml'];
 	$oldLogPath = file_build_path($logDir,"PhlexUpdate.log");
 	$updateLogPath = file_build_path($logDir,"Phlex_update.log");
 	if (file_exists($oldLogPath)) unlink($oldLogPath);
@@ -744,8 +749,9 @@ function checkFiles() {
             array_push($messages,$error);
         }
     }
-    $extensions = ['sockets','curl','xml'];
-    foreach ($extensions as $extension) {
+
+
+	foreach ($extensions as $extension) {
         if (! extension_loaded($extension)) {
             $message = "The ". $extension . " PHP extension, which is required for Phlex to work correctly, is not loaded." .
                 " Please enable it in php.ini, restart your webserver, and then reload this page to continue.";
@@ -757,9 +763,11 @@ function checkFiles() {
     }
     try {new Config_Lite('config.ini.php');} catch (Config_Lite_Exception_Runtime $e) {
         $message = "An exception occurred trying to load config.ini.php.  Please check that the directory and file are writeable by your webserver application and try again.";
-        $error = ['title'=>'Config error.','message'=>$message];
+        $error = ['title'=>'Config error.','message'=>$message,'url'=>false];
 	    array_push($messages,$error);
     };
+    $testMessage = ['title'=>'Test message.','message'=>"This is a test of the emergency alert system. If this were a real emergency, you'd be screwed.",'url'=>'https://www.google.com'];
+    //array_push($messages,$testMessage);
     return $messages;
 }
 
@@ -839,7 +847,6 @@ function checkSSL() {
 
 function checkSetLanguage($locale = false) {
     $locale = $locale ? $locale : getDefaultLocale();
-    write_log("Locale: ".$locale);
 
     listLocales();
 	if (file_exists(dirname(__FILE__)."/lang/".$locale.".json")) {
@@ -884,7 +891,6 @@ function getDefaultLocale() {
 	// If a session language is set
 	if (isset($_SESSION['appLanguage'])) {
 		$locale = $_SESSION['appLanguage'];
-		write_log("Detected session language: $locale","INFO");
 	} else {
 		if (file_exists(dirname(__FILE__) . "/config.ini.php") && isset($_SESSION['plexUserName'])) {
 			$config = new Config_Lite('config.ini.php');
@@ -1619,6 +1625,5 @@ function fetchUrl($https=false) {
 	if (preg_match("/.php/",$url[$len-1])) array_pop($url);
 	$actual_link = $protocol;
 	foreach($url as $part) $actual_link .= $part."/";
-	write_log("URL: $actual_link");
 	return $actual_link;
 }

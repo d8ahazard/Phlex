@@ -1,5 +1,5 @@
-var bg, bodyWrap, loginBox, loginForm, mainwrap;
-jQuery(document).ready(function($) {
+var bg, bodyWrap, loginBox, loginForm, mainwrap, messageArray;
+$(function($) {
     bg = $('.bg');
     bodyWrap = $('#bodyWrap');
     loginBox = $('.login-box');
@@ -24,4 +24,22 @@ jQuery(document).ready(function($) {
             }
         });
     });
+
+    var messages = $('#messages').data('array');
+
+    if (messages !== "" && messages !== undefined) {
+        messages = messages.replace(/\+/g, '%20');
+        messageArray = JSON.parse(decodeURIComponent(messages));
+        console.log("ARRAY: ",messageArray);
+        loopMessages();
+    } else {
+        messageArray = [];
+    }
+
+    $('#alertModal').on('hidden.bs.modal', function () {
+        loopMessages();
+    });
+
+
 });
+

@@ -1,12 +1,12 @@
 var action = "play";
-var appName, autoUpdate, bgs, bgWrap, token, newToken, deviceID, resultDuration, logLevel, lastLog, itemJSON, apiToken, ombi, couch, sonarr, radarr, sick, publicIP, dvr, weatherClass, city, state, updateAvailable, weatherHtml;
+var appName, autoUpdate, bgs, bgWrap, token, newToken, deviceID, resultDuration, logLevel, lastLog, itemJSON, apiToken, messageArray, ombi, couch, sonarr, radarr, sick, publicIP, dvr, weatherClass, city, state, updateAvailable, weatherHtml;
 var lastDevices = "foo";
 var condition = null;
 var devices = lastUpdate = [];
 var javaStrings;
 
 
-jQuery(document).ready(function($) {
+$(function() {
     $('.snackbar').hide();
     javaStrings = decodeURIComponent($('#strings').data('array'));
     javaStrings = javaStrings.replace(/\+/g,' ');
@@ -74,6 +74,19 @@ jQuery(document).ready(function($) {
 		
 	$('.formpop').popover();
 
+	var messages = $('#messages').data('array');
+	if (messages !== "" && messages !== undefined) {
+	    messages = messages.replace(/\+/g, '%20');
+        messageArray = JSON.parse(decodeURIComponent(messages));
+        loopMessages();
+	} else {
+    	messageArray = [];
+	}
+
+    $('#alertModal').on('hidden.bs.modal', function () {
+        loopMessages();
+    });
+
 	if (newToken) {
         var serverAddress = $('#publicAddress').val();
         var regUrl = 'https://phlexserver.cookiehigh.us/api.php?apiToken='+apiToken+"&serverAddress="+serverAddress;
@@ -81,7 +94,7 @@ jQuery(document).ready(function($) {
 	}
 
 	if (updateAvailable >= 1) {
-		showMessage("Updates available!","You have " + updateAvailable + " update(s) available.");
+		showMessage("Updates available!","You have " + updateAvailable + " update(s) available.",false);
 	}
     progressSlider.noUiSlider.on('end', function(values, handle){
 		var value = values[handle];
@@ -558,7 +571,6 @@ $(window).resize(function() {
 
 function scaleElements() {
     var winWidth = $(window).width();
-    console.log("Scaling: "+ winWidth);
     var commandTest = $('#actionLabel');
     if (winWidth <=340) commandTest.html(javaStrings[1]);
     if ((winWidth >=341) && (winWidth <=400)) commandTest.html(javaStrings[1]);
@@ -647,9 +659,7 @@ function resetApiUrl(newUrl) {
 function fetchClientList(players) {
 	var options = "";
     $.each( players, function( key,client ) {
-    	console.log("CLIENT: ",client);
-        var selected = client.selected;
-        console.log("SELECTED: ",selected);
+    	var selected = client.selected;
         var id = client.id;
         var name = client.name;
         var uri = client.uri;
@@ -687,11 +697,8 @@ function updateStatus() {
 			//devices = data.devs;
 			var devHtml = "";
 			var devCount = devices.length;
-			console.log("DevLengt: "+devCount);
 			if (JSON.stringify(devices) !== JSON.stringify(lastDevices)) {
-				console.log("Firing something here...");
-                $.each(data.devs, function (id, device) {
-                    console.log("DEVICE: ", device, device.Name, device.IP, device.Port, id);
+			    $.each(data.devs, function (id, device) {
                     var devString = createStaticDevice(device.Name, device.IP, device.Port, id);
                     devHtml += devString[0];
                 });
@@ -853,6 +860,8 @@ function updateCommands(data,prepend) {
 	}
 }
 
+
+
 function formatLog(logJSON) {
 	if (lastLog !== logJSON) {
         var htmlOut = '';
@@ -962,9 +971,7 @@ function buildCards(value,i) {
     if ($(window).width() < 700) speech = speech.substring(0,100);
 
     if (value.hasOwnProperty('card')) {
-    	console.log("CARD: ",value.card);
-        if ((value.card.length > 0) && (value.card instanceof Array)) {
-            console.log("We got a card here...");
+    	if ((value.card.length > 0) && (value.card instanceof Array)) {
             var cardArray = value.card;
             var card = cardArray[0];
             //Get our general variables about this media object
@@ -976,8 +983,10 @@ function buildCards(value,i) {
             if (cardArray.length >= 2) {
                 card = cardArray[Math.floor(Math.random() * cardArray.length - 1)];
             }
-            if (card.hasOwnProperty('image')) {
-                if (card.image.url !== null) cardBg = card.image.url;
+            if (card !== undefined) {
+                if (card.hasOwnProperty('image')) {
+                    if (card.image.url !== null) cardBg = card.image.url;
+                }
             }
         }
     }
@@ -1158,8 +1167,7 @@ function imgError(image) {
 }
 
 function createStaticDevice(name,ip,port,id) {
-	console.log("Devices length " + devices.length);
-    if (!id) id = devices.length + 1;
+	if (!id) id = devices.length + 1;
 	if (!name) name = "New Device " + id;
 	if (!ip) ip = "0.0.0.0";
 	if (!port) port = "8009";
@@ -1173,7 +1181,6 @@ function createStaticDevice(name,ip,port,id) {
 	};
 
 
-	console.log("DEVICE2: ",device);
 	devices.push({id:device});
 	device['id'] = id;
 	var dataString = "<div class='card'>" +

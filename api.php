@@ -20,6 +20,7 @@ if (isset($_GET['revision'])) {
 	die;
 }
 
+write_log('Session Started',"DEBUG");
 checkSignIn();
 $user = validateCredentials();
 if ($user['valid']) {
@@ -61,7 +62,6 @@ function initialize() {
 		}
 		die();
 	}
-	write_log('Session Started',"DEBUG");
 	$_SESSION['lang'] = checkSetLanguage();
 	if (!(isset($_SESSION['counter']))) {
 		$_SESSION['counter'] = 0;
@@ -206,24 +206,6 @@ function initialize() {
 		die();
 	}
 
-
-	if (isset($_GET['TEST'])) {
-		if (isset($_GET['apiToken'])) {
-			foreach ($GLOBALS['config'] as $section => $setting) {
-				if ($section != "general") {
-					$testToken = $setting['apiToken'];
-					if ($testToken == $_GET['apiToken']) {
-						echo 'success';
-						die();
-					}
-				}
-			}
-		}
-		write_log("Unrecognized token used for testing.","ERROR");
-		echo 'token_not_recognized';
-		die();
-	}
-
 	// Fetches a list of clients
 	if (isset($_GET['clientList'])) {
 		$devices = fetchClientList(scanDevices());
@@ -235,6 +217,13 @@ function initialize() {
 		$devices = fetchServerList(scanDevices());
 		echo $devices;
 		die();
+	}
+
+	if (isset($_GET['msg'])) {
+		if ($_GET['msg'] === 'FAIL') {
+			write_log("Received response failure from server, firing fallback command.");
+			fireFallback();
+		}
 	}
 
 	if (isset($_GET['fetchList'])) {
@@ -480,7 +469,8 @@ function sessionData() {
 		"Clean Logs"=>$_SESSION['cleanLogs'],
 		"Cast Enabled"=>$_SESSION['useCast'],
 		"Git Enabled"=>checkGit(),
-		"Auto-Update Enabled"=>$_SESSION['autoUpdate']
+		"Auto-Update Enabled"=>$_SESSION['autoUpdate'],
+		"Language"=>$_SESSION['appLanguage']
 		];
 	write_log("Session Variables: ".json_encode($data));
 }
@@ -617,6 +607,14 @@ function translateControl($string,$searchArray) {
 	return $string;
 }
 
+function fireFallback() {
+	if (isset($_SESSION['fallback'])) {
+		$fb = $_SESSION['fallback'];
+		if (isset($fb['media'])) playMedia($fb['media']);
+		if (isset($fb['device'])) changeDevice($fb['device']);
+		unset($_SESSION['fallback']);
+	}
+}
 
 function parseControlCommand($command) {
 	//Sanitize our string and try to rule out synonyms for commands
@@ -1146,46 +1144,7 @@ function parseApiCommand($request) {
 	}
 
 	if (($action == 'changeDevice') && ($command)) {
-		$list = $_SESSION['deviceList'];
-		$type = $_SESSION['type'];
-		if (isset($list) && isset($type)) {
-			$typeString = (($type == 'player') ? 'client' : 'server');
-			$score = 0;
-			foreach ($list as $device) {
-				$value = similarity(cleanCommandString($device['name']), cleanCommandString($command));
-				if (($value >= .7) && ($value >= $score)) {
-					write_log("Found a matching device: " . $device['name'],"INFO");
-					$result = $device;
-					$score = $value;
-				}
-			}
-			if ($result) {
-				$speech = buildSpeech($_SESSION['lang']['speechChangeDeviceSuccessStart'] , $typeString , $_SESSION['lang']['speechWordTo'] , $command . ".");
-				$contextName = 'waitforplayer';
-				returnSpeech($speech, $contextName);
-				$name = (($result['product'] == 'Plex Media Server') ? 'plexServerId' : 'plexClientId');
-				$GLOBALS['config']->set('user-_-' . $_SESSION['plexUserName'], $name, $result['id']);
-				$GLOBALS['config']->set('user-_-' . $_SESSION['plexUserName'], $name . 'Uri', $result['uri']);
-				$GLOBALS['config']->set('user-_-' . $_SESSION['plexUserName'], $name . 'Name', $result['name']);
-				$GLOBALS['config']->set('user-_-' . $_SESSION['plexUserName'], $name . 'Product', $result['product']);
-				$GLOBALS['config']->set('user-_-' . $_SESSION['plexUserName'], $name . 'Token', $result['token']);
-				saveConfig($GLOBALS['config']);
-				setSessionVariables();
-				$queryOut['playResult']['status'] = 'SUCCESS: ' . $typeString . ' changed to ' . $command . '.';
-			} else {
-				$speech = buildSpeech($_SESSION['lang']['speechChangeDeviceFailureStart'], $command, $_SESSION['lang']['speechChangeDeviceFailureEnd']);
-				$contextName = 'waitforplayer';
-				returnSpeech($speech, $contextName);
-				$queryOut['playResult']['status'] = 'ERROR: No device to select.';
-			}
-			$queryOut['parsedCommand'] = "Change ".$typeString." to " . $command . ".";
-			$queryOut['speech'] = $speech;
-			$queryOut['mediaStatus'] = "Not a media command.";
-			logCommand(json_encode($queryOut));
-
-			unset($_SESSION['type']);
-			die();
-		} else write_log("No list or type to pick from.","ERROR");
+		changeDevice($command);
 	}
 
 	if ($action == 'status') {
@@ -1545,6 +1504,7 @@ function parseApiCommand($request) {
 					array_push($cards,$card);
 				}
 				$queryOut['card'] = $cards;
+				$_SESSION['fallback']['media'] = $mediaResult[0];
 				$questions = $_SESSION['lang']['speechMultiResultArray'];
 				$speech = buildSpeech($questions[array_rand($questions)], $speechString);
 				$contextName = "promptfortitle";
@@ -1606,6 +1566,7 @@ function parseApiCommand($request) {
 					$speechString .= " ".$device['name'].",";
 				}
 			}
+			$_SESSION['fallback']['device'] = [$list[0]['name']];
 			$speech = buildSpeech($_SESSION['lang']['speechChange'],$deviceString.$_SESSION['lang']['speechChangeDevicePrompt'],$speechString);
 			$contextName = "waitforplayer";
 			$waitForResponse = true;
@@ -1773,6 +1734,50 @@ function parseApiCommand($request) {
 	die();
 
 
+}
+
+function changeDevice($command) {
+	$list = $_SESSION['deviceList'];
+	$type = $_SESSION['type'];
+	$result = false;
+	if (isset($list) && isset($type)) {
+		$typeString = (($type == 'player') ? 'client' : 'server');
+		$score = 0;
+		foreach ($list as $device) {
+			$value = similarity(cleanCommandString($device['name']), cleanCommandString($command));
+			if (($value >= .7) && ($value >= $score)) {
+				write_log("Found a matching device: " . $device['name'],"INFO");
+				$result = $device;
+				$score = $value;
+			}
+		}
+		if ($result) {
+			$speech = buildSpeech($_SESSION['lang']['speechChangeDeviceSuccessStart'] , $typeString , $_SESSION['lang']['speechWordTo'] , $command . ".");
+			$contextName = 'waitforplayer';
+			returnSpeech($speech, $contextName);
+			$name = (($result['product'] == 'Plex Media Server') ? 'plexServerId' : 'plexClientId');
+			$GLOBALS['config']->set('user-_-' . $_SESSION['plexUserName'], $name, $result['id']);
+			$GLOBALS['config']->set('user-_-' . $_SESSION['plexUserName'], $name . 'Uri', $result['uri']);
+			$GLOBALS['config']->set('user-_-' . $_SESSION['plexUserName'], $name . 'Name', $result['name']);
+			$GLOBALS['config']->set('user-_-' . $_SESSION['plexUserName'], $name . 'Product', $result['product']);
+			$GLOBALS['config']->set('user-_-' . $_SESSION['plexUserName'], $name . 'Token', $result['token']);
+			saveConfig($GLOBALS['config']);
+			setSessionVariables();
+			$queryOut['playResult']['status'] = 'SUCCESS: ' . $typeString . ' changed to ' . $command . '.';
+		} else {
+			$speech = buildSpeech($_SESSION['lang']['speechChangeDeviceFailureStart'], $command, $_SESSION['lang']['speechChangeDeviceFailureEnd']);
+			$contextName = 'waitforplayer';
+			returnSpeech($speech, $contextName);
+			$queryOut['playResult']['status'] = 'ERROR: No device to select.';
+		}
+		$queryOut['parsedCommand'] = "Change ".$typeString." to " . $command . ".";
+		$queryOut['speech'] = $speech;
+		$queryOut['mediaStatus'] = "Not a media command.";
+		logCommand(json_encode($queryOut));
+
+		unset($_SESSION['type']);
+		die();
+	} else write_log("No list or type to pick from.","ERROR");
 }
 
 
@@ -4170,6 +4175,7 @@ function radarrDownload($command,$tmdbResult=false) {
 
 function fetchList($serviceName) {
 	$list = $selected = false;
+	if (! $_SESSION[$serviceName."Enabled"]) return "";
 	switch($serviceName) {
 		case "sick":
 			if ($_SESSION['sickList']) {
@@ -4227,7 +4233,9 @@ function fetchList($serviceName) {
 
 // Test the specified service for connectivity
 function testConnection($serviceName) {
+	if (! $_SESSION[$serviceName."Enabled"]) return "Fetcher not enabled.";
 	write_log("Function fired, testing connection for ".$serviceName);
+
 	switch($serviceName) {
 
 		case "Ombi":
@@ -4550,6 +4558,7 @@ function registerServer() {
 
 
 function checkSignIn() {
+
 	if (isset($_POST['username']) && isset($_POST['password'])) {
 		write_log("Trying to sign into Plex.tv as ".$_POST['username'].'.',"INFO");
 		$userpass = base64_encode($_POST['username'] . ":" . $_POST['password']);

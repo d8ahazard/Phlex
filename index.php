@@ -13,24 +13,16 @@
 
     if (substr_count($_SERVER["HTTP_ACCEPT_ENCODING"], "gzip") && hasGzip()) ob_start("ob_gzhandler"); else ob_start();
     session_start();
-    $messages = checkFiles();
-    if (count($messages)) {
-        foreach ($messages as $message) {
-            $scriptBlock = "<script language='javascript'>
-            showMessage('".$message['title']."','".$message['message']."','".$message['url']."');
-            </script>";
-            echo $scriptBlock;
-        }
-    }
     setDefaults();
+    $messages = checkFiles();
     if (isset($_GET['logout'])) {
         clearSession();
         $url = fetchUrl();
         echo "<script language='javascript'>
                     document.location.href='$url';
                     </script>";
-
     }
+
 ?>
 <!doctype html>
 <html>
@@ -80,34 +72,6 @@
                     console.log('ServiceWorker registration failed: ', err);
                 });
             }
-
-            function showMessage(title,message,url='') {
-                if (Notification.permission === 'granted') {
-                    var notification = new Notification(title, {
-                        icon: './img/avatar.png',
-                        body: message,
-                    });
-
-                    notification.onclick = function () {
-                        window.open(url);
-                    };
-
-                } else {
-                    if (Notification.permission !== 'denied') {
-                        Notification.requestPermission().then(function(result) {
-                            if ((result=== 'denied') || (result === 'default')) {
-                                $('#alertTitle').text(title);
-                                $('#alertBody p').text(message);
-                                $('#alertModal').modal('show');
-                            }
-                        });
-                    } else {
-                        $('#alertTitle').text(title);
-                        $('#alertBody p').text(message);
-                        $('#alertModal').modal('show');
-                    }
-                }
-            }
         </script>
         <script>
             if(typeof window.history.pushState == 'function') {
@@ -145,6 +109,46 @@
             || document.documentElement.clientHeight
             || document.body.clientHeight;
         document.getElementById("holder").setAttribute("src","https://phlexchat.com/img.php?random&width="+width+"&height="+height);
+
+        function loopMessages() {
+            $.each(messageArray, function(i,item) {
+                if (messageArray[0] === undefined) return false;
+                var keepLooping = showMessage(messageArray[0].title,messageArray[0].message,messageArray[0].url);
+                messageArray.splice(0,1);
+                if (!keepLooping) return false;
+            })
+        }
+
+        function showMessage(title,message,url) {
+            if (Notification.permission === 'granted') {
+                var notification = new Notification(title, {
+                    icon: './img/avatar.png',
+                    body: message,
+                });
+                if (url) {
+                    notification.onclick = function () {
+                        window.open(url);
+                    };
+                }
+                return true;
+
+            } else {
+                if (Notification.permission !== 'denied') {
+                    Notification.requestPermission().then(function(result) {
+                        if ((result=== 'denied') || (result === 'default')) {
+                            $('#alertTitle').text(title);
+                            $('#alertBody p').text(message);
+                            $('#alertModal').modal('show');
+                        }
+                    });
+                } else {
+                    $('#alertTitle').text(title);
+                    $('#alertBody p').text(message);
+                    $('#alertModal').modal('show');
+                }
+                return false;
+            }
+        }
     </script>
         <div id="bodyWrap">
 	        <?php
@@ -169,7 +173,7 @@
                 </div>
             </div>
         </div>
-
+        <meta id="messages" data-array="<?php if (count($messages)) echo urlencode(json_encode($messages));?>"/>
         <div id="bgwrap">
             <div class="bg bgLoaded"></div>
         </div>

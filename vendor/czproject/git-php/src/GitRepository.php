@@ -26,7 +26,7 @@
 			if(basename($repository) === '.git')
 			{
 				$repository = dirname($repository);
-				// Fix the errrrrors.
+				// Fix ssl errors.
 				exec('git config --global http.sslVerify false');
 			}
 
@@ -445,11 +445,6 @@
 		}
 
 		/**
-		 * Exists changes?
-		 * `git status` + magic
-		 * @return bool
-		 */
-		/**
 		 * Pull changes from a remote
 		 * @param  string|NULL
 		 * @param  array|NULL
@@ -494,8 +489,7 @@
 		 * Run fetch command to get latest branches
 		 * @param  string|NULL
 		 * @param  array|NULL
-		 * @return self
-		 * @throws GitException
+		 * @return string Result
 		 */
 		public function fetch($remote = NULL, array $params = NULL)
 		{
@@ -648,8 +642,7 @@
 		/**
 		 * Runs command.
 		 * @param  string|array
-		 * @return self
-		 * @throws Cz\Git\GitException
+		 * @return string Result
 		 */
 		protected function run($cmd/*, $options = NULL*/)
 		{
@@ -659,7 +652,7 @@
 			$result = implode (" ",$output);
 			if($ret !== 0)
 			{
-				write_log("Command '$cmd' failed (exit-code $ret).  Result: $result","ERROR");
+				$result = "Command '$cmd' failed (exit-code $ret): $ret";
 			}
 
 			return $result;
