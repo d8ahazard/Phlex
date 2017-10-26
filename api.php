@@ -1856,10 +1856,8 @@ function scanDevices($force=false) {
 
 			// Merge http and https info
 			foreach ($httpDevices['Device'] as $httpDevice) {
-				write_log("DEVICE: ".json_encode($httpDevice));
 				foreach ($httpsDevices['Device'] as $httpsDevice) {
 					if ($httpsDevice['clientIdentifier'] == $httpDevice['clientIdentifier']) {
-						write_log("Hey, this is a https device that matches.");
 						$connections = array_merge($httpsDevice['Connection'], $httpDevice['Connection']);
 						$httpDevice['Connection'] = array_reverse($connections);
 						if ($httpDevice['presence'] == "1" && count($httpDevice['Connection'])) array_push($devices, $httpDevice);
@@ -1867,6 +1865,7 @@ function scanDevices($force=false) {
 				}
 			}
 
+			write_log("Devices NOW: ".json_encode($devices));
 			// If local devices are found, merge them too.
 			if ($localContainer) {
 				$localDevices = $localContainer;
@@ -1875,9 +1874,10 @@ function scanDevices($force=false) {
 					$localDevice = json_decode(json_encode($localDevice),true)['@attributes'];
 					foreach ($devices as &$device) {
 						if ($localDevice['machineIdentifier'] !== $device['clientIdentifier']) {
+							write_log("Pushing device: ".$device['name']);
 							array_push($devices2,$device);
 						} else {
-							write_log("Skipping device ".$device['name']);
+							write_log("Removing global device ".$device['name']);
 						}
 					}
 					write_log("Pushing local device: " . $localDevice['name']);
@@ -1901,7 +1901,7 @@ function scanDevices($force=false) {
 				}
 				$devices = $devices2;
 			}
-
+			write_log("Devices after merging locals: ".json_encode($devices));
 			$nameArray = [];
 			// Clean up and sort merged device list
 			foreach ($devices as $device) {
