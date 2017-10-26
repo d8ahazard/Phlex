@@ -1605,12 +1605,12 @@ function doRequest($parts,$timeout=3) {
 			write_log("An error has occurred: ".$response->getReasonPhrase(),"ERROR");
 			return false;
 		}
-	}
+	} else write_log("Error getting response from URL fetch.","ERROR");
 	return false;
 }
 
 function fetchUrl($https=false) {
-	if ($https) $protocol = 'https://' ;else {
+	if ($https) $protocol = 'https://' ; else {
 	$protocol = (((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')	|| $_SERVER['SERVER_PORT'] == 443) ? 'https://' : 'http://');
 	}
 	$actual_link = "$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
