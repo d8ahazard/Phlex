@@ -357,6 +357,7 @@ function initialize() {
 function setSessionVariables($rescan=true) {
 	$_SESSION['mc'] = initMCurl();
 	$_SESSION['deviceID'] = checkSetDeviceID();
+
 	$ip = $GLOBALS['config']->get('user-_-'.$_SESSION['plexUserName'],'publicAddress', fetchUrl());
 		$GLOBALS['config']->set('user-_-'.$_SESSION['plexUserName'],'publicAddress', $ip);
 		saveConfig($GLOBALS['config']);
@@ -1855,8 +1856,10 @@ function scanDevices($force=false) {
 
 			// Merge http and https info
 			foreach ($httpDevices['Device'] as $httpDevice) {
+				write_log("DEVICE: ".json_encode($httpDevice));
 				foreach ($httpsDevices['Device'] as $httpsDevice) {
 					if ($httpsDevice['clientIdentifier'] == $httpDevice['clientIdentifier']) {
+						write_log("Hey, this is a https device that matches.");
 						$connections = array_merge($httpsDevice['Connection'], $httpDevice['Connection']);
 						$httpDevice['Connection'] = array_reverse($connections);
 						if ($httpDevice['presence'] == "1" && count($httpDevice['Connection'])) array_push($devices, $httpDevice);
@@ -1902,6 +1905,7 @@ function scanDevices($force=false) {
 			$nameArray = [];
 			// Clean up and sort merged device list
 			foreach ($devices as $device) {
+				write_log("Found device: ".json_encode($device));
 				$device = [
 					'name' => $device['name'],
 					'id' => $device['clientIdentifier'],
