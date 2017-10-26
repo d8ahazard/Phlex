@@ -1867,7 +1867,7 @@ function scanDevices($force=false) {
 
 			write_log("Devices NOW: ".json_encode($devices));
 			// If local devices are found, merge them too.
-			if ($localContainer) {
+			if (is_array($localContainer) && count($localContainer)) {
 				$localDevices = $localContainer;
 				$devices2 = [];
 				foreach ($localDevices->Server as $localDevice) {
@@ -1899,7 +1899,7 @@ function scanDevices($force=false) {
 					];
 					array_push($devices2, $device2);
 				}
-				$devices = $devices2;
+				if (count($devices2)) $devices = $devices2;
 			}
 			write_log("Devices after merging locals: ".json_encode($devices));
 			$nameArray = [];
