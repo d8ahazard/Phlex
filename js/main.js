@@ -134,6 +134,7 @@ $(function() {
 	$('#logout').click(function(){
         var bgs = $('.bg');
 		$('#results').css({"top":"-2000px","max-height":0,"overflow":"hidden"});
+        $.snackbar({content: "Logging out."});
         setTimeout(
             function()
             {
@@ -673,8 +674,12 @@ function updateStatus() {
 	apiToken = $('#apiTokenData').attr('data');
 	var footer = $('.nowPlayingFooter');
 	var logLimit = $('#logLimit').find(":selected").val();
+    var dataCommands = false;
 	$.get('api.php?pollPlayer&apiToken=' + apiToken + '&logLimit='+ logLimit, function(data) {
-		var dataCommands = data.commands.replace(/\+/g, '%20');
+		if (data.dologout === true) {
+			document.getElementById('logout').click();
+        }
+		if(data.hasOwnProperty("commands")) dataCommands = data.commands.replace(/\+/g, '%20');
 		if (dataCommands) {
 			try {
 				a = JSON.parse(decodeURIComponent(dataCommands));

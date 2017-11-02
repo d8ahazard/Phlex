@@ -24,6 +24,7 @@ write_log('Session Started',"DEBUG");
 checkSignIn();
 $user = validateCredentials();
 if ($user['valid']) {
+	$_SESSION['dologout'] = false;
 	if ( session_started() === FALSE ) {
 		session_id($user['apiToken']);
 		session_start();
@@ -35,19 +36,17 @@ if ($user['valid']) {
 	initialize();
 } else {
 	write_log("Sorry, couldn't validate user.");
-	if (isset($_GET['testclient'])) {
 		write_log("API Link Test FAILED!  Invalid API Token.");
 
-		echo json_encode(['error'=>'Invalid API Token Specified, please re-link your account through the Phlex Web UI.']);
+		echo json_encode(['speech'=>'Invalid API Token Specified, please re-link your account through the Phlex Web UI.','error'=>true]);
 		write_log("ERROR: Unauthenticated access detected.  Originating IP - ".$_SERVER['REMOTE_ADDR'],"ERROR");
 		$entityBody = file_get_contents('php://input');
 		if ($_SERVER['REQUEST_METHOD'] === 'POST') write_log("Post BODY: ".$entityBody);
-		die();
-	} else {
 		write_log("Invalid API Token, forcing logout.");
-		header("Location: ".serverProtocol().$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'].'?logout');
+		$_SESSION['dologout'] = true;
+		//header("Location: ".serverProtocol().$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'].'?logout');
 		die();
-	}
+
 }
 
 function initialize() {
@@ -97,6 +96,7 @@ function initialize() {
 		$result['servers'] = fetchServerList($devices);
 		$result['dvrs'] = fetchDVRList($devices);
 		$result['updates'] = checkUpdates();
+		$result['dologout'] = $_SESSION['dologout'];
 		$lines = $_GET['logLimit'] ?? 50;
 		$result['logs'] = formatLog(tail(file_build_path(dirname(__FILE__),"logs","Phlex.log"),$lines));
 		if ($_SESSION['updateAvailable']) $result['updateAvailable'] = $_SESSION['updateAvailable'];
@@ -189,6 +189,7 @@ function initialize() {
 	if (isset($_GET['id'])) {
 		$id = $_GET['id'];
 		$value = $_GET['value'];
+		$value = str_replace("?logout","",$value);
 		write_log('Setting parameter changed:"' . $id . ' : ' . $value.'"',"INFO");
 		if (preg_match("/IP/", $id) && !preg_match("/device/", $id)) $value = addScheme($value);
 		if (preg_match("/Path/",$id)) if ((substr($value,0,1) != "/") && (trim($value) !== "")) $value = "/".$value;
@@ -784,7 +785,43 @@ function parseRecordCommand($command) {
 
 // This is now our one and only handler for searches.
 function parsePlayCommand($command,$year=false,$artist=false,$type=false) {
+
 	$playerIn = false;
+
+	foreach($_SESSION['list_plexdevices']['clients'] as $client) {
+		if ($client['name'] != "") {
+			$clientName = '/' . cleanCommandString($client['name']) . '/';
+			if (preg_match($clientName, $command)) {
+				write_log("I was just asked me to play something on a specific device: " . $client['name'],"INFO");
+				$name = strtolower($client['name']);
+				$playerIn = [
+					"on the ".$name,
+					"on ".$name,
+					"in the ".$name,
+					"in ".$name,
+					$name
+				];
+
+				$_SESSION['plexClientId'] = $client['id'];
+				$_SESSION['plexClientName'] = $client['name'];
+				$_SESSION['plexClientUri'] = $client['uri'];
+				$_SESSION['plexClientProduct'] = $client['product'];
+				$GLOBALS['config']->set('user-_-' . $_SESSION['plexUserName'], 'plexClientId', $client['id']);
+				$GLOBALS['config']->set('user-_-' . $_SESSION['plexUserName'], 'plexClientProduct', $client['product']);
+				$GLOBALS['config']->set('user-_-' . $_SESSION['plexUserName'], 'plexClientName', $client['name']);
+				$GLOBALS['config']->set('user-_-' . $_SESSION['plexUserName'], 'plexClientUri', $client['uri']);
+				saveConfig($GLOBALS['config']);
+			}
+		}
+	}
+
+	if ($playerIn) {
+		foreach($playerIn as $search) {
+			$command = preg_replace("/$search/","",$command);
+		}
+		$_SESSION['cleaned_search'] = ucwords($command);
+	}
+
 	$commandArray = explode(" "	,$command);
 	// An array of words which don't do us any good
 	// Adding the apostrophe and 's' are necessary for the movie "Daddy's Home", which Google Inexplicably returns as "Daddy ' s Home"
@@ -799,31 +836,10 @@ function parsePlayCommand($command,$year=false,$artist=false,$type=false) {
 	// An array of words that would indicate which specific episode or media we want
 	$numberWordIn = $_SESSION['lang']['parseNumberArray'];
 
-	foreach($_SESSION['list_plexdevices']['clients'] as $client) {
-		if ($client['name'] != "") {
-			$clientName = '/' . cleanCommandString($client['name']) . '/';
-			if (preg_match($clientName, $command)) {
-				write_log("I was just asked me to play something on a specific device: " . $client['name'],"INFO");
-				$playerIn = explode(" ", cleanCommandString($client['name']));
-				array_push($playerIn, "on", "in");
-				$_SESSION['plexClientId'] = $client['id'];
-				$_SESSION['plexClientName'] = $client['name'];
-				$_SESSION['plexClientUri'] = $client['uri'];
-				$_SESSION['plexClientProduct'] = $client['product'];
-				$GLOBALS['config']->set('user-_-' . $_SESSION['plexUserName'], 'plexClientId', $client['id']);
-				$GLOBALS['config']->set('user-_-' . $_SESSION['plexUserName'], 'plexClientProduct', $client['product']);
-				$GLOBALS['config']->set('user-_-' . $_SESSION['plexUserName'], 'plexClientName', $client['name']);
-				$GLOBALS['config']->set('user-_-' . $_SESSION['plexUserName'], 'plexClientUri', $client['uri']);
-				saveConfig($GLOBALS['config']);
-			}
-		}
-	}
+
 	if (isset($_SESSION['cleaned_search'])) unset($_SESSION['cleaned_search']);
 
-	if ($playerIn) {
-		$commandArray = array_diff($commandArray,$playerIn);
-		$_SESSION['cleaned_search'] = ucwords(implode(" ",$commandArray));
-	}
+
 
 	// An array of words from our command that are numeric
 	$numberIn=array();
@@ -4233,7 +4249,6 @@ function fetchList($serviceName) {
 
 // Test the specified service for connectivity
 function testConnection($serviceName) {
-	if (! $_SESSION[$serviceName."Enabled"]) return "Fetcher not enabled.";
 	write_log("Function fired, testing connection for ".$serviceName);
 
 	switch($serviceName) {
@@ -4412,7 +4427,7 @@ function queryApiAi($command) {
 	$d = fetchDirectory(3);
 	try {
 		$lang = getDefaultLocale();
-		$url = 'https://api.api.ai/v1/query?v=20150910&query=' . urlencode($command) . '&lang='.$lang.'&sessionId=' . $_SESSION['plexServerToken'] . $_SESSION['counter2'];
+		$url = 'https://api.api.ai/v1/query?v=20150910&query=' . urlencode($command) . '&lang='.$lang.'&sessionId=' . substr($_SESSION['apiToken'],0,36);
 		$response = curlGet($url, ['Authorization: Bearer ' . $d], 3);
 		if ($response == null) {
 			write_log("Null response received from API.ai, re-submitting.", "WARN");
@@ -4599,26 +4614,25 @@ function checkSignIn() {
 }
 
 function validateCredentials() {
-	$user = false;
-	write_log("Trying to sign in user.");
 	$token = $_GET['apiToken'] ?? $_SERVER['HTTP_APITOKEN'] ?? $_SESSION['apiToken'] ?? false;
 	// Check that we have some form of set credentials
 	if ($token) {
 		foreach ($GLOBALS['config'] as $section => $setting) {
 			if ($section != "general") {
-				if ((isset($setting['apiToken'])) && ($setting['apiToken'] == $token)) {
+				if ((isset($setting['apiToken'])) && (trim($setting['apiToken']) == trim($token))) {
 					$user = [];
 					$user['apiToken'] = $setting['apiToken'];
 					$user['plexUserName'] = $setting['plexUserName'];
 					$user['plexCred'] = $setting['plexCred'];
 					$user['plexToken'] = $setting['plexToken'];
 					$user['valid'] = true;
-					break;
+					return $user;
 				}
 			}
 		}
 	}
-	return $user;
+	write_log("ERROR, api token not recognized!");
+	return false;
 }
 
 function fireHook($param=false,$type=false) {
