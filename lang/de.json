@@ -42,13 +42,14 @@
         "und"
     ],
     "parseMediaArray":[
-        "zeit", "minute", "minute", "stunden", "stunden", "zeit", "zeit","sekunden","sekunde"
+        "saison", "serie", "zeigen", "episode", "film", "film", "anfang", "ruhe", "ende", "minuten", "stunde", "stunden", "stunde","sekunden","sekunde"
     ],
     "parseFilterArray":[
         "genre","jahr","darsteller","direktor","wurde von","mit","mit","mit","hergestellt von","erstellt von","veröffentlicht","gefilmt"
     ],
     "parseNumberArray":[
-        "erste", "pilot", "zweite", "dritte", "letzte", "letzte"
+        "erste","pilot","zweite","dritte","nueste","letzte","letzte","zufällig"
+
     ],
     "parsedDvrFailStart": "F\u00fcge die Medien hinzu mit dem Namen",
     "parsedDvrSuccessNamed": "genannt",
