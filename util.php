@@ -588,7 +588,7 @@ function clientString() {
         curl_setopt($ch, CURLOPT_TIMEOUT,2);
         curl_setopt ($ch, CURLOPT_CAINFO, $certPath);
         if ($post) {
-            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POST, false);
             curl_setopt($ch, CURLOPT_HTTPHEADER, $_SESSION['plex_headers']);
         }
         /* Get the HTML or whatever is linked in $url. */
