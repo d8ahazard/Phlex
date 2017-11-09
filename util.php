@@ -6,8 +6,9 @@ require_once dirname(__FILE__) . '/vendor/autoload.php';
 
 	// Checks whether an API Token exists for the current user, generates and saves one if none exists.
     // Returns generated or existing API Token.
-	function checkSetApiToken($userName) {
+	function checkSetUser(Array $userData) {
 		// Check that we have generated an API token for our user, create and save one if none exists
+		$userName = $userData['plexUserName'];
 		$config = new Config_Lite('config.ini.php');
 		$apiToken = false;
 		foreach ($config as $section => $user) {
@@ -23,16 +24,44 @@ require_once dirname(__FILE__) . '/vendor/autoload.php';
 		if (! $apiToken) {
 			write_log("NO API TOKEN FOUND, generating one for ".$userName,"INFO");
 			$apiToken = randomToken(21);
+			$userData['apiToken'] = $apiToken;
 			$cleaned = str_repeat("X", strlen($apiToken)); 
 			write_log("API token created ".$cleaned);
 			$userString = 'user-_-'.$userName;
-			$config->set('user-_-'.$userString,'apiToken',$apiToken);
+			foreach($userData as $item) $config->set('user-_-'.$userString,$item,$apiToken);
 			saveConfig($config);
-			write_log("Setting some other values.");
-			$_SESSION['apiToken'] = $apiToken;
 			$_SESSION['newToken'] = true;
+		} else {
+			$userData['apiToken'] = $apiToken;
 		}
-		return $apiToken;
+		return $userData;
+	}
+
+
+	function validateToken($token) {
+		$config = new Config_Lite('config.ini.php');
+		// Check that we have some form of set credentials
+		foreach ($config as $section => $setting) {
+			$checkToken = false;
+			if ($section != "general") {
+				if (isset($setting['apiToken'])) $checkToken = $setting['apiToken'];
+				if (trim($checkToken) == trim($token)) {
+					$user = [
+						'string' => $section,
+						'plexUserName' => $setting['plexUserName'],
+						'plexToken' => $setting['plexToken'],
+						"plexEmail" => $setting['plexEmail'],
+						"plexAvatar" => $setting['plexAvatar'],
+						"plexCred" => $setting['plexCred'],
+						"apiToken" => $setting['apiToken'],
+					];
+					return $user;
+				}
+			}
+		}
+
+		write_log("ERROR, api token not recognized!","ERROR");
+		return false;
 	}
 
     function cleanCommandString($string) {
@@ -451,7 +480,7 @@ function clientString() {
 
 
 	// Get the name of the function calling write_log
-	function getCaller() {
+	function getCaller($custom="foo") {
 		$trace = debug_backtrace();
 		$useNext = false;
 		$caller = false;
@@ -463,7 +492,7 @@ function clientString() {
 					break;
 				}
 			}
-			if (($event['function'] == 'write_log') || ($event['function'] == 'doRequest')) {
+			if (($event['function'] == 'write_log') || ($event['function'] == 'doRequest') || ($event['function'] == $custom)) {
 				$useNext = true;
 				// Set our caller as the calling file until we get a function
 				$file = pathinfo($event['file']);
@@ -484,7 +513,7 @@ function clientString() {
 		$configFile = file_build_path(dirname(__FILE__),"config.ini.php");
 		$cache_new = "'; <?php die('Access denied'); ?>"; // Adds this to the top of the config so that PHP kills the execution if someone tries to request the config-file remotely.
 		$cache_new .= file_get_contents($configFile);
-		file_put_contents($configFile,$cache_new);
+		if (file_put_contents($configFile,$cache_new)) write_log("Config saved successfully by ".getCaller("saveConfig")); else write_log("Config save failed!","ERROR");
 		
 	}
 	
@@ -588,6 +617,7 @@ function clientString() {
         curl_setopt($ch, CURLOPT_TIMEOUT,2);
         curl_setopt ($ch, CURLOPT_CAINFO, $certPath);
         if ($post) {
+        	write_log("Using POST in check_url, instead of GET");
             curl_setopt($ch, CURLOPT_POST, true);
             curl_setopt($ch, CURLOPT_HTTPHEADER, $_SESSION['plex_headers']);
         }
@@ -766,7 +796,7 @@ function checkFiles() {
         $error = ['title'=>'Config error.','message'=>$message,'url'=>false];
 	    array_push($messages,$error);
     };
-    $testMessage = ['title'=>'Test message.','message'=>"This is a test of the emergency alert system. If this were a real emergency, you'd be screwed.",'url'=>'https://www.google.com'];
+    //$testMessage = ['title'=>'Test message.','message'=>"This is a test of the emergency alert system. If this were a real emergency, you'd be screwed.",'url'=>'https://www.google.com'];
     //array_push($messages,$testMessage);
     return $messages;
 }

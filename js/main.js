@@ -292,7 +292,7 @@ $(function() {
 	$('#deviceFab').click(function() {
 		var newDev = createStaticDevice();
 		$('#deviceBody').append(newDev[0]);
-		setListeners();
+		//setListeners();
         apiToken = $('#apiTokenData').attr('data');
         console.log("Dev1? ",newDev[1]);
 
@@ -708,7 +708,7 @@ function updateStatus() {
                     devHtml += devString[0];
                 });
                 $('#deviceBody').append(devHtml);
-                setListeners();
+                //setListeners();
                 if (devices.length !== devCount) lastDevices = devices;
             }
 

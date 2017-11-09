@@ -16,9 +16,9 @@ function makeBody($newToken = false) {
     $lang = checkSetLanguage();
     write_log("Language: ".json_encode($lang));
 	// Check our config file exists
-    $_SESSION['apiToken'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'apiToken', checkSetApiToken($_SESSION['plexUserName']));
-    $_SESSION['plexAvatar'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'plexAvatar', false);
-    $_SESSION['plexEmail'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'plexEmail', false);
+    //$_SESSION['apiToken'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'apiToken', checkSetUser($_SESSION['plexUserName']));
+    //$_SESSION['plexAvatar'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'plexAvatar', false);
+    //$_SESSION['plexEmail'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'plexEmail', false);
 
     $_SESSION['couchEnabled'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'couchEnabled', false);
     $_SESSION['ombiEnabled'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'ombiEnabled', false);

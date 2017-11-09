@@ -12,45 +12,62 @@ use Kryptonit3\Sonarr\Sonarr;
 
 
 $config = new Config_Lite('config.ini.php');
+write_log("INCOMING REQUEST!!");
 setDefaults();
-
 if (isset($_GET['revision'])) {
 	$rev = $config->get('general','revision',false);
 	echo $rev ? substr($rev,0,8) : "unknown";
 	die;
 }
 
-write_log('Session Started',"DEBUG");
-checkSignIn();
-$user = validateCredentials();
-if ($user['valid']) {
+
+//This needs to check if it's a login attempt.
+// If it is, then it should return an apiToken...or something.
+$user = false;
+$token = false;
+if (isset($_POST['username']) && isset($_POST['password'])) {
+	write_log("LOGIN TRIGGERED");
+	$userName = trim($_POST['username']);
+	$pass = trim($_POST['password']);
+	$user = checkSignIn($userName,$pass);
+}
+
+if (!$user) {
+	if (isset($_GET['apiToken'])) {
+		$token = $_GET['apiToken'];
+	}
+	if (isset($_SERVER['HTTP_APITOKEN'])) {
+		$token = $_SERVER['HTTP_APITOKEN'];
+	}
+	if (isset($_SESSION['apiToken'])) {
+		$token = $_SESSION['apiToken'];
+	}
+	if ($token) $user = validateToken($token);
+}
+
+if ($user) {
 	$_SESSION['dologout'] = false;
 	if ( session_started() === FALSE ) {
 		session_id($user['apiToken']);
 		session_start();
 	}
-	$_SESSION['plexUserName'] = $user['plexUserName'];
-	$_SESSION['apiToken'] = $user['apiToken'];
-	$_SESSION['plexToken'] = $user['plexToken'];
+	foreach($user as $id=>$value) $_SESSION[$id] = $value;
 	setSessionVariables();
 	initialize();
 } else {
 	write_log("Sorry, couldn't validate user.");
-		write_log("API Link Test FAILED!  Invalid API Token.");
-
-		echo json_encode(['speech'=>'Invalid API Token Specified, please re-link your account through the Phlex Web UI.','error'=>true]);
-		write_log("ERROR: Unauthenticated access detected.  Originating IP - ".$_SERVER['REMOTE_ADDR'],"ERROR");
-		$entityBody = file_get_contents('php://input');
-		if ($_SERVER['REQUEST_METHOD'] === 'POST') write_log("Post BODY: ".$entityBody);
-		write_log("Invalid API Token, forcing logout.");
-		$_SESSION['dologout'] = true;
-		//header("Location: ".serverProtocol().$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'].'?logout');
-		die();
-
+	if (isset($_GET['testclient'])) echo json_encode(['speech'=>'Invalid API Token Specified, please re-link your account through the Phlex Web UI.','error'=>true]);
+	write_log("ERROR: Unauthenticated access detected.  Originating IP - ".$_SERVER['REMOTE_ADDR'],"ERROR");
+	$entityBody = file_get_contents('php://input');
+	if ($_SERVER['REQUEST_METHOD'] === 'POST') write_log("Post BODY: ".$entityBody);
+	write_log("Invalid API Token, forcing logout.");
+	$_SESSION['dologout'] = true;
+	//header("Location: ".serverProtocol().$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'].'?logout');
+	die();
 }
 
 function initialize() {
-	sessionData();
+
 	if (isset($_POST['username']) && isset($_POST['password'])) {
 		define('LOGGED_IN', true);
 		if (isset($_POST['new'])) {
@@ -177,7 +194,7 @@ function initialize() {
 			$GLOBALS['config']->set('user-_-' . $_SESSION['plexUserName'], $type . 'Product', $product);
 			saveConfig($GLOBALS['config']);
 			setSessionVariables();
-			sessionData();
+			write_log("Session data: ".json_encode(sessionData()));
 			scanDevices();
 		} else {
 			scanDevices(true);
@@ -187,10 +204,11 @@ function initialize() {
 
 	// If we are changing a setting variable via the web UI.
 	if (isset($_GET['id'])) {
+		$preData = $_SESSION;
 		$id = $_GET['id'];
 		$value = $_GET['value'];
+		write_log("VAR CHANGE: $id = $value");
 		$value = str_replace("?logout","",$value);
-		write_log('Setting parameter changed:"' . $id . ' : ' . $value.'"',"INFO");
 		if (preg_match("/IP/", $id) && !preg_match("/device/", $id)) $value = addScheme($value);
 		if (preg_match("/Path/",$id)) if ((substr($value,0,1) != "/") && (trim($value) !== "")) $value = "/".$value;
 		$section = ($id === 'forceSSL') ? 'general' : 'user-_-' . $_SESSION['plexUserName'];
@@ -201,8 +219,11 @@ function initialize() {
 		}
 
 		saveConfig($GLOBALS['config']);
+		$_SESSION[$id] = $value;
+		$postData = $_SESSION;
+		$diffData = array_diff($postData,$preData);
+		write_log("Different data: ".json_encode($diffData));
 		if ((trim($id) === 'useCast') || (trim($id) === 'noLoop')) scanDevices(true);
-		setSessionVariables(false);
 		if ($id == "appLanguage")checkSetLanguage($value);
 		die();
 	}
@@ -348,9 +369,12 @@ function setSessionVariables($rescan=true) {
 	$_SESSION['mc'] = initMCurl();
 	$_SESSION['deviceID'] = checkSetDeviceID();
 
-	$ip = $GLOBALS['config']->get('user-_-'.$_SESSION['plexUserName'],'publicAddress', fetchUrl());
-		$GLOBALS['config']->set('user-_-'.$_SESSION['plexUserName'],'publicAddress', $ip);
+	$ip = $GLOBALS['config']->get('user-_-'.$_SESSION['plexUserName'],'publicAddress', false);
+	if (!$ip) {
+		$GLOBALS['config']->set('user-_-'.$_SESSION['plexUserName'],'publicAddress', fetchUrl());
 		saveConfig($GLOBALS['config']);
+	}
+
 	setStartUrl();
 	$devices = $GLOBALS['config']->get('user-_-'.$_SESSION['plexUserName'], 'dlist', false);
 	if ($devices) $_SESSION['list_plexdevices'] = json_decode(base64_decode($devices),true);
@@ -407,7 +431,6 @@ function setSessionVariables($rescan=true) {
 		}
 	}
 
-	checkSetApiToken($_SESSION['plexUserName']);
 	$userSections = $GLOBALS['config']->getSection('user-_-'.$_SESSION['plexUserName'],false);
 
 	foreach ($userSections as $key=>$value) {
@@ -463,7 +486,6 @@ function sessionData() {
 		"Client Product"=>$_SESSION['plexClientProduct'],
 		"Plex DVR Enabled"=>($_SESSION['plexDvrUri'] ? "true" : "false"),
 		"CouchPotato Enabled"=>$_SESSION['couchEnabled'],
-		"Ombi Enabled"=>$_SESSION['ombiEnabled'],
 		"Radarr Enabled"=>$_SESSION['radarrEnabled'],
 		"Sonarr Enabled"=>$_SESSION['sonarrEnabled'],
 		"Sick Enabled"=>$_SESSION['sickEnabled'],
@@ -473,7 +495,7 @@ function sessionData() {
 		"Auto-Update Enabled"=>$_SESSION['autoUpdate'],
 		"Language"=>$_SESSION['appLanguage']
 		];
-	write_log("Session Variables: ".json_encode($data));
+	return $data;
 }
 
 
@@ -835,6 +857,7 @@ function parsePlayCommand($command,$year=false,$artist=false,$type=false) {
 
 	// An array of words that would indicate which specific episode or media we want
 	$numberWordIn = $_SESSION['lang']['parseNumberArray'];
+	write_log("NumberWordIn: ".json_encode($numberWordIn));
 
 
 	if (isset($_SESSION['cleaned_search'])) unset($_SESSION['cleaned_search']);
@@ -1983,7 +2006,7 @@ function scanDevices($force=false) {
 				foreach ($device['connections'] as $connection) {
 					if ($connection['local'] === "1") {
 						$con = $connection['uri']."/resources?X-Plex-Token=".$device['token'];
-						if ((check_url($con,$device['token'])) || ($device['product'] == 'PlexKodiConnect')) $device['uri'] = $connection['uri'];
+						if ((check_url($con)) || ($device['product'] == 'PlexKodiConnect')) $device['uri'] = $connection['uri'];
 						break;
 					}
 				}
@@ -4572,11 +4595,11 @@ function registerServer() {
 }
 
 
-function checkSignIn() {
+function checkSignIn($user,$pass) {
 
-	if (isset($_POST['username']) && isset($_POST['password'])) {
+
 		write_log("Trying to sign into Plex.tv as ".$_POST['username'].'.',"INFO");
-		$userpass = base64_encode($_POST['username'] . ":" . $_POST['password']);
+		$userpass = base64_encode($user . ":" . $pass);
 		$token = signIn($userpass);
 		if ($token) {
 			$username = $token['username'];
@@ -4584,56 +4607,33 @@ function checkSignIn() {
 			$authToken = $token['authToken'];
 			$email = $token['email'];
 			$avatar = cacheImage($token['thumb']);
-			$apiToken = checkSetApiToken($username);
+			$user = [
+				'string' => $userString,
+				'plexUserName' => $username,
+				'plexToken' => $authToken,
+				"plexEmail" => $email,
+				"plexAvatar" => $avatar,
+				"plexCred" => $userpass
+			];
+			$user = checkSetUser($user);
 			if ($_SESSION['newToken']) write_log("New token found.","INFO");
 
-			if (!$apiToken) {
+			if (!$user) {
 				echo "Unable to set API Token, please check write access to Phlex root and try again.";
 				write_log("Unable to set or retrieve API Token.","ERROR");
-				die();
-			} else {
-				$_SESSION['apiToken'] = $apiToken;
-				$_SESSION['plexUserName'] = $username;
-				$_SESSION['plexToken'] = $authToken;
-				// This is our user's first logon.  Let's make some files and an API key for them.
-				$GLOBALS['config']->set($userString, "plexToken", $authToken);
-				$GLOBALS['config']->set($userString, "plexEmail", $email);
-				$GLOBALS['config']->set($userString, "plexAvatar", $avatar);
-				$GLOBALS['config']->set($userString, "plexCred", $userpass);
-				$GLOBALS['config']->set($userString, "plexUserName", $username);
-				$GLOBALS['config']->set($userString, "apiToken", $apiToken);
-				saveConfig($GLOBALS['config']);
+				return false;
 			}
-			write_log('Successfully logged in as '.$_POST['username'].'.');
+			write_log('Successfully logged in as '.$user['plexUserName'].'.');
+			return $user;
 		} else {
 			echo 'ERROR';
-			die();
+			return false;
 		}
 
-	}
+
 }
 
-function validateCredentials() {
-	$token = $_GET['apiToken'] ?? $_SERVER['HTTP_APITOKEN'] ?? $_SESSION['apiToken'] ?? false;
-	// Check that we have some form of set credentials
-	if ($token) {
-		foreach ($GLOBALS['config'] as $section => $setting) {
-			if ($section != "general") {
-				if ((isset($setting['apiToken'])) && (trim($setting['apiToken']) == trim($token))) {
-					$user = [];
-					$user['apiToken'] = $setting['apiToken'];
-					$user['plexUserName'] = $setting['plexUserName'];
-					$user['plexCred'] = $setting['plexCred'];
-					$user['plexToken'] = $setting['plexToken'];
-					$user['valid'] = true;
-					return $user;
-				}
-			}
-		}
-	}
-	write_log("ERROR, api token not recognized!");
-	return false;
-}
+
 
 function fireHook($param=false,$type=false) {
 	if ($_SESSION['hookEnabled'] == "true") {
@@ -4660,5 +4660,7 @@ function fireHook($param=false,$type=false) {
 		}
 	}
 }
+
+
 
 
