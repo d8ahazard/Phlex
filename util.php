@@ -1404,7 +1404,6 @@ function checkUpdates($install=false) {
 		try {
 			$repo = new GitRepository(dirname(__FILE__));
 			if ($repo) {
-
 				$repo->fetch('origin');
 				$result = $repo->readLog('origin','HEAD');
 				$revision = $repo->getRev();
@@ -1441,7 +1440,12 @@ function checkUpdates($install=false) {
 							$pp = true;
 							unset($_SESSION['pollPlayer']);
 						}
-						write_log("Updating from repository - ".($install ? 'Manually triggered.' : 'Automatically triggered.'));
+						$newFile = "config.ini.php_".timeStamp().".bk";
+						write_log("Backing up configuration file to $newFile.","INFO");
+						if (!copy("config.ini.php", $newFile)) {
+							write_log("Failed to back up configuration file!","ERROR");
+						} else write_log("Configuration backup successful.","INFO");
+						write_log("Updating from repository - ".($install ? 'Manually triggered.' : 'Automatically triggered.'),"INFO");
 						$repo->pull('origin');
 						//write_log("Pull result: ".$result);
 						if ($pp) $_SESSION['pollPlayer'] = true;
