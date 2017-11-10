@@ -1989,7 +1989,6 @@ function scanDevices($force=false) {
 							}
 						}
 						if ((boolval($device['publicAddressMatches'])) && $connection['protocol'] === 'https' && !isset($device['publicUri'])) {
-							write_log("This is a local shop, for local people.  Are you local?","WARN");
 							$device['publicUri'] = $connection['uri'];
 						}
 					}
@@ -2000,22 +1999,21 @@ function scanDevices($force=false) {
 					array_push($servers,$device);
 				}
 			}
-
 			// Clients are so much easier!
 			foreach ($devices['clients'] as $device) {
 				foreach ($device['connections'] as $connection) {
 					if ($connection['local'] === "1") {
 						$con = $connection['uri']."/resources?X-Plex-Token=".$device['token'];
-						if ((check_url($con)) || ($device['product'] == 'PlexKodiConnect')) $device['uri'] = $connection['uri'];
-						break;
+						if ((check_url($con)) || ($device['product'] == 'PlexKodiConnect')) {
+							$device['uri'] = $connection['uri'];
+							break;
+						}
 					}
 				}
 				if (isset($device['uri'])) array_push($clients,$device);
 			}
 			$devices = ['clients'=>$clients,'servers'=>$servers];
 		}
-
-		write_log("Merged devices: ".json_encode($devices));
 
 		if (count($servers)) {
 			foreach ($servers as $server) {
