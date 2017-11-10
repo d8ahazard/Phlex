@@ -25,7 +25,8 @@
         "Comment puis-je aider ?",
         "Que puis-je faire pour vous ?",
         "Vous avez dit :",
-        "Ma réponse :"
+        "Ma réponse :",
+        "Re-scanner les appareils"
     ],
     "parseStripArray":[
         "de",

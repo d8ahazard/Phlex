@@ -248,7 +248,7 @@ $(function() {
 	$("#dvrList").change(function(){
 		console.log("DVR Changed!");
 		var serverID = $(this).val();
-		var element = $(this).find('option:selected'); 
+		var element = $(this).find('option:selected');
 		var serverUri = element.attr('uri');
         var serverPublicUri = element.attr('publicaddress');
 		var serverName = element.attr('name');
@@ -667,7 +667,7 @@ function fetchClientList(players) {
         var product = client.product;
         options+='<a class="dropdown-item client-item'+((selected) ? ' dd-selected':'')+'" href="#" product="'+product+'" value="'+id+'" name="'+name+'" uri="'+uri+'">'+name+'</a>';
     });
-    options += '<a class="dropdown-item client-item" value="rescan"><b>rescan devices</b></a>';
+    options += '<a class="dropdown-item client-item" value="rescan"><b>' + javaStrings[4] + '</b></a>';
     return options;
 }
 function updateStatus() {

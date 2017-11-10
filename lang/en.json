@@ -40,7 +40,8 @@
 		"How can I help?",
 		"What can I do for you?",
 		"You said:",
-		"My reply:"
+		"My reply:",
+		"rescan devices"
 	],
 	"parseStripArray":[
 		"of",

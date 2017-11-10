@@ -25,7 +25,8 @@
         "Wie kann ich helfen?",
         "Was kann ich für Sie tun?",
         "Du sagtest:",
-        "Meine Antwort:"
+        "Meine Antwort:",
+        "Rescan Geräte"
     ],
     "parseStripArray":[
         "von",
@@ -248,7 +249,7 @@
     "uiGreetingDefault": "Hallo, ich bin Flex TV. Was kann ich f\u00fcr dich tun?",
     "uiPageTitle": "Phlex Web",
     "uiPlayerSelectPrompt": "W\u00e4hle einen zu kontrollierencen Player.",
-    "uiRescanDevices": "Ger\u00e4te suchen",
+    "uiRescanDevices": "Rescan Geräte",
     "uiSettingAccountLinking": "Kontoverkn\u00fcpfung:",
     "uiSettingApiKey": "API Key:",
     "uiSettingAutoUpdate": "Updates automatisch installieren",

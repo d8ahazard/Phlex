@@ -40,7 +40,8 @@
         "¿Cómo puedo ayudar?",
         "¿Qué puedo hacer por ti?",
         "Tu dijiste:",
-        "Mi respuesta:"
+        "Mi respuesta:",
+        "escanear dispositivos"
     ],
     "parseStripArray":[
         "de",
@@ -245,7 +246,7 @@
     "uiGreetingDefault": "Hola, soy Flex TV. ¿Qué puedo hacer por ti?",
     "uiPageTitle": "Phlex Web",
     "uiPlayerSelectPrompt": "Seleccione un jugador para controlar.",
-    "uiRescanDevices": "Volver a escanear dispositivos",
+    "uiRescanDevices": "escanear dispositivos",
     "uiSettingAccountLinking": "Enlace de cuenta:",
     "uiSettingApiKey": "Clave API:",
     "uiSettingAutoUpdate": "Instalar actualizaciones automáticamente",
