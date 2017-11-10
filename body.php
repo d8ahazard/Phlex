@@ -378,7 +378,7 @@ function makeBody($newToken = false) {
 				                                
 				                                <div class="text-center">
 				                                    <div class="form-group btn-group">
-				                                        <button value="Plex" class="testInput btn btn-raised btn-info btn-100" type="button">'.$lang['uiSettingsBtnTest'].'</button>
+				                                        <button value="Plex" class="testInput btn btn-raised btn-info btn-100" type="button">'.$lang['uiSettingBtnTest'].'</button>
 				                                    </div>
 				                                </div>
 					                        </div>
