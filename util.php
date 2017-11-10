@@ -7,12 +7,11 @@ require_once dirname(__FILE__) . '/vendor/autoload.php';
 	// Checks whether an API Token exists for the current user, generates and saves one if none exists.
     // Returns generated or existing API Token.
 	function checkSetUser(Array $userData) {
-		write_log("User array: ".json_encode($userData));
 		// Check that we have generated an API token for our user, create and save one if none exists
 		$userName = $userData['plexUserName'];
-		$config = new Config_Lite('config.ini.php');
+		$GLOBALS['config'] = new Config_Lite(dirname(__FILE__).'/config.ini.php');
 		$apiToken = false;
-		foreach ($config as $section => $user) {
+		foreach ($GLOBALS['config'] as $section => $user) {
 		    if ($section != "general") {
 		    	if (($userName == urlencode($user['plexUserName'])) || ($userName == urlencode($user['email']))) {
 		    		write_log("Found matching token for ".$user['plexUserName'].".");
@@ -30,8 +29,10 @@ require_once dirname(__FILE__) . '/vendor/autoload.php';
 			write_log("API token created ".$cleaned);
 			$userString = $userData['string'];
 			unset ($userData['string']);
-			foreach($userData as $item => $value) $config->set($userString,$item,$value);
-			saveConfig($config);
+			foreach($userData as $item => $value) {
+				$GLOBALS['config']->set($userString,$item,$value);
+			}
+			saveConfig($GLOBALS['config']);
 			$_SESSION['newToken'] = true;
 		} else {
 			$userData['apiToken'] = $apiToken;
