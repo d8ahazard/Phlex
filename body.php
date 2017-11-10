@@ -6,19 +6,12 @@ require_once dirname(__FILE__) . '/api.php';
 
 
 function makeBody($newToken = false) {
-	write_log("Function fired.");
 	if (!defined('LOGGED_IN')) {
         write_log("Dying because not logged in?","ERROR");
         die();
     }
     $config = new Config_Lite('config.ini.php');
-
     $lang = checkSetLanguage();
-    write_log("Language: ".json_encode($lang));
-	// Check our config file exists
-    //$_SESSION['apiToken'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'apiToken', checkSetUser($_SESSION['plexUserName']));
-    //$_SESSION['plexAvatar'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'plexAvatar', false);
-    //$_SESSION['plexEmail'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'plexEmail', false);
 
     $_SESSION['couchEnabled'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'couchEnabled', false);
     $_SESSION['ombiEnabled'] = $config->get('user-_-'.$_SESSION['plexUserName'], 'ombiEnabled', false);
