@@ -1440,11 +1440,7 @@ function checkUpdates($install=false) {
 							$pp = true;
 							unset($_SESSION['pollPlayer']);
 						}
-						$newFile = "config.ini.php_".timeStamp().".bk";
-						write_log("Backing up configuration file to $newFile.","INFO");
-						if (!copy("config.ini.php", $newFile)) {
-							write_log("Failed to back up configuration file!","ERROR");
-						} else write_log("Configuration backup successful.","INFO");
+						backupConfig();
 						write_log("Updating from repository - ".($install ? 'Manually triggered.' : 'Automatically triggered.'),"INFO");
 						$repo->pull('origin');
 						//write_log("Pull result: ".$result);
@@ -1476,6 +1472,17 @@ function checkUpdates($install=false) {
 	}
 	return $html;
 
+}
+
+function backupConfig() {
+    write_log("Function fired!!");
+	$newFile = file_build_path(dirname(__FILE__),"config.ini.php_".time().".bk");
+	write_log("Backing up configuration file to $newFile.","INFO");
+	if (!copy(file_build_path(dirname(__FILE__),"config.ini.php"), $newFile)) {
+		write_log("Failed to back up configuration file!","ERROR");
+		return false;
+	} else write_log("Configuration backup successful.","INFO");
+	return true;
 }
 
 function parseLog($log) {
