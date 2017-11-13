@@ -4,6 +4,9 @@ var lastDevices = "foo";
 var condition = null;
 var devices = lastUpdate = [];
 var javaStrings;
+var autoDeviceScan = true, deviceScanXHR = null;
+
+const DEVICE_SCAN_FREQUENCY = 5000;
 
 
 $(function() {
@@ -537,10 +540,6 @@ $(function() {
 		$('#clientWrapper').html(clientData);
 	}) ;
 
-	setInterval(function(){
-		updateStatus();
-	}, 5000);
-
 	setInterval(function() {
 		setBackground();
 	}, 1000 * 60);
@@ -563,7 +562,10 @@ $(function() {
 		}
 		$.get('api.php?control&noLog=true&command=' + myId + "&apiToken="+apiToken);
 	});
+
 	scaleElements();
+
+	updateStatus();
 });
 
 $(window).resize(function() {
@@ -675,7 +677,13 @@ function updateStatus() {
 	var footer = $('.nowPlayingFooter');
 	var logLimit = $('#logLimit').find(":selected").val();
 	var dataCommands = false;
-	$.get('api.php?pollPlayer&apiToken=' + apiToken + '&logLimit='+ logLimit, function(data) {
+
+	if (deviceScanXHR !== null) {
+		deviceScanXHR.abort();
+	}
+
+	deviceScanXHR = $.get('api.php?pollPlayer&apiToken=' + apiToken + '&logLimit='+ logLimit, function(data) {
+		deviceScanXHR = null;
 		if (data.dologout === true) {
 			document.getElementById('logout').click();
 		}
@@ -775,9 +783,11 @@ function updateStatus() {
 		} catch(e) {
 			console.error(e, e.stack);
 		}
-		
-	},dataType="json");
 
+		if (autoDeviceScan) {
+			setTimeout(updateStatus, DEVICE_SCAN_FREQUENCY);
+		}
+	}, dataType="json");
 }
 
 function updateCommands(data,prepend) {
