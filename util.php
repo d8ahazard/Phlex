@@ -780,7 +780,7 @@ function checkFiles() {
 
 
 	foreach ($extensions as $extension) {
-        if (! extension_loaded($extension)) {
+        if (! load_lib($extension)) {
             $message = "The ". $extension . " PHP extension, which is required for Phlex to work correctly, is not loaded." .
                 " Please enable it in php.ini, restart your webserver, and then reload this page to continue.";
 	        write_log($message,"ERROR");
@@ -797,6 +797,14 @@ function checkFiles() {
     //$testMessage = ['title'=>'Test message.','message'=>"This is a test of the emergency alert system. If this were a real emergency, you'd be screwed.",'url'=>'https://www.google.com'];
     //array_push($messages,$testMessage);
     return $messages;
+}
+
+function load_lib($ext) {
+    	if (extension_loaded($ext)) return true;
+	write_log("Extension is not loaded, attempting to load $ext...","INFO");
+    	if (function_exists('dl')) return dl(((PHP_SHLIB_SUFFIX === 'dll') ? 'php_' : '') . $ext . '.' . PHP_SHLIB_SUFFIX);
+	write_log("DL function not available.","WARN");
+	return false;
 }
 
 function clearSession() {
