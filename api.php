@@ -2551,6 +2551,7 @@ function fetchHubResults($title,$type=false,$artist=false) {
 			$item['thumb'] = $thumb;
 			$item['exact'] = $exact;
 			$item['searchType'] = $searchType;
+			if ($item['type'] === 'artist') $item['key'] = str_replace("/children","",$item['key']);
 			array_push($Returns,$item);
 		}
 		write_log("Final results: ".json_encode($Returns),"INFO");
@@ -2939,6 +2940,7 @@ function queueMedia($media, $audio=false,$queueID=false,$shuffle=false,$returnQu
 			'shuffle'=>$shuffle ? '1' : '0',
 			'repeat'=>0,
 			'includeChapters'=>1,
+			'own'=>1,
 			'X-Plex-Client-Identifier'=>$_SESSION['plexClientId']
 		];
 
@@ -3159,7 +3161,14 @@ function playMediaCast($media) {
 	$serverPort =$server['port'];
 	$userName = $_SESSION['plexUserName'];
 	$transcoderVideo = ($media['type'] != 'track');
-	$queueID = (isset($media['queueID']) ? $media['queueID'] : queueMedia($media));
+	$queueID = $media['queueID'] ?? false;
+	if (!$queueID) {
+		if ($media['type'] == 'album' || $media['type'] == 'artist' || $media['type'] == 'track') {
+			$queueID = queueMedia($media,true);
+		} else {
+			$queueID = queueMedia($media);
+		}
+	}
 	$transientToken = fetchTransientToken();
 	$client = parse_url($_SESSION['plexClientUri']);
 	$cc = new Chromecast($client['host'],$client['port']);
@@ -3192,7 +3201,8 @@ function castStatus() {
 		$container = new SimpleXMLElement($result);
 		foreach ($container->children() as $Media) {
 			$vidArray = json_decode(json_encode($Media),true);
-			$isCast = ($vidArray['Player']['@attributes']['address'] == $addresses['host']);
+			$ip = $addresses['host'];
+			$isCast = (preg_match("/$ip/",$vidArray['Player']['@attributes']['address']));
 			$isPlayer = ($vidArray['Player']['@attributes']['machineIdentifier'] == $_SESSION['plexClientId']);
 			if (($isPlayer) || ($isCast)) {
 				$state = $vidArray['Player']['@attributes']['state'];
@@ -3224,22 +3234,6 @@ function castStatus() {
 				$vidArray['thumb'] = $thumb;
 				$vidArray['art'] = $art;
 				$result['mediaResult'] = $vidArray;
-				// TODO: Progress seems to go to 100 and then stop. Use the chromecast reporting to fill in the actual time.
-				if (($state == "playing") || ($state == "paused")) {
-					try {
-						$client = parse_url($_SESSION['plexClientUri']);
-						$cc = new Chromecast($client['host'], $client['port']);
-						$r = $cc->Plex->plexStatus();
-						fclose($cc->socket);
-						$status2 = json_decode($r, true);
-						$status2 = $status2['status'][0] ?? false;
-						$volume = $status2['volume']['level'];
-					} catch (Exception $e) {
-						unset($_GET['pollPlayer']);
-						write_log("Error fetching cast status.", "ERROR");
-						$_GET['pollPlayer'] = true;
-					}
-				}
 				$mediaResult = ['title' => $title, 'tagline' => $tagline,'duration'=>$duration,'summary'=>$summary,'year'=>$year,'art' => $art, 'thumb' => $thumb];
 				$status = ['status' => strtolower($state), 'time'=>$time,'type'=>'cast','volume' => $volume, 'mediaResult' => $mediaResult];
 			}

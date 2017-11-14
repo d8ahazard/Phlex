@@ -364,7 +364,6 @@ class Chromecast {
 				$this->transportid = "generic-cast";
 				$this->sessionid = 0;
 			}
-			write_log("Looping for R: ".$r);
 			$count++;
 		}
 		return $r;

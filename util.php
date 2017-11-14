@@ -364,15 +364,14 @@ function flattenXML($xml){
 	// Write log information to $filename
 	// Auto rotates files larger than 2MB
 	function write_log($text,$level=null,$caller=false) {
+		$filename = file_build_path(dirname(__FILE__),'logs',"Phlex.log");
 		if ($level === null) {
 			$level = 'DEBUG';
 		}
-		if (isset($_GET['pollPlayer'])) return;
+		if (isset($_GET['pollPlayer']) || !file_exists($filename)) return;
 		$caller = $caller ? $caller : getCaller();
-		$filename = file_build_path(dirname(__FILE__),'logs',"Phlex.log");
-		//$filename = 'Phlex.log';
 		$text = '['.date(DATE_RFC2822) . '] ['.$level.'] ['.$caller . "] - " . trim($text) . PHP_EOL;
-		if (!file_exists($filename)) { touch($filename); chmod($filename, 0666); }
+
 		if (filesize($filename) > 2*1024*1024) {
 			$filename2 = "$filename.old";
 			if (file_exists($filename2)) unlink($filename2);
@@ -743,44 +742,40 @@ function setDefaults() {
 
 function checkFiles() {
 	$messages = [];
-    $logDir = file_build_path(dirname(__FILE__),"logs");
-    if(!is_dir($logDir) && !mkdir($logDir, 0777, true)) {
-        //die("Cannot create logs folder");
-	    $error = [
-	    	'title'=>"Unable to create /logs directory",
-		    'message'=>"Unable to create log directory.  Please check permissions on the Phlex folder and try again.",
-		    'url'=>false
-	    ];
-	    array_push($messages,$error);
-    }
-    $logPath = file_build_path($logDir,"Phlex.log");
-	$errorLogPath = file_build_path($logDir,"Phlex_error.log");
-	$extensions = ['sockets','curl','xml'];
+    $extensions = ['sockets','curl','xml'];
+
+	$logDir = file_build_path(dirname(__FILE__),"logs");
+
 	$oldLogPath = file_build_path($logDir,"PhlexUpdate.log");
+	$logPath = file_build_path($logDir,"Phlex.log");
+	$errorLogPath = file_build_path($logDir,"Phlex_error.log");
 	$updateLogPath = file_build_path($logDir,"Phlex_update.log");
+
 	if (file_exists($oldLogPath)) unlink($oldLogPath);
     $files = [$logPath,$errorLogPath,$updateLogPath,'config.ini.php','commands.php'];
+
     foreach ($files as $file) {
-        if (!file_exists($file)) {
-            touch($file);
-            chmod($file, 0777);
-        }
-        if ((file_exists($file) && (!is_writable(dirname($file)) || !is_writable($file))) || !is_writable(dirname($file))) { // If file exists, check both file and directory writeable, else check that the directory is writeable.
-            $message = 'Either the file '. $file .' and/or it\'s parent directory is not writable by the PHP process. Check the permissions & ownership and try again.';
-            $url = '';
-            if (PHP_SHLIB_SUFFIX === "so") { //Check for POSIX systems.
-                $message .= "  Current permission mode of ". $file. " is " .decoct(fileperms($file) & 0777);
-                $message .= "  Current owner of " . $file . " is ". posix_getpwuid(fileowner($file))['name'];
-                $message .= "  Refer to the README on instructions how to change permissions on the aforementioned files.";
-                $url = 'http://www.computernetworkingnotes.com/ubuntu-12-04-tips-and-tricks/how-to-fix-permission-of-htdocs-in-ubuntu.html';
-            } else if (PHP_SHLIB_SUFFIX === "dll") {
-                $message .= "  Detected Windows system, refer to guides on how to set appropriate permissions."; //Can't get fileowner in a trivial manner.
-	            $url = 'https://stackoverflow.com/questions/32017161/xampp-on-windows-8-1-cant-edit-files-in-htdocs';
-            }
-            write_log($message,"ERROR");
-            $error = ['title'=>'File error.','message'=>$message,'url'=>$url];
-            array_push($messages,$error);
-        }
+	    if (!file_exists($file)) {
+		    mkdir(dirname($file), 0777, true);
+		    touch($file);
+		    chmod($file,0777);
+	    }
+	    if ((file_exists($file) && (!is_writable(dirname($file)) || !is_writable($file))) || !is_writable(dirname($file))) { // If file exists, check both file and directory writeable, else check that the directory is writeable.
+		    $message = 'Either the file ' . $file . ' and/or it\'s parent directory is not writable by the PHP process. Check the permissions & ownership and try again.';
+		    $url = '';
+		    if (PHP_SHLIB_SUFFIX === "so") { //Check for POSIX systems.
+			    $message .= "  Current permission mode of " . $file . " is " . decoct(fileperms($file) & 0777);
+			    $message .= "  Current owner of " . $file . " is " . posix_getpwuid(fileowner($file))['name'];
+			    $message .= "  Refer to the README on instructions how to change permissions on the aforementioned files.";
+			    $url = 'http://www.computernetworkingnotes.com/ubuntu-12-04-tips-and-tricks/how-to-fix-permission-of-htdocs-in-ubuntu.html';
+		    } else if (PHP_SHLIB_SUFFIX === "dll") {
+			    $message .= "  Detected Windows system, refer to guides on how to set appropriate permissions."; //Can't get fileowner in a trivial manner.
+			    $url = 'https://stackoverflow.com/questions/32017161/xampp-on-windows-8-1-cant-edit-files-in-htdocs';
+		    }
+		    write_log($message, "ERROR");
+		    $error = ['title' => 'File error.', 'message' => $message, 'url' => $url];
+		    array_push($messages, $error);
+	    }
     }
 
 
