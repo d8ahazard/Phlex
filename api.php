@@ -274,10 +274,11 @@ function initialize() {
 		die();
 	}
 
-	if ((isset($_GET['say'])) && (isset($_GET['command']))) {
+	$command = $_GET['command'] ?? $_SERVER['HTTP_COMMAND'] ?? false;
+	if ((isset($_GET['say'])) && $command) {
 		write_log("Incoming API request detected.","INFO");
 		try {
-		$request = queryApiAi($_GET['command']);
+		$request = queryApiAi($command);
 			parseApiCommand($request);
 			die();
 		} catch (\Exception $error) {
