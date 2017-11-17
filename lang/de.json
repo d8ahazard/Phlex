@@ -1,319 +1,398 @@
 {
-    "btnReadmePrompt": "Readme anzeigen",
-    "cardGreetingText": "Willkommen bei Flex TV!",
-    "cardReadmeButton": "Readme ansehen",
-    "cardReadmeTitle": "Herzlich willkommen!",
-    "errorHelpSuggestionsArray": [
-        "Hier sind einige m\u00f6gliche Befehle.",
-        "Im Folgenden sind einige Vorschl\u00e4ge aufgef\u00fchrt, die Sie ausprobieren k\u00f6nnen.",
-        "Sicher, warum versuchst du nicht eins davon?"
-    ],
-    "errorHelpCommandsArray": [
-        "Was ist an Deck?",
-        "Welche neuen Filme habe ich?",
-        "Wiedergabe pausieren.",
-        "Spielen Batman beginnt."
-    ],
+	"btnReadmePrompt": "Readme anzeigen",
+	"cardGreetingText": "Willkommen bei Flex TV!",
+	"cardReadmeButton": "Readme ansehen",
+	"cardReadmeTitle": "Herzlich willkommen!",
+	"errorHelpSuggestionsArray": [
+		"Hier sind einige m\u00f6gliche Befehle.",
+		"Im Folgenden sind einige Vorschl\u00e4ge aufgef\u00fchrt, die Sie ausprobieren k\u00f6nnen.",
+		"Sicher, warum versuchst du nicht eins davon?"
+	],
+	"errorHelpCommandsArray": [
+		"Was ist an Deck?",
+		"Welche neuen Filme habe ich?",
+		"Wiedergabe pausieren.",
+		"Spielen Batman beginnt."
+	],
 	"fetchSynonymsArray": {
-		"season":["jahreszeit","staffel"],
-		"episode":["folge"],
-		"movie":["film"],
-		"show":["zeigen", "serie"],
-		"latest":["neueste", "neue", "neueste", "neueste", "neueste", "neueste"]
+		"season": [
+			"jahreszeit",
+			"staffel"
+		],
+		"episode": [
+			"folge"
+		],
+		"movie": [
+			"film"
+		],
+		"show": [
+			"zeigen",
+			"serie"
+		],
+		"latest": [
+			"neueste",
+			"neue",
+			"neueste",
+			"neueste",
+			"neueste",
+			"neueste"
+		]
 	},
-    "javaStrings": [
-        "Wie kann ich helfen?",
-        "Was kann ich für Sie tun?",
-        "Du sagtest:",
-        "Meine Antwort:",
-        "Rescan Geräte"
-    ],
-    "parseStripArray":[
-        "von",
-        "das",
-        "ein",
-        "ein",
-        "beim",
-        "th",
-        "nd",
-        "im",
-        "von",
-        "'",
-        "s",
-        "und"
-    ],
-    "parseMediaArray":[
-        "saison", "serie", "zeigen", "episode", "film", "film", "anfang", "ruhe", "ende", "minuten", "stunde", "stunden", "stunde","sekunden","sekunde"
-    ],
-    "parseFilterArray":[
-        "genre","jahr","darsteller","direktor","wurde von","mit","mit","mit","hergestellt von","erstellt von","veröffentlicht","gefilmt"
-    ],
-    "parseNumberArray":[
-        "erste","pilot","zweite","dritte","nueste","letzte","letzte","zufällig"
-
-    ],
-    "parsedDvrFailStart": "F\u00fcge die Medien hinzu mit dem Namen",
-    "parsedDvrSuccessNamed": "genannt",
-    "parsedDvrSuccessStart": "F\u00fcge hinzu",
-    "speechAiringsAfternoon": "Diesen Nachmittag,",
-    "speechAiringsErrors": [
-        "Du hast nichts geplant f\u00fcr",
-        "Ich habe nichts auf der Liste f\u00fcr"
-    ],
-    "speechAiringsMids": [
-        "Ich fand",
-        "Ich sehe",
-        "du hast"
-    ],
-    "speechAiringsOn": "Auf",
-    "speechAiringsReturn": "Hier ist eine Liste der geplanten Aufnahmen:",
-    "speechAiringsToday": "Heute",
-    "speechAiringsTomorrow": "Morgen,",
-    "speechAiringsTonight": "Heute Abend,",
-    "speechAiringsWeekend": "Dieses Wochenende,",
-    "speechAiringTails": [
-        "als Aufnahme festgelegt.",
-        "auf dem Zeitplan.",
-        "folgend."
-    ],
-    "speechBy": "von",
-    "speechChangDeviceFailureStart": "Es tut mir leid, aber ich konnte",
-    "speechChange": "\u00c4ndere",
-    "speechChangeDeviceFailEnd": "nicht in der Ger\u00e4teliste finden.",
-    "speechChangeDevicePrompt": ", sicher. Welches Ger\u00e4t m\u00f6chtest du verwenden?",
-    "speechChangeDeviceSuccessStart": "Okay, ich habe gewechselt von",
-    "speechChangeDeviceWarnEnd1": "foo",
-    "speechChangeDeviceWarnEnd2": "foo",
-    "speechChangeDeviceWarnStart1": "foo",
-    "speechChangeDeviceWarnStart2": "foo",
-    "speechChangeDeviceWarnStart3": "foo",
-    "speechChangeMind": "Okay, lass es mich wissen, wenn du deine Meinung \u00e4nderst.",
-    "speechControlConfirm1": "Senden eines Befehls an",
-    "speechControlConfirmGenericArray": [
-        "Betrachten Sie es als erledigt.",
-        "Nat\u00fcrlich.",
-        "Okay.",
-        "Klar doch."
-    ],
-    "speechControlConfirmPauseArray": [
-        "Okay, ich habe den Fernseher f\u00fcr dich unterbrochen.",
-        "Plex sollte jetzt pausiert werden.",
-        "Wiedergabe pausieren."
-    ],
-    "speechControlConfirmPlayArray": [
-        "Plex sollte spielen.",
-        "Spielen.",
-        "Wiedergabe fortsetzen."
-    ],
-    "speechControlConfirmStopArray": [
-        "Plex sollte jetzt gestoppt werden.",
-        "Plex wird angehalten.",
-        "Stoppen."
-    ],
-    "speechControlConfirmSubsOffArray": [
-        "Babel Fisch entfernen.",
-        "Untertitel deaktivieren.",
-        "Untertitel wurden deaktiviert."
-    ],
-    "speechControlConfirmSubsOnArray": [
-        "Universal-\u00dcbersetzer einbinden.",
-        "Untertitel aktivieren.",
-        "Untertitel wurden aktiviert."
-    ],
-    "speechControlGeneric1": "Senden eines Befehls an",
-    "speechControlGeneric2": "Okay, ich werde Plex sagen,",
-    "speechControlVolumeDown": "Okay, ich drehe es ein wenig runter.",
-    "speechControlVolumeSet": "Okay, die Lautst\u00e4rke einstellen",
-    "speechControlVolumeUp": "Okay, ich werde es ein wenig aufdrehen.",
-    "speechDeviceListError": "Beim Abrufen der Liste der Ger\u00e4te ist ein Fehler aufgetreten. Bitte versuchen Sie es sp\u00e4ter erneut.",
-    "speechDeviceListErrorArray": [
-        "Es tut mir leid, ich habe nur ein Ger\u00e4t zur Auswahl.",
-        "Ich m\u00f6chte Ihnen dabei helfen, aber ich sehe nur ein Ger\u00e4t, mit dem ich zur Zeit sprechen kann.",
-        "Leider haben Sie momentan nur ein Ger\u00e4t und es ist bereits ausgew\u00e4hlt."
-    ],
-    "speechDontUnderstand1": "Es tut mir leid aber '",
-    "speechDontUnderstand2": "&quot;scheint nichts zu tun, was ich gerade gesagt habe.",
-    "speechDownloadAdded1": "Okay, ich habe",
-    "speechDownloadAdded2": "zur Abrufliste hinzugef\u00fcgt.",
-    "speechDownloadErrorArray": [
-        "Das ist peinlich. Ich kann das nirgendwo finden.",
-        "Leider konnte ich mit dem Titel nichts herunterladen.",
-        "Tut mir leid, aber ich konnte das in keinem deiner Sucher finden."
-    ],
-    "speechDownloadExists1": "Es sieht aus wie",
-    "speechDownloadExists2": "ist bereits zum Herunterladen eingestellt.",
-    "speechDvrFailStart": "Ich konnte keine Ergebnisse im Episodenf\u00fchrer finden, die passen zu '",
-    "speechDvrNoDevice": "Es tut mir leid, aber ich konnte keine nutzbaren Instanzen von Plex DVR finden.",
-    "speechDvrSuccessEnd": "zum Aufnahmezeitplan hinzugef\u00fcgt.",
-    "speechDvrSuccessStart": "Hey, schau dir das an. Es wurde",
-    "speechEggAttackTheBlock": "Are you the Doctor?",
-    "speechEggAvengers": "Family assemble!",
-    "speechEggBatman": "Holy pirated media!",
-    "speechEggBigHero": "Hello, I am Baymax, I am going to be",
-    "speechEggEvilDead": "Hail to the king, baby!",
-    "speechEggFifthElement": "Leeloo Dallas Mul-ti-Pass!",
-    "speechEggFrozen": "Let it go!",
-    "speechEggGameThrones": "Brace yourself...",
-    "speechEggGhostbusters": "Who you gonna call?",
-    "speechEggHeathers": "Well, charge me gently with a chainsaw.",
-    "speechEggIronMan": "Yes Mr. Stark,",
-    "speechEggOdyssey": "I am afraid I can't do that Dave.  Okay, fine,",
-    "speechEggResidentEvil": "T-minus 1 minute until infection.",
-    "speechEggStarWars": "These are not the droids you're looking for.",
-    "speechEggTheyLive": "I'm here to chew bubblegum and",
-    "speechEggWallE": "Thank you for shopping Buy and Large, and enjoy as we begin",
-    "speechGreetingArray": [
-        "Gr\u00fc\u00dfe! Wie kann ich dir helfen?",
-        "Hallo, ich bin Flex TV. Was kann ich f\u00fcr dich tun?",
-        "Hallo. Versuche mich zu bitten, etwas abzuspielen.'"
-    ],
-    "speechGreetingHelpPrompt": "Wenn Sie eine Liste von Befehlen m\u00f6chten, sag 'Hilfe' oder 'Was sind deine Befehle?'",
-    "speechHookCustomDefault": "Herzlichen Gl\u00fcckwunsch, ein benutzerdefinierter Webhook-Befehl wurde ausgel\u00f6st!",
-    "speechMoreInfoArray": [
-        "Hier finden Sie weitere Informationen dazu.",
-        "Hier ist was ich f\u00fcr diesen Gegenstand gefunden habe.",
-        "Ich habe das f\u00fcr dich gesucht."
-    ],
-    "speechMultiResultArray": [
-        "Du hast ein paar Dinge, die mit dieser Suche \u00fcbereinstimmen k\u00f6nnten, geh\u00f6ren die dazu?",
-        "Es gab ein paar Dinge, von denen ich denke, dass sie gemeint sein k\u00f6nnten, ist es eins hiervon?",
-        "Ich habe mehrere m\u00f6gliche Ergebnisse daf\u00fcr gefunden, war eins davon das, was du wolltest?",
-        "Welches meintest du?"
-    ],
-    "speechNotUndertoodArray": [
-        "Danger Will Robinson! Ich verstehe nicht den Befehl '",
-        "Ich f\u00fcrchte, ich verstehe nicht, was Sie unter",
-        "Leider konnte ich nicht herausfinden, wann Sie &quot;"
-    ],
-    "speechOndeckRecentError": "Leider konnte ich daf\u00fcr keine Ergebnisse finden. Bitte versuche es sp\u00e4ter noch einmal.",
-    "speechOndeckRecentTail": "Wenn du etwas sehen m\u00f6chtest, sag einfach den Namen, andernfalls kannst du 'Abbrechen' sagen,.",
-    "speechPlaybackAffirmatives": [
-        "Alles klar,",
-        "Ja Kapit\u00e4n,",
-        "Ja Meister,",
-        "Kein Problem,",
-        "Nat\u00fcrlich,",
-        "Okay,",
-        "Wie du w\u00fcnschst,",
-        "mach ich,",
-        "Wie Sie befohlen haben,"
-    ],
-    "speechPlayer": "Player",
-    "speechPlayError3": "Ich konnte das in der Bibliothek nicht finden, willst du, dass ich versuche es runterzuladen?",
-    "speechPlayErrorEnd1": "in deiner Bibliothek nicht finden. Soll ich versuchen, es in die Watchlisten aufzunehmen?",
-    "speechPlayErrorEnd2": "' zum abspielen finden. Soll ich versuchen, es zu fetchen?'",
-    "speechPlayErrorStart1": "Ich konnte",
-    "speechPlayErrorStart2": "Ich habe nichts gefunden mit dem Namen '",
-    "speechPlayerStatus1": "Derzeit",
-    "speechPlayerStatus2": "spielt auf",
-    "speechPlayerStatus3": "Zur Zeit, Jahreszeit",
-    "speechPlayerStatus4": "spielt. Diese Episode hei\u00dft",
-    "speechPlayerStatus5": "Es sieht aus wie du h\u00f6rst",
-    "speechPlayerStatus6": "aus dem Album",
-    "speechPlayerStatusBy": "durch",
-    "speechPlayerStatusEpisode": "Folge",
-    "speechPlayerStatusOf": "von",
-    "speechPlaying": "Abspielen von",
-    "speechReturnOndeck": "Hier ist eine Liste der Items auf dem Deck:",
-    "speechReturnRecent": "Hier ist eine Liste der letzten",
-    "speechServer": "Server",
-    "speechShuffleResponse": "Okay, zuf\u00e4llige Wiedergabe aller Episoden von",
-    "speechStatusNothingPlaying": "Es sieht nicht so aus, als ob gerade etwas abgespielt wird.",
+	"javaStrings": [
+		"Wie kann ich helfen?",
+		"Was kann ich für Sie tun?",
+		"Du sagtest:",
+		"Meine Antwort:",
+		"Rescan Geräte"
+	],
+	"parseStripArray": [
+		"von",
+		"das",
+		"ein",
+		"ein",
+		"beim",
+		"th",
+		"nd",
+		"im",
+		"von",
+		"'",
+		"s",
+		"und"
+	],
+	"parseMediaArray": [
+		"saison",
+		"serie",
+		"zeigen",
+		"episode",
+		"film",
+		"film",
+		"anfang",
+		"ruhe",
+		"ende",
+		"minuten",
+		"stunde",
+		"stunden",
+		"stunde",
+		"sekunden",
+		"sekunde"
+	],
+	"parseFilterArray": [
+		"genre",
+		"jahr",
+		"darsteller",
+		"direktor",
+		"wurde von",
+		"mit",
+		"mit",
+		"mit",
+		"hergestellt von",
+		"erstellt von",
+		"veröffentlicht",
+		"gefilmt"
+	],
+	"parseNumberArray": [
+		"erste",
+		"pilot",
+		"zweite",
+		"dritte",
+		"nueste",
+		"letzte",
+		"letzte",
+		"zufällig"
+	],
+	"parsedDvrFailStart": "F\u00fcge die Medien hinzu mit dem Namen",
+	"parsedDvrSuccessNamed": "genannt",
+	"parsedDvrSuccessStart": "F\u00fcge hinzu",
+	"speechAiringsAfternoon": "Diesen Nachmittag,",
+	"speechAiringsErrors": [
+		"Du hast nichts geplant f\u00fcr",
+		"Ich habe nichts auf der Liste f\u00fcr"
+	],
+	"speechAiringsMids": [
+		"Ich fand",
+		"Ich sehe",
+		"du hast"
+	],
+	"speechAiringsOn": "Auf",
+	"speechAiringsReturn": "Hier ist eine Liste der geplanten Aufnahmen:",
+	"speechAiringsToday": "Heute",
+	"speechAiringsTomorrow": "Morgen,",
+	"speechAiringsTonight": "Heute Abend,",
+	"speechAiringsWeekend": "Dieses Wochenende,",
+	"speechAiringTails": [
+		"als Aufnahme festgelegt.",
+		"auf dem Zeitplan.",
+		"folgend."
+	],
+	"speechBy": "von",
+	"speechChangDeviceFailureStart": "Es tut mir leid, aber ich konnte",
+	"speechChange": "\u00c4ndere",
+	"speechChangeDeviceFailEnd": "nicht in der Ger\u00e4teliste finden.",
+	"speechChangeDevicePrompt": ", sicher. Welches Ger\u00e4t m\u00f6chtest du verwenden?",
+	"speechChangeDeviceSuccessStart": "Okay, ich habe gewechselt von",
+	"speechChangeDeviceWarnEnd1": "foo",
+	"speechChangeDeviceWarnEnd2": "foo",
+	"speechChangeDeviceWarnStart1": "foo",
+	"speechChangeDeviceWarnStart2": "foo",
+	"speechChangeDeviceWarnStart3": "foo",
+	"speechChangeMind": "Okay, lass es mich wissen, wenn du deine Meinung \u00e4nderst.",
+	"speechControlConfirm1": "Senden eines Befehls an",
+	"speechControlConfirmGenericArray": [
+		"Betrachten Sie es als erledigt.",
+		"Nat\u00fcrlich.",
+		"Okay.",
+		"Klar doch."
+	],
+	"speechControlConfirmPauseArray": [
+		"Okay, ich habe den Fernseher f\u00fcr dich unterbrochen.",
+		"Plex sollte jetzt pausiert werden.",
+		"Wiedergabe pausieren."
+	],
+	"speechControlConfirmPlayArray": [
+		"Plex sollte spielen.",
+		"Spielen.",
+		"Wiedergabe fortsetzen."
+	],
+	"speechControlConfirmStopArray": [
+		"Plex sollte jetzt gestoppt werden.",
+		"Plex wird angehalten.",
+		"Stoppen."
+	],
+	"speechControlConfirmSubsOffArray": [
+		"Babel Fisch entfernen.",
+		"Untertitel deaktivieren.",
+		"Untertitel wurden deaktiviert."
+	],
+	"speechControlConfirmSubsOnArray": [
+		"Universal-\u00dcbersetzer einbinden.",
+		"Untertitel aktivieren.",
+		"Untertitel wurden aktiviert."
+	],
+	"speechControlGeneric1": "Senden eines Befehls an",
+	"speechControlGeneric2": "Okay, ich werde Plex sagen,",
+	"speechControlVolumeDown": "Okay, ich drehe es ein wenig runter.",
+	"speechControlVolumeSet": "Okay, die Lautst\u00e4rke einstellen",
+	"speechControlVolumeUp": "Okay, ich werde es ein wenig aufdrehen.",
+	"speechDeviceListError": "Beim Abrufen der Liste der Ger\u00e4te ist ein Fehler aufgetreten. Bitte versuchen Sie es sp\u00e4ter erneut.",
+	"speechDeviceListErrorArray": [
+		"Es tut mir leid, ich habe nur ein Ger\u00e4t zur Auswahl.",
+		"Ich m\u00f6chte Ihnen dabei helfen, aber ich sehe nur ein Ger\u00e4t, mit dem ich zur Zeit sprechen kann.",
+		"Leider haben Sie momentan nur ein Ger\u00e4t und es ist bereits ausgew\u00e4hlt."
+	],
+	"speechDontUnderstand1": "Es tut mir leid aber '",
+	"speechDontUnderstand2": "&quot;scheint nichts zu tun, was ich gerade gesagt habe.",
+	"speechDownloadAdded1": "Okay, ich habe",
+	"speechDownloadAdded2": "zur Abrufliste hinzugef\u00fcgt.",
+	"speechDownloadErrorArray": [
+		"Das ist peinlich. Ich kann das nirgendwo finden.",
+		"Leider konnte ich mit dem Titel nichts herunterladen.",
+		"Tut mir leid, aber ich konnte das in keinem deiner Sucher finden."
+	],
+	"speechDownloadExists1": "Es sieht aus wie",
+	"speechDownloadExists2": "ist bereits zum Herunterladen eingestellt.",
+	"speechDvrFailStart": "Ich konnte keine Ergebnisse im Episodenf\u00fchrer finden, die passen zu '",
+	"speechDvrNoDevice": "Es tut mir leid, aber ich konnte keine nutzbaren Instanzen von Plex DVR finden.",
+	"speechDvrSuccessEnd": "zum Aufnahmezeitplan hinzugef\u00fcgt.",
+	"speechDvrSuccessStart": "Hey, schau dir das an. Es wurde",
+	"speechEggAttackTheBlock": "Are you the Doctor?",
+	"speechEggAvengers": "Family assemble!",
+	"speechEggBatman": "Holy pirated media!",
+	"speechEggBigHero": "Hello, I am Baymax, I am going to be",
+	"speechEggEvilDead": "Hail to the king, baby!",
+	"speechEggFifthElement": "Leeloo Dallas Mul-ti-Pass!",
+	"speechEggFrozen": "Let it go!",
+	"speechEggGameThrones": "Brace yourself...",
+	"speechEggGhostbusters": "Who you gonna call?",
+	"speechEggHeathers": "Well, charge me gently with a chainsaw.",
+	"speechEggIronMan": "Yes Mr. Stark,",
+	"speechEggOdyssey": "I am afraid I can't do that Dave.  Okay, fine,",
+	"speechEggResidentEvil": "T-minus 1 minute until infection.",
+	"speechEggStarWars": "These are not the droids you're looking for.",
+	"speechEggTheyLive": "I'm here to chew bubblegum and",
+	"speechEggWallE": "Thank you for shopping Buy and Large, and enjoy as we begin",
+	"speechGreetingArray": [
+		"Gr\u00fc\u00dfe! Wie kann ich dir helfen?",
+		"Hallo, ich bin Flex TV. Was kann ich f\u00fcr dich tun?",
+		"Hallo. Versuche mich zu bitten, etwas abzuspielen.'"
+	],
+	"speechGreetingHelpPrompt": "Wenn Sie eine Liste von Befehlen m\u00f6chten, sag 'Hilfe' oder 'Was sind deine Befehle?'",
+	"speechHookCustomDefault": "Herzlichen Gl\u00fcckwunsch, ein benutzerdefinierter Webhook-Befehl wurde ausgel\u00f6st!",
+	"speechMoreInfoArray": [
+		"Hier finden Sie weitere Informationen dazu.",
+		"Hier ist was ich f\u00fcr diesen Gegenstand gefunden habe.",
+		"Ich habe das f\u00fcr dich gesucht."
+	],
+	"speechMultiResultArray": [
+		"Du hast ein paar Dinge, die mit dieser Suche \u00fcbereinstimmen k\u00f6nnten, geh\u00f6ren die dazu?",
+		"Es gab ein paar Dinge, von denen ich denke, dass sie gemeint sein k\u00f6nnten, ist es eins hiervon?",
+		"Ich habe mehrere m\u00f6gliche Ergebnisse daf\u00fcr gefunden, war eins davon das, was du wolltest?",
+		"Welches meintest du?"
+	],
+	"speechNotUndertoodArray": [
+		"Danger Will Robinson! Ich verstehe nicht den Befehl '",
+		"Ich f\u00fcrchte, ich verstehe nicht, was Sie unter",
+		"Leider konnte ich nicht herausfinden, wann Sie &quot;"
+	],
+	"speechOndeckRecentError": "Leider konnte ich daf\u00fcr keine Ergebnisse finden. Bitte versuche es sp\u00e4ter noch einmal.",
+	"speechOndeckRecentTail": "Wenn du etwas sehen m\u00f6chtest, sag einfach den Namen, andernfalls kannst du 'Abbrechen' sagen,.",
+	"speechPlaybackAffirmatives": [
+		"Alles klar,",
+		"Ja Kapit\u00e4n,",
+		"Ja Meister,",
+		"Kein Problem,",
+		"Nat\u00fcrlich,",
+		"Okay,",
+		"Wie du w\u00fcnschst,",
+		"mach ich,",
+		"Wie Sie befohlen haben,"
+	],
+	"speechPlayer": "Player",
+	"speechPlayError3": "Ich konnte das in der Bibliothek nicht finden, willst du, dass ich versuche es runterzuladen?",
+	"speechPlayErrorEnd1": "in deiner Bibliothek nicht finden. Soll ich versuchen, es in die Watchlisten aufzunehmen?",
+	"speechPlayErrorEnd2": "' zum abspielen finden. Soll ich versuchen, es zu fetchen?'",
+	"speechPlayErrorStart1": "Ich konnte",
+	"speechPlayErrorStart2": "Ich habe nichts gefunden mit dem Namen '",
+	"speechPlayerStatus1": "Derzeit",
+	"speechPlayerStatus2": "spielt auf",
+	"speechPlayerStatus3": "Zur Zeit, Jahreszeit",
+	"speechPlayerStatus4": "spielt. Diese Episode hei\u00dft",
+	"speechPlayerStatus5": "Es sieht aus wie du h\u00f6rst",
+	"speechPlayerStatus6": "aus dem Album",
+	"speechPlayerStatusBy": "durch",
+	"speechPlayerStatusEpisode": "Folge",
+	"speechPlayerStatusOf": "von",
+	"speechPlaying": "Abspielen von",
+	"speechReturnOndeck": "Hier ist eine Liste der Items auf dem Deck:",
+	"speechReturnRecent": "Hier ist eine Liste der letzten",
+	"speechServer": "Server",
+	"speechShuffleResponse": "Okay, zuf\u00e4llige Wiedergabe aller Episoden von",
+	"speechStatusNothingPlaying": "Es sieht nicht so aus, als ob gerade etwas abgespielt wird.",
 	"commandSynonymsArray": {
-		"play":["resume"],
-		"skip":["springen","gehen"],
-		"step":["suchen"],
-		"forward":["voraus"],
-		"back":["rückwärts"],
-		"seekBack":["rückspulen"],
-		"seek":["schnell"],
-		"skipNext":["überspringen vorwärts"],
-		"skipPrevious":["zurückspringen"],
-		"stepForward":["schnell vorwärts", "vorwärts suchen"],
-		"stepBack":["suche zurück"],
-		"volume up":["lauter"],
-		"volume down":["leiser"],
-        "volume":["volumen","lautstärke"]
+		"play": [
+			"resume"
+		],
+		"skip": [
+			"springen",
+			"gehen"
+		],
+		"step": [
+			"suchen"
+		],
+		"forward": [
+			"voraus"
+		],
+		"back": [
+			"rückwärts"
+		],
+		"seekBack": [
+			"rückspulen"
+		],
+		"seek": [
+			"schnell"
+		],
+		"skipNext": [
+			"überspringen vorwärts"
+		],
+		"skipPrevious": [
+			"zurückspringen"
+		],
+		"stepForward": [
+			"schnell vorwärts",
+			"vorwärts suchen"
+		],
+		"stepBack": [
+			"suche zurück"
+		],
+		"volume up": [
+			"lauter"
+		],
+		"volume down": [
+			"leiser"
+		],
+		"volume": [
+			"volumen",
+			"lautstärke"
+		]
 	},
-    "speechWordAnd": "und",
-    "speechWordOkay": "okay",
-    "speechWordTo": "zu",
-    "suggestionCancel": "Stornieren.",
-    "suggestionCouch": "Laden Sie den Film Tron herunter.",
-    "suggestionDvr": "DVR Jeopardy.",
-    "suggestionSick": "Lade die Show Weeds.",
-    "suggestionYesNo": [
-        "Ja",
-        "Nein"
-    ],
-    "uiGreetingDefault": "Hallo, ich bin Flex TV. Was kann ich f\u00fcr dich tun?",
-    "uiPageTitle": "Phlex Web",
-    "uiPlayerSelectPrompt": "W\u00e4hle einen zu kontrollierencen Player.",
-    "uiRescanDevices": "Rescan Geräte",
-    "uiSettingAccountLinking": "Kontoverkn\u00fcpfung:",
-    "uiSettingApiKey": "API Key:",
-    "uiSettingAutoUpdate": "Updates automatisch installieren",
-    "uiSettingBtnReset": "NEUSTART",
-    "uiSettingBtnTest": "TEST",
-    "uiSettingCopyIFTTT": "Klicken zum Kopieren einer IFTTT URL:",
-    "uiSettingDevices": "Statische Ger\u00e4te",
-    "uiSettingDevicesAddNew": "Neues Ger\u00e4t hinzuf\u00fcgen",
-    "uiSettingDevicesNameLabel": "Ger\u00e4tename",
-    "uiSettingDvrEndOffset": "End-Offset (Minuten):",
-    "uiSettingDvrNewAirings": "Nur neue Ausstrahlungen aufnehmen",
-    "uiSettingDvrRecordPartials": "Partielle Episoden aufzeichnen",
-    "uiSettingDvrReplaceLower": "Aufnahmen nidrigerer Qualit\u00e4t ersetzen",
-    "uiSettingDvrResolution": "Aufl\u00f6sung",
-    "uiSettingDvrResolutionAny": "Jede",
-    "uiSettingDvrResolutionHD": "High-Definition",
-    "uiSettingDvrServer": "DVR Server",
-    "uiSettingDvrStartOffset": "Start-Offset (Minuten):",
-    "uiSettingEnable": "Aktivieren",
-    "uiSettingFetcherPath": "Pfad (Optional)",
-    "uiSettingFetcherPort": "Port",
-    "uiSettingFetcherQualityProfile": "Qualit\u00e4tsprofil",
-    "uiSettingFetcherToken": "Token",
-    "uiSettingForceSSL": "SSL erzwingen",
-    "uiSettingForceSSLHint": "Erzwinge SSL wenn verf\u00fcgbar. Ben\u00f6tigt f\u00fcr Progressive Web Apps.",
-    "uiSettingGeneral": "Allgemein",
-    "uiSettingHeaderDevices": "Ger\u00e4te",
-    "uiSettingHeaderFetchers": "Fetcher",
-    "uiSettingHeaderLogs": "Logs",
-    "uiSettingHeaderPhlex": "Phlex",
-    "uiSettingHeaderPlex": "Plex",
-    "uiSettingHookCustom": "Benutzerdefiniert",
-    "uiSettingHookCustomPhrase": "Benutzerdefinierte Antwort",
-    "uiSettingHookFetch": "Fetch",
-    "uiSettingHookGeneric": "URL:",
-    "uiSettingHookLabel": "Webhooks",
-    "uiSettingHookPause": "Pause",
-    "uiSettingHookPlayback": "Wiedergabe",
-    "uiSettingHookPlayHint": "?param={{media name}} wird angef\u00fcgt",
-    "uiSettingHookStop": "Stop",
-    "uiSettingHookUrlGeneral": "Webhook URL:",
-    "uiSettingInstallUpdates": "INSTALLIEREN",
-    "uiSettingLangEnglish": "Englisch",
-    "uiSettingLangFrench": "Franz\u00f6sisch",
-    "uiSettingLangGerman": "Deutsch",
-    "uiSettingLanguage": "Sprache:",
-    "uiSettingLinkAmazon": "LINK AMAZON",
-    "uiSettingLinkGoogle": "LINK GOOGLE",
-    "uiSettingLogCount": "Count:",
-    "uiSettingLogLevel": "Level:",
-    "uiSettingLogUpdate": "Update",
-    "uiSettingNoPlexDirect": "Kein Plex.Direct",
-    "uiSettingNoPlexDirectHint": "{EXPERIMENTELL) Aktiviere dies, wenn keine Verbindung zum Server hergestellt werden kann.",
-    "uiSettingObscureLogs": "Verschleiere sensible Daten in Logs",
-    "uiSettingOndeckRecent": "Anzahl der auf dem Deck befindlichen \/ zuletzt zur\u00fcckgegebenen Elemente:",
-    "uiSettingPlaybackServer": "Wiedergabeserver:",
-    "uiSettingPlexDVR": "Plex DVR",
-    "uiSettingPublicAddress": "\u00d6ffentliche Adresse:",
-    "uiSettingRefreshUpdates": "AKTUALISIEREN",
-    "uiSettingRescanHint": "Wie oft Ger\u00e4te neu zwischengespeichert werden.",
-    "uiSettingRescanInterval": "Intervall f\u00fcr Ger\u00e4tesuche (Minuten):",
-    "uiSettingSeparateHookUrl": "Separate URLs",
-    "uiSettingTestButton": "TEST",
-    "uiSettingThemeColor": "Dunkles Design einsetzen",
-    "uiSettingUpdates": "Updates",
-    "uiSettingUseCast": "Cast-Ger\u00e4te verwenden"
+	"speechWordAnd": "und",
+	"speechWordOkay": "okay",
+	"speechWordTo": "zu",
+	"suggestionCancel": "Stornieren.",
+	"suggestionCouch": "Laden Sie den Film Tron herunter.",
+	"suggestionDvr": "DVR Jeopardy.",
+	"suggestionSick": "Lade die Show Weeds.",
+	"suggestionYesNo": [
+		"Ja",
+		"Nein"
+	],
+	"uiGreetingDefault": "Hallo, ich bin Flex TV. Was kann ich f\u00fcr dich tun?",
+	"uiPageTitle": "Phlex Web",
+	"uiPlayerSelectPrompt": "W\u00e4hle einen zu kontrollierencen Player.",
+	"uiRescanDevices": "Rescan Geräte",
+	"uiSettingAccountLinking": "Kontoverkn\u00fcpfung:",
+	"uiSettingApiKey": "API Key:",
+	"uiSettingAutoUpdate": "Updates automatisch installieren",
+	"uiSettingBtnReset": "NEUSTART",
+	"uiSettingBtnTest": "TEST",
+	"uiSettingCopyIFTTT": "Klicken zum Kopieren einer IFTTT URL:",
+	"uiSettingDevices": "Statische Ger\u00e4te",
+	"uiSettingDevicesAddNew": "Neues Ger\u00e4t hinzuf\u00fcgen",
+	"uiSettingDevicesNameLabel": "Ger\u00e4tename",
+	"uiSettingDvrEndOffset": "End-Offset (Minuten):",
+	"uiSettingDvrNewAirings": "Nur neue Ausstrahlungen aufnehmen",
+	"uiSettingDvrRecordPartials": "Partielle Episoden aufzeichnen",
+	"uiSettingDvrReplaceLower": "Aufnahmen nidrigerer Qualit\u00e4t ersetzen",
+	"uiSettingDvrResolution": "Aufl\u00f6sung",
+	"uiSettingDvrResolutionAny": "Jede",
+	"uiSettingDvrResolutionHD": "High-Definition",
+	"uiSettingDvrServer": "DVR Server",
+	"uiSettingDvrStartOffset": "Start-Offset (Minuten):",
+	"uiSettingEnable": "Aktivieren",
+	"uiSettingFetcherPath": "Pfad (Optional)",
+	"uiSettingFetcherPort": "Port",
+	"uiSettingFetcherQualityProfile": "Qualit\u00e4tsprofil",
+	"uiSettingFetcherToken": "Token",
+	"uiSettingForceSSL": "SSL erzwingen",
+	"uiSettingForceSSLHint": "Erzwinge SSL wenn verf\u00fcgbar. Ben\u00f6tigt f\u00fcr Progressive Web Apps.",
+	"uiSettingGeneral": "Allgemein",
+	"uiSettingHeaderDevices": "Ger\u00e4te",
+	"uiSettingHeaderFetchers": "Fetcher",
+	"uiSettingHeaderLogs": "Logs",
+	"uiSettingHeaderPhlex": "Phlex",
+	"uiSettingHeaderPlex": "Plex",
+	"uiSettingHookCustom": "Benutzerdefiniert",
+	"uiSettingHookCustomPhrase": "Benutzerdefinierte Antwort",
+	"uiSettingHookFetch": "Fetch",
+	"uiSettingHookGeneric": "URL:",
+	"uiSettingHookLabel": "Webhooks",
+	"uiSettingHookPause": "Pause",
+	"uiSettingHookPlayback": "Wiedergabe",
+	"uiSettingHookPlayHint": "?param={{media name}} wird angef\u00fcgt",
+	"uiSettingHookStop": "Stop",
+	"uiSettingHookUrlGeneral": "Webhook URL:",
+	"uiSettingInstallUpdates": "INSTALLIEREN",
+	"uiSettingLangEnglish": "Englisch",
+	"uiSettingLangFrench": "Franz\u00f6sisch",
+	"uiSettingLangGerman": "Deutsch",
+	"uiSettingLanguage": "Sprache:",
+	"uiSettingLinkAmazon": "LINK AMAZON",
+	"uiSettingLinkGoogle": "LINK GOOGLE",
+	"uiSettingLogCount": "Count:",
+	"uiSettingLogLevel": "Level:",
+	"uiSettingLogUpdate": "Update",
+	"uiSettingNoPlexDirect": "Kein Plex.Direct",
+	"uiSettingNoPlexDirectHint": "{EXPERIMENTELL) Aktiviere dies, wenn keine Verbindung zum Server hergestellt werden kann.",
+	"uiSettingObscureLogs": "Verschleiere sensible Daten in Logs",
+	"uiSettingOndeckRecent": "Anzahl der auf dem Deck befindlichen \/ zuletzt zur\u00fcckgegebenen Elemente:",
+	"uiSettingPlaybackServer": "Wiedergabeserver:",
+	"uiSettingPlexDVR": "Plex DVR",
+	"uiSettingPublicAddress": "\u00d6ffentliche Adresse:",
+	"uiSettingRefreshUpdates": "AKTUALISIEREN",
+	"uiSettingRescanHint": "Wie oft Ger\u00e4te neu zwischengespeichert werden.",
+	"uiSettingRescanInterval": "Intervall f\u00fcr Ger\u00e4tesuche (Minuten):",
+	"uiSettingSeparateHookUrl": "Separate URLs",
+	"uiSettingTestButton": "TEST",
+	"uiSettingThemeColor": "Dunkles Design einsetzen",
+	"uiSettingUpdates": "Updates",
+	"uiSettingUseCast": "Cast-Ger\u00e4te verwenden"
 }

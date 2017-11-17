@@ -25,7 +25,7 @@ class Chromecast {
 	public $lastactivetime; // store the time we last did something
 	public $breakout; // A limiter for while loops
 
-	public function __construct($ip, $port,$breakout=5) {
+	public function __construct($ip, $port, $breakout = 5) {
 		write_log("Function fired.");
 		// Establish Chromecast connection
 
@@ -37,7 +37,7 @@ class Chromecast {
 
 		if ($this->socket = stream_socket_client('ssl://' . $ip . ":" . $port, $errno, $errstr, $breakout, STREAM_CLIENT_CONNECT, $context)) {
 		} else {
-		 	write_log("Failed to connect to remote Chromecast: ".$errstr, "ERROR");
+			write_log("Failed to connect to remote Chromecast: " . $errstr, "ERROR");
 			die();
 		}
 
@@ -332,9 +332,9 @@ class Chromecast {
 
 		$oldtransportid = $this->transportid;
 		$count = 0;
-		while (($this->transportid == "" || $this->transportid == $oldtransportid) && ($count < $this->breakout))  {
+		while (($this->transportid == "" || $this->transportid == $oldtransportid) && ($count < $this->breakout)) {
 			$r = $this->getCastMessage();
-			write_log("Looking for a cast message: ".$r);
+			write_log("Looking for a cast message: " . $r);
 			$count++;
 		}
 	}
@@ -359,7 +359,7 @@ class Chromecast {
 		$count = 0;
 		while (($this->transportid == "") && ($count < $this->breakout * 4)) {
 			$r = $this->getCastMessage();
-			if (preg_match("/controlType\"\:\"master\"/",$r) && !preg_match("/transportId/",$r)) {
+			if (preg_match("/controlType\"\:\"master\"/", $r) && !preg_match("/transportId/", $r)) {
 				// Assume this is nvidia shield.
 				$this->transportid = "generic-cast";
 				$this->sessionid = 0;
@@ -396,17 +396,21 @@ class Chromecast {
 		$this->testLive();
 		//stream_set_timeout($this->socket,1);
 		$response = fread($this->socket, 10000);
-		$response = preg_replace('/[[:^print:]]/','',$response);
+		$response = preg_replace('/[[:^print:]]/', '', $response);
 		$pongcount = 0;
 		while (preg_match("/urn:x-cast:com.google.cast.tp.heartbeat/", $response) && preg_match("/\"PING\"/", $response)) {
-			if ($response != "") { $this->pong(); }
-			$response = fread($this->socket, 10000);
-			write_log("Response: ".$response);
-			if ($response == "" || preg_match("/\"PING\"/",$response)) {
-				$pongcount++;
-				write_log("Pongcount: ".$pongcount);
+			if ($response != "") {
+				$this->pong();
 			}
-			if ($pongcount == 2) { break; }
+			$response = fread($this->socket, 10000);
+			write_log("Response: " . $response);
+			if ($response == "" || preg_match("/\"PING\"/", $response)) {
+				$pongcount++;
+				write_log("Pongcount: " . $pongcount);
+			}
+			if ($pongcount == 2) {
+				break;
+			}
 			set_time_limit(30);
 		}
 		if (preg_match("/transportId/s", $response)) {

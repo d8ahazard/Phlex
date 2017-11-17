@@ -1,130 +1,130 @@
 .card, .dropdown-menu, .modal-title, .queryBg {
-    background: rgba(0, 0, 0, 0.88);
-    color:#fff;
+	background: rgba(0, 0, 0, 0.88);
+	color: #fff;
 }
 
 .close {
-    color:#fff;
-    text-shadow: 0 1px 0 #868686;
-    opacity: .7;
+	color: #fff;
+	text-shadow: 0 1px 0 #868686;
+	opacity: .7;
 }
 
 .close:hover {
-    color:#fff;
-    text-shadow: 0 1px 0 #868686;
-    opacity: .5;
+	color: #fff;
+	text-shadow: 0 1px 0 #868686;
+	opacity: .5;
 }
 
 .dropdown-item {
-    color: #aaa;
+	color: #aaa;
 }
 
 .btnAdd, .btn-default {
-    color: #FFFFFF !important;
+	color: #FFFFFF !important;
 }
 
 .barBtn, .clientBtn, .sendBtn, #actionLabel, .dd-selected, a, .appLabel, label {
-    color:#3277d8 !important;
+	color: #3277d8 !important;
 }
 
 .ddLabel {
-    color: rgba(204, 204, 204, 0.87);
+	color: rgba(204, 204, 204, 0.87);
 }
 
 #commandTest {
-    color: #afafaf;
+	color: #afafaf;
 }
 
 .modal-body, .modal-header, .modal-footer {
-    background:#000;
+	background: #000;
 }
 
 .card-img-overlay {
-    background:radial-gradient(rgba(0, 0, 0, 0.2), black);
-    overflow:hidden;
+	background: radial-gradient(rgba(0, 0, 0, 0.2), black);
+	overflow: hidden;
 }
 
 .appContainer {
-    border: 1px solid #8e8e8e;
+	border: 1px solid #8e8e8e;
 }
 
 .userGroup * {
-    color: #8e8e8e;
+	color: #8e8e8e;
 }
 
 .btn-primary:hover {
-    background-color: #4285f4;
+	background-color: #4285f4;
 }
 
 .btn-info {
-    background-color: #416df4 !important;
+	background-color: #416df4 !important;
 }
 
 .btn-info:hover {
-    background-color: #748dff !important;
+	background-color: #748dff !important;
 }
 
 .form-control {
-    color: #9ba0a5;
+	color: #9ba0a5;
 }
 
 .card-inverse .card-subtitle, .card-inverse .card-text {
-    color: #fff;
+	color: #fff;
 }
 
 .card-inverse .card-blockquote, .card-inverse .card-footer, .card-inverse .card-header, .card-inverse .card-title {
-    color: #fff;
+	color: #fff;
 }
 
 .text-muted {
-    color: #818a91!important;
+	color: #818a91 !important;
 }
 
 .nowPlayingFooter {
-    background-color: rgba(214, 214, 214, 0.92);
+	background-color: rgba(214, 214, 214, 0.92);
 }
 
 .nowPlayingFooter * {
-    color:#000;
+	color: #000;
 }
 
 .snackbar {
-    background-color: rgba(214, 214, 214, 0.92);
-    color:#000;
+	background-color: rgba(214, 214, 214, 0.92);
+	color: #000;
 }
 
 .bootstrap-dialog-message {
-    color:#FFF;
+	color: #FFF;
 }
 
 .slider {
-    background: #000000;
+	background: #000000;
 }
 
 .noUi-base {
-    color:#000;
+	color: #000;
 }
 
 #alertBody {
-    color: #c1c1c1;
+	color: #c1c1c1;
 }
 
 .modal-backdrop {
-    background: rgb(255, 255, 255);
+	background: rgb(255, 255, 255);
 }
 
 .panel {
-    box-shadow: 0 1px 6px 0 rgba(255, 255, 255, 0.12), 0 1px 6px 0 rgba(255, 255, 255, 0.12);
+	box-shadow: 0 1px 6px 0 rgba(255, 255, 255, 0.12), 0 1px 6px 0 rgba(255, 255, 255, 0.12);
 }
 
 pre {
-    color: white !important;
+	color: white !important;
 }
 
 .modal-header {
-    color: #dfdfdf;
+	color: #dfdfdf;
 }
 
 .cardClose, #settingsClose {
-    color:#f0f0f0;
+	color: #f0f0f0;
 }

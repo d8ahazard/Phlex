@@ -16,7 +16,7 @@ class CastMessage {
 		// Deliberately represent this as a binary first (for readability and so it's obvious what's going on.
 		// speed impact doesn't really matter!)
 		$r = "";
-	
+
 		// First the protocol version
 		$r = "00001"; // Field Number 1
 		$r .= "000"; // Int
@@ -47,20 +47,24 @@ class CastMessage {
 		$r .= "00110"; // Field Number 6
 		$r .= "010"; // String
 		$r .= $this->stringToBin($this->payloadutf8);
-		
+
 		// Ignore payload_binary field 7 as never used
 
 		// Now convert it to a binary packet
 		$hexstring = "";
-		for ($i=0; $i < strlen($r); $i=$i+8) {
-			$thischunk = substr($r,$i,8);
+		for ($i = 0; $i < strlen($r); $i = $i + 8) {
+			$thischunk = substr($r, $i, 8);
 			$hx = dechex(bindec($thischunk));
-			if (strlen($hx) == 1) { $hx = "0" . $hx; }
+			if (strlen($hx) == 1) {
+				$hx = "0" . $hx;
+			}
 			$hexstring .= $hx;
 		}
 		$l = strlen($hexstring) / 2;
 		$l = dechex($l);
-		while (strlen($l) < 8) { $l = "0" . $l; }
+		while (strlen($l) < 8) {
+			$l = "0" . $l;
+		}
 		$hexstring = $l . $hexstring;
 		return hex2bin($hexstring);
 	}
@@ -70,7 +74,7 @@ class CastMessage {
 		// A variant is returned least significant part first.
 		// Number is represented in 7 bit portions. The 8th (MSB) of a byte represents if there
 		// is a following byte.
-		$r = array();
+		$r = [];
 		while ($inval / 128 > 1) {
 			$thisval = ($inval - ($inval % 128)) / 128;
 			array_push($r, $thisval);
@@ -81,9 +85,13 @@ class CastMessage {
 		$binaryString = "";
 		$c = 1;
 		foreach ($r as $num) {
-			if ($c != sizeof($r)) { $num = $num + 128; }
+			if ($c != sizeof($r)) {
+				$num = $num + 128;
+			}
 			$tv = decbin($num);
-			while (strlen($tv) < 8) { $tv = "0" . $tv; }
+			while (strlen($tv) < 8) {
+				$tv = "0" . $tv;
+			}
 			$c++;
 			$binaryString .= $tv;
 		}
@@ -97,8 +105,10 @@ class CastMessage {
 		$ret = "";
 		$ret = $this->varintToBin($l);
 		for ($i = 0; $i < $l; $i++) {
-			$n = decbin(ord(substr($string,$i,1)));
-			while (strlen($n) < 8) { $n = "0" . $n; }
+			$n = decbin(ord(substr($string, $i, 1)));
+			while (strlen($n) < 8) {
+				$n = "0" . $n;
+			}
 			$ret .= $n;
 		}
 		return $ret;

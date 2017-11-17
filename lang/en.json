@@ -4,19 +4,47 @@
 	"cardReadmeButton": "View Readme",
 	"cardReadmeTitle": "Welcome!",
 	"commandSynonymsArray": {
-		"play":["resume"],
-		"skip":["jump","go"],
-		"step":["seek"],
-		"forward":["ahead"],
-		"back":["backward"],
-		"seekBack":["rewind"],
-		"seek":["fast"],
-		"skipNext":["skip forward"],
-		"skipPrevious":["skip back"],
-		"stepForward":["fast forward","seek forward"],
-		"stepBack":["seek back"],
-		"volume up":["volume up"],
-		"volume down":["volume down"]
+		"play": [
+			"resume"
+		],
+		"skip": [
+			"jump",
+			"go"
+		],
+		"step": [
+			"seek"
+		],
+		"forward": [
+			"ahead"
+		],
+		"back": [
+			"backward"
+		],
+		"seekBack": [
+			"rewind"
+		],
+		"seek": [
+			"fast"
+		],
+		"skipNext": [
+			"skip forward"
+		],
+		"skipPrevious": [
+			"skip back"
+		],
+		"stepForward": [
+			"fast forward",
+			"seek forward"
+		],
+		"stepBack": [
+			"seek back"
+		],
+		"volume up": [
+			"volume up"
+		],
+		"volume down": [
+			"volume down"
+		]
 	},
 	"errorHelpSuggestionsArray": [
 		"Below are some suggestions you can try.",
@@ -30,11 +58,27 @@
 		"Play Batman Begins."
 	],
 	"fetchSynonymsArray": {
-		"season":["season"],
-		"episode":["episode"],
-		"movie":["movie,film"],
-		"show":["show","series"],
-		"latest":["latest","new","newest","most recent","the latest","the newest"]
+		"season": [
+			"season"
+		],
+		"episode": [
+			"episode"
+		],
+		"movie": [
+			"movie,film"
+		],
+		"show": [
+			"show",
+			"series"
+		],
+		"latest": [
+			"latest",
+			"new",
+			"newest",
+			"most recent",
+			"the latest",
+			"the newest"
+		]
 	},
 	"javaStrings": [
 		"How can I help?",
@@ -43,7 +87,7 @@
 		"My reply:",
 		"rescan devices"
 	],
-	"parseStripArray":[
+	"parseStripArray": [
 		"of",
 		"the",
 		"an",
@@ -57,14 +101,46 @@
 		"s",
 		"and"
 	],
-	"parseMediaArray":[
-		"season","series","show","episode","movie","film","beginning","rest","end","minutes","minute","hours","hour","seconds","second"
+	"parseMediaArray": [
+		"season",
+		"series",
+		"show",
+		"episode",
+		"movie",
+		"film",
+		"beginning",
+		"rest",
+		"end",
+		"minutes",
+		"minute",
+		"hours",
+		"hour",
+		"seconds",
+		"second"
 	],
-	"parseFilterArray":[
-		"genre","year","actor","director","directed","starring","featuring","with","made","created","released","filmed"
+	"parseFilterArray": [
+		"genre",
+		"year",
+		"actor",
+		"director",
+		"directed",
+		"starring",
+		"featuring",
+		"with",
+		"made",
+		"created",
+		"released",
+		"filmed"
 	],
-	"parseNumberArray":[
-		"first","pilot","second","third","last","final","latest","random"
+	"parseNumberArray": [
+		"first",
+		"pilot",
+		"second",
+		"third",
+		"last",
+		"final",
+		"latest",
+		"random"
 	],
 	"parsedDvrFailStart": "Add the media named ",
 	"parsedDvrSuccessNamed": " named ",

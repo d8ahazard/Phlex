@@ -3,10 +3,10 @@
 // Base class to extend to provide functionality for different receivers
 
 class CCBaseSender {
-	
+
 	public $chromecast; // The chromecast the initiated this instance.
 	public $mediaid; // The media session id.
-	
+
 	public function __construct($hostchromecast) {
 		$this->chromecast = $hostchromecast;
 	}
@@ -18,7 +18,7 @@ class CCBaseSender {
 		$this->chromecast->cc_connect();
 		$s = $this->chromecast->getStatus();
 		// Grab the appid
-		preg_match("/\"appId\":\"([^\"]*)/",$s,$m);
+		preg_match("/\"appId\":\"([^\"]*)/", $s, $m);
 		$appid = $m[1];
 		if ($appid == $this->appid) {
 			// Default Media Receiver is live
@@ -29,14 +29,14 @@ class CCBaseSender {
 			$this->chromecast->launch($this->appid);
 			$this->chromecast->transportid = "";
 			$r = "";
-			while (!preg_match("/Ready to Cast/",$r) && !preg_match("/Default Media Receiver/",$r)) {
+			while (!preg_match("/Ready to Cast/", $r) && !preg_match("/Default Media Receiver/", $r)) {
 				$r = $this->chromecast->getStatus();
 				sleep(1);
 			}
 			$this->chromecast->connect();
 		}
 	}
-	
+
 }
 
 ?>
