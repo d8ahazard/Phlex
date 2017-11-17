@@ -368,7 +368,7 @@ function flattenXML($xml){
 		if ($level === null) {
 			$level = 'DEBUG';
 		}
-		if (isset($_GET['pollPlayer']) || !file_exists($filename)) return;
+		if (isset($_GET['pollPlayer']) || !file_exists($filename) || (trim($text) === "")) return;
 		$caller = $caller ? $caller : getCaller();
 		$text = '['.date(DATE_RFC2822) . '] ['.$level.'] ['.$caller . "] - " . trim($text) . PHP_EOL;
 
@@ -1571,14 +1571,16 @@ function formatLog($logData) {
 		$sections = explode(" - ",$line);
 		preg_match_all("/\[([^\]]*)\]/", $sections[0], $matches);
 		$params = $matches[0];
-		$message = trim($sections[1]);
-		$message = preg_replace('~\{(?:[^{}]|(?R))*\}~', '', $message);
-		if ($message !== trim($sections[1])) $JSON = true;
-		if ($JSON) $JSON = str_replace($message,"",trim($sections[1]));
-		if (count($params)>= 3) {
-			$record = ['time' => substr($params[0],1,-1), 'level' => substr($params[1],1,-1), 'caller' => substr($params[2],1,-1), 'message' => $message];
-			if ($JSON) $record['JSON'] = trim($JSON);
-			array_push($records, $record);
+		if (count($sections) >= 2) {
+			$message = trim($sections[1]);
+			$message = preg_replace('~\{(?:[^{}]|(?R))*\}~', '', $message);
+			if ($message !== trim($sections[1])) $JSON = true;
+			if ($JSON) $JSON = str_replace($message, "", trim($sections[1]));
+			if (count($params) >= 3) {
+				$record = ['time' => substr($params[0], 1, -1), 'level' => substr($params[1], 1, -1), 'caller' => substr($params[2], 1, -1), 'message' => $message];
+				if ($JSON) $record['JSON'] = trim($JSON);
+				array_push($records, $record);
+			}
 		}
 	}
 	return json_encode($records);

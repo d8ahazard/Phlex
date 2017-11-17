@@ -75,7 +75,7 @@
             }
         </script>
         <script>
-            if(typeof window.history.pushState == 'function') {
+            if(typeof window.history.pushState === 'function') {
                 window.history.pushState({}, "Hide", '<?php echo $_SERVER['PHP_SELF'];?>');
             }
         </script>
@@ -112,7 +112,7 @@
         document.getElementById("holder").setAttribute("src","https://phlexchat.com/img.php?random&width="+width+"&height="+height);
 
         function loopMessages() {
-            $.each(messageArray, function(i,item) {
+            $.each(messageArray, function() {
                 if (messageArray[0] === undefined) return false;
                 var keepLooping = showMessage(messageArray[0].title,messageArray[0].message,messageArray[0].url);
                 messageArray.splice(0,1);
@@ -124,7 +124,7 @@
             if (Notification.permission === 'granted') {
                 var notification = new Notification(title, {
                     icon: './img/avatar.png',
-                    body: message,
+                    body: message
                 });
                 if (url) {
                     notification.onclick = function () {
@@ -138,13 +138,13 @@
                     Notification.requestPermission().then(function(result) {
                         if ((result=== 'denied') || (result === 'default')) {
                             $('#alertTitle').text(title);
-                            $('#alertBody p').text(message);
+                            $('#alertBody').find('p').text(message);
                             $('#alertModal').modal('show');
                         }
                     });
                 } else {
                     $('#alertTitle').text(title);
-                    $('#alertBody p').text(message);
+                    $('#alertBody').find('p').text(message);
                     $('#alertModal').modal('show');
                 }
                 return false;

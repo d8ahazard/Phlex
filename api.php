@@ -10,7 +10,6 @@ use digitalhigh\Radarr\Radarr;
 use Kryptonit3\SickRage\SickRage;
 use Kryptonit3\Sonarr\Sonarr;
 
-
 $config = new Config_Lite('config.ini.php');
 write_log("INCOMING REQUEST!!");
 setDefaults();
@@ -19,7 +18,6 @@ if (isset($_GET['revision'])) {
 	echo $rev ? substr($rev,0,8) : "unknown";
 	die;
 }
-
 
 //This needs to check if it's a login attempt.
 // If it is, then it should return an apiToken...or something.
@@ -116,7 +114,7 @@ function initialize() {
 		$result['dologout'] = $_SESSION['dologout'];
 		$lines = $_GET['logLimit'] ?? 50;
 		$result['logs'] = formatLog(tail(file_build_path(dirname(__FILE__),"logs","Phlex.log"),$lines));
-		if ($_SESSION['updateAvailable']) $result['updateAvailable'] = $_SESSION['updateAvailable'];
+		$result['updateAvailable'] = $_SESSION['updateAvailable'] ?? false;
 		header('Content-Type: application/json');
 		echo JSON_ENCODE($result);
 		die();
@@ -176,8 +174,8 @@ function initialize() {
 		$publicUri = $_GET['publicUri'];
 		$name = $_GET['name'];
 		$product = $_GET['product'];
-		write_log('New device selected. Type is ' . $type . ". ID is " . $id . ". Name is " . $name,"INFO");
 		if ($id != 'rescan') {
+			write_log('New device selected. Type is ' . $type . ". ID is " . $id . ". Name is " . $name,"INFO");
 			if ($type == 'plexServerId') {
 				$token = $_GET['token'];
 				$GLOBALS['config']->set('user-_-' . $_SESSION['plexUserName'], $type . 'Token', $token);
@@ -204,7 +202,6 @@ function initialize() {
 
 	// If we are changing a setting variable via the web UI.
 	if (isset($_GET['id'])) {
-		$preData = $_SESSION;
 		$id = $_GET['id'];
 		$value = $_GET['value'];
 		write_log("VAR CHANGE: $id = $value");
@@ -220,9 +217,6 @@ function initialize() {
 
 		saveConfig($GLOBALS['config']);
 		$_SESSION[$id] = $value;
-		$postData = $_SESSION;
-		$diffData = array_diff($postData,$preData);
-		write_log("Different data: ".json_encode($diffData));
 		if ((trim($id) === 'useCast') || (trim($id) === 'noLoop')) scanDevices(true);
 		if ($id == "appLanguage")checkSetLanguage($value);
 		die();
@@ -2013,7 +2007,6 @@ function scanDevices($force=false) {
 				}
 				if (isset($device['uri'])) array_push($clients,$device);
 			}
-			$devices = ['clients'=>$clients,'servers'=>$servers];
 		}
 
 		if (count($servers)) {
@@ -2145,9 +2138,9 @@ function fetchClientList($devices) {
 			$uri = $client['uri'];
 			$product = $client['product'];
 			$displayName = $name;
-			$options.='<a class="dropdown-item client-item'.(($selected) ? ' dd-selected':'').'" href="#" product="'.$product.'" value="'.$id.'" name="'.$name.'" uri="'.$uri.'">'.ucwords($displayName).'</a>';
+			$options.='<a class="dropdown-item client-item'.(($selected) ? ' dd-selected':'').'" href="#" data-product="'.$product.'" data-value="'.$id.'" name="'.$name.'" data-uri="'.$uri.'">'.ucwords($displayName).'</a>';
 		}
-		$options.='<a class="dropdown-item client-item" value="rescan"><b>rescan devices</b></a>';
+		$options.='<a class="dropdown-item client-item" data-value="rescan"><b>rescan devices</b></a>';
 	}
 	return $options;
 }
@@ -2166,9 +2159,9 @@ function fetchServerList($devices) {
 			$token = $client['token'];
 			$product = $client['product'];
 			$publicAddress = $client['publicUri'] ?? "";
-			$options .= '<option type="plexServer" publicUri="'. $publicAddress .'" product="'.$product.'" value="'
+			$options .= '<option type="plexServer" data-publicuri="'. $publicAddress .'" data-product="'.$product.'" value="'
 				.$id
-				.'" uri="'.$uri.'" name="'.$name.'" '.' token="'.$token.'" '.($selected ? ' selected':'').'>'.ucwords($name).'</option>';
+				.'" data-uri="'.$uri.'" name="'.$name.'" '.' data-token="'.$token.'" '.($selected ? ' selected':'').'>'.ucwords($name).'</option>';
 		}
 	}
 	return $options;
@@ -2188,7 +2181,7 @@ function fetchDVRList($devices) {
 			$product = $client['product'];
 			$key = $client['key'];
 			$publicAddress = (isset($client['publicUri']) ? " publicAddress='".$client['publicUri']."'" : "");
-			$options .= '<option type="plexDvr" '. $publicAddress .' product="'.$product.'" value="'.$id.'" key="'.$key.'" uri="'.$uri.'" name="'.$name.'" token="'.$token.'" '.($selected ? ' selected':'').'>'.ucwords($name).'</option>';
+			$options .= '<option type="plexDvr" '. $publicAddress .' data-product="'.$product.'" value="'.$id.'" data-key="'.$key.'" data-uri="'.$uri.'" name="'.$name.'" data-token="'.$token.'" '.($selected ? ' selected':'').'>'.ucwords($name).'</option>';
 		}
 	}
 	return $options;
@@ -3500,13 +3493,13 @@ function metaTags() {
 		'<meta id="serverURI" data="' . $_SESSION['plexServerUri'] . '"/>' . PHP_EOL .
 		'<meta id="clientURI" data="' . $_SESSION['plexClientUri'] . '"/>' . PHP_EOL .
 		'<meta id="clientName" data="' . $_SESSION['plexClientName'] . '"/>' . PHP_EOL .
-		'<meta id="plexDvr" enable="' . $dvr . '" uri="' . $_SESSION['plexDvrUri'] . '"/>' . PHP_EOL .
+		'<meta id="plexDvr" data-enable="' . $dvr . '"/>' . PHP_EOL .
 		'<meta id="rez" value="' . $_SESSION['plexDvrResolution'] . '"/>' . PHP_EOL .
-		'<meta id="couchpotato" enable=' . $_SESSION['couchEnabled'] . ' ip="' . ($_SESSION['couchIP'] ?? "http://localhost") . '" port="' . $_SESSION['couchPort'] . '" auth="' . $_SESSION['couchAuth'] . '"/>' . PHP_EOL .
-		'<meta id="sonarr" enable=' . $_SESSION['sonarrEnabled'] . ' ip="' . ($_SESSION['sonarrIP'] ?? "http://localhost") . '" port="' . ($_SESSION['sonarrPort'] ?? "8989") . '" auth="' . $_SESSION['sonarrAuth'] . '"/>' . PHP_EOL .
-		'<meta id="sick" enable=' . $_SESSION['sickEnabled'] . ' ip="' . $_SESSION['sickIP'] . '" port="' . $_SESSION['sickPort'] . '" auth="' . $_SESSION['auth_sick'] . '"/>' . PHP_EOL .
-		'<meta id="radarr" enable=' . $_SESSION['radarrEnabled'] . ' ip="' . ($_SESSION['radarrIP'] ?? "http://localhost") . '" port="' . $_SESSION['radarrPort'] . '" auth="' . $_SESSION['radarrAuth'] . '"/>' . PHP_EOL .
-		'<meta id="ombi" enable=' . $_SESSION['ombiEnabled'] . ' ip="' . ($_SESSION['sickIP'] ?? "http://localhost") . '" port="' . $_SESSION['ombiPort'] . '" auth="' . $_SESSION['auth_ombi'] . '"/>' . PHP_EOL .
+		'<meta id="couchpotato" data-enable="' . $_SESSION['couchEnabled'] . '"/>' . PHP_EOL .
+		'<meta id="sonarr" data-enable="' . $_SESSION['sonarrEnabled'] . '"/>' . PHP_EOL .
+		'<meta id="sick" data-enable="' . $_SESSION['sickEnabled'] . '"/>' . PHP_EOL .
+		'<meta id="radarr" data-enable="' . $_SESSION['radarrEnabled'] . '"/>' . PHP_EOL .
+		'<meta id="ombi" data-enable="' . $_SESSION['ombiEnabled'] . '"/>' . PHP_EOL .
 		'<meta id="logData" data="' . $commandData . '"/>'. PHP_EOL ;
 	return $tags;
 }
@@ -4221,8 +4214,6 @@ function fetchList($serviceName) {
 		case "ombi":
 			if ($_SESSION['ombiList']) {
 				$list = $_SESSION['ombi'];
-			} else {
-				#TODO Add ombi list when new API is available
 			}
 			break;
 		case "sonarr":
@@ -4256,7 +4247,7 @@ function fetchList($serviceName) {
 	$html = PHP_EOL;
 	if ($list) {
 		foreach ($list as $id => $name) {
-			$html .= "<option index='" . $id . "' id='" . $name . "' " . (($selected == $id) ? 'selected' : '') . ">" . $name . "</option>".PHP_EOL;
+			$html .= "<option data-index='" . $id . "' id='" . $name . "' " . (($selected == $id) ? 'selected' : '') . ">" . $name . "</option>".PHP_EOL;
 		}
 	}
 	return $html;
@@ -4528,6 +4519,7 @@ function returnAlexaSpeech($speech, $contextName, $cards, $waitForResponse, $sug
 	write_log("Function fired!");
 	ob_start();
 	$endSession = ! $waitForResponse;
+	write_log("ContextName, Suggestions: $contextName $suggestions");
 	write_log("I ".($endSession ? "should ": "shouldn't ")."end the session.");
 	$response = [
 		"version"=>"1.0",

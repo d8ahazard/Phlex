@@ -98,7 +98,7 @@ function makeBody($newToken = false) {
 			                            </div>
 			                            <div class="dropdown-menu" id="plexClient" aria-labelledby="dropdownMenuLink">
 			                                <div id="clientWrapper">
-			                                	<a class="dropdown-item client-item" value="rescan"><b>'.$lang['uiRescanDevices'].'</b></a>
+			                                	<a class="dropdown-item client-item" id="rescan"><b>'.$lang['uiRescanDevices'].'</b></a>
 			                                </div>
 			                            </div>
 			                            <a href="" id="settings" class="btn btn-sm barBtn" data-toggle="modal" data-target="#settingsModal"><i class="material-icons barIcon">settings</i></a>
