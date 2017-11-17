@@ -62,7 +62,7 @@ function validateToken($token) {
 
 function cleanCommandString($string) {
 	$string = trim(strtolower($string));
-	$string = preg_replace("#[[:punct:]]#", "", $string);
+	$string = preg_replace("/[^\w\']+|\'(?!\w)|(?<!\w)\'/", "", $string);
 	$string = preg_replace("/ask Flex TV/", "", $string);
 	$string = preg_replace("/tell Flex TV/", "", $string);
 	$string = preg_replace("/Flex TV/", "", $string);
