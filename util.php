@@ -310,9 +310,9 @@ function flattenXML($xml){
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL,$url);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $timeout);
-        curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
-		curl_setopt ($ch, CURLOPT_CAINFO, $cert);
+		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $timeout);
+		curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
+		curl_setopt($ch, CURLOPT_CAINFO, $cert);
 		if ($headers !== null) curl_setopt($ch, CURLOPT_HTTPHEADER,$headers);
 		$result = curl_exec($ch);
 		if (!curl_errno($ch)) {
@@ -320,7 +320,7 @@ function flattenXML($xml){
 				case 200:
 					break;
 				default:
-					write_log('Unexpected HTTP code: '. $http_code.', URL: '.$url, "ERROR");
+					write_log('Unexpected HTTP code: '. $http_code.', URL: '. $url .', Headers: '. json_encode($headers) .', Result: '. $result, "ERROR");
 					$result = false;
 			}
 		}

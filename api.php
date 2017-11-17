@@ -466,9 +466,6 @@ function setSessionVariables($rescan=true) {
 		'&X-Plex-Device-Name=Phlex'.
 		'&X-Plex-Device-Screen-Resolution=1520x707,1680x1050,1920x1080'.
 		'&X-Plex-Token='.$_SESSION['plexToken'];
-
-	// Q&D Variable with the plex target client header
-	$_SESSION['plexClientHeader']='&X-Plex-Target-Client-Identifier='.$_SESSION['plexClientId'];
 }
 
 // Log our current session variables
@@ -3083,7 +3080,6 @@ function playMediaDirect($media) {
 		'&address=' .$serverIP.
 		'&port=' .$serverPort.
 		'&path='.urlencode($_SESSION['plexServerUri'].'/'.$media['key']).
-		'&X-Plex-Target-Client-Identifier='.$_SESSION['plexClientId'].
 		'&token=' .$transientToken;
 	$status = playerCommand($playUrl);
 	write_log('Playback URL is ' . protectURL($playUrl),"INFO");
@@ -3110,8 +3106,7 @@ function playMediaRelayed($media) {
 		'&port=' .$serverPort.
 		'&containerKey=%2FplayQueues%2F'.$queueID.'%3Fown%3D1%26window%3D200'.
 		'&token=' .$transientToken.
-		'&commandID='.$_SESSION['counter'].
-		clientString();
+		'&commandID='.$_SESSION['counter'];
 	$headers = clientHeaders();
 	$result = curlGet($playUrl,$headers);
 	write_log('Playback URL is ' . protectURL($playUrl));
