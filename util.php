@@ -62,13 +62,15 @@ function validateToken($token) {
 
 function cleanCommandString($string) {
 	$string = trim(strtolower($string));
-	$string = preg_replace("/[^\w\']+|\'(?!\w)|(?<!\w)\'/", "", $string);
 	$string = preg_replace("/ask Flex TV/", "", $string);
 	$string = preg_replace("/tell Flex TV/", "", $string);
 	$string = preg_replace("/Flex TV/", "", $string);
 	$stringArray = explode(" ", $string);
 	$stripIn = ["of", "an", "a", "at", "th", "nd", "in", "from", "and"];
 	$stringArray = array_diff($stringArray, array_intersect($stringArray, $stripIn));
+	foreach ($stringArray as &$word) {
+		$word = preg_replace("/[^\w\']+|\'(?!\w)|(?<!\w)\'/", "", $word);
+	}
 	$result = implode(" ", $stringArray);
 	return $result;
 }
