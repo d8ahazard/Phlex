@@ -695,7 +695,7 @@ function fetchDirectory($id = 1) {
 function setDefaults() {
 	ini_set("log_errors", 1);
 	ini_set('max_execution_time', 300);
-	error_reporting(E_ALL);
+	error_reporting(E_ERROR);
 	$errorLogPath = file_build_path(dirname(__FILE__), 'logs', "Phlex_error.log");
 	ini_set("error_log", $errorLogPath);
 	date_default_timezone_set((date_default_timezone_get() ? date_default_timezone_get() : "America/Chicago"));
