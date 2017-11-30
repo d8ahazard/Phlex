@@ -156,7 +156,7 @@ $(function () {
 		}
 
 		if ($(this).hasClass("testInput")) {
-			value = $(this).data('value');
+			value = $(this).val();
 			apiToken = $('#apiTokenData').attr('data');
 			$.get('api.php?test=' + value + '&apiToken=' + apiToken, function (data) {
 				var dataArray = [data];
