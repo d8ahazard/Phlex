@@ -2218,13 +2218,13 @@ function fetchInfo($matrix) {
 		foreach ($matchup as $key => $mod) {
 			switch ($key) {
 				case 'hh':
-					$offset += $mod * 60 * 60 * 1000;
+					$offset += $mod * 60 * 60;
 					break;
 				case 'mm':
-					$offset += $mod * 60 * 1000;
+					$offset += $mod * 60;
 					break;
 				case 'ss':
-					$offset += $mod * 1000;
+					$offset += $mod;
 					break;
 				case 'offset':
 					$offset = $mod;
