@@ -94,23 +94,14 @@ function initialize() {
 		while (!feof($handle)) {
 			$contents .= fgets($handle);
 		}
-		$devs = [];
-		foreach ($_SESSION as $var => $value) {
-			if (preg_match("/device_[0-9]/", $var)) {
-				write_log("Got a device variable: $var = $value");
-				$vars = explode("_", $var);
-				write_log("Vars: " . json_encode($vars));
-				$devs[$vars[1]][$vars[2]] = $value;
-			}
-		}
-		write_log("Devs: " . json_encode($devs));
-		$result['devs'] = $devs;
 		$result['commands'] = urlencode(($contents));
 		$devices = scanDevices();
 		$result['players'] = $devices['clients'];
 		$result['servers'] = fetchServerList($devices);
 		$result['dvrs'] = fetchDVRList($devices);
 		$result['updates'] = checkUpdates();
+		$static = fetchStaticDevices();
+		if ($static) $result['static'] = $static;
 		$result['dologout'] = $_SESSION['dologout'];
 		$lines = $_GET['logLimit'] ?? 50;
 		$result['logs'] = formatLog(tail(file_build_path(dirname(__FILE__), "logs", "Phlex.log"), $lines));
@@ -157,13 +148,10 @@ function initialize() {
 	}
 
 	if (isset($_GET['newDevice'])) {
-		$devJSON = json_decode($_GET['newDevice'], true);
 		write_log("Device JSON? " . json_encode($devJSON));
-		$device = 'device_' . $devJSON['id'] . '_';
-		$GLOBALS['config']->set('user-_-' . $_SESSION['plexUserName'], $device . 'Name', $devJSON['name']);
-		$GLOBALS['config']->set('user-_-' . $_SESSION['plexUserName'], $device . 'IP', $devJSON['ip']);
-		$GLOBALS['config']->set('user-_-' . $_SESSION['plexUserName'], $device . 'Port', $devJSON['port']);
-		saveConfig($GLOBALS['config']);
+		$token = createStaticDevice();
+		echo json_encode(["DEVICE" => $token]);
+		die;
 	}
 
 
@@ -199,6 +187,14 @@ function initialize() {
 		}
 		die();
 	}
+	
+	if (isset($_GET['deleteDevice'])) {
+		$id = $_GET['id'];
+		write_log("Gonna delete device with ID of " . $id);
+		deleteStaticDevice($id);
+		scanDevices(true);
+		die();
+	}
 
 	// If we are changing a setting variable via the web UI.
 	if (isset($_GET['id'])) {
@@ -208,6 +204,15 @@ function initialize() {
 		$value = str_replace("?logout", "", $value);
 		if (preg_match("/IP/", $id) && !preg_match("/device/", $id)) $value = addScheme($value);
 		if (preg_match("/Path/", $id)) if ((substr($value, 0, 1) != "/") && (trim($value) !== "")) $value = "/" . $value;
+		if (preg_match("/static_/",$id)) {
+			$devId = explode("_",$id)[1];
+			$subKey = str_replace(array('[',']'),'',explode("_",$id)[2]);
+			$device = $GLOBALS['config']->get('user-_-'.$_SESSION['plexUserName'],"static_".$devId."_");
+			$device[$subKey] = $value;
+			$GLOBALS['config']->set('user-_-'.$_SESSION['plexUserName'],'static_'.$devId."_",$device);
+			saveConfig($GLOBALS['config']);
+			die();
+		}
 		$section = ($id === 'forceSSL') ? 'general' : 'user-_-' . $_SESSION['plexUserName'];
 		if (is_bool($value) === true) {
 			$GLOBALS['config']->setBool($section, $id, $value);
@@ -1950,6 +1955,33 @@ function scanDevices($force = false) {
 				if (!$skip) array_push($clients, $device);
 			}
 		}
+
+		$static = fetchStaticDevices();
+		if ($static) {
+			$newClients = [];
+			foreach ($clients as $check) {
+				$skip = false;
+				foreach($static as $device) {
+					$ip = parse_url($device['uri'])['host'];
+					$i = 2;
+					$dname = preg_replace("/[^a-zA-Z]/", "", $device['name']);
+					$cname = preg_replace("/[^a-zA-Z]/", "", $check['name']);
+					if ($dname == $cname) {
+						$device['name'] .= " ($i)";
+						$i++;
+					}
+					foreach ($check['connections'] as $connection) {
+						if ($connection['address'] === $ip) {
+							write_log("Skipping device: " . $dname);
+							$skip = true;
+						}
+					}
+				}
+				if (!$skip) array_push($newClients, $check);
+			}
+			$clients = array_merge($newClients,$static);
+		}
+
 		if (count($clients)) {
 			foreach ($clients as &$client) {
 				if (isset($_SESSION['plexClientId'])) {
@@ -1962,6 +1994,7 @@ function scanDevices($force = false) {
 				}
 			}
 		}
+
 		$results['servers'] = $servers;
 		$results['clients'] = $clients;
 		$results['dvrs'] = $dvrs;
@@ -2014,6 +2047,42 @@ function fetchSections() {
 	return $sections;
 }
 
+function createStaticDevice() {
+	$cfg = $GLOBALS['config'];
+	write_log("Creating new static device entry.","INFO");
+	$token = randomToken(10);
+	$device = [
+		'name' => 'New Device',
+		'id' => $token,
+		'uri' => 'http://127.0.0.1:8009',
+		'product' => 'cast'
+	];
+	foreach($device as $key=>$value) {
+		$cfg->set('user-_-'.$_SESSION['plexUserName'],"static_".$token."_[$key]",$value);
+	}
+	saveConfig($cfg);
+	return $device;
+}
+function fetchStaticDevices() {
+	$devices = [];
+	$cfg = $GLOBALS['config'];
+	$userArray = $cfg['user-_-'.$_SESSION['plexUserName']];
+	if (count($userArray)) {
+		foreach($userArray as $key=>$value) {
+			if (preg_match("/static_/",$key) && is_array($value)) {
+				array_push($devices,$value);
+			}
+		}
+	}
+	return (count($devices) ? $devices : false);
+}
+
+function deleteStaticDevice($id) {
+	$cfg = $GLOBALS['config'];
+	$cfg->remove('user-_-'.$_SESSION['plexUserName'],'static_'.$id.'_');
+	saveConfig($cfg);
+
+}
 /// What used to be a big ugly THING is now just a wrapper and parser of the result of scanDevices
 function fetchClientList($devices) {
 	$options = "";

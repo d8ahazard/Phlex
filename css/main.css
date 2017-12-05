@@ -65,6 +65,15 @@ html {
 	right: 25px;
 }
 
+.deviceDelete {
+	color: #0f0f0f;
+	z-index: 10;
+	background: transparent;
+	border: none;
+	position: absolute;
+	top: 10px;
+	right: 10px;
+}
 #settingsClose {
 	right: 20px;
 	top: 5px;
@@ -605,6 +614,8 @@ select {
 .avatar {
 	float: left;
 	border-radius: 5px;
+	margin-right:10px;
+	margin-bottom:15px;
 }
 
 .no-gutters {
@@ -686,9 +697,6 @@ select {
 	color: #0062ec;
 }
 
-#deviceSettingsTab, #deviceSettingsHeader {
-	display: none;
-}
 
 #deviceBody {
 	padding-bottom: 80px;

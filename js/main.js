@@ -2,9 +2,9 @@ var action = "play";
 var appName, autoUpdate, bgs, bgWrap, token, newToken, deviceID, resultDuration, logLevel, lastLog, itemJSON, apiToken,
 	messageArray, ombi, couch, sonarr, radarr, sick, publicIP, dvr, weatherClass, city, state, updateAvailable,
 	weatherHtml;
-var lastDevices = "foo";
 var condition = null;
 var devices = lastUpdate = [];
+var lastDevices = 0;
 var javaStrings;
 
 $(function () {
@@ -315,13 +315,16 @@ $(function () {
 	});
 
 	$('#deviceFab').click(function () {
-		var newDev = createStaticDevice();
-		$('#deviceBody').append(newDev[0]);
-		//setListeners();
 		apiToken = $('#apiTokenData').attr('data');
+		$.getJSON('api.php?apiToken=' + apiToken + '&newDevice=true',function(data){
+			if(data.hasOwnProperty('DEVICE')) {
+				var newDevice = data.DEVICE;
+				console.log("SUCCESS: ", newDevice);
+				var newDev = createStaticDevice(newDevice.id,newDevice.name,newDevice.uri,newDevice.product);
+		$('#deviceBody').append(newDev[0]);
 		console.log("Dev1? ", newDev[1]);
-
-		$.get('api.php?apiToken=' + apiToken + '&newDevice=' + JSON.stringify(newDev[1]));
+			}
+		});
 
 	});
 
@@ -732,17 +735,22 @@ function updateStatus() {
 				showMessage("An update is available.", "An update is available for Phlex.  Click here to install it now.", 'api.php?apiToken=' + apiToken + '&installUpdates=true');
 			}
 
-			//devices = data.devs;
-			var devHtml = "";
-			var devCount = devices.length;
-			if (JSON.stringify(devices) !== JSON.stringify(lastDevices)) {
-				$.each(data.devs, function (id, device) {
-					var devString = createStaticDevice(device.Name, device.IP, device.Port, id);
-					devHtml += devString[0];
-				});
-				$('#deviceBody').append(devHtml);
-				//setListeners();
-				if (devices.length !== devCount) lastDevices = devices;
+			if (data.hasOwnProperty('static')) {
+				devices = data.static;
+				var count = devices.length;
+				var devHtml = "";
+				if (count !== lastDevices) {
+					console.log("They're not equal, setting to match.");
+					$.each(devices, function (id, device) {
+						var devString = createStaticDevice(device.id, device.name, device.uri, device.product);
+						devHtml += devString[0];
+					});
+					$('#deviceBody').append(devHtml);
+					lastDevices = count;
+				}
+				console.log("Devices2: ",JSON.stringify(devices));
+				console.log("LastDevices2: ",lastDevices);
+
 			}
 
 			ddText = $('.dd-selected').text();
@@ -1200,33 +1208,34 @@ function imgError(image) {
 	return true;
 }
 
-function createStaticDevice(name, ip, port, id) {
-	if (!id) id = devices.length + 1;
-	if (!name) name = "New Device " + id;
-	if (!ip) ip = "0.0.0.0";
-	if (!port) port = "8009";
-	var nameString = 'device_' + id + '_Name';
-	var ipString = 'device_' + id + '_IP';
-	var portString = 'device_' + id + '_Port';
+function createStaticDevice(id, name, uri, product) {
+	var nameString = 'static_' + id + '_Name';
+	var ipString = 'static_' + id + '_URI';
+	var productString = 'static_' + id + '_Product';
 	var device = {
 		'name': name,
-		'ip': ip,
-		'port': port
+		'URI': uri,
+		'product':product
 	};
 
 
 	devices.push({id: device});
 	device['id'] = id;
-	var dataString = "<div class='card'>" +
+	var dataString = "<div class='card' id='dev_"+id+"'>" +
+			'<button id="' + id + '" class="deviceDelete"><span class="material-icons">close</span></button>' +
 		"<div class='card-header'>" +
-		'<label for="device_' + id + '_Name" class="appLabel">Device Name:' +
-		"<input type='text' id='device_" + id + "_Name' value='" + name + "' class='appInput form-control'/>" +
+			'<label for="static_' + id + '_[Name]" class="appLabel">Device Name:' +
+			"<input type='text' id='static_" + id + "_[name]' value='" + name + "' class='appInput form-control'/>" +
 		'</label>' +
-		'<label for="device_' + id + '_IP" class="appLabel">IP Address:' +
-		"<input type='text' id='device_" + id + "_IP' value='" + ip + "' required pattern=\"^([0-9]{1,3}\\.){3}[0-9]{1,3}$\" class='appInput form-control'/>" +
+			'<label for="static_' + id + '_[Uri]" class="appLabel">URI:' +
+			"<input type='text' id='static_" + id + "_[uri]' value='" + uri + "' required pattern=\[-a-zA-Z0-9@:%._\\+~#=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%_\\+.~#?&//=]*)\" class='appInput form-control'/>" +
 		'</label>' +
-		'<label for="device_' + id + '_Port" class="appLabel">Port:' +
-		"<input type='text' id='device_" + id + "_Port' value='" + port + "' required pattern=\"^([0-9]{1,4}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$\" class='appInput form-control'/>" +
+			'<label for="static_' + id + '_[product]" class="appLabel">Type:' +
+			"<select id='static_" + id + "_[product]' class='appInput form-control'>" +
+				'<option value="cast"'+(product === 'cast' ? 'selected' : '')+'>Cast</option>' +
+				'<option value="direct"'+(product === 'direct' ? 'selected': '')+'>Direct</option>' +
+				'<option value="indirect"'+(product === 'indirect' ? 'selected': '')+'>Indirect</option>' +
+			"</select>" +
 		'</label>' +
 		"</div>" +
 		"</div>";
@@ -1238,9 +1247,19 @@ function deleteStaticDevice(id) {
 }
 
 function setListeners() {
-	$("input").change(function () {
 		var id;
-		if ($(this).hasClass("appInput")) {
+	$(document).on('click', '.deviceDelete', function(){
+		id = $(this).attr('id');
+		console.log("Gonna delete static device " + id);
+		apiToken = $('#apiTokenData').attr('data');
+		$.get('api.php?apiToken=' + apiToken, {deleteDevice:true,id: id}, function () {
+		});
+		var devCard = $("#dev_" + id);
+		devCard.slideUp();
+		devCard.remove();
+	});
+
+	$(document).on('change', '.appInput', function(){
 			id = $(this).attr('id');
 			var value;
 			if (($(this).attr('type') === 'checkbox') || ($(this).attr('type') === 'radio')) {
@@ -1267,6 +1286,5 @@ function setListeners() {
 					$('#' + id + 'Profile').html(data);
 				})
 			}
-		}
 	});
 }
