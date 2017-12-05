@@ -10,7 +10,7 @@ use digitalhigh\Radarr\Radarr;
 use Kryptonit3\SickRage\SickRage;
 use Kryptonit3\Sonarr\Sonarr;
 
-$config = new Config_Lite('config.ini.php');
+$config = new Config_Lite('config.ini.php', LOCK_EX);
 write_log("INCOMING REQUEST!!");
 setDefaults();
 if (isset($_GET['revision'])) {

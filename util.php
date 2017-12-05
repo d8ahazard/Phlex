@@ -10,7 +10,6 @@ require_once dirname(__FILE__) . '/vendor/autoload.php';
 function checkSetUser(Array $userData) {
 	// Check that we have generated an API token for our user, create and save one if none exists
 	$userName = $userData['plexUserName'];
-	$GLOBALS['config'] = new Config_Lite(dirname(__FILE__) . '/config.ini.php');
 	$apiToken = false;
 	foreach ($GLOBALS['config'] as $section => $user) {
 		if ($section != "general") {
@@ -675,7 +674,7 @@ function signIn($credString) {
 }
 
 function checkSetDeviceID() {
-	$config = new Config_Lite('config.ini.php');
+	$config = new Config_Lite('config.ini.php', LOCK_EX);
 	$deviceID = $config->get('general', 'deviceID', false);
 	if (!$deviceID) {
 		$deviceID = randomToken(12);
@@ -693,6 +692,7 @@ function fetchDirectory($id = 1) {
 }
 
 function setDefaults() {
+	$GLOBALS['config'] = new Config_Lite(dirname(__FILE__) . '/config.ini.php', LOCK_EX);
 	ini_set("log_errors", 1);
 	ini_set('max_execution_time', 300);
 	error_reporting(E_ERROR);
@@ -1809,9 +1809,12 @@ function checkUpdates($install = false) {
 				$revision = $repo->getRev();
 				$logHistory = readUpdate();
 				if ($revision) {
-					$config = new Config_Lite('config.ini.php');
-					$config->set('general', 'revision', $revision);
-					saveConfig($config);
+					$config = new Config_Lite('config.ini.php', LOCK_EX);
+					$old = $config->get('general','revision',false);
+					if ($old !== $revision) {
+						$config->set('general', 'revision', $revision);
+						saveConfig($config);
+					}
 				}
 				if (count($logHistory)) $installed = $logHistory[0]['installed'];
 				$header = '<div class="cardHeader">
