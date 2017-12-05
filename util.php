@@ -368,7 +368,7 @@ function write_log($text, $level = null, $caller = false) {
 	$caller = $caller ? $caller : getCaller();
 	$text = '[' . date(DATE_RFC2822) . '] [' . $level . '] [' . $caller . "] - " . trim($text) . PHP_EOL;
 
-	if (filesize($filename) > 2 * 1024 * 1024) {
+	if (filesize($filename) > 10 * 1024 * 1024) {
 		$filename2 = "$filename.old";
 		if (file_exists($filename2)) unlink($filename2);
 		rename($filename, $filename2);
