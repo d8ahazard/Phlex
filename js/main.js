@@ -39,13 +39,11 @@ $(function () {
 	deviceID = $('#deviceID').attr('data');
 	publicIP = $('#publicIP').attr('data');
 	newToken = $('#newToken').data('enable') === "true";
-	sonarr = $('#sonarr').data('enable') === "true";
-	sick = $('#sick').data('enable') === "true";
-	couch = $('#couchpotato').data('enable') === "true";
-	console.log("COUCH: " + couch);
-	radarr = $('#radarr').data('enable') === "true";
-	ombi = $('#ombi').data('enable') === "true";
-	autoUpdate = $('#autoUpdate').data('enable') === "true";
+	sonarr = $('#sonarr').data('enable');
+	sick = $('#sick').data('enable');
+	couch = $('#couchpotato').data('enable');
+	radarr = $('#radarr').data('enable');
+	ombi = $('#ombi').data('enable');
 	updateAvailable = $('#updateAvailable').attr('data');
 	$.material.init();
 	var Logdata = $('#logData').attr('data');
@@ -156,7 +154,7 @@ $(function () {
 		}
 
 		if ($(this).hasClass("testInput")) {
-			value = $(this).data('value');
+			value = $(this).attr('value');
 			apiToken = $('#apiTokenData').attr('data');
 			$.get('api.php?test=' + value + '&apiToken=' + apiToken, function (data) {
 				var dataArray = [data];
