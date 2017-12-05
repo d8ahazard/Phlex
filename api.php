@@ -148,7 +148,6 @@ function initialize() {
 	}
 
 	if (isset($_GET['newDevice'])) {
-		write_log("Device JSON? " . json_encode($devJSON));
 		$token = createStaticDevice();
 		echo json_encode(["DEVICE" => $token]);
 		die;
