@@ -338,6 +338,8 @@
 	"uiSettingRefreshUpdates": "ACTUALISER",
 	"uiSettingRescanHint": "Fréquence de re-mise en cache des appareils",
 	"uiSettingRescanInterval": "Intervalle de rescan de l'appareil (minutes) :",
+	"uiSettingSearchAccuracy": "Précision de recherche (%):",
+	"uiSettingDebugging": "Activer le débogage",
 	"uiSettingSeparateHookUrl": "Séparez les URL",
 	"uiSettingTestButton": "TESTER",
 	"uiSettingThemeColor": "Utilisez le thème sombre",

@@ -12,65 +12,11 @@ function makeBody($newToken = false) {
 	}
 	$config = new Config_Lite('config.ini.php');
 	$lang = checkSetLanguage();
+	$devices = scanDevices();
+	$clientList = fetchClientList($devices);
+	$dvrList = fetchDVRList($devices);
+	$serverList = fetchServerList($devices);
 
-	$_SESSION['couchEnabled'] = $config->get('user-_-' . $_SESSION['plexUserName'], 'couchEnabled', false);
-	$_SESSION['ombiEnabled'] = $config->get('user-_-' . $_SESSION['plexUserName'], 'ombiEnabled', false);
-	$_SESSION['sonarrEnabled'] = $config->get('user-_-' . $_SESSION['plexUserName'], 'sonarrEnabled', false);
-	$_SESSION['sickEnabled'] = $config->get('user-_-' . $_SESSION['plexUserName'], 'sickEnabled', false);
-	$_SESSION['radarrEnabled'] = $config->get('user-_-' . $_SESSION['plexUserName'], 'radarrEnabled', false);
-
-	$_SESSION['returnItems'] = $config->get('user-_-' . $_SESSION['plexUserName'], 'returnItems', "6");
-	$_SESSION['rescanTime'] = $config->get('user-_-' . $_SESSION['plexUserName'], 'rescanTime', "6");
-
-	$_SESSION['couchIP'] = $config->get('user-_-' . $_SESSION['plexUserName'], 'couchIP', 'http://localhost');
-	$_SESSION['ombiIP'] = $config->get('user-_-' . $_SESSION['plexUserName'], 'ombiIP', 'http://localhost');
-	$_SESSION['sonarrIP'] = $config->get('user-_-' . $_SESSION['plexUserName'], 'sonarrIP', 'http://localhost');
-	$_SESSION['sickIP'] = $config->get('user-_-' . $_SESSION['plexUserName'], 'sickIP', 'http://localhost');
-	$_SESSION['radarrIP'] = $config->get('user-_-' . $_SESSION['plexUserName'], 'radarrIP', 'http://localhost');
-
-	$_SESSION['couchPath'] = $config->get('user-_-' . $_SESSION['plexUserName'], 'couchPath', '');
-	$_SESSION['radarrPath'] = $config->get('user-_-' . $_SESSION['plexUserName'], 'radarrPath', '');
-	$_SESSION['sickPath'] = $config->get('user-_-' . $_SESSION['plexUserName'], 'sickPath', '');
-	$_SESSION['sonarrPath'] = $config->get('user-_-' . $_SESSION['plexUserName'], 'sonarrPath', '');
-
-	$_SESSION['couchPort'] = $config->get('user-_-' . $_SESSION['plexUserName'], 'couchPort', '5050');
-	$_SESSION['ombiPort'] = $config->get('user-_-' . $_SESSION['plexUserName'], 'ombiPort', '3579');
-	$_SESSION['sonarrPort'] = $config->get('user-_-' . $_SESSION['plexUserName'], 'sonarrPort', '8989');
-	$_SESSION['sickPort'] = $config->get('user-_-' . $_SESSION['plexUserName'], 'sickPort', '8083');
-	$_SESSION['radarrPort'] = $config->get('user-_-' . $_SESSION['plexUserName'], 'radarrPort', '7878');
-
-	$_SESSION['couchAuth'] = $config->get('user-_-' . $_SESSION['plexUserName'], 'couchAuth', '');
-	$_SESSION['ombiAuth'] = $config->get('user-_-' . $_SESSION['plexUserName'], 'ombiAuth', '');
-	$_SESSION['sonarrAuth'] = $config->get('user-_-' . $_SESSION['plexUserName'], 'sonarrAuth', '');
-	$_SESSION['sickAuth'] = $config->get('user-_-' . $_SESSION['plexUserName'], 'sickAuth', '');
-	$_SESSION['radarrAuth'] = $config->get('user-_-' . $_SESSION['plexUserName'], 'radarrAuth', '');
-
-	$_SESSION['useCast'] = $config->getBool('user-_-' . $_SESSION['plexUserName'], 'useCast', false);
-	$_SESSION['noLoop'] = $config->getBool('user-_-' . $_SESSION['plexUserName'], 'noLoop', false);
-	$_SESSION['autoUpdate'] = $config->getBool('user-_-' . $_SESSION['plexUserName'], 'autoUpdate', false);
-	$_SESSION['cleanLogs'] = $config->getBool('user-_-' . $_SESSION['plexUserName'], 'cleanLogs', true);
-	$_SESSION['darkTheme'] = $config->getBool('user-_-' . $_SESSION['plexUserName'], 'darkTheme', false);
-	$_SESSION['forceSSL'] = $config->getBool('general', 'forceSSL', false);
-
-	$_SESSION['plexDvrResolution'] = $config->getBool('user-_-' . $_SESSION['plexUserName'], 'plexDvrResolution', "0");
-	$_SESSION['plexDvrNewAirings'] = $config->getBool('user-_-' . $_SESSION['plexUserName'], 'plexDvrNewAirings', true);
-	$_SESSION['dvr_replacelower'] = $config->getBool('user-_-' . $_SESSION['plexUserName'], 'dvr_replacelower', true);
-	$_SESSION['dvr_recordpartials'] = $config->getBool('user-_-' . $_SESSION['plexUserName'], 'dvr_recordpartials', false);
-	$_SESSION['plexDvrStartOffset'] = $config->get('user-_-' . $_SESSION['plexUserName'], 'plexDvrStartOffset', 2);
-	$_SESSION['plexDvrEndOffset'] = $config->get('user-_-' . $_SESSION['plexUserName'], 'plexDvrEndOffset', 2);
-	$_SESSION['plexDvrResolution'] = $config->get('user-_-' . $_SESSION['plexUserName'], 'plexDvrResolution', 0);
-
-	$_SESSION['hookEnabled'] = $config->getBool('user-_-' . $_SESSION['plexUserName'], 'hookEnabled', false);
-	$_SESSION['hookSplit'] = $config->getBool('user-_-' . $_SESSION['plexUserName'], 'hookSplit', false);
-	$_SESSION['hookPlay'] = $config->getBool('user-_-' . $_SESSION['plexUserName'], 'hookPlay', false);
-	$_SESSION['hookPaused'] = $config->getBool('user-_-' . $_SESSION['plexUserName'], 'hookPaused', false);
-	$_SESSION['hookStop'] = $config->getBool('user-_-' . $_SESSION['plexUserName'], 'hookStop', false);
-	$_SESSION['hookFetch'] = $config->getBool('user-_-' . $_SESSION['plexUserName'], 'hookFetch', false);
-	$_SESSION['hookCustom'] = $config->getBool('user-_-' . $_SESSION['plexUserName'], 'hookCustom', false);
-	$_SESSION['hookCustomReply'] = $config->get('user-_-' . $_SESSION['plexUserName'], 'hookCustomReply', "");
-
-	$ipString = fetchUrl();
-	$_SESSION['publicAddress'] = $config->get('user-_-' . $_SESSION['plexUserName'], 'publicAddress', $ipString);
 	$bodyText = ($_SESSION['darkTheme'] ? '<link href="./css/dark.css" rel="stylesheet">' : '') . PHP_EOL . '			<div id="body" class="row justify-content-center">
 				<div class="wrapper col-xs-12 col-lg-8 col-xl-5" id="mainwrap">
 			        <div class="queryWrap col-xs-12" id="queryCard">
@@ -97,7 +43,7 @@ function makeBody($newToken = false) {
 			                            </div>
 			                            <div class="dropdown-menu" id="plexClient" aria-labelledby="dropdownMenuLink">
 			                                <div id="clientWrapper">
-			                                	<a class="dropdown-item client-item" id="rescan"><b>' . $lang['uiRescanDevices'] . '</b></a>
+			                                	'.$clientList.'
 			                                </div>
 			                            </div>
 			                            <a href="" id="settings" class="btn btn-sm barBtn" data-toggle="modal" data-target="#settingsModal"><i class="material-icons barIcon">settings</i></a>
@@ -167,6 +113,13 @@ function makeBody($newToken = false) {
 					                            </div>
 					                            <div class="form-group">
 					                                <div class="form-group">
+					                                    <label for="searchAccuracy" class="appLabel">' . $lang['uiSettingSearchAccuracy'] . '
+					                                        <input id="searchAccuracy" class="appInput form-control" type="number" min="5" max="100" value="' . $_SESSION["searchAccuracy"] . '" />
+					                                    </label>
+					                                </div>
+					                            </div>
+					                            <div class="form-group">
+					                                <div class="form-group">
 					                                    <label for="rescanTime" class="appLabel">' . $lang['uiSettingRescanInterval'] . '
 					                                        <input id="rescanTime" class="appInput form-control" type="number" min="5" max="30" value="' . $_SESSION["rescanTime"] . '" />
 					                                        <span class="bmd-help">' . $lang['uiSettingRescanHint'] . '</span>
@@ -184,11 +137,17 @@ function makeBody($newToken = false) {
 					                                </label>
 					                            </div>
 					                            <div class="togglebutton">
+					                                <label for="Debug" class="appLabel checkLabel">' . $lang['uiSettingDebugging'] . '
+					                                    <input id="Debug" class="appInput" type="checkbox" ' . ($_SESSION["Debug"] ? "checked" : "") . '/>
+					                                </label>
+					                            </div>
+					                            <div class="togglebutton">
 					                                <label for="forceSSL" class="appLabel checkLabel">' . $lang['uiSettingForceSSL'] . '
 					                                    <input id="forceSSL" class="appInput" type="checkbox" ' . ($_SESSION["forceSSL"] ? "checked" : "") . '/>
 					                                </label>
 					                                <span class="bmd-help">' . $lang['uiSettingForceSSLHint'] . '</span>
 					                            </div>
+					                            
 					                            <div class="form-group text-center">
 					                                <div class="form-group">
 					                                    <label for="linkAccount">' . $lang['uiSettingAccountLinking'] . '</label><br>
@@ -340,6 +299,7 @@ function makeBody($newToken = false) {
 				                                <div class="form-group">
 				                                    <label class="appLabel" for="serverList">' . $lang['uiSettingPlaybackServer'] . '</label>
 				                                    <select class="form-control custom-select" id="serverList">
+				                                    '.$serverList.'
 				                                    </select>
 				                                    <br><br>
 			                                    </div>
@@ -350,14 +310,12 @@ function makeBody($newToken = false) {
 					                                    </label>
 					                                </div>
 					                            </div>
-				                                <div class="form-group">
+					                            <div class="form-group">
 				                                    <div class="togglebutton">
 				                                        <label for="useCast" class="appLabel checkLabel">' . $lang['uiSettingUseCast'] . '
 				                                            <input id="useCast" type="checkbox" class="appInput appToggle" ' . ($_SESSION["useCast"] ? "checked" : "") . '/>
 				                                        </label>
 				                                    </div>
-				                                </div>
-				                                <div class="form-group">
 				                                    <div class="togglebutton">
 				                                        <label for="noLoop" class="appLabel checkLabel">' . $lang['uiSettingNoPlexDirect'] . '
 				                                            <input id="noLoop" type="checkbox" class="appInput appToggle" ' . ($_SESSION["noLoop"] ? "checked" : "") . '/><br>
@@ -365,7 +323,6 @@ function makeBody($newToken = false) {
 			                                            <span class="bmd-help">' . $lang['uiSettingNoPlexDirectHint'] . '</span>
 				                                    </div>
 				                                </div>
-				                                
 				                                <div class="text-center">
 				                                    <div class="form-group btn-group">
 				                                        <button value="Plex" class="testInput btn btn-raised btn-info btn-100" type="button">' . $lang['uiSettingBtnTest'] . '</button>
@@ -380,7 +337,7 @@ function makeBody($newToken = false) {
 					                                <div class="form-group">
 					                                    <label class="appLabel" for="dvrList">' . $lang['uiSettingDvrServer'] . '</label>
 					                                    <select class="form-control custom-select" id="dvrList">
-					
+															'.$dvrList.'
 					                                    </select>
 					                                </div>
 					                                <div class="form-group">
@@ -390,24 +347,23 @@ function makeBody($newToken = false) {
 					                                        <option value="720" ' . ($_SESSION["plexDvrResolution"] == 720 ? "selected" : "") . ' >' . $lang['uiSettingDvrResolutionHD'] . '</option>
 					                                    </select>
 					                                </div>
-					                                <br>
-					                                <div class="togglebutton">
-					                                    <label for="plexDvrNewAirings" class="appLabel checkLabel">' . $lang['uiSettingDvrNewAirings'] . '
-					                                        <input id="plexDvrNewAirings" type="checkbox" class="appInput" ' . ($_SESSION["plexDvrNewAirings"] ? "checked" : "") . ' />
-					                                    </label>
-					                                </div>
-					                                <br>
-					                                <div class="togglebutton">
-					                                    <label for="plexDvrReplaceLower" class="appLabel checkLabel">' . $lang['uiSettingDvrReplaceLower'] . '
-					                                        <input id="plexDvrReplaceLower" type="checkbox" class="appInput" ' . ($_SESSION["plexDvrReplaceLower"] ? " checked " : "") . ' />
-					                                    </label>
-					                                </div>
-					                                <br>
-					                                <div class="togglebutton">
-					                                    <label for="plexDvrRecordPartials" class="appLabel checkLabel">' . $lang['uiSettingDvrRecordPartials'] . '
-					                                        <input id="plexDvrRecordPartials" type="checkbox" class="appInput" ' . ($_SESSION["plexDvrRecordPartials"] ? "checked" : "") . ' />
-					                                    </label>
-					                                </div>
+					                                <div class="form-group">
+						                                <div class="togglebutton">
+						                                    <label for="plexDvrNewAirings" class="appLabel checkLabel">' . $lang['uiSettingDvrNewAirings'] . '
+						                                        <input id="plexDvrNewAirings" type="checkbox" class="appInput" ' . ($_SESSION["plexDvrNewAirings"] ? "checked" : "") . ' />
+						                                    </label>
+						                                </div>
+						                                <div class="togglebutton">
+						                                    <label for="plexDvrReplaceLower" class="appLabel checkLabel">' . $lang['uiSettingDvrReplaceLower'] . '
+						                                        <input id="plexDvrReplaceLower" type="checkbox" class="appInput" ' . ($_SESSION["plexDvrReplaceLower"] ? " checked " : "") . ' />
+						                                    </label>
+						                                </div>
+						                                <div class="togglebutton">
+						                                    <label for="plexDvrRecordPartials" class="appLabel checkLabel">' . $lang['uiSettingDvrRecordPartials'] . '
+						                                        <input id="plexDvrRecordPartials" type="checkbox" class="appInput" ' . ($_SESSION["plexDvrRecordPartials"] ? "checked" : "") . ' />
+						                                    </label>
+					                                    </div>
+				                                    </div>
 					                                <div class="form-group">
 					                                    <label for="plexDvrStartOffset" class="appLabel">' . $lang['uiSettingDvrStartOffset'] . '
 					                                        <input id="plexDvrStartOffset" class="appInput form-control" type="number" min="1" max="30" value="' . $_SESSION["plexDvrStartOffset"] . '" />
@@ -415,7 +371,7 @@ function makeBody($newToken = false) {
 					                                </div>
 					                                <div class="form-group">
 					                                    <label for="dvr_endoffset" class="appLabel">' . $lang['uiSettingDvrEndOffset'] . '
-					                                        <input id="dvr_endoffset" class="appInput form-control" type="number" min="1" max="30" value="' . $_SESSION["dvr_endoffset"] . '" />
+					                                        <input id="dvr_endoffset" class="appInput form-control" type="number" min="1" max="30" value="' . $_SESSION["plexDvrEndOffset"] . '" />
 					                                    </label>
 					                                </div>
 					

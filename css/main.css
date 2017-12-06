@@ -735,9 +735,14 @@ select {
 	font-size: x-large;
 }
 
+span.toggle {
+	margin-right: 5px !important;
+}
+
 .card-subtitle {
-	color: darkgray;
+	color: #545454;
 	margin-bottom: 10px;
+	text-shadow: -1px 1px 0 #ffffffd4;
 }
 
 .card-description {

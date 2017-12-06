@@ -390,6 +390,8 @@
 	"uiSettingRefreshUpdates": "AKTUALISIEREN",
 	"uiSettingRescanHint": "Wie oft Ger\u00e4te neu zwischengespeichert werden.",
 	"uiSettingRescanInterval": "Intervall f\u00fcr Ger\u00e4tesuche (Minuten):",
+	"UiSettingSearchAccuracy": "Genauigkeit suchen:",
+	"uiSettingDebugging": "Debuggen aktivieren",
 	"uiSettingSeparateHookUrl": "Separate URLs",
 	"uiSettingTestButton": "TEST",
 	"uiSettingThemeColor": "Dunkles Design einsetzen",

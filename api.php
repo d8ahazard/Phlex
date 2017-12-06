@@ -149,6 +149,7 @@ function initialize() {
 
 	if (isset($_GET['newDevice'])) {
 		$token = createStaticDevice();
+		scanDevices(false,$token);
 		echo json_encode(["DEVICE" => $token]);
 		die;
 	}
@@ -446,7 +447,29 @@ function setSessionVariables($rescan = true) {
 		}
 	}
 
-	$defaults = ['returnItems' => '6', 'rescanTime' => '6', 'couchIP' => 'http://localhost', 'ombiIP' => 'http://localhost', 'sonarrIP' => 'http://localhost', 'sickIP' => 'http://localhost', 'radarrIP' => 'http://localhost', 'couchPort' => '5050', 'ombiPort' => '3579', 'sonarrPort' => '8989', 'sickPort' => '8083', 'radarrPort' => '7878', 'apiClientToken' => '', 'apiDevToken' => '', 'dvr_resolution' => '0', 'plexDvrNewAirings' => 'true', 'plexDvrStartOffset' => '2', 'plexDvrEndOffset' => '2', 'plexDvrResolution' => '0', 'appLanguage' => 'en'];
+	$defaults = ['returnItems' => '6',
+	             'rescanTime' => '6',
+	             'couchIP' => 'http://localhost',
+	             'ombiIP' => 'http://localhost',
+	             'sonarrIP' => 'http://localhost',
+	             'sickIP' => 'http://localhost',
+	             'radarrIP' => 'http://localhost',
+	             'couchPort' => '5050',
+	             'ombiPort' => '3579',
+	             'sonarrPort' => '8989',
+	             'sickPort' => '8083',
+	             'radarrPort' => '7878',
+	             'apiClientToken' => '',
+	             'apiDevToken' => '',
+	             'dvr_resolution' => '0',
+	             'plexDvrNewAirings' => 'true',
+	             'plexDvrStartOffset' => '2',
+	             'plexDvrEndOffset' => '2',
+	             'plexDvrResolution' => '0',
+	             'appLanguage' => 'en',
+	             'debugging' => false,
+	             'searchAccuracy' => '70'
+		];
 	foreach ($defaults as $key => $value) {
 		if (!isset($_SESSION[$key])) $_SESSION[$key] = $value;
 	}
@@ -1285,17 +1308,23 @@ function parseApiCommand($request) {
 			if ($action == 'playfromlist') {
 				$cleanedRaw = cleanCommandString($rawspeech);
 				$list = $_SESSION['mediaList'] ?? json_decode(base64_decode($GLOBALS['config']->get('user-_-' . $_SESSION['plexUserName'], 'mlist', false)), true);
+				$target = intval($_SESSION['searchAccuracy']) * .1;
 				foreach ($list as $mediaItem) {
 					$title = cleanCommandString($mediaItem['title']);
 					$weight = similarity($title, $cleanedRaw);
-					$sameYear = (trim($command) === trim($mediaItem['year']));
-					if (($weight >= .8) || $sameYear) {
+					$year = $mediaItem['year'];
+					$sameYear = (trim($command) === trim($year));
+					if (($weight >= $target) || $sameYear) {
 						$mediaResult = [$mediaItem];
 						break;
 					}
 					$title .= " " . $mediaItem['year'];
 					$weight = similarity($title, $cleanedRaw);
-					if (($weight >= .8) || $sameYear) {
+					if (($weight >= $target) || $sameYear) {
+						$mediaResult = [$mediaItem];
+						break;
+					}
+					if (preg_match("/$cleanedRaw/",$title) || preg_match("/$year/",$title)) {
 						$mediaResult = [$mediaItem];
 						break;
 					}
@@ -1695,14 +1724,17 @@ function changeDevice($command) {
 	if (isset($list) && isset($type)) {
 		$typeString = (($type == 'player') ? 'client' : 'server');
 		$score = 0;
+		$target = intval($_SESSION['searchAccuracy']) * .1;
 		foreach ($list as $device) {
 			$value = similarity(cleanCommandString($device['name']), cleanCommandString($command));
-			if (($value >= .7) && ($value >= $score)) {
+			if (($value >= $target) && ($value >= $score)) {
 				write_log("Found a matching device: " . $device['name'], "INFO");
 				$result = $device;
 				$score = $value;
 			}
+			if (preg_match("/$command/",$device['name'])) $result = $device;
 		}
+
 		if ($result) {
 			$speech = buildSpeech($_SESSION['lang']['speechChangeDeviceSuccessStart'], $typeString, $_SESSION['lang']['speechWordTo'], $command . ".");
 			$contextName = 'waitforplayer';
@@ -1772,96 +1804,71 @@ function NumbersToWord($data) {
 
 // The process of fetching and storing devices is too damned tedious.
 // This aims to address that.
-function scanDevices($force = false) {
+function scanDevices($force = false, $newStatic=false) {
 	$castDevices = $clients = $devices = $dvrs = $results = $servers = [];
 	$localContainer = false;
 	$now = microtime(true);
 	$rescanTime = $_SESSION['rescanTime'] ?? 8;
 	$lastCheck = $_SESSION['last_fetch'] ?? ceil(round($now) / 60) - $rescanTime;
 	$list = $_SESSION['list_plexdevices'];
-	$diffSeconds = round($now - $lastCheck);
-	$diffMinutes = ceil($diffSeconds / 60);
+	$diffMinutes = ceil(round($now - $lastCheck) / 60);
+	if ($force) write_log("Force-recaching devices.", "INFO");
+	if ($diffMinutes >= $rescanTime) write_log("Recaching due to timer: " . $diffMinutes . " versus " . $_SESSION['rescanTime'], "INFO");
+	if (!count($list['servers'])) write_log("Recaching due to missing servers.", "WARN");
 
 	// Set things up to be recached
 	if (($diffMinutes >= $rescanTime) || $force || (!count($list['servers']))) {
-		if ($force) write_log("Force-recaching devices.", "INFO");
-		if ($diffMinutes >= $rescanTime) {
-			write_log("Recaching due to timer: " . $diffMinutes . " versus " . $_SESSION['rescanTime'], "INFO");
-			checkUpdates();
-		}
-		if (!count($list['servers'])) write_log("Recaching due to missing servers.", "WARN");
+
 		$_SESSION['last_fetch'] = $now;
 
-		if ($_SESSION['useCast']) {
-			$castDevices = fetchCastDevices();
-		}
 		$url = 'https://plex.tv/api/resources';
-		$httpsQuery = '?includeHttps=1&includeRelay=0&X-Plex-Token=' . $_SESSION['plexToken'];
-		$noHttpsQuery = '?includeHttps=0&includeRelay=0&X-Plex-Token=' . $_SESSION['plexToken'];
+		$https = !$_SESSION['noLoop'];
+		$query = "?includeHttps=$https&includeRelay=$https&X-Plex-Token=" . $_SESSION['plexToken'];
+		$container = simplexml_load_string(doRequest(['uri' => $url, 'query' => $query], 3));
 
-		$container = simplexml_load_string(doRequest(['uri' => $url, 'query' => $httpsQuery], 2));
-		$httpsContainer = $_SESSION['noLoop'] ? [] : simplexml_load_string(doRequest(['uri' => $url, 'query' => $noHttpsQuery], 2));
-
-		if (isset($_SESSION['plexServerUri'])) {
-			$query = '/clients?X-Plex-Token=' . $_SESSION['plexServerToken'];
-			$localContainer = simplexml_load_string(doRequest(['uri' => $_SESSION['plexServerUri'], 'query' => $query]));
+		if ($container) {
+			$devices = flattenXML($container);
+			foreach ($devices['Device'] as $device) if ($device['presence'] == "1" && count($device['Connection'])) array_push($devices, $device);
+			$devices = sortDevices($devices);
 		}
 
-		// Combine http, https, and local device connections into one array
-
-		if ($container && $httpsContainer) {
-			$httpDevices = flattenXML($container);
-			$httpsDevices = $_SESSION['noLoop'] ? [] : flattenXML($httpsContainer);
-
-			// Merge http and https info
-			foreach ($httpDevices['Device'] as $httpDevice) {
-				foreach ($httpsDevices['Device'] as $httpsDevice) {
-					if ($httpsDevice['clientIdentifier'] == $httpDevice['clientIdentifier']) {
-						$connections = array_merge($httpsDevice['Connection'], $httpDevice['Connection']);
-						$httpDevice['Connection'] = array_reverse($connections);
-						if ($httpDevice['presence'] == "1" && count($httpDevice['Connection'])) array_push($devices, $httpDevice);
-					}
-				}
+		$query = '/clients?X-Plex-Token=' . $_SESSION['plexServerToken'];
+		if (isset($_SESSION['plexServerUri'])) {
+			$localContainer = simplexml_load_string(doRequest(['uri' => $_SESSION['plexServerUri'], 'query' => $query]));
+		} else {
+			write_log("No session server set, trying to use first fetched one.");
+			if (count($devices['servers'])) {
+				$uri = $devices['servers'][0]['Connection'][0]['uri'];
+				$localContainer = simplexml_load_string(doRequest(['uri' => $uri, 'query' => $query]));
 			}
+		}
 
-			// If local devices are found, merge them too.
-			if (is_array($localContainer) && count($localContainer)) {
-				$localDevices = $localContainer;
-				$devices2 = [];
-				foreach ($localDevices->Server as $localDevice) {
-					$localDevice = json_decode(json_encode($localDevice), true)['@attributes'];
-					foreach ($devices as &$device) {
-						if ($localDevice['machineIdentifier'] !== $device['clientIdentifier']) {
-							array_push($devices2, $device);
-						} else {
-							write_log("Removing global device " . $device['name']);
-						}
-					}
-					$device2 = ['name' => $localDevice['name'], 'clientIdentifier' => $localDevice['machineIdentifier'], 'publicAddress' => 'http://' . $localDevice['address'] . ":" . $localDevice['port'], 'httpsRequired' => false, 'Connection' => ['protocol' => 'http', 'uri' => 'http://' . $localDevice['address'] . ":" . $localDevice['port'], 'address' => $localDevice['address'], 'port' => $localDevice['port'], 'local' => "1"], 'product' => $localDevice['product'], 'platform' => $localDevice['deviceClass'], 'owned' => "1"];
-					array_push($devices2, $device2);
-				}
-				if (count($devices2)) $devices = $devices2;
+		// If local devices are found, merge them too.
+		if ($localContainer) {
+			$localDevices = flattenXML($localContainer);
+			$devices2 = [];
+			$localDevices = $localDevices['Server'];
+			if (!is_array($localDevices[0])) $localDevices = [$localDevices];
+			foreach ($localDevices as $localDevice) {
+				$device = [
+					'name' => $localDevice['name'],
+					'clientIdentifier' => $localDevice['machineIdentifier'],
+					'publicAddress' => 'http://' . $localDevice['address'] . ":" . $localDevice['port'],
+					'httpsRequired' => false,
+					'product' => $localDevice['product'],
+					'platform' => $localDevice['deviceClass'],
+					'owned' => "1",
+					'Connection' => [
+						'protocol' => 'http',
+						'uri' => 'http://' . $localDevice['address'] . ":" . $localDevice['port'],
+						'address' => $localDevice['address'],
+						'port' => $localDevice['port'],
+						'local' => "1"
+					]
+				];
+				array_push($devices2, $device);
 			}
-			$nameArray = [];
-			// Clean up and sort merged device list
-			foreach ($devices as $device) {
-				$device = ['name' => $device['name'], 'id' => $device['clientIdentifier'], 'token' => $device['accessToken'] ?? $_SESSION['plexToken'], 'product' => $device['product'], 'httpsRequired' => $device['httpsRequired'] === "1" ? true : false, 'publicAddress' => $device['httpsRequired'] === "1" ? 'https://' : 'http://' . $device['publicAddress'], 'owned' => $device['owned'] === "1" ? true : false, 'platform' => $device['platform'], 'publicAddressMatches' => $device['publicAddressMatches'] === "1" ? true : false, 'connections' => (is_array($device['Connection'][0]) ? $device['Connection'] : [$device['Connection']])];
-
-				// Check for and clean up duplicate device name
-				$i = 2;
-				foreach ($nameArray as $check) {
-					$dname = preg_replace("/[^a-zA-Z]/", "", $device['name']);
-					$cname = preg_replace("/[^a-zA-Z]/", "", $check);
-					if ($dname == $cname) {
-						$device['name'] .= " ($i)";
-						$i++;
-					}
-				}
-				if ($device['product'] === 'Plex Media Server') array_push($servers, $device); else array_push($clients, $device);
-				array_push($nameArray, $device['name']);
-			}
-			unset($devices, $nameArray);
-			$devices = ['servers' => $servers, 'clients' => $clients];
+			array_merge($devices,sortDevices($devices2));
 		}
 
 		// Check set URI and public URI for servers, testing both http and https variables
@@ -1931,6 +1938,8 @@ function scanDevices($force = false) {
 				}
 			}
 		}
+
+		if ($_SESSION['useCast']) $castDevices = fetchCastDevices();
 		if ($castDevices) {
 			write_log("Found cast devices: " . json_encode($castDevices), "INFO");
 			foreach ($castDevices as $device) {
@@ -1946,7 +1955,7 @@ function scanDevices($force = false) {
 					}
 					foreach ($check['connections'] as $connection) {
 						if ($connection['address'] === $ip) {
-							write_log("Skipping device: " . $dname);
+							write_log("Skipping cast device: " . $dname);
 							$skip = true;
 						}
 					}
@@ -1956,32 +1965,11 @@ function scanDevices($force = false) {
 		}
 
 		$static = fetchStaticDevices();
-		if ($static) {
-			$newClients = [];
-			foreach ($clients as $check) {
-				$skip = false;
-				foreach($static as $device) {
-					$ip = parse_url($device['uri'])['host'];
-					$i = 2;
-					$dname = preg_replace("/[^a-zA-Z]/", "", $device['name']);
-					$cname = preg_replace("/[^a-zA-Z]/", "", $check['name']);
-					if ($dname == $cname) {
-						$device['name'] .= " ($i)";
-						$i++;
-					}
-					foreach ($check['connections'] as $connection) {
-						if ($connection['address'] === $ip) {
-							write_log("Skipping device: " . $dname);
-							$skip = true;
-						}
-					}
-				}
-				if (!$skip) array_push($newClients, $check);
-			}
-			$clients = array_merge($newClients,$static);
-		}
+
+		if ($static) $clients = array_merge($clients,$static);
 
 		if (count($clients)) {
+			$clients = removeDuplicates($clients);
 			foreach ($clients as &$client) {
 				if (isset($_SESSION['plexClientId'])) {
 					if ($_SESSION['plexClientId'] == $client['id']) {
@@ -2005,6 +1993,7 @@ function scanDevices($force = false) {
 
 	} else {
 		$clients = $list['clients'];
+		if ($newStatic) array_push($clients,$newStatic);
 		$clients2 = [];
 		if (count($clients)) {
 			foreach ($clients as &$client) {
@@ -2021,9 +2010,73 @@ function scanDevices($force = false) {
 		}
 		$list['clients'] = $clients2;
 		$results = $list;
+		if ($newStatic) {
+			$_SESSION['list_plexdevices'] = $results;
+			$string = base64_encode(json_encode($results));
+			$GLOBALS['config']->set('user-_-' . $_SESSION['plexUserName'], 'dlist', $string);
+			saveConfig($GLOBALS['config']);
+		}
 	}
 
 	return $results;
+}
+
+
+function sortDevices($devices) {
+	$clients = $nameArray = $servers = [];
+	foreach ($devices as $device) {
+		$device = [
+			'name' => $device['name'],
+			'id' => $device['clientIdentifier'],
+			'token' => $device['accessToken'] ?? $_SESSION['plexToken'],
+			'product' => $device['product'],
+			'httpsRequired' => $device['httpsRequired'] === "1" ? true : false,
+			'publicAddress' => $device['httpsRequired'] === "1" ? 'https://' : 'http://' . $device['publicAddress'],
+			'owned' => $device['owned'] === "1" ? true : false,
+			'platform' => $device['platform'],
+			'publicAddressMatches' => $device['publicAddressMatches'] === "1" ? true : false,
+			'connections' => (is_array($device['Connection'][0]) ? $device['Connection'] : [$device['Connection']])
+		];
+
+		// Check for and clean up duplicate device name
+		$i = 2;
+		foreach ($nameArray as $check) {
+			$dname = preg_replace("/[^a-zA-Z]/", "", $device['name']);
+			$cname = preg_replace("/[^a-zA-Z]/", "", $check);
+			if ($dname == $cname) {
+				$device['name'] .= " ($i)";
+				$i++;
+			}
+		}
+		if ($device['product'] === 'Plex Media Server') array_push($servers, $device); else array_push($clients, $device);
+		array_push($nameArray, $device['name']);
+	}
+	unset($devices, $nameArray);
+	return ['servers' => $servers, 'clients' => $clients];
+}
+
+function removeDuplicates($devices) {
+	$newDevices = [];
+	foreach ($devices as $device) if ($device['static']) array_push($newDevices,$device);
+
+	foreach ($devices as $device) {
+		$skip = false;
+		$i = 2;
+		foreach($newDevices as &$newDevice) {
+			$newConnection = parse_url($newDevice['uri']);
+			$connection = parse_url($device);
+			$skip = (($newConnection['host'] == $connection['host']) && ($newConnection['port'] == $connection['port']));
+			$dname = preg_replace("/[^a-zA-Z]/", "", $device['name']);
+			$cname = preg_replace("/[^a-zA-Z]/", "", $newDevice['name']);
+			if ($dname == $cname) {
+				$device['name'] .= " ($i)";
+				$i++;
+			}
+
+		}
+		if (!$skip) array_push($newDevices, $device); else write_log("Dropping ".$device['name']);
+	}
+	return $newDevices;
 }
 
 
@@ -2054,7 +2107,8 @@ function createStaticDevice() {
 		'name' => 'New Device',
 		'id' => $token,
 		'uri' => 'http://127.0.0.1:8009',
-		'product' => 'cast'
+		'product' => 'cast',
+		'static' => true
 	];
 	foreach($device as $key=>$value) {
 		$cfg->set('user-_-'.$_SESSION['plexUserName'],"static_".$token."_[$key]",$value);
@@ -2358,7 +2412,7 @@ function fetchHubResults($title, $type = false, $artist = false) {
 					}
 
 					if (($Hub['type'] == 'actor') || ($Hub['type'] == 'director')) $nameLocation = 'tag';
-
+					$target = intval($_SESSION['searchAccuracy']) * .1;
 					foreach ($Hub->children() as $Element) {
 						$skip = false;
 						$titleOut = cleanCommandString((string)$Element[$nameLocation]);
@@ -2427,7 +2481,9 @@ function fetchHubResults($title, $type = false, $artist = false) {
 
 							if (!$skip) {
 								$weight = similarity($title, $titleOut);
-								if ($weight >= .36) {
+								if ($weight >= $target) {
+									array_push($fuzzyResults, $Element);
+								} else if (preg_match("/$title/",$titleOut)) {
 									array_push($fuzzyResults, $Element);
 								}
 							}
@@ -3819,7 +3875,7 @@ function fetchTMDBInfo($title = false, $tmdbId = false, $tvdbId = false, $type =
 		$search = $url . '/search/' . ($type ? $type : 'multi') . '?query=' . urlencode($title) . '&api_key=' . $d . '&page=1';
 		$results = json_decode(doRequest($search), true);
 		write_log("Result array: " . json_encode($results));
-		$score = .59;
+		$score = $_SESSION['searchAccuracy'];
 		$winner = [];
 		foreach ($results['results'] as $result) {
 			$resultTitle = $result['title'] ?? $result['name'];
@@ -3906,7 +3962,7 @@ function couchDownload($command) {
 
 	$body = json_decode($result, true);
 	write_log("body:" . $result);
-	$score = .6;
+	$score = intval($_SESSION['searchAccuracy'])*.1;
 	$winner = [];
 	foreach ($body['movies'] as $movie) {
 		$newScore = similarity(cleanCommandString($movie['titles'][0]), $command);
@@ -3914,8 +3970,14 @@ function couchDownload($command) {
 		if ($newScore > $score) {
 			write_log("Highest Match: " . $movie['titles'][0] . " Score: " . $newScore, "INFO");
 			$winner = $movie;
-			if ($newScore == 1) break;
 			$score = $newScore;
+		}
+		foreach($movie['titles'] as $title) if (preg_match("/$command/",$title)) $score = 1;
+
+		if ($score == 1){
+			write_log("Found an exact match with ".$movie['titles'][0]);
+			$winner = $movie;
+			break;
 		}
 	}
 
@@ -3957,22 +4019,28 @@ function radarrDownload($command, $tmdbResult = false) {
 	$radarrPath = $_SESSION['raddarPath'];
 	$radarrApiKey = $_SESSION['radarrAuth'];
 	$radarrPort = $_SESSION['radarrPort'];
+	$movie = false;
 	$radarr = new Radarr($radarrURL . ':' . $radarrPort . $radarrPath, $radarrApiKey);
 	$rootArray = json_decode($radarr->getRootFolder(), true);
 	$movieCheck = json_decode($radarr->getMoviesLookup($command), true);
 	$movieArray = json_decode($radarr->getMovies(), true);
 	$rootPath = $rootArray[0]['path'];
 	$highest = 0;
+	$target = intval($_SESSION['searchAccuracy']) * .1;
 	foreach ($movieCheck as $check) {
 		$score = similarity(cleanCommandString($check['title']), cleanCommandString($command));
-		if (($score >= .7) && ($score > $highest)) {
+		if (($score >=$target) && ($score > $highest)) {
 			$movie = $check;
 			$highest = $score;
-			if ($score == 1) break;
 			write_log("This title is pretty similar: " . $check['title']);
 		}
+		if (($score == 1) || preg_match("/$command/",$check['title'])) {
+			$movie = $check;
+			write_log("Found a near-identical match");
+			break;
+		}
 	}
-	if (is_array($movie)) {
+	if ($movie) {
 		foreach ($movieArray as $check) {
 			if ($check['tmdbId'] == $movie['tmdbId']) {
 				write_log("This movie exists already.");

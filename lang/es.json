@@ -387,6 +387,8 @@
 	"uiSettingRefreshUpdates": "REFRESCAR",
 	"uiSettingRescanHint": "Con qué frecuencia volver a almacenar en caché los dispositivos.",
 	"uiSettingRescanInterval": "Intervalo de repaso del dispositivo (minutos):",
+	"uiSettingSearchAccuracy": "Exactitud de búsqueda (%):",
+	"uiSettingDebugging": "Depuración",
 	"uiSettingSeparateHookUrl": "URL separadas",
 	"uiSettingTestButton": "PRUEBA",
 	"uiSettingThemeColor": "Usa el tema oscuro",

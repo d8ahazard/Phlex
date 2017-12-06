@@ -361,9 +361,8 @@ function curlPost($url, $content = false, $JSON = false, Array $headers = null) 
 // Auto rotates files larger than 2MB
 function write_log($text, $level = null, $caller = false) {
 	$filename = file_build_path(dirname(__FILE__), 'logs', "Phlex.log");
-	if ($level === null) {
-		$level = 'DEBUG';
-	}
+	if ($level === null) $level = 'DEBUG';
+	if ($level === 'DEBUG' && !$_SESSION['Debug']) return;
 	if (isset($_GET['pollPlayer']) || !file_exists($filename) || (trim($text) === "")) return;
 	$caller = $caller ? $caller : getCaller();
 	$text = '[' . date(DATE_RFC2822) . '] [' . $level . '] [' . $caller . "] - " . trim($text) . PHP_EOL;
@@ -485,7 +484,11 @@ function saveConfig(Config_Lite $inConfig) {
 	}
 	$configFile = file_build_path(dirname(__FILE__), "config.ini.php");
 	$cache_new = "'; <?php die('Access denied'); ?>"; // Adds this to the top of the config so that PHP kills the execution if someone tries to request the config-file remotely.
-	$cache_new .= file_get_contents($configFile);
+	if (file_exists($configFile)) {
+		$cache_new .= file_get_contents($configFile);
+	} else {
+		$fh = fopen($configFile, 'w') or write_log("Can't create config file!","ERROR");
+	}
 	if (file_put_contents($configFile, $cache_new)) write_log("Config saved successfully by " . getCaller("saveConfig")); else write_log("Config save failed!", "ERROR");
 
 }
@@ -636,6 +639,7 @@ function fetchCastDevices() {
 		$deviceOut['product'] = 'cast';
 		$deviceOut['id'] = $id;
 		$deviceOut['token'] = 'none';
+		$ip = $value['ip'];
 		$deviceOut['uri'] = "https://" . $value['ip'] . ":" . $value['port'];
 		array_push($returns, $deviceOut);
 	}

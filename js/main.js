@@ -4,7 +4,7 @@ var appName, autoUpdate, bgs, bgWrap, token, newToken, deviceID, resultDuration,
 	weatherHtml;
 var condition = null;
 var devices = lastUpdate = [];
-var lastDevices = 0;
+var staticCount = 0;
 var javaStrings;
 
 $(function () {
@@ -318,11 +318,7 @@ $(function () {
 		apiToken = $('#apiTokenData').attr('data');
 		$.getJSON('api.php?apiToken=' + apiToken + '&newDevice=true',function(data){
 			if(data.hasOwnProperty('DEVICE')) {
-				var newDevice = data.DEVICE;
-				console.log("SUCCESS: ", newDevice);
-				var newDev = createStaticDevice(newDevice.id,newDevice.name,newDevice.uri,newDevice.product);
-		$('#deviceBody').append(newDev[0]);
-		console.log("Dev1? ", newDev[1]);
+				console.log("SUCCESS: ", data.Device);
 			}
 		});
 
@@ -739,17 +735,17 @@ function updateStatus() {
 				devices = data.static;
 				var count = devices.length;
 				var devHtml = "";
-				if (count !== lastDevices) {
+				if (count !== staticCount) {
 					console.log("They're not equal, setting to match.");
 					$.each(devices, function (id, device) {
 						var devString = createStaticDevice(device.id, device.name, device.uri, device.product);
 						devHtml += devString[0];
 					});
 					$('#deviceBody').append(devHtml);
-					lastDevices = count;
+					staticCount = count;
 				}
 				console.log("Devices2: ",JSON.stringify(devices));
-				console.log("LastDevices2: ",lastDevices);
+				console.log("LastDevices2: ",staticCount);
 
 			}
 
@@ -1228,7 +1224,7 @@ function createStaticDevice(id, name, uri, product) {
 			"<input type='text' id='static_" + id + "_[name]' value='" + name + "' class='appInput form-control'/>" +
 		'</label>' +
 			'<label for="static_' + id + '_[Uri]" class="appLabel">URI:' +
-			"<input type='text' id='static_" + id + "_[uri]' value='" + uri + "' required pattern=\[-a-zA-Z0-9@:%._\\+~#=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%_\\+.~#?&//=]*)\" class='appInput form-control'/>" +
+			"<input type='text' id='static_" + id + "_[uri]' value='" + uri + "' class='appInput form-control'/>" +
 		'</label>' +
 			'<label for="static_' + id + '_[product]" class="appLabel">Type:' +
 			"<select id='static_" + id + "_[product]' class='appInput form-control'>" +

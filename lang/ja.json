@@ -312,6 +312,8 @@
 	"uiSettingRefreshUpdates": "リフレッシュ",
 	"uiSettingRescanHint": "デバイスを再キャッシュする頻度。",
 	"uiSettingRescanInterval": "デバイス再スキャン間隔（分）：",
+	"uiSettingSearchAccuracy": "検索精度 (%)：",
+	"uiSettingDebugging": "デバッグを有効にする",
 	"uiSettingSeparateHookUrl": "別々のURL",
 	"uiSettingTestButton": "テスト",
 	"uiSettingThemeColor": "暗いテーマを使う",
