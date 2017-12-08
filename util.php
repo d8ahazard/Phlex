@@ -898,7 +898,7 @@ function listLocales() {
 					$json = json_decode($json, true);
 					if ($json) {
 						$selected = ($_SESSION["appLanguage"] == $locale ? 'selected' : '');
-						$list .= "<option value='$locale' id='$locale' $selected>$localeName</option>" . PHP_EOL;
+						$list .= "<option data-value='$locale' id='$locale' $selected>$localeName</option>" . PHP_EOL;
 					}
 				}
 			}
