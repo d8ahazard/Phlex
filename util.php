@@ -362,7 +362,7 @@ function curlPost($url, $content = false, $JSON = false, Array $headers = null) 
 function write_log($text, $level = null, $caller = false) {
 	$filename = file_build_path(dirname(__FILE__), 'logs', "Phlex.log");
 	if ($level === null) $level = 'DEBUG';
-	if ($level === 'DEBUG' && !$_SESSION['Debug']) return;
+	if (isset($_SESSION) && $level === 'DEBUG' && !$_SESSION['Debug']) return;
 	if (isset($_GET['pollPlayer']) || !file_exists($filename) || (trim($text) === "")) return;
 	$caller = $caller ? $caller : getCaller();
 	$text = '[' . date(DATE_RFC2822) . '] [' . $level . '] [' . $caller . "] - " . trim($text) . PHP_EOL;
