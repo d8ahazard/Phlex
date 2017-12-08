@@ -306,7 +306,7 @@
 	"speechReturnOndeck": "Here's a list of on deck items: ",
 	"speechReturnRecent": "Here's a list of recent ",
 	"speechServer": "server",
-	"speechShuffleResponse": "Okay, shuffling all episodes of ",
+	"speechShuffleResponse": "Okay, shuffling",
 	"speechStatusNothingPlaying": "It doesn't look like there's anything playing right now.",
 	"speechWordAnd": "and",
 	"speechWordOkay": "Okay",

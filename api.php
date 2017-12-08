@@ -68,12 +68,8 @@ function initialize() {
 
 	if (isset($_POST['username']) && isset($_POST['password'])) {
 		define('LOGGED_IN', true);
-		if (isset($_POST['new'])) {
-			echo makeNewBody();
-		} else {
-			if ($_SESSION['newToken']) write_log("New token found.", "WARN");
-			echo makeBody($_SESSION['newToken']);
-		}
+		if ($_SESSION['newToken']) write_log("New token found.", "WARN");
+		echo makeBody($_SESSION['newToken']);
 		die();
 	}
 	$_SESSION['lang'] = checkSetLanguage();
@@ -149,7 +145,7 @@ function initialize() {
 
 	if (isset($_GET['newDevice'])) {
 		$token = createStaticDevice();
-		scanDevices(false,$token);
+		scanDevices(false);
 		echo json_encode(["DEVICE" => $token]);
 		die;
 	}
@@ -580,7 +576,7 @@ function parseFetchCommand($command, $type = false) {
 	if ($tmdbResult) $type = $tmdbResult['type'] ?? false;
 	if (!$type) $resultOut['parsedCommand'] = 'Fetch the first movie or show named ' . implode(" ", $commandArray);
 
-	write_log("Type: $type");
+
 	switch ($type) {
 		case 'show':
 			write_log("Searching explicitely for a show.", "INFO");
@@ -1072,12 +1068,13 @@ function parseApiCommand($request) {
 	if (($action == 'shuffle') && ($command)) {
 		$media = false;
 		write_log("We got a shuffle, foo.");
-		$queue = fetchHubResults($command, 'show');
+		$queue = plexSearch($command,$type);
 		write_log("Queue: " . json_encode($queue));
 		if (count($queue)) $media = $queue[0];
 		$key = (isset($media['ratingKey']) ? '/library/metadata/' . $media['ratingKey'] : false);
 		$queue = false;
-		if ($key) $queue = queueMedia(['key' => $key], false, false, true, true);
+		$audio = ($media['type'] == 'artist' || $media['type'] == 'track' || $media['type'] == 'album');
+		if ($key) $queue = queueMedia(['key' => $key], $audio, false, true, true);
 		write_log("Got a queue: " . json_encode($queue));
 		$queueId = $queue['@attributes']['playQueueID'] ?? false;
 		if ($queueId) {
@@ -1095,8 +1092,16 @@ function parseApiCommand($request) {
 			$card = [['title' => $childMedia['title'], 'formattedText' => $childMedia['summary'], 'image' => ['url' => transcodeImage($media['art'])]]];
 			returnSpeech($speech, "PlayMedia", $card, false);
 			$result = playMediaQueued($childMedia);
-			$queryOut = ['parsedCommand' => "Shuffle " . $media['title'], 'mediaResult' => $media, 'speech' => $speech, 'commandType' => 'playback', 'mediaStatus' => 'SUCCESS', 'card' => $card, 'playStatus' => $result];
-			logCommand($queryOut);
+			$queryOut = [
+				'parsedCommand' => "Shuffle " . $media['title'],
+				'initialCommand' => $command,
+				'mediaResult' => $media,
+				'speech' => $speech,
+				'commandType' => 'playback',
+				'mediaStatus' => 'SUCCESS',
+				'card' => $card,
+				'playStatus' => $result];
+			logCommand(json_encode($queryOut));
 		}
 
 		die;
@@ -1371,7 +1376,7 @@ function parseApiCommand($request) {
 				$queryOut['mediaResult'] = $mediaResult[0];
 				$searchType = $queryOut['mediaResult']['searchType'];
 				$title = $queryOut['mediaResult']['title'];
-				$year = $queryOut['mediaResult']['year'];
+				$year = $queryOut['mediaResult']['year'] ?? false;
 				$type = $queryOut['mediaResult']['type'];
 				$tagline = $queryOut['mediaResult']['tagline'];
 				$summary = $queryOut['mediaResult']['summary'] ?? false;
@@ -1444,20 +1449,47 @@ function parseApiCommand($request) {
 
 				// Store the last affirmative.
 				$_SESSION['affirmative'] = $affirmative;
-
-				if ($type == 'episode') {
-					$seriesTitle = $queryOut['mediaResult']['grandparentTitle'];
-					$speech = buildSpeech($affirmative . $_SESSION['lang']['speechPlaying'], $title . ".");
-					$title = $seriesTitle . ' - ' . $title . " (" . $year . ")";
-				} else if (($type == 'track') || ($type == 'album')) {
-					$artist = $queryOut['mediaResult']['grandparentTitle'];
-					$title = $artist . ' - ' . $title;
-					$tagline = $queryOut['mediaResult']['parentTitle'] . " (" . $year . ")";
-					$speech = buildSpeech($affirmative, $_SESSION['lang']['speechPlaying'], $title . $_SESSION['lang']['speechBy'], $artist . ".");
-				} else {
-					$title = $title . " (" . $year . ")";
-					$speech = buildSpeech($affirmative, $_SESSION['lang']['speechPlaying'], $title . ".");
+				write_log("Building speech response for a $type.");
+				switch ($type) {
+					case "episode":
+						$yearString = "($year)";
+						$seriesTitle = $queryOut['mediaResult']['grandparentTitle'];
+						$episodeTitle = $queryOut['mediaResult']['title'];
+						$idString = "S".$queryOut['mediaResult']['parentIndex']."E".$queryOut['mediaResult']['index'];
+						$seriesTitle = str_replace($yearString,"",$seriesTitle)." $yearString";
+						$speech = buildSpeech($affirmative . $_SESSION['lang']['speechPlaying'], $episodeTitle . ".");
+						$title = "$idString - $episodeTitle";
+						$tagline = $seriesTitle;
+						break;
+					case "track":
+						$artist = $queryOut['mediaResult']['grandparentTitle'];
+						$track = $queryOut['mediaResult']['title'];
+						$tagline = $queryOut['mediaResult']['parentTitle'];
+						if ($year) $tagline .=  " (" . $year . ")";
+						$title = "$artist - $track";
+						$speech = buildSpeech($affirmative, $_SESSION['lang']['speechPlaying'],$track, $_SESSION['lang']['speechBy'], $artist . ".");
+						break;
+					case "artist":
+						$speech = buildSpeech($affirmative,$_SESSION['lang']['speechPlaying'],"$title.");
+						break;
+					case "album":
+						$artist = $queryOut['mediaResult']['parentTitle'];
+						$album = $queryOut['mediaResult']['title'];
+						$tagline = $queryOut['mediaResult']['parentTitle'];
+						if ($year) $tagline .=  " (" . $year . ")";
+						$speech = buildSpeech($affirmative, $_SESSION['lang']['speechPlaying'], $album . $_SESSION['lang']['speechBy'], $artist . ".");
+						break;
+					case "playlist":
+						$title = $queryOut['mediaResult']['title'];
+						$speech = buildSpeech($affirmative, $_SESSION['lang']['speechPlaying'], $title . ".");
+						break;
+					default:
+						$title = $queryOut['mediaResult']['title'];
+						$title = $title . ($year ? " (" . $year . ")":"");
+						$speech = buildSpeech($affirmative, $_SESSION['lang']['speechPlaying'], $title . ".");
+						break;
 				}
+
 				if ($_SESSION['promptfortitle'] == true) {
 					$contextName = 'promptfortitle';
 					$_SESSION['promptfortitle'] = false;
@@ -1489,18 +1521,18 @@ function parseApiCommand($request) {
 				foreach ($mediaResult as $Media) {
 					write_log("Media: " . json_encode($Media));
 					$title = $Media['title'];
-					$year = $Media['year'];
+					$year = $Media['year'] ?? false;
 					$tagline = $Media['tagline'];
 					$thumb = $Media['art'];
 
 					$count++;
 					if ($count == count($mediaResult)) {
-						$speechString .= " or " . $title . " " . $year . ".";
+						$speechString .= " or " . $title .($year ?  " " . $year : "" ). ".";
 					} else {
-						$speechString .= " " . $title . " " . $year . ",";
+						$speechString .= " " . $title .($year ?  " " . $year : "" ). ",";
 					}
-					array_push($resultTitles, $title . " " . $year);
-					$card = ["title" => $title . " " . $year, "description" => $tagline, 'image' => ['url' => $thumb], "key" => $title . " " . $year];
+					array_push($resultTitles, $title . ($year ?  " " . $year : "" ));
+					$card = ["title" => $title . ($year ?  " " . $year : "" ), "description" => $tagline, 'image' => ['url' => $thumb], "key" => $title . " " . $year];
 					array_push($cards, $card);
 				}
 				$queryOut['card'] = $cards;
@@ -1817,7 +1849,7 @@ function NumbersToWord($data) {
 
 // The process of fetching and storing devices is too damned tedious.
 // This aims to address that.
-function scanDevices($force = false, $newStatic=false) {
+function scanDevices($force = false) {
 	$castDevices = $clients = $devices = $dvrs = $results = $servers = [];
 	$localContainer = false;
 	$now = microtime(true);
@@ -2129,6 +2161,7 @@ function fetchStaticDevices() {
 			}
 		}
 	}
+	write_log("Found " . count($devices). " static devices.");
 	return (count($devices) ? $devices : false);
 }
 
@@ -2229,7 +2262,6 @@ function fetchInfo($matrix) {
 	unset($matrix['target']);
 	$nums = $matrix['num'];
 	$media = $matrix['media'];
-	$artist = $matrix['artist'] ?? false;
 	$type = $matrix['type'] ?? false;
 
 	foreach ($matrix as $key => $mod) {
@@ -2307,7 +2339,7 @@ function fetchInfo($matrix) {
 
 	checkString: {
 		$winner = false;
-		$results = fetchHubResults(strtolower($title), $type, $artist);
+		$results = plexSearch(strtolower($title), $type);
 		if ($results) {
 			if ((count($results) >= 2) && (count($matchup))) {
 				foreach ($results as $result) {
@@ -2354,8 +2386,9 @@ function fetchInfo($matrix) {
 						$winner = fetchLatestEpisode($key);
 					}
 					if (!$winner) {
+						write_log("Result: ".json_encode($showResult));
 						write_log("No Mods Found, returning first on Deck Item.", "INFO");
-						$onDeck = $showResult->OnDeck->Video;
+						$onDeck = $showResult['OnDeck']['Video'];
 						if ($onDeck) {
 							$winner = $onDeck;
 						} else {
@@ -2364,14 +2397,15 @@ function fetchInfo($matrix) {
 						}
 					}
 				}
+				if ($winner['type']==='artist') {
+					$queueId = queueMedia($winner,true);
+					write_log("Queue ID is $queueId");
+				}
 			}
 		}
 	}
 	if ($winner) {
-		write_log("We have a winner: " . json_encode($winner));
 		// -1 is our magic key to tell it to just use whatever is there
-		write_log("Winner_thumb: " . $winner['thumb']);
-		write_log("Winner_art: " . $winner['art']);
 		$winner['thumb'] = transcodeImage($winner['thumb']);
 		$winner['art'] = transcodeImage($winner['art'] ?? $winner['thumb']);
 		if (($offset !== 'foo') && ($offset != -1)) {
@@ -2390,170 +2424,104 @@ function fetchInfo($matrix) {
 	}
 }
 
+function plexSearch($title, $type=false) {
+    $castGenre = $hubs = $randomize = $results = false;
+    write_log($type ? "Searching for the $type $title." : "Searching for $title.");
+    $request = [
+        'path' => '/hubs/search',
+        'query' => [
+            'query' => urlencode($title),
+            'limit' => '30',
+            'X-Plex-Token' => $_SESSION['plexServerToken']
+        ]
+    ];
 
-// This is our one-shot search mechanism
-// It queries the /hubs endpoint, scrapes together a bunch of results, and then decides
-// how relevant those results are and returns them to our talk-bot
-function fetchHubResults($title, $type = false, $artist = false) {
-	$cast = $genre = $music = $queueID = $rechecked = false;
-	reHub:
-	$title = cleanCommandString($title);
-	$searchType = '';
-	$result = doRequest(['path' => '/hubs/search', 'query' => ['query' => urlencode($title), 'limit' => '30', 'X-Plex-Token' => $_SESSION['plexServerToken']]]);
-	if ($result) {
-		$container = new SimpleXMLElement($result);
-		$exactResults = [];
-		$fuzzyResults = [];
-		$castResults = [];
-		$nameLocation = 'title';
-		if (isset($container->Hub)) {
-			foreach ($container->Hub as $Hub) {
-				if ($Hub['size'] != "0") {
-					if (($Hub['type'] == 'show') || ($Hub['type'] == 'movie') || ($Hub['type'] == 'episode') || ($Hub['type'] == 'artist') || ($Hub['type'] == 'album') || ($Hub['type'] == 'track')) {
-						$nameLocation = 'title';
-					}
+    $result = doRequest($request);
 
-					if (($Hub['type'] == 'actor') || ($Hub['type'] == 'director')) $nameLocation = 'tag';
-					$target = intval($_SESSION['searchAccuracy']) * .1;
-					foreach ($Hub->children() as $Element) {
-						$skip = false;
-						$titleOut = cleanCommandString((string)$Element[$nameLocation]);
+    if ($result) {
+        $container = new SimpleXMLElement($result);
+        if (isset($container->Hub)) {
+	        $castGenre = $results = [];
+	        foreach ($container->Hub as $Hub) {
+		        $check = $push = false;
+		        $size = $Hub['size'];
+		        $hubType = (string)trim($Hub['type']);
+		        if ($size != "0") {
+			        if ($type) {
+				        if (trim($type) === trim($hubType)) {
+					        $push = true;
+				        }
+			        } else {
+				        $push = ($hubType !== 'actor' && $hubType !== 'director');
+			        }
+		        }
+		        if (($hubType === 'actor' || $hubType === 'director' || $hubType === 'genre')) $check = true;
+		        if ($push || $check) {
+			        if ($push) write_log("Grabbing hub results for $hubType.");
+			        foreach ($Hub->children() as $Element) {
+				        $Element = flattenXML($Element);
+				        if ($push) array_push($results, $Element);
+				        if ($check) {
+					        $search = cleanCommandString($title);
+					        $mediaSearch = cleanCommandString($Element['tag']);
+					        if ($search === $mediaSearch) {
+						        write_log("$search is an exact match for cast or genre: ".json_encode($Element),"INFO");
+						        if ($hubType === 'genre') array_push($castGenre, fetchRandomMediaByKey($Element['key']));
+						        $randomize = true;
+					        }
+				        }
+			        }
+		        }
+	        }
+        }
+    }
 
-						if ($titleOut == $title) {
-							write_log("Found an exact match: " . $title, "INFO");
-							if (($Hub['type'] == 'actor') || ($Hub['type'] == 'director')) {
-								$searchType = 'by cast';
-								$cast = true;
-							}
-							//todo - Fix Genre matching
-							if ($Hub['type'] == 'genre') {
-								$genre = true;
-								$searchType = 'by genre';
-								unset($exactResult);
-								foreach ($Hub->children() as $dir) {
-									$result = fetchRandomMediaByKey($dir['key']);
-									array_push($exactResults, $result);
-								}
-							}
+	if (count($castGenre)) {
+		write_log("Found matches for cast or genre, discarding other results.","INFO");
+		$results = [];
 
-							if (($Hub['type'] == 'show') || ($Hub['type'] == 'movie') || ($Hub['type'] == 'episode')) {
-								if ($type) {
-									if ($Hub['type'] == $type) {
-										array_push($exactResults, $Element);
-									}
-								} else {
-									array_push($exactResults, $Element);
-								}
-							}
-
-							if (($Hub['type'] == 'artist') || ($Hub['type'] == 'album') || ($Hub['type'] == 'track')) {
-								if ($artist) {
-									$foundArtist = (($Hub['type'] == 'track') ? $Element['grandparentTitle'] : $Element['parentTitle']);
-									$foundArtist = cleanCommandString($foundArtist);
-									if (cleanCommandString($artist) != $foundArtist) {
-										$skip = true;
-									}
-								}
-
-								if ($type) {
-									if ($Hub['type'] != $type) $skip = true;
-								}
-
-								if (!$skip) {
-									array_push($exactResults, $Element);
-								}
-							}
-
-						} else {
-							if ($type) {
-								if ($Hub['type'] != $type) $skip = true;
-							}
-							if ($artist) {
-								$foundArtist = (($Hub['type'] == 'track') ? $Element['grandparentTitle'] : $Element['parentTitle']);
-								$foundArtist = cleanCommandString($foundArtist);
-								if (cleanCommandString($artist) != $foundArtist) {
-									$skip = true;
-								}
-							}
-							if ($cast) {
-								if ($type) {
-									if ($Hub['type'] == $type) array_push($castResults, $Element);
-								} else array_push($castResults, $Element);
-							}
-
-							if (!$skip) {
-								$weight = similarity($title, $titleOut);
-								if ($weight >= $target) {
-									array_push($fuzzyResults, $Element);
-								} else if (preg_match("/$title/",$titleOut)) {
-									array_push($fuzzyResults, $Element);
-								}
-							}
-						}
-					}
-				}
-			}
+		foreach ($castGenre as $result) {
+			if ($type) {
+				if ($result['type'] === $type) array_push($results, $result);
+			} else array_push($results, $result);
 		}
+    }
 
+    $returns = [];
+    if ($results) {
+        foreach ($results as $item) {
+            $cleaned = cleanCommandString($title);
+            $cleanedTitle = cleanCommandString($item['title']);
+            array_push($returns, $item);
+            if ($cleaned === $cleanedTitle || preg_match("/$cleaned/",$cleanedTitle)) {
+            	write_log("Returning exact result: ".$item['title']);
+            	array_push($returns,$item);
+            	break;
+            }
+        }
+    } else {
+    	write_log("No results found for query.","INFO");
+    }
 
-		if ((count($exactResults)) && (!($cast)) && (!($genre))) {
-			$exact = true;
-			$finalResults = $exactResults;
-		} else {
-			$exact = false;
-			$finalResults = array_unique($fuzzyResults);
-		}
-
-		if ($genre) {
-			write_log("Detected override for " . ($cast ? 'cast' : 'genre') . ".", "INFO");
-			$size = count($exactResults) - 1;
-			$random = rand(0, $size);
-			$winner = [$exactResults[$random]];
-			write_log("Result from " . ($cast ? 'cast' : 'genre') . " search is " . json_encode($winner), "INFO");
-			unset($finalResults);
-			$finalResults = $winner;
-		}
-
-		if ($cast) {
-			write_log("Detected override for a search by castmember.", "INFO");
-			$size = count($castResults) - 1;
-			$random = rand(0, $size);
-			$winner = [$castResults[$random]];
-			write_log("Result from cast search is " . json_encode($winner), "INFO");
-			unset($finalResults);
-			$finalResults = $winner;
-		}
-
-		if ((!count($finalResults)) && (!$rechecked)) {
-			$oTitle = $title;
-			$title = searchSwap($title);
-			if ($oTitle !== $title) {
-				$rechecked = true;
-				goto reHub;
-			}
-		}
-		// Need to check the type of each result object, make sure that we return a media result for each type
-		$Returns = [];
-		foreach ($finalResults as $Result) {
-			$item = json_decode(json_encode($Result), true)['@attributes'];
-			$thumb = $item['thumb'];
-			$art = $item['art'];
-			if (!isset($item['summary'])) {
-				$extra = fetchMediaExtra($item['ratingKey']);
-				if ($extra) $item['summary'] = $extra['summary'];
-			}
-			$item['art'] = $art;
-			$item['thumb'] = $thumb;
-			$item['exact'] = $exact;
-			$item['searchType'] = $searchType;
-			if ($item['type'] === 'artist') $item['key'] = str_replace("/children", "", $item['key']);
-			array_push($Returns, $item);
-		}
-		write_log("Final results: " . json_encode($Returns), "INFO");
-		return $Returns;
-
+	if ($randomize && count($returns) >=2) {
+		$size = count($returns) - 1;
+		$random = rand(0, $size);
+		$returns = [$returns[$random]];
 	}
-	return false;
+
+    foreach ($returns as &$item) {
+	    $thumb = $item['thumb'];
+	    $art = $item['art'];
+	    if (!isset($item['summary'])) {
+		    $extra = fetchMediaExtra($item['ratingKey']);
+		    if ($extra) $item['summary'] = $extra['summary'];
+	    }
+	    $item['art'] = $art;
+	    $item['thumb'] = $thumb;
+	    if ($item['type'] === 'artist') $item['key'] = str_replace("/children", "", $item['key']);
+    }
+    write_log("Return array: ".json_encode($returns),"INFO");
+    return $returns;
 }
 
 function fetchHubList($section, $type = null) {
@@ -2638,6 +2606,7 @@ function fetchRandomMediaByKey($key) {
 		$size = sizeof($matches);
 		if ($size > 0) {
 			$winner = rand(0, $size);
+			write_log("Selecting random item $winner / $size.","INFO");
 			$winner = $matches[$winner];
 			if ($winner['type'] == 'show') {
 				$winner = fetchFirstUnwatchedEpisode($winner['key']);
@@ -2646,10 +2615,9 @@ function fetchRandomMediaByKey($key) {
 	}
 	if ($winner) {
 		$item = json_decode(json_encode($winner), true)['@attributes'];
-		$item['thumb'] = $_SESSION['plexServerPublicUri'] . $winner['thumb'] . "?X-Plex-Token=" . $_SESSION['plexServerToken'];
-		$item['art'] = $_SESSION['plexServerPublicUri'] . $winner['art'] . "?X-Plex-Token=" . $_SESSION['plexServerToken'];
+		return $item;
 	}
-	return $winner;
+	return false;
 }
 
 
@@ -2673,7 +2641,6 @@ function fetchRandomNewMedia($type) {
 			$winner = $matches[$winner];
 			if ($winner['type'] == 'season') {
 				$result = fetchFirstUnwatchedEpisode($winner['parentKey'] . '/children');
-				write_log("I am going to play an episode named " . $result['title'], "INFO");
 				$winner = $result;
 			}
 		} else {
@@ -4302,6 +4269,7 @@ function testConnection($serviceName) {
 
 
 function returnSpeech($speech, $contextName, $cards = false, $waitForResponse = false, $suggestions = false) {
+	write_log("My reply is going to be '$speech'.","INFO");
 	if (isset($_GET['say'])) return;
 	if ($_SESSION['amazonRequest']) {
 		returnAlexaSpeech($speech, $contextName, $cards, $waitForResponse, $suggestions);
