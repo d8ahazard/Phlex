@@ -22,7 +22,7 @@ if (!isset($_GET['apiToken'])) {
 $logs = array(
 	"Main" => dirname(__FILE__)."/logs/Phlex.log.php",
 	"Updates" => dirname(__FILE__)."/logs/Phlex_update.log.php",
-	"Error Log" => ini_get('error_log'),
+	"Error Log" => dirname(__FILE__)."/logs/Phlex_error.log.php",
 
 );
 

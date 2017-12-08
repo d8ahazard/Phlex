@@ -721,8 +721,7 @@ function updateStatus() {
 			}
 		}
 		try {
-			var clientHtml = fetchClientList(data.players);
-			$('#clientWrapper').html(clientHtml);
+			$('#clientWrapper').html(data.clients);
 			$('#serverList').html(data.servers);
 			$('#dvrList').html(data.dvrs);
 			$('#updateContainer').html(data.updates);

@@ -96,7 +96,7 @@ function initialize() {
 		}
 		$result['commands'] = urlencode(($contents));
 		$devices = scanDevices();
-		$result['players'] = $devices['clients'];
+		$result['clients'] = fetchClientList($devices);
 		$result['servers'] = fetchServerList($devices);
 		$result['dvrs'] = fetchDVRList($devices);
 		$result['updates'] = checkUpdates();
@@ -210,6 +210,19 @@ function initialize() {
 			$device = $GLOBALS['config']->get('user-_-'.$_SESSION['plexUserName'],"static_".$devId."_");
 			$device[$subKey] = $value;
 			$GLOBALS['config']->set('user-_-'.$_SESSION['plexUserName'],'static_'.$devId."_",$device);
+			$newClients = [];
+			$pushed = false;
+			foreach($_SESSION['list_plexdevices']['clients'] as $client) {
+				if ($client['id'] === $devId) {
+					write_log("Replacing existing client.");
+					$client = $device;
+					$pushed = true;
+				}
+				array_push($newClients,$client);
+			}
+			if (!$pushed) array_push($newClients,$device);
+			$_SESSION['list_plexdevices']['clients'] = $newClients;
+			write_log("New device list: ".json_encode($_SESSION['list_plexdevices']));
 			saveConfig($GLOBALS['config']);
 			die();
 		}
@@ -1964,24 +1977,6 @@ function scanDevices($force = false, $newStatic=false) {
 			}
 		}
 
-		$static = fetchStaticDevices();
-
-		if ($static) $clients = array_merge($clients,$static);
-
-		if (count($clients)) {
-			$clients = removeDuplicates($clients);
-			foreach ($clients as &$client) {
-				if (isset($_SESSION['plexClientId'])) {
-					if ($_SESSION['plexClientId'] == $client['id']) {
-						$_SESSION['plexClientUri'] = $client['uri'];
-						$client['selected'] = true;
-					} else {
-						$client['selected'] = false;
-					}
-				}
-			}
-		}
-
 		$results['servers'] = $servers;
 		$results['clients'] = $clients;
 		$results['dvrs'] = $dvrs;
@@ -1992,32 +1987,38 @@ function scanDevices($force = false, $newStatic=false) {
 		write_log("Final device array: " . json_encode($results), "INFO");
 
 	} else {
-		$clients = $list['clients'];
-		if ($newStatic) array_push($clients,$newStatic);
-		$clients2 = [];
-		if (count($clients)) {
-			foreach ($clients as &$client) {
-				if (isset($_SESSION['plexClientId'])) {
-					if ($_SESSION['plexClientId'] == $client['id']) {
-						$_SESSION['plexClientUri'] = $client['uri'];
-						$client['selected'] = true;
-					} else {
-						$client['selected'] = false;
-					}
+		$results = $list;
+	}
+	$static = fetchStaticDevices();
+	$clients = $results['clients'];
+	$unique = [];
+	if ($static) {
+		$count = count($static);
+		write_log("Merging $count static devices.");
+		foreach($clients as $client) {
+			foreach ($static as $device) {
+				if ($device['id'] !== $client['id']) {
+					array_push($unique,$client);
 				}
-				array_push($clients2, $client);
 			}
 		}
-		$list['clients'] = $clients2;
-		$results = $list;
-		if ($newStatic) {
-			$_SESSION['list_plexdevices'] = $results;
-			$string = base64_encode(json_encode($results));
-			$GLOBALS['config']->set('user-_-' . $_SESSION['plexUserName'], 'dlist', $string);
-			saveConfig($GLOBALS['config']);
-		}
+		$clients = array_merge($static,$unique);
 	}
 
+	if (count($clients)) {
+		$clients = removeDuplicates($clients);
+		foreach ($clients as &$client) {
+			if (isset($_SESSION['plexClientId'])) {
+				if ($_SESSION['plexClientId'] == $client['id']) {
+					$_SESSION['plexClientUri'] = $client['uri'];
+					$client['selected'] = true;
+				} else {
+					$client['selected'] = false;
+				}
+			}
+		}
+	}
+	$results['clients'] = $clients;
 	return $results;
 }
 
@@ -2057,15 +2058,16 @@ function sortDevices($devices) {
 
 function removeDuplicates($devices) {
 	$newDevices = [];
-	foreach ($devices as $device) if ($device['static']) array_push($newDevices,$device);
 
 	foreach ($devices as $device) {
 		$skip = false;
+		$match = false;
 		$i = 2;
 		foreach($newDevices as &$newDevice) {
 			$newConnection = parse_url($newDevice['uri']);
-			$connection = parse_url($device);
+			$connection = parse_url($device['uri']);
 			$skip = (($newConnection['host'] == $connection['host']) && ($newConnection['port'] == $connection['port']));
+			if ($skip) $match = $newDevice['name'];
 			$dname = preg_replace("/[^a-zA-Z]/", "", $device['name']);
 			$cname = preg_replace("/[^a-zA-Z]/", "", $newDevice['name']);
 			if ($dname == $cname) {
@@ -2074,7 +2076,7 @@ function removeDuplicates($devices) {
 			}
 
 		}
-		if (!$skip) array_push($newDevices, $device); else write_log("Dropping ".$device['name']);
+		if (!$skip) array_push($newDevices, $device); else write_log("Dropping ".$device['name']." because it matches $match.");
 	}
 	return $newDevices;
 }
