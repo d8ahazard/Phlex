@@ -2521,7 +2521,7 @@ function plexSearch($title, $type=false) {
 	    if ($item['type'] === 'artist') $item['key'] = str_replace("/children", "", $item['key']);
     }
     write_log("Return array: ".json_encode($returns),"INFO");
-    return $returns;
+    return array_unique($returns);
 }
 
 function fetchHubList($section, $type = null) {
