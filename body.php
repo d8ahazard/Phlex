@@ -311,7 +311,7 @@ function makeBody($newToken = false) {
 					                                </div>
 					                            </div>
 					                            <div class="form-group">
-				                                    <div class="togglebutton">
+				                                    <div class="togglebutton'.(load_lib('sockets') ? "" : " hidden").'">
 				                                        <label for="useCast" class="appLabel checkLabel">' . $lang['uiSettingUseCast'] . '
 				                                            <input id="useCast" type="checkbox" class="appInput appToggle" ' . ($_SESSION["useCast"] ? "checked" : "") . '/>
 				                                        </label>
@@ -624,6 +624,7 @@ function makeBody($newToken = false) {
 						                        <option value="ERROR">Error</option>
 					                        </select>
 				                        </label>
+				                        <a class="logbutton" href="log.php?apiToken='.$_SESSION['apiToken'].'" target="_blank"><span class="material-icons">open_in_browser</span></a>
 									</div>
 								</div>
 			                    <div class="modal-body" id="logBody">

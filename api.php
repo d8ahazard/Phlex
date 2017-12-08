@@ -104,7 +104,7 @@ function initialize() {
 		if ($static) $result['static'] = $static;
 		$result['dologout'] = $_SESSION['dologout'];
 		$lines = $_GET['logLimit'] ?? 50;
-		$result['logs'] = formatLog(tail(file_build_path(dirname(__FILE__), "logs", "Phlex.log"), $lines));
+		$result['logs'] = formatLog(tail(file_build_path(dirname(__FILE__), "logs", "Phlex.log.php"), $lines));
 		$result['updateAvailable'] = $_SESSION['updateAvailable'] ?? false;
 		header('Content-Type: application/json');
 		echo JSON_ENCODE($result);
@@ -200,7 +200,7 @@ function initialize() {
 	if (isset($_GET['id'])) {
 		$id = $_GET['id'];
 		$value = $_GET['value'];
-		write_log("VAR CHANGE: $id = $value");
+		write_log("Setting Value changed: $id = $value","INFO");
 		$value = str_replace("?logout", "", $value);
 		if (preg_match("/IP/", $id) && !preg_match("/device/", $id)) $value = addScheme($value);
 		if (preg_match("/Path/", $id)) if ((substr($value, 0, 1) != "/") && (trim($value) !== "")) $value = "/" . $value;
@@ -467,7 +467,7 @@ function setSessionVariables($rescan = true) {
 	             'plexDvrEndOffset' => '2',
 	             'plexDvrResolution' => '0',
 	             'appLanguage' => 'en',
-	             'debugging' => false,
+	             'debug' => false,
 	             'searchAccuracy' => '70'
 		];
 	foreach ($defaults as $key => $value) {

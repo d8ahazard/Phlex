@@ -799,7 +799,7 @@ span.toggle {
 	left: 0;
 }
 
-.hiddenCard {
+.hiddenCard, .hidden {
 	display: none;
 }
 
@@ -822,6 +822,12 @@ span.toggle {
 	right: 25px;
 	text-align: right;
 	color: #dddddd;
+}
+
+.logbutton {
+	right: 5px;
+	position: absolute;
+	top: 27px;
 }
 
 .meta {

@@ -265,6 +265,10 @@ function setStartUrl() {
 	$file = (file_exists($fileOut)) ? $fileOut : dirname(__FILE__) . "/manifest_template.json";
 	$json = json_decode(file_get_contents($file), true);
 	$url = 'https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+	$url = parse_url($url);
+	$url = $url['scheme']."://". $url['host'] . $url['path'];
+	$url = str_replace("\api.php","",$url);
+
 	if ($json['start_url'] !== $url) {
 		$json['start_url'] = $url;
 		file_put_contents($fileOut, json_encode($json, JSON_PRETTY_PRINT));
@@ -360,7 +364,7 @@ function curlPost($url, $content = false, $JSON = false, Array $headers = null) 
 // Write log information to $filename
 // Auto rotates files larger than 2MB
 function write_log($text, $level = null, $caller = false) {
-	$filename = file_build_path(dirname(__FILE__), 'logs', "Phlex.log");
+	$filename = file_build_path(dirname(__FILE__), 'logs', "Phlex.log.php");
 	if ($level === null) $level = 'DEBUG';
 	if (isset($_SESSION) && $level === 'DEBUG' && !$_SESSION['Debug']) return;
 	if (isset($_GET['pollPlayer']) || !file_exists($filename) || (trim($text) === "")) return;
@@ -373,6 +377,8 @@ function write_log($text, $level = null, $caller = false) {
 		rename($filename, $filename2);
 		touch($filename);
 		chmod($filename, 0666);
+		$authString = "; <?php die('Access denied'); ?>".PHP_EOL;
+		file_put_contents($filename,$authString);
 	}
 	if (!is_writable($filename)) die;
 	if (!$handle = fopen($filename, 'a+')) die;
@@ -405,7 +411,7 @@ function isDomainAvailible($domain) {
 
 function logUpdate(array $log) {
 	$config = new Config_Lite('config.ini.php');
-	$filename = file_build_path(dirname(__FILE__), 'logs', "Phlex_update.log");
+	$filename = file_build_path(dirname(__FILE__), 'logs', "Phlex_update.log.php");
 	$data['installed'] = date(DATE_RFC2822);
 	$data['commits'] = $log;
 	$config->set("general", "lastUpdate", $data['installed']);
@@ -430,9 +436,12 @@ function logUpdate(array $log) {
 
 function readUpdate() {
 	$log = false;
-	$filename = file_build_path(dirname(__FILE__), 'logs', "Phlex_update.log");
+	$filename = file_build_path(dirname(__FILE__), 'logs', "Phlex_update.log.php");
 	if (file_exists($filename)) {
-		$log = json_decode(file_get_contents($filename), true) ?? [];
+		$authString = "'; <?php die('Access denied'); ?>".PHP_EOL;
+		$file = file_get_contents($filename);
+		$file = str_replace($authString,"",$file);
+		$log = json_decode($file, true) ?? [];
 	}
 	return $log;
 }
@@ -700,7 +709,7 @@ function setDefaults() {
 	ini_set("log_errors", 1);
 	ini_set('max_execution_time', 300);
 	error_reporting(E_ERROR);
-	$errorLogPath = file_build_path(dirname(__FILE__), 'logs', "Phlex_error.log");
+	$errorLogPath = file_build_path(dirname(__FILE__), 'logs', "Phlex_error.log.php");
 	ini_set("error_log", $errorLogPath);
 	date_default_timezone_set((date_default_timezone_get() ? date_default_timezone_get() : "America/Chicago"));
 }
@@ -711,19 +720,34 @@ function checkFiles() {
 
 	$logDir = file_build_path(dirname(__FILE__), "logs");
 
-	$oldLogPath = file_build_path($logDir, "PhlexUpdate.log");
-	$logPath = file_build_path($logDir, "Phlex.log");
-	$errorLogPath = file_build_path($logDir, "Phlex_error.log");
-	$updateLogPath = file_build_path($logDir, "Phlex_update.log");
+	$logPath = file_build_path($logDir, "Phlex.log.php");
+	$errorLogPath = file_build_path($logDir, "Phlex_error.log.php");
+	$updateLogPath = file_build_path($logDir, "Phlex_update.log.php");
 
-	if (file_exists($oldLogPath)) unlink($oldLogPath);
+	$old = [
+		file_build_path($logDir, "PhlexUpdate.log"),
+		file_build_path($logDir, "Phlex.log"),
+		file_build_path($logDir, "Phlex.log.old"),
+		file_build_path($logDir, "Phlex_error.log"),
+		file_build_path($logDir, "Phlex_update.log")
+	];
+
+	foreach ($old as $delete) {
+		if (file_exists($delete)) {
+			write_log("Deleting insecure file $delete","INFO");
+			unlink($delete);
+		}
+	}
+
 	$files = [$logPath, $errorLogPath, $updateLogPath, 'config.ini.php', 'commands.php'];
 
+	$secureString = "'; <?php die('Access denied'); ?>";
 	foreach ($files as $file) {
 		if (!file_exists($file)) {
 			mkdir(dirname($file), 0777, true);
 			touch($file);
 			chmod($file, 0777);
+			file_put_contents($file,$secureString);
 		}
 		if ((file_exists($file) && (!is_writable(dirname($file)) || !is_writable($file))) || !is_writable(dirname($file))) { // If file exists, check both file and directory writeable, else check that the directory is writeable.
 			$message = 'Either the file ' . $file . ' and/or it\'s parent directory is not writable by the PHP process. Check the permissions & ownership and try again.';
@@ -1957,10 +1981,13 @@ function tail($filename, $lines = 50, $buffer = 4096) {
 		$output = substr($output, strpos($output, "\n") + 1);
 	}
 	fclose($f);
+	$output = str_replace("'; <?php die('Access denied'); ?>".PHP_EOL,"",$output);
 	return $output;
 }
 
 function formatLog($logData) {
+	$authString = "'; <?php die('Access denied'); ?>".PHP_EOL;
+	$logData = str_replace($authString,"",$logData);
 	$lines = array_reverse(explode("\n", $logData));
 	$JSON = false;
 	$records = [];
