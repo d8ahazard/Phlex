@@ -1,6 +1,7 @@
 <?PHP
 
 use Cz\Git\GitRepository;
+use Google\Cloud\Speech\SpeechClient;
 
 
 require_once dirname(__FILE__) . '/vendor/autoload.php';
@@ -72,6 +73,47 @@ function cleanCommandString($string) {
 	}
 	$result = implode(" ", $stringArray);
 	return $result;
+}
+
+function TTS($text) {
+	$res = false;
+	$words = substr($text, 0, 2000);
+	write_log("Building speech for '$words'");
+	$words = urlencode($words);
+	$file  = md5($words);
+	$cacheDir = file_build_path(dirname(__FILE__), "img", "cache");
+	checkCache($cacheDir);
+
+	$payload = [
+		"engine"=>"Google",
+		"data"=>[
+			"text"=>$text,
+			"voice"=>"en-US"
+		]
+	];
+	$url = "https://soundoftext.com/api/sounds";
+	$ch = curl_init($url);
+	curl_setopt_array($ch, array(
+		CURLOPT_POST => TRUE,
+		CURLOPT_RETURNTRANSFER => TRUE,
+		CURLOPT_HTTPHEADER => array(
+			'Content-Type: application/json'
+		),
+		CURLOPT_POSTFIELDS => json_encode($payload)
+	));
+
+	$mp3 = curl_exec($ch);
+	$data = json_decode($mp3,true);
+	if ($data['success']) {
+		$id = $data['id'];
+		$url = "https://soundoftext.com/api/sounds/$id";
+		$data = curlGet($url);
+		if ($data) {
+			$response = json_decode($data,true);
+			if (isset($response['location'])) return $response['location'];
+		}
+	}
+	return false;
 }
 
 function flattenXML($xml) {
@@ -206,10 +248,7 @@ function cacheImage($url, $image = false) {
 	try {
 		$URL_REF = $_SESSION['publicAddress'] ?? fetchUrl(true);
 		$cacheDir = file_build_path(dirname(__FILE__), "img", "cache");
-		if (!file_exists($cacheDir)) {
-			write_log("No cache directory found, creating.", "INFO");
-			mkdir($cacheDir, 0777, true);
-		}
+		checkCache($cacheDir);
 		if ($url) {
 			$cached_filename = md5($url);
 			$files = glob($cacheDir . '/*.{jpg,jpeg,png,gif}', GLOB_BRACE);
@@ -258,6 +297,13 @@ function cacheImage($url, $image = false) {
 		write_log('Exception: ' . $e->getMessage());
 	}
 	return $path;
+}
+
+function checkCache($cacheDir) {
+	if (!file_exists($cacheDir)) {
+		write_log("No cache directory found, creating.", "INFO");
+		mkdir($cacheDir, 0777, true);
+	}
 }
 
 function setStartUrl() {

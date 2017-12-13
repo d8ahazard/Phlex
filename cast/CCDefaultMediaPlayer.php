@@ -3,6 +3,7 @@
 // Make it really easy to play videos by providing functions for the Chromecast Default Media Player
 
 require_once("CCBaseSender.php");
+require_once dirname(__FILE__) . '/../util.php';
 
 class CCDefaultMediaPlayer extends CCBaseSender {
 	public $appid = "CC1AD845";
@@ -16,7 +17,7 @@ class CCDefaultMediaPlayer extends CCBaseSender {
 		$r = "";
 		while (!preg_match("/\"playerState\":\"PLAYING\"/", $r)) {
 			$r = $this->chromecast->getCastMessage();
-			sleep(1);
+			//sleep(1);
 		}
 		// Grab the mediaSessionId
 		preg_match("/\"mediaSessionId\":([^\,]*)/", $r, $m);

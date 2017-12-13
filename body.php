@@ -431,6 +431,9 @@ function makeBody($newToken = false) {
 					                                    <div class="form-group btn-group">
 					                                        <button value="CouchPotato" class="testInput btn btn-raised btn-info">' . $lang['uiSettingBtnTest'] . '</button>
 					                                        <button id="resetCouch" value="CouchPotato" class="resetInput btn btn-raised btn-danger btn-100">' . $lang['uiSettingBtnReset'] . '</button>
+					                                        <button id="copyCouch" value="urlCouchPotato" class="hookLnk btn btn-raised btn-warn btn-100" value="couch" title="Copy WebHook Notification URL">
+					                                        	<i class="material-icons">assignment</i>
+				                                            </button>
 					                                    </div>
 					                                </div>
 					                            </div>

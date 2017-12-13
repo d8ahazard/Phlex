@@ -168,6 +168,12 @@ $(function () {
 			}
 		}
 
+		if ($(this).hasClass("hookLnk")) {
+			appName = $(this).data('value');
+			var string = serverAddress + "api.php?apiToken="+apiToken+"&notify=true";
+			clipboard.copy(string);
+		}
+
 		if ($(this).hasClass("setupInput")) {
 			appName = $(this).data('value');
 			apiToken = $('#apiTokenData').attr('data');
@@ -737,7 +743,7 @@ function updateStatus() {
 				if (count !== staticCount) {
 					console.log("They're not equal, setting to match.");
 					$.each(devices, function (id, device) {
-						var devString = createStaticDevice(device.id, device.name, device.uri, device.product);
+						var devString = createStaticDevice(device.id, device.name, device.uri, device.product,device.broadcast);
 						devHtml += devString[0];
 					});
 					$('#deviceBody').append(devHtml);
@@ -1203,14 +1209,15 @@ function imgError(image) {
 	return true;
 }
 
-function createStaticDevice(id, name, uri, product) {
+function createStaticDevice(id, name, uri, product,broadcast) {
 	var nameString = 'static_' + id + '_Name';
 	var ipString = 'static_' + id + '_URI';
 	var productString = 'static_' + id + '_Product';
 	var device = {
 		'name': name,
 		'URI': uri,
-		'product':product
+		'product':product,
+		'broadcast':broadcast
 	};
 
 
@@ -1232,6 +1239,11 @@ function createStaticDevice(id, name, uri, product) {
 				'<option value="indirect"'+(product === 'indirect' ? 'selected': '')+'>Indirect</option>' +
 			"</select>" +
 		'</label>' +
+		'<div class="togglebutton">' +
+			'<label for="static_' + id + '_[broadcast]" class="appLabel checkLabel">Broadcast' +
+				'<input id="static_' + id + '_[broadcast]" class="appInput" type="checkbox" ' +(broadcast ? 'checked' : '')+ '/>' +
+			'</label>' +
+		'</div>' +
 		"</div>" +
 		"</div>";
 	return [dataString, device];

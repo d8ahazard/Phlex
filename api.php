@@ -32,12 +32,15 @@ if (isset($_POST['username']) && isset($_POST['password'])) {
 
 if (!$user) {
 	if (isset($_GET['apiToken'])) {
+		write_log("Using token from GET");
 		$token = $_GET['apiToken'];
 	}
 	if (isset($_SERVER['HTTP_APITOKEN'])) {
 		$token = $_SERVER['HTTP_APITOKEN'];
+		write_log("Using token from POST");
 	}
 	if (isset($_SESSION['apiToken'])) {
+		write_log("Using session token");
 		$token = $_SESSION['apiToken'];
 	}
 	if ($token) $user = validateToken($token);
@@ -220,6 +223,7 @@ function initialize() {
 			$_SESSION['list_plexdevices']['clients'] = $newClients;
 			write_log("New device list: ".json_encode($_SESSION['list_plexdevices']));
 			saveConfig($GLOBALS['config']);
+			fetchStaticDevices();
 			die();
 		}
 		$section = ($id === 'forceSSL') ? 'general' : 'user-_-' . $_SESSION['plexUserName'];
@@ -266,20 +270,21 @@ function initialize() {
 
 	if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 		$_SESSION['amazonRequest'] = false;
-		write_log("Incoming API.ai request detected.", "INFO");
 		$json = file_get_contents('php://input');
 		write_log("JSON: " . $json);
 		$request = json_decode($json, true);
-		write_log("Request array: " . json_encode($request));
-		if ($request['type'] === 'Amazon') {
-			if ($request['reason'] == 'ERROR') {
-				write_log("Alexa Error message: " . $request['error']['type'] . '::' . $request['error']['message'], "ERROR");
-				die();
+		if ($request) {
+			write_log("Incoming JSON request detected: ".json_encode($request), "INFO");
+			if ($request['type'] === 'Amazon') {
+				if ($request['reason'] == 'ERROR') {
+					write_log("Alexa Error message: " . $request['error']['type'] . '::' . $request['error']['message'], "ERROR");
+					die();
+				}
+				$_SESSION['amazonRequest'] = true;
 			}
-			$_SESSION['amazonRequest'] = true;
+			parseApiCommand($request);
+			die();
 		}
-		parseApiCommand($request);
-		die();
 	}
 
 	$command = $_GET['command'] ?? $_SERVER['HTTP_COMMAND'] ?? false;
@@ -367,6 +372,25 @@ function initialize() {
 			die();
 		}
 	}
+
+	if (isset($_GET['notify'])) {
+		$json = file_get_contents('php://input');
+		if (preg_match("/message=/",$json)) {
+			write_log("Got a hook command!");
+			$var = explode("=",$json)[1];
+			if (trim($var)) {
+				write_log("We have a hook message from couchpotato: $var");
+				$var = urldecode($var);
+				castAudio($var);
+			}
+		}
+		if (isset($_GET['message'])) {
+			$message = $_GET['message'];
+			write_log("Casting audio: $message");
+			castAudio($message);
+		}
+	}
+
 }
 
 /*
@@ -785,8 +809,10 @@ function parsePlayCommand($command, $year = false, $artist = false, $type = fals
 	$playerIn = false;
 
 	foreach ($_SESSION['list_plexdevices']['clients'] as $client) {
-		if ($client['name'] != "") {
-			$clientName = '/' . cleanCommandString($client['name']) . '/';
+		$name = strtolower(trim($client['name']));
+		if ($name != "") {
+			write_log("Searhing for $name in '$command'");
+			$clientName = '/'.$name.'/';
 			if (preg_match($clientName, $command)) {
 				write_log("I was just asked me to play something on a specific device: " . $client['name'], "INFO");
 				$name = strtolower($client['name']);
@@ -807,6 +833,7 @@ function parsePlayCommand($command, $year = false, $artist = false, $type = fals
 
 	if ($playerIn) {
 		foreach ($playerIn as $search) {
+			if (preg_match("/$search/",$command)) write_log("Removing string $search from command.","INFO");
 			$command = preg_replace("/$search/", "", $command);
 		}
 		$_SESSION['cleaned_search'] = ucwords($command);
@@ -1005,8 +1032,8 @@ function parseApiCommand($request) {
 			$command = cleanCommandString($command);
 			$playerIn = false;
 			foreach ($_SESSION['list_plexdevices']['clients'] as $client) {
-				$clientName = '/' . strtolower($client['name']) . '/';
-				if (preg_match($clientName, $command)) {
+				$clientName = strtolower($client['name']);
+				if (preg_match("/$clientName/", $command)) {
 					write_log("Re-removing device name from fetch search: " . $client['name'], "INFO");
 					$playerIn = explode(" ", cleanCommandString($client['name']));
 					array_push($playerIn, "on", "in");
@@ -1037,6 +1064,13 @@ function parseApiCommand($request) {
 	if ($control == 'skip backward') {
 		$action = 'control';
 		$command = 'skip backward';
+	}
+
+	if ($action === 'broadcast') {
+		$result = false;
+		if (trim($command)) $result = castAudio($command);
+		write_log("Broadcast complete.");
+		die();
 	}
 
 	if (preg_match("/subtitles/", $control)) {
@@ -2142,7 +2176,8 @@ function createStaticDevice() {
 		'id' => $token,
 		'uri' => 'http://127.0.0.1:8009',
 		'product' => 'cast',
-		'static' => true
+		'static' => true,
+		'broadcast' => false,
 	];
 	foreach($device as $key=>$value) {
 		$cfg->set('user-_-'.$_SESSION['plexUserName'],"static_".$token."_[$key]",$value);
@@ -2162,6 +2197,15 @@ function fetchStaticDevices() {
 		}
 	}
 	write_log("Found " . count($devices). " static devices.");
+	$bc = [];
+	foreach($devices as $device) {
+		if (isset($device['broadcast'])) {
+			if ($device['broadcast'] && $device['type']=='cast') {
+				array_push($bc, $device['uri']);
+			}
+		}
+	}
+	$_SESSION['broadcastDevice'] = $bc;
 	return (count($devices) ? $devices : false);
 }
 
@@ -2182,7 +2226,7 @@ function fetchClientList($devices) {
 			$uri = $client['uri'];
 			$product = $client['product'];
 			$displayName = $name;
-			$options .= '<a class="dropdown-item client-item' . (($selected) ? ' dd-selected' : '') . '" href="#" data-product="' . $product . '" data-value="' . $id . '" name="' . $name . '" data-uri="' . $uri . '">' . ucwords($displayName) . '</a>';
+			$options .= '<a class="dropdown-item client-item' . (($selected) ? ' dd-selected' : '') . '" href="#" data-product="' . $product . '" data-value="' . $id . '" name="' . $name . '" data-uri="' . $uri . '" title="' . $uri . '">' . ucwords($displayName) . '</a>';
 		}
 		$options .= '<a class="dropdown-item client-item" data-value="rescan"><b>rescan devices</b></a>';
 	}
@@ -3056,6 +3100,28 @@ function playMediaQueued($media) {
 
 }
 
+function castAudio($speech) {
+	if (!isset($_SESSION['broadcastDevice'])) {
+		write_log("No broadcast device defined...","WARN");
+		return false;
+	}
+	$path = TTS($speech);
+	if ($path) {
+		$queryOut = [
+			'initialCommand' => "Broadcast the message '$speech'.",
+			'speech' => "Playing the clip at '$path'."
+		];
+		foreach($_SESSION['broadcastDevice'] as $uri) {
+			write_log("Broadcasting '$speech' to $uri.","INFO");
+			$client = parse_url($uri);
+			$cc = new Chromecast($client['host'], $client['port']);
+			$cc->DMP->play($path, "BUFFERED", "audio/mp3", true, 0);
+		}
+		logCommand(json_encode($queryOut));
+	}
+	return $path;
+}
+
 function playMediaCast($media) {
 	//Set up our variables like a good boy
 	$key = $media['key'];
@@ -3079,7 +3145,40 @@ function playMediaCast($media) {
 	$cc = new Chromecast($client['host'], $client['port']);
 	if ($cc) {
 		// Build JSON
-		$result = ['type' => 'LOAD', 'requestId' => $cc->requestId, 'media' => ['contentId' => (string)$key, 'streamType' => 'BUFFERED', 'contentType' => ($transcoderVideo ? 'video' : 'music'), 'customData' => ['offset' => ($media['viewOffset'] ?? 0), 'directPlay' => true, 'directStream' => true, 'subtitleSize' => 100, 'audioBoost' => 100, 'server' => ['machineIdentifier' => $machineIdentifier, 'transcoderVideo' => $transcoderVideo, 'transcoderVideoRemuxOnly' => false, 'transcoderAudio' => true, 'version' => '1.4.3.3433', 'myPlexSubscription' => true, 'isVerifiedHostname' => true, 'protocol' => $serverProtocol, 'address' => $serverIP, 'port' => $serverPort, 'accessToken' => $transientToken, 'user' => ['username' => $userName,], 'containerKey' => $queueID . '?own=1&window=200',], 'autoplay' => true, 'currentTime' => 0,]]];
+		$result = [
+			'type' => 'LOAD',
+			'requestId' => $cc->requestId,
+			'media' => [
+				'contentId' => (string)$key,
+				'streamType' => 'BUFFERED',
+				'contentType' => ($transcoderVideo ? 'video' : 'music'),
+				'customData' => ['offset' => ($media['viewOffset'] ?? 0),
+				                 'directPlay' => true,
+				                 'directStream' => true,
+				                 'subtitleSize' => 100,
+				                 'audioBoost' => 100,
+				                 'server' => [
+				                 	'machineIdentifier' => $machineIdentifier,
+				                    'transcoderVideo' => $transcoderVideo,
+				                    'transcoderVideoRemuxOnly' => false,
+				                    'transcoderAudio' => true,
+				                    'version' => '1.4.3.3433',
+				                    'myPlexSubscription' => true,
+				                    'isVerifiedHostname' => true,
+				                    'protocol' => $serverProtocol,
+				                    'address' => $serverIP,
+				                    'port' => $serverPort,
+				                    'accessToken' => $transientToken,
+				                    'user' => [
+				                    	'username' => $userName
+				                    ],
+				                    'containerKey' => $queueID . '?own=1&window=200'
+				                 ],
+			                    'autoplay' => true,
+			                     'currentTime' => 0
+				]
+			]
+		];
 		// Launch and play on Plex
 		$cc->Plex->play(json_encode($result));
 		sleep(1);
