@@ -1,8 +1,6 @@
 <?PHP
 
 use Cz\Git\GitRepository;
-use Google\Cloud\Speech\SpeechClient;
-
 
 require_once dirname(__FILE__) . '/vendor/autoload.php';
 
