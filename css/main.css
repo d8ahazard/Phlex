@@ -167,7 +167,7 @@ html {
 	margin-bottom: 16px !important;
 }
 
-#snackbar-container {
+#snackbar-container, .fetchNotify {
 	text-align: center;
 }
 

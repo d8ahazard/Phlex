@@ -268,22 +268,63 @@ function initialize() {
 		die();
 	}
 
+	if (isset($_GET['notify'])) {
+		$message = false;
+		$json = trim(file_get_contents('php://input'));
+		write_log("Notify body: ".$json);
+		if (preg_match("/message=/",$json)) {
+			write_log("Got a hook command from couchpotato!");
+			$var = explode("=",$json)[1];
+			if (trim($var)) {
+				write_log("We have a hook message from couchpotato: $var");
+				$var = urldecode($var);
+				castAudio($var);
+			}
+		}
+		if (preg_match("/EventType/",$json)) {
+			write_log("This looks like a Radarr or event!");
+			$json = json_decode($json,true);
+			if (isset($json['Movie']['Title'])) {
+				write_log("Yeah, this is a Radarr event.");
+				$media = $json['Movie']['Title'];
+				$event = $json['EventType'];
+				$message = "The Movie $media has been $event on Radarr.";
+			}
+			if (isset($json['Episodes'][0]['Title'])) {
+				write_log("Yeah, this is a Radarr event.");
+				$media = $json['Episodes'][0]['Title'];
+				$event = $json['EventType'];
+				$message = "The Movie $media has been $event on Sonarr.";
+			}
+		}
+
+		if (isset($_GET['message'])) {
+			$message = $_GET['message'];
+		}
+		if ($message) {
+			write_log("Casting audio: $message");
+			castAudio($message);
+		}
+		die();
+	}
+
 	if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 		$_SESSION['amazonRequest'] = false;
 		$json = file_get_contents('php://input');
-		write_log("JSON: " . $json);
 		$request = json_decode($json, true);
 		if ($request) {
-			write_log("Incoming JSON request detected: ".json_encode($request), "INFO");
-			if ($request['type'] === 'Amazon') {
-				if ($request['reason'] == 'ERROR') {
-					write_log("Alexa Error message: " . $request['error']['type'] . '::' . $request['error']['message'], "ERROR");
-					die();
+			if (isset($request['result']['resolvedQuery']) || isset($request['type'])) {
+				write_log("JSON: " . $json);
+				if (isset($request['type'])) {
+					if ($request['reason'] == 'ERROR') {
+						write_log("Alexa Error message: " . $request['error']['type'] . '::' . $request['error']['message'], "ERROR");
+						die();
+					}
+					$_SESSION['amazonRequest'] = true;
 				}
-				$_SESSION['amazonRequest'] = true;
+				parseApiCommand($request);
+				die();
 			}
-			parseApiCommand($request);
-			die();
 		}
 	}
 
@@ -372,25 +413,6 @@ function initialize() {
 			die();
 		}
 	}
-
-	if (isset($_GET['notify'])) {
-		$json = file_get_contents('php://input');
-		if (preg_match("/message=/",$json)) {
-			write_log("Got a hook command!");
-			$var = explode("=",$json)[1];
-			if (trim($var)) {
-				write_log("We have a hook message from couchpotato: $var");
-				$var = urldecode($var);
-				castAudio($var);
-			}
-		}
-		if (isset($_GET['message'])) {
-			$message = $_GET['message'];
-			write_log("Casting audio: $message");
-			castAudio($message);
-		}
-	}
-
 }
 
 /*
@@ -3118,6 +3140,8 @@ function castAudio($speech) {
 			$cc->DMP->play($path, "BUFFERED", "audio/mp3", true, 0);
 		}
 		logCommand(json_encode($queryOut));
+	} else {
+		write_log("Unable to retrieve audio clip!","ERROR");
 	}
 	return $path;
 }

@@ -392,6 +392,16 @@ function makeBody($newToken = false) {
 		                    </div>
 			                <div class="tab-pane fade" id="fetcherSettingsTab" role="tabpanel">
 			                    <div class="modal-body" id="fetcherBody">
+			                    	<div class="appContainer card">
+			                    		<div class="card-body">
+			                    			<h4 class="cardHeader">Notifications</h4>
+				                            <div class="fetchNotify">
+				                                <button id="copyCouch" value="urlCouchPotato" class="hookLnk btn btn-raised btn-warn btn-100" value="couch" title="Copy WebHook Notification URL">
+		                                            <i class="material-icons">assignment</i>
+	                                            </button>
+	                                        </div>
+										</div>
+									</div>
 			                        <div class="appContainer card">
 					                        <div class="card-body">
 					                            <h4 class="cardHeader">CouchPotato</h4>
@@ -431,9 +441,6 @@ function makeBody($newToken = false) {
 					                                    <div class="form-group btn-group">
 					                                        <button value="CouchPotato" class="testInput btn btn-raised btn-info">' . $lang['uiSettingBtnTest'] . '</button>
 					                                        <button id="resetCouch" value="CouchPotato" class="resetInput btn btn-raised btn-danger btn-100">' . $lang['uiSettingBtnReset'] . '</button>
-					                                        <button id="copyCouch" value="urlCouchPotato" class="hookLnk btn btn-raised btn-warn btn-100" value="couch" title="Copy WebHook Notification URL">
-					                                        	<i class="material-icons">assignment</i>
-				                                            </button>
 					                                    </div>
 					                                </div>
 					                            </div>
