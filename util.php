@@ -1957,7 +1957,7 @@ function getUrl($url) {
 	return $content;
 }
 
-function tail($filename, $lines = 50, $buffer = 4096) {
+function tailFile($filename, $lines = 50, $buffer = 4096) {
 	if (!is_file($filename)) {
 		return false;
 	}

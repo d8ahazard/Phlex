@@ -100,7 +100,7 @@ function initialize() {
 		if ($static) $result['static'] = $static;
 		$result['dologout'] = $_SESSION['dologout'];
 		$lines = $_GET['logLimit'] ?? 50;
-		$result['logs'] = formatLog(tail(file_build_path(dirname(__FILE__), "logs", "Phlex.log.php"), $lines));
+		$result['logs'] = formatLog(tailFile(file_build_path(dirname(__FILE__), "logs", "Phlex.log.php"), $lines));
 		$result['updateAvailable'] = $_SESSION['updateAvailable'] ?? false;
 		header('Content-Type: application/json');
 		echo JSON_ENCODE($result);
