@@ -804,7 +804,7 @@ function parseRecordCommand($command) {
 }
 
 // This is now our one and only handler for searches.
-function parsePlayCommand($command, $year = false, $artist = false, $type = false) {
+function parsePlayCommand($command, $year = false, $artist = false, $type = false, $raw=false) {
 
 	$playerIn = false;
 
@@ -813,7 +813,7 @@ function parsePlayCommand($command, $year = false, $artist = false, $type = fals
 		if ($name != "") {
 			write_log("Searhing for $name in '$command'");
 			$clientName = '/'.$name.'/';
-			if (preg_match($clientName, $command)) {
+			if (preg_match($clientName, $command) || preg_match($clientName,strtolower($raw))) {
 				write_log("I was just asked me to play something on a specific device: " . $client['name'], "INFO");
 				$name = strtolower($client['name']);
 				$playerIn = ["on the " . $name, "on " . $name, "in the " . $name, "in " . $name, $name];
@@ -1392,7 +1392,7 @@ function parseApiCommand($request) {
 				}
 			} else {
 				write_log("Final media result: " . json_encode($mediaResult), "INFO");
-				$mediaResult = parsePlayCommand(strtolower($command), $year, $artist, $type);
+				$mediaResult = parsePlayCommand(strtolower($command), $year, $artist, $type,$rawspeech);
 			}
 		}
 		recheck:
