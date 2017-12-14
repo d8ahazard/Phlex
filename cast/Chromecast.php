@@ -315,9 +315,6 @@ class Chromecast {
 
 		// CONNECT
 		$this->cc_connect();
-
-		//$this->getStatus();
-
 		// LAUNCH
 		$c = new CastMessage();
 		$c->source_id = "sender-0";
@@ -332,16 +329,13 @@ class Chromecast {
 
 		$oldtransportid = $this->transportid;
 		$count = 0;
-		//while (($this->transportid == "" || $this->transportid == $oldtransportid) && ($count < $this->breakout)) {
-		//	$r = $this->getCastMessage();
-		//	write_log("Looking for a cast message: " . $r);
-		//	$count++;
-		//}
+
 	}
 
 
 	function getStatus() {
-		write_log("Function fired.");
+		$caller = getCaller("getStatus");
+		write_log("Function fired, called by $caller.");
 		// Get the status of the chromecast in general and return it
 		// also fills in the transportId of any currently running app
 		$this->testLive();

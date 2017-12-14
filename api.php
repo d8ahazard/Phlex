@@ -24,8 +24,8 @@ if (isset($_GET['revision'])) {
 $user = false;
 $token = false;
 if (isset($_POST['username']) && isset($_POST['password'])) {
-	write_log("LOGIN TRIGGERED");
 	$userName = trim($_POST['username']);
+	write_log("Logging in as $userName.");
 	$pass = trim($_POST['password']);
 	$user = checkSignIn($userName, $pass);
 }
@@ -36,8 +36,8 @@ if (!$user) {
 		$token = $_GET['apiToken'];
 	}
 	if (isset($_SERVER['HTTP_APITOKEN'])) {
-		$token = $_SERVER['HTTP_APITOKEN'];
 		write_log("Using token from POST");
+		$token = $_SERVER['HTTP_APITOKEN'];
 	}
 	if (isset($_SESSION['apiToken'])) {
 		write_log("Using session token");
@@ -1981,7 +1981,7 @@ function scanDevices($force = false) {
 						if (boolval($connection['local'] == boolval($device['publicAddressMatches']))) {
 							if (($device['httpsRequired'] && $connection['protocol'] === 'https') || (!$device['httpsRequired'])) {
 								$con = $connection['uri'] . '?X-Plex-Token=' . $device['token'];
-								if (!isset($device['uri'])) if (check_url($con)) $device['uri'] = $connection['uri'];
+								if (!isset($device['uri'])) if (check_url($con,false,$device['name'])) $device['uri'] = $connection['uri'];
 							}
 						}
 						if ((boolval($device['publicAddressMatches'])) && $connection['protocol'] === 'https' && !isset($device['publicUri'])) {
@@ -2000,7 +2000,7 @@ function scanDevices($force = false) {
 				foreach ($device['connections'] as $connection) {
 					if ($connection['local'] === "1") {
 						$con = $connection['uri'] . "/resources?X-Plex-Token=" . $device['token'];
-						if ((check_url($con)) || ($device['product'] == 'PlexKodiConnect')) {
+						if ((check_url($con,false,$device['name'])) || ($device['product'] == 'PlexKodiConnect')) {
 							$device['uri'] = $connection['uri'];
 							break;
 						}
@@ -2222,7 +2222,7 @@ function fetchStaticDevices() {
 	$bc = [];
 	foreach($devices as $device) {
 		if (isset($device['broadcast'])) {
-			if ($device['broadcast'] && $device['type']=='cast') {
+			if ($device['broadcast'] && $device['product']=='cast') {
 				array_push($bc, $device['uri']);
 			}
 		}
@@ -3123,7 +3123,7 @@ function playMediaQueued($media) {
 }
 
 function castAudio($speech) {
-	if (!isset($_SESSION['broadcastDevice'])) {
+	if (!isset($_SESSION['broadcastDevice']) || !count($_SESSION['broadcastDevice'])) {
 		write_log("No broadcast device defined...","WARN");
 		return false;
 	}

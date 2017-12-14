@@ -8,19 +8,23 @@ require_once dirname(__FILE__) . '/vendor/autoload.php';
 // Returns generated or existing API Token.
 function checkSetUser(Array $userData) {
 	// Check that we have generated an API token for our user, create and save one if none exists
-	$userName = $userData['plexUserName'];
+	$userName = strtolower(trim($userData['plexUserName']));
 	$apiToken = false;
 	foreach ($GLOBALS['config'] as $section => $user) {
-		if ($section != "general") {
-			if (($userName == urlencode($user['plexUserName'])) || ($userName == urlencode($user['email']))) {
+		if ($section !== "general") {
+			$checkName = strtolower(trim($user['plexUserName']));
+			$checkEmail = strtolower(trim($user['plexEmail']));
+			write_log("Checking $userName against $checkName and $checkEmail");
+			if (($userName === $checkName) || ($userName === $checkEmail)) {
 				write_log("Found matching token for " . $user['plexUserName'] . ".");
-				$apiToken = $user['apiToken'] ?? false;
+				$apiToken = $user['apiToken'];
 				break;
 			}
 		}
 	}
 
 	if (!$apiToken) {
+		dumpRequest();
 		write_log("NO API TOKEN FOUND, generating one for " . $userName, "INFO");
 		$apiToken = randomToken(21);
 		$userData['apiToken'] = $apiToken;
@@ -46,15 +50,24 @@ function validateToken($token) {
 	foreach ($config as $section => $setting) {
 		$checkToken = false;
 		if ($section != "general") {
-			if (isset($setting['apiToken'])) $checkToken = $setting['apiToken'];
+			$checkToken = $setting['apiToken'] ?? false;
 			if (trim($checkToken) == trim($token)) {
-				$user = ['string' => $section, 'plexUserName' => $setting['plexUserName'], 'plexToken' => $setting['plexToken'], "plexEmail" => $setting['plexEmail'], "plexAvatar" => $setting['plexAvatar'], "plexCred" => $setting['plexCred'], "apiToken" => $setting['apiToken'],];
+				$user = [
+					'string' => $section,
+					'plexUserName' => $setting['plexUserName'],
+					'plexToken' => $setting['plexToken'],
+					"plexEmail" => $setting['plexEmail'],
+					"plexAvatar" => $setting['plexAvatar'],
+					"plexCred" => $setting['plexCred'],
+					"apiToken" => $setting['apiToken']
+				];
 				return $user;
 			}
 		}
 	}
-
-	write_log("ERROR, api token not recognized!", "ERROR");
+	$caller = getCaller("validateToken");
+	write_log("ERROR, api token not recognized, called by $caller.", "ERROR");
+	dumpRequest();
 	return false;
 }
 
@@ -529,11 +542,13 @@ function getCaller($custom = "foo") {
 
 // Save the specified configuration file using CONFIG_LITE
 function saveConfig(Config_Lite $inConfig) {
+	$configFile = file_build_path(dirname(__FILE__), "config.ini.php");
+	if (!is_writable($configFile)) write_log("Configuration file is NOT writeable.","ERROR");
 	try {
 		$inConfig->save();
 	} catch (Config_Lite_Exception $e) {
-		echo "\n" . 'Exception Message: ' . $e->getMessage();
-		write_log('Error saving configuration.', 'ERROR');
+		$msg = $e->getMessage();
+		write_log("Error saving configuration: $msg", 'ERROR');
 	}
 	$configFile = file_build_path(dirname(__FILE__), "config.ini.php");
 	$cache_new = "'; <?php die('Access denied'); ?>"; // Adds this to the top of the config so that PHP kills the execution if someone tries to request the config-file remotely.
@@ -638,8 +653,8 @@ function session_started() {
 }
 
 // Check the validity of a URL response
-function check_url($url, $post = false) {
-	write_log("Checking URL: " . $url);
+function check_url($url, $post = false,$device=false) {
+	if (!$device) write_log("Checking URL: " . $url); else write_log("Checking URL for device $device");
 	$certPath = file_build_path(dirname(__FILE__), "cert", "cacert.pem");
 	$ch = curl_init($url);
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
@@ -2135,4 +2150,33 @@ function fetchUrl($https = false) {
 	$actual_link = $protocol;
 	foreach ($url as $part) $actual_link .= $part . "/";
 	return $actual_link;
+}
+
+function dumpRequest() {
+	$data = [
+		"Request Method" => $_SERVER['REQUEST_METHOD'],
+		"Request URI" => $_SERVER['REQUEST_URI'],
+		"Server Protocol" => $_SERVER['SERVER_PROTOCOL'],
+		"Request Data"=>$request = explode("/", substr(@$_SERVER['PATH_INFO'], 1))
+	];
+
+	foreach ($_SERVER as $name => $value) {
+		if (preg_match('/^HTTP_/',$name)) {
+			// convert HTTP_HEADER_NAME to Header-Name
+			$name = strtr(substr($name,5),'_',' ');
+			$name = ucwords(strtolower($name));
+			$name = strtr($name,' ','-');
+			// add to list
+			$data[$name] = $value;
+		}
+	}
+	if ($_SERVER['request_METHOD'] !== 'PUT') {
+		$data['Request body'] = file_get_contents('php://input');
+	} else {
+		parse_str(file_get_contents("php://input"),$post_vars);
+		foreach($post_vars as $key=>$value) {
+			$data[$key] = $value;
+		}
+	}
+	write_log("Request dump!!: ".json_encode($data),"WARN");
 }
