@@ -520,7 +520,9 @@ pre.prettyprint {
 
 .clicked, .dd-selected {
 	color: #005ad9 !important;
-
+}
+.dd-selected {
+	font-style: italic;
 }
 
 .barIcon {
