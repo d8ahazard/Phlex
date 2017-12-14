@@ -2525,8 +2525,7 @@ function plexSearch($title, $type=false) {
             'X-Plex-Token' => $_SESSION['plexServerToken']
         ]
     ];
-
-    $result = doRequest($request);
+	$result = doRequest($request);
 
     if ($result) {
         $container = new SimpleXMLElement($result);
@@ -2538,7 +2537,7 @@ function plexSearch($title, $type=false) {
 		        $hubType = (string)trim($Hub['type']);
 		        if ($size != "0") {
 			        if ($type) {
-				        if (trim($type) === trim($hubType)) {
+				        if (trim($type) === trim($hubType) || (trim($type) == 'episode' && trim($hubType) == 'show')) {
 					        $push = true;
 				        }
 			        } else {
