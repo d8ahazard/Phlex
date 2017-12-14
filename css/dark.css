@@ -44,6 +44,10 @@
 	overflow: hidden;
 }
 
+.cardHeader {
+	color: white;
+}
+
 .appContainer {
 	border: 1px solid #8e8e8e;
 }

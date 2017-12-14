@@ -385,6 +385,7 @@ function makeBody($newToken = false) {
 			                <div class="tab-pane fade" id="deviceSettingsTab" role="tabpanel">
 			                    <div class="modal-body" id="deviceBody">
                                     <h4 class="cardHeader">' . $lang['uiSettingDevices'] . '</h4>
+                                    <div id="deviceContainer"></div>
 					                <button type="button" class="btn btn-primary fab" id="deviceFab" data-toggle="tooltip" data-placement="left" title="' . $lang['uiSettingDevicesAddNew'] . '">
 										<i class="material-icons">add</i>
 									</button>

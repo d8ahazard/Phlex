@@ -533,8 +533,24 @@ function setSessionVariables($rescan = true) {
 	// Reload section UUID's
 	if ($_SESSION['plexServerUri']) fetchSections();
 
-	$_SESSION['plexHeader'] = '&X-Plex-Product=Phlex' . '&X-Plex-Version=1.0.0' . '&X-Plex-Client-Identifier=' . $_SESSION['deviceID'] . '&X-Plex-Platform=Web' . '&X-Plex-Platform-Version=1.0.0' . '&X-Plex-Device=PhlexWeb' . '&X-Plex-Device-Name=Phlex' . '&X-Plex-Device-Screen-Resolution=1520x707,1680x1050,1920x1080' . '&X-Plex-Token=' . $_SESSION['plexToken'];
-
+	$_SESSION['plexHeaderArray'] = [
+		"X-Plex-Product"=>"Plex Web",
+		"X-Plex-Version"=>"1.1.0",
+		"X-Plex-Client-Identifier"=>$_SESSION['deviceID'],
+		"X-Plex-Platform"=>"Chrome",
+		"X-Plex-Platform-Version"=>"62.0",
+		"X-Plex-Sync-Version"=>"2",
+		"X-Plex-Device"=>"Windows",
+		"X-Plex-Device-Name"=>"Plex Web (Chrome)",
+		"X-Plex-Device-Screen-Resolution"=>"1680x919,1680x1050",
+		"X-Plex-Token"=>$_SESSION['plexToken'],
+		"X-Plex-Provider-Version"=>"1.1"
+	];
+	$ph = "";
+	foreach($_SESSION['plexHeaderArray'] as $key=>$value) {
+		$ph.="&$key=$value";
+	}
+	$_SESSION['plexHeader'] = $ph;
 }
 
 // Log our current session variables
@@ -2146,23 +2162,31 @@ function sortDevices($devices) {
 
 function removeDuplicates($devices) {
 	$newDevices = [];
-
 	foreach ($devices as $device) {
-		$skip = false;
-		$match = false;
+		if ($device['static']) {
+			write_log("Pushing static device to array: ".json_encode($device));
+			array_push($device,$newDevices);
+		}
+	};
+	foreach ($devices as $device) {
+		$match = $skip = false;
 		$i = 2;
 		foreach($newDevices as &$newDevice) {
 			$newConnection = parse_url($newDevice['uri']);
 			$connection = parse_url($device['uri']);
-			$skip = (($newConnection['host'] == $connection['host']) && ($newConnection['port'] == $connection['port']));
-			if ($skip) $match = $newDevice['name'];
-			$dname = preg_replace("/[^a-zA-Z]/", "", $device['name']);
-			$cname = preg_replace("/[^a-zA-Z]/", "", $newDevice['name']);
-			if ($dname == $cname) {
-				$device['name'] .= " ($i)";
-				$i++;
+			$newCheck = $newConnection['host'].":".$newConnection['port'];
+			$check = $connection['host'].":".$connection['port'];
+			if ($check === $newCheck) {
+				$match = $newDevice['name'];
+				$skip = true;
+			} else {
+				$dname = preg_replace("/[^a-zA-Z]/", "", $device['name']);
+				$cname = preg_replace("/[^a-zA-Z]/", "", $newDevice['name']);
+				if ($dname == $cname) {
+					$device['name'] .= " ($i)";
+					$i++;
+				}
 			}
-
 		}
 		if (!$skip) array_push($newDevices, $device); else write_log("Dropping ".$device['name']." because it matches $match.");
 	}
@@ -3275,6 +3299,7 @@ function plexHeaders() {
 	return ['X-Plex-Product' => 'Phlex', 'X-Plex-Version' => '1.0.0', 'X-Plex-Client-Identifier' => $_SESSION['deviceID'], 'X-Plex-Platform' => 'Web', 'X-Plex-Platform-Version' => '1.0.0', 'X-Plex-Device' => 'PhlexWeb', 'X-Plex-Device-Name' => 'Phlex', 'X-Plex-Device-Screen-Resolution' => '1520x707,1680x1050,1920x1080', 'X-Plex-Token' => $_SESSION['plexToken']];
 
 }
+
 
 
 function playerStatus($wait = 0) {

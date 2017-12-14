@@ -746,7 +746,7 @@ function updateStatus() {
 						var devString = createStaticDevice(device.id, device.name, device.uri, device.product,device.broadcast);
 						devHtml += devString[0];
 					});
-					$('#deviceBody').append(devHtml);
+					$('#deviceContainer').html(devHtml);
 					staticCount = count;
 				}
 				console.log("Devices2: ",JSON.stringify(devices));

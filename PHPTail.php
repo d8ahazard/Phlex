@@ -23,6 +23,11 @@ class PHPTail {
 	 * @var string
 	 */
 	private $apiToken;
+	/**
+	 * Our line counter.
+	 * @var int
+	 */
+	private $count;
     /**
      *
      * PHPTail constructor
@@ -35,6 +40,7 @@ class PHPTail {
         $this->updateTime = $defaultUpdateTime;
         $this->maxSizeToLoad = $maxSizeToLoad;
         $this->apiToken = $token;
+        $this->count = 0;
     }
 
 	function json_validate($string)
@@ -91,9 +97,9 @@ class PHPTail {
 	 * This function is in charge of retrieving the latest lines from the log file
 	 * @param string $lastFetchedSize The size of the file when we lasted tailed it.
 	 * @param string $grepKeyword The grep keyword. This will only return rows that contain this word
-	 * @return Returns the JSON representation of the latest file size and appended lines.
+	 * @return string Returns the JSON representation of the latest file size and appended lines.
 	 */
-    public function getNewLines($file, $lastFetchedSize, $grepKeyword, $invert) {
+    public function getNewLines($file, $lastFetchedSize, $grepKeyword, $invert,$count=false) {
 		$json = false;
         /**
          * Clear the stat cache to get the latest results
@@ -105,7 +111,9 @@ class PHPTail {
          */
         if(empty($file)) {
             $file = key(array_slice($this->log, 0, 1, true));
-        }
+        } else {
+        	$count = 0;
+		}
         $fsize = filesize($this->log[$file]);
         $maxLength = ($fsize - $lastFetchedSize);
         /**
@@ -137,7 +145,7 @@ class PHPTail {
         //if(preg_match("/Phlex.log/",$file)) {
         	$newData = [];
         	$i = 0;
-        	$l = 0;
+        	if (!$count) $count = 0;
         	foreach($data as $line) {
         		if ($i === 0) {
         			$i = 1;
@@ -168,9 +176,9 @@ class PHPTail {
 					$jsonLink = '<a href="" class="jsonParse" title="'.urlencode($json).'" data-json="'.urlencode($json).'">[JSON]</a>';
 					$line = str_replace($substr, $jsonLink, $line);
 				}
-				$line = "<span class='lineNo'>$l</span><span class='$level $linecolor logSpan' data-text='".urlencode($og)."'>$line</span>";
+				$line = "<span class='lineNo'>$count</span><span class='$level $linecolor logSpan' data-text='".urlencode($og)."'>$line</span>";
 				array_push($newData,$line);
-				$l++;
+				$count++;
 			}
 			$data = $newData;
 		//}
@@ -180,7 +188,7 @@ class PHPTail {
         if(end($data) == "") {
             array_pop($data);
         }
-        return json_encode(array("size" => $fsize, "file" => $this->log[$file], "data" => $data));
+        return json_encode(array("size" => $fsize, "file" => $this->log[$file], "data" => $data, "count"=>$count));
     }
 
     /**
@@ -292,6 +300,8 @@ class PHPTail {
     //Should we scroll to the bottom?
     scroll = true;
 
+    var count = 0;
+
     lastFile = window.location.hash != "" ? window.location.hash.substr(1) : "";
     console.log(lastFile);
     $(document).ready(function() {
@@ -402,10 +412,11 @@ console.log(e);
     }
     //This function queries the server for updates.
     function updateLog() {
-        $.getJSON('?ajax=1&file=' + lastFile + '&lastsize=' + lastSize + '&grep=' + grep + '&invert=' + invert + '&apiToken=<?php echo $this->apiToken; ?>', function(data) {
+        $.getJSON('?ajax=1&file=' + lastFile + '&lastsize=' + lastSize + '&count=' + count + '&grep=' + grep + '&invert=' + invert + '&apiToken=<?php echo $this->apiToken; ?>', function(data) {
             lastSize = data.size;
             $("#current").text(data.file);
             var fileParts = data.file;
+            count = data.count;
             fileParts = fileParts.split("/");
             fileParts = fileParts[fileParts.length - 1];
             $(".navbar-brand").text(fileParts);

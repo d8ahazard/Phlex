@@ -32,7 +32,7 @@ $tail = new PHPTail($logs,1000,2097152,$apiToken);
  * We're getting an AJAX call
  */
 if(isset($_GET['ajax']))  {
-    echo $tail->getNewLines($_GET['file'], $_GET['lastsize'], $_GET['grep'], $_GET['invert']);
+    echo $tail->getNewLines($_GET['file'], $_GET['lastsize'], $_GET['grep'], $_GET['invert'], intval($_GET['count']));
     die();
 }
 
