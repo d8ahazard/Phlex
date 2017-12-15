@@ -437,9 +437,9 @@ function write_log($text, $level = null, $caller = false) {
 		$authString = "; <?php die('Access denied'); ?>".PHP_EOL;
 		file_put_contents($filename,$authString);
 	}
-	if (!is_writable($filename)) die;
-	if (!$handle = fopen($filename, 'a+')) die;
-	if (fwrite($handle, $text) === FALSE) die;
+	if (!is_writable($filename)) return;
+	if (!$handle = fopen($filename, 'a+')) return;
+	if (fwrite($handle, $text) === FALSE) return;
 	fclose($handle);
 }
 
