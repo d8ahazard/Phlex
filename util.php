@@ -801,9 +801,16 @@ function checkFiles() {
 	$files = [$logPath, $errorLogPath, $updateLogPath, 'config.ini.php', 'commands.php'];
 
 	$secureString = "'; <?php die('Access denied'); ?>";
-	if (!mkdir($logPath,0777,true)) {
-		$message = "Unable to create log folder directory, please check permissions and try again.";
-		array_push($messages,$message);
+	if (!file_exists($logPath)) {
+		if (!mkdir($logPath, 0777, true)) {
+			$message = "Unable to create log folder directory, please check permissions and try again.";
+			$error = [
+				'title' => 'Permission error.',
+				'message' => $message,
+				'url' => false
+			];
+			array_push($messages, $error);
+		}
 	}
 	foreach ($files as $file) {
 		if (!file_exists($file)) {
