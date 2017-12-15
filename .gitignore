@@ -13,6 +13,7 @@ new_index.php
 new_js/
 /cacert.pem
 
-/logs/
 /img/cache/
 /manifest.json
+/logs/*.log.php
+
