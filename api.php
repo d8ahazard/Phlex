@@ -534,14 +534,14 @@ function setSessionVariables($rescan = true) {
 	if ($_SESSION['plexServerUri']) fetchSections();
 
 	$_SESSION['plexHeaderArray'] = [
-		"X-Plex-Product"=>"Plex Web",
+		"X-Plex-Product"=>"PhlexWeb",
 		"X-Plex-Version"=>"1.1.0",
 		"X-Plex-Client-Identifier"=>$_SESSION['deviceID'],
 		"X-Plex-Platform"=>"Chrome",
 		"X-Plex-Platform-Version"=>"62.0",
 		"X-Plex-Sync-Version"=>"2",
 		"X-Plex-Device"=>"Windows",
-		"X-Plex-Device-Name"=>"Plex Web (Chrome)",
+		"X-Plex-Device-Name"=>"Phlex",
 		"X-Plex-Device-Screen-Resolution"=>"1680x919,1680x1050",
 		"X-Plex-Token"=>$_SESSION['plexToken'],
 		"X-Plex-Provider-Version"=>"1.1"
@@ -1342,6 +1342,7 @@ function parseApiCommand($request) {
 			}
 			$cards = count($cards) ? array_unique($cards) : false;
 			$names = array_unique($names);
+			write_log("List of names for upcomings: ".json_encode($names));
 			if (count($names) >= 2) {
 				if (count($names) >= 3) {
 					foreach ($names as $name) {
@@ -2396,13 +2397,13 @@ function fetchInfo($matrix) {
 		foreach ($matchup as $key => $mod) {
 			switch ($key) {
 				case 'hh':
-					$offset += $mod * 60 * 60;
+					$offset += $mod * 3600000;
 					break;
 				case 'mm':
-					$offset += $mod * 60;
+					$offset += $mod * 60000;
 					break;
 				case 'ss':
-					$offset += $mod;
+					$offset += $mod * 1000;
 					break;
 				case 'offset':
 					$offset = $mod;
@@ -3991,12 +3992,14 @@ function fetchTMDBInfo($title = false, $tmdbId = false, $tvdbId = false, $type =
 		$search = $url . '/search/' . ($type ? $type : 'multi') . '?query=' . urlencode($title) . '&api_key=' . $d . '&page=1';
 		$results = json_decode(doRequest($search), true);
 		write_log("Result array: " . json_encode($results));
-		$score = $_SESSION['searchAccuracy'];
+		$score = $_SESSION['searchAccuracy'] * .01;
 		$winner = [];
 		foreach ($results['results'] as $result) {
 			$resultTitle = $result['title'] ?? $result['name'];
 			$newScore = similarity(cleanCommandString($resultTitle), cleanCommandString($title));
-			if (($newScore > $score) && ((($result['media_type'] == "movie") || ($result['media_type'] == "tv")) || ($type))) {
+			$resultType = $result['media_type'];
+			write_log("$score vs $newScore for $resultTitle");
+			if (($newScore > $score) && ((($resultType === "movie") || ($resultType === "tv")) || ($type))) {
 				write_log("This matches: " . $result['title'] . " Score: $newScore.");
 				write_log("JSON: " . json_encode($result));
 				$winner = $result;

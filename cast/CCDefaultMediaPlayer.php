@@ -17,7 +17,7 @@ class CCDefaultMediaPlayer extends CCBaseSender {
 		$r = "";
 		while (!preg_match("/\"playerState\":\"PLAYING\"/", $r)) {
 			$r = $this->chromecast->getCastMessage();
-			//sleep(1);
+			sleep(1);
 		}
 		// Grab the mediaSessionId
 		preg_match("/\"mediaSessionId\":([^\,]*)/", $r, $m);

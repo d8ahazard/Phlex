@@ -115,10 +115,11 @@ function TTS($text) {
 
 	$mp3 = curl_exec($ch);
 	$data = json_decode($mp3,true);
+	write_log("Response: ".json_encode($data));
 	if ($data['success']) {
 		$id = $data['id'];
 		$url = "https://soundoftext.com/api/sounds/$id";
-		$data = curlGet($url);
+		$data = curlGet($url,null,10);
 		if ($data) {
 			$response = json_decode($data,true);
 			if (isset($response['location'])) return $response['location'];
@@ -427,9 +428,10 @@ function write_log($text, $level = null, $caller = false) {
 	if (isset($_GET['pollPlayer']) || !file_exists($filename) || (trim($text) === "")) return;
 	$caller = $caller ? $caller : getCaller();
 	$text = '[' . date(DATE_RFC2822) . '] [' . $level . '] [' . $caller . "] - " . trim($text) . PHP_EOL;
-
-	if (filesize($filename) > 10 * 1024 * 1024) {
-		$filename2 = "$filename.old";
+	$youIdiot = file_build_path(dirname(__FILE__),'logs',"Phlex.log.php.old");
+	if (file_exists($youIdiot)) unlink($youIdiot);
+	if (filesize($filename) > 5 * 1024 * 1024) {
+		$filename2 = "Phlex.log.old.php";
 		if (file_exists($filename2)) unlink($filename2);
 		rename($filename, $filename2);
 		touch($filename);
@@ -801,8 +803,8 @@ function checkFiles() {
 	$files = [$logPath, $errorLogPath, $updateLogPath, 'config.ini.php', 'commands.php'];
 
 	$secureString = "'; <?php die('Access denied'); ?>";
-	if (!file_exists($logPath)) {
-		if (!mkdir($logPath, 0777, true)) {
+	if (!file_exists($logDir)) {
+		if (!mkdir($logDir, 0777, true)) {
 			$message = "Unable to create log folder directory, please check permissions and try again.";
 			$error = [
 				'title' => 'Permission error.',

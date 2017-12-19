@@ -26,7 +26,7 @@ class Chromecast {
 	public $breakout; // A limiter for while loops
 
 	public function __construct($ip, $port, $breakout = 5) {
-		write_log("Function fired.");
+		write_log("Constructing sender for device at $ip:$port.");
 		// Establish Chromecast connection
 
 		// Don't pay much attention to the Chromecast's certificate. 
@@ -53,9 +53,9 @@ class Chromecast {
 	}
 
 	public static function scan($wait = 15) {
-		write_log("Function fired.");
 		// Wrapper for scan
 		$result = Chromecast::scansub($wait);
+		write_log("Scan result: $result");
 		return $result;
 	}
 
@@ -310,11 +310,10 @@ class Chromecast {
 	}
 
 	public function launch($appid) {
-		write_log("Function fired.");
 		// Launches the chromecast app on the connected chromecast
-
 		// CONNECT
 		$this->cc_connect();
+		$this->getStatus();
 		// LAUNCH
 		$c = new CastMessage();
 		$c->source_id = "sender-0";
@@ -326,10 +325,13 @@ class Chromecast {
 		fflush($this->socket);
 		$this->lastactivetime = time();
 		$this->requestId++;
-
 		$oldtransportid = $this->transportid;
 		$count = 0;
-
+		while (($this->transportid == "" || $this->transportid == $oldtransportid) && ($count < $this->breakout)) {
+			$r = $this->getCastMessage();
+			write_log("Old Transport ID $oldtransportid vs $this->transportid");
+			$count++;
+		}
 	}
 
 
@@ -397,8 +399,8 @@ class Chromecast {
 				$this->pong();
 			}
 			$response = fread($this->socket, 10000);
-			$response = preg_replace('/[\x00-\x1F\x7F]/', '', $response);
-			write_log("Response: " . $response);
+			$msg = preg_replace('/[[:^print:]]/', "", $response);
+			write_log("Response: " . $msg);
 			if ($response == "" || preg_match("/\"PING\"/", $response)) {
 				$pongcount++;
 				write_log("Pongcount: " . $pongcount);
