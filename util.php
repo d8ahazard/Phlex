@@ -66,7 +66,7 @@ function validateToken($token) {
 		}
 	}
 	$caller = getCaller("validateToken");
-	write_log("ERROR, api token not recognized, called by $caller.", "ERROR");
+	write_log("ERROR, api token $token not recognized, called by $caller.", "ERROR");
 	dumpRequest();
 	return false;
 }

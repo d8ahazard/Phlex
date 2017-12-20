@@ -4455,10 +4455,11 @@ function queryApiAi($command) {
 }
 
 function returnAssistantSpeech($speech, $contextName, $cards, $waitForResponse, $suggestions) {
-	if (!$cards) write_log("Card array: " . json_encode($cards));
+	if (count($cards)) write_log("Card array: " . json_encode($cards));
 	header('Content-Type: application/json');
 	ob_start();
 	$items = $richResponse = $sugs = [];
+	if (!trim($speech)) $speech = "There was an error building this speech response, please inform the developer.";
 	$output["speech"] = $speech;
 	$output["contextOut"][0] = ["name" => $contextName, "lifespan" => 2, "parameters" => []];
 	$output["data"]["google"]["expectUserResponse"] = boolval($waitForResponse);
@@ -4467,7 +4468,8 @@ function returnAssistantSpeech($speech, $contextName, $cards, $waitForResponse, 
 	$items[0] = ['simpleResponse' => ['textToSpeech' => $speech, 'displayText' => $speech]];
 
 	if (is_array($cards)) {
-		if (count($cards) == 1) {
+		$count = count($cards);
+		if ($count == 1) {
 			$cardTitle = $cards[0]['title'];
 			$cards[0]['image']['accessibilityText'] = "Image for $cardTitle.";
 			if (preg_match("/https/", $cards[0]['image']['url'])) {
@@ -4475,31 +4477,31 @@ function returnAssistantSpeech($speech, $contextName, $cards, $waitForResponse, 
 			} else {
 				write_log("Not displaying card for $cardTitle because image is not https.", "INFO");
 			}
-
-
 		} else {
-			$carousel = [];
-			foreach ($cards as $card) {
-				$cardTitle = $card['title'];
-				$item = [];
-				$img = $card['image']['url'];
-				if (!(preg_match("/http/", $card['image']['url']))) $img = transcodeImage($card['image']['url']);
-				if (preg_match("/https/", $img)) {
-					$item['image']['url'] = $img;
-					$item['image']['accessibilityText'] = $card['title'];
-					$item['title'] = $card['title'];
-					$item['description'] = $card['description'];
-					$item['optionInfo']['key'] = 'play ' . $card['title'];
-					array_push($carousel, $item);
-				} else {
-					write_log("Not displaying card for $cardTitle because image is not https.", "INFO");
+			if ($count >= 2 && $count <=29) {
+				$carousel = [];
+				foreach ($cards as $card) {
+					$cardTitle = $card['title'];
+					$item = [];
+					$img = $card['image']['url'];
+					if (!(preg_match("/http/", $card['image']['url']))) $img = transcodeImage($card['image']['url']);
+					if (preg_match("/https/", $img)) {
+						$item['image']['url'] = $img;
+						$item['image']['accessibilityText'] = $card['title'];
+						$item['title'] = substr($card['title'], 0, 25);
+						$item['description'] = $card['description'];
+						$item['optionInfo']['key'] = 'play ' . $card['title'];
+						array_push($carousel, $item);
+					} else {
+						write_log("Not displaying card for $cardTitle because image is not https.", "INFO");
+					}
 				}
+				$output['data']['google']['systemIntent']['intent'] = 'actions.intent.OPTION';
+				$output['data']['google']['systemIntent']['data']['@type'] = 'type.googleapis.com/google.actions.v2.OptionValueSpec';
+				$output['data']['google']['systemIntent']['data']['listSelect']['items'] = $carousel;
+				$output['data']['google']['expectedInputs'][0]['possibleIntents'][0]['inputValueData']['@type'] = "type.googleapis.com/google.actions.v2.OptionValueSpec";
+				$output['data']['google']['expectedInputs'][0]['possibleIntents'][0]['intent'] = "actions.intent.OPTION";
 			}
-			$output['data']['google']['systemIntent']['intent'] = 'actions.intent.OPTION';
-			$output['data']['google']['systemIntent']['data']['@type'] = 'type.googleapis.com/google.actions.v2.OptionValueSpec';
-			$output['data']['google']['systemIntent']['data']['listSelect']['items'] = $carousel;
-			$output['data']['google']['expectedInputs'][0]['possibleIntents'][0]['inputValueData']['@type'] = "type.googleapis.com/google.actions.v2.OptionValueSpec";
-			$output['data']['google']['expectedInputs'][0]['possibleIntents'][0]['intent'] = "actions.intent.OPTION";
 		}
 	}
 
