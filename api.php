@@ -3229,7 +3229,7 @@ function playMediaCast($media) {
 		];
 		// Launch and play on Plex
 		$cc->Plex->play(json_encode($result));
-		sleep(1);
+		sleep(2);
 		fclose($cc->socket);
 		$return['status'] = 'success';
 	} else {
