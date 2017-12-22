@@ -4426,6 +4426,9 @@ function returnSpeech($speech, $contextName, $cards = false, $waitForResponse = 
 	} else {
 		returnAssistantSpeech($speech, $contextName, $cards, $waitForResponse, $suggestions);
 	}
+	if (function_exists('fastcgi_finish_request')) {
+		fastcgi_finish_request();
+	}
 }
 
 // APIAI ITEMS
