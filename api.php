@@ -1857,8 +1857,8 @@ function changeDevice($command) {
 			$speech = buildSpeech($_SESSION['lang']['speechChangeDeviceSuccessStart'], $typeString, $_SESSION['lang']['speechWordTo'], $command . ".");
 			$contextName = 'waitforplayer';
 			returnSpeech($speech, $contextName);
-			$name = (($result['product'] == 'Plex Media Server') ? 'plexServerId' : 'plexClientId');
-			$GLOBALS['config']->set('user-_-' . $_SESSION['plexUserName'], $name, $result['id']);
+			$name = (($result['product'] == 'Plex Media Server') ? 'plexServer' : 'plexClient');
+			$GLOBALS['config']->set('user-_-' . $_SESSION['plexUserName'], $name . 'Id', $result['id']);
 			$GLOBALS['config']->set('user-_-' . $_SESSION['plexUserName'], $name . 'Uri', $result['uri']);
 			$GLOBALS['config']->set('user-_-' . $_SESSION['plexUserName'], $name . 'Name', $result['name']);
 			$GLOBALS['config']->set('user-_-' . $_SESSION['plexUserName'], $name . 'Product', $result['product']);
