@@ -1399,7 +1399,7 @@ function parseApiCommand($request) {
 			if ($action == 'playfromlist') {
 				$cleanedRaw = cleanCommandString($rawspeech);
 				$list = $_SESSION['mediaList'] ?? json_decode(base64_decode($GLOBALS['config']->get('user-_-' . $_SESSION['plexUserName'], 'mlist', false)), true);
-				$target = intval($_SESSION['searchAccuracy']) * .1;
+				$target = intval($_SESSION['searchAccuracy']) * .01;
 				foreach ($list as $mediaItem) {
 					$title = cleanCommandString($mediaItem['title']);
 					$weight = similarity($title, $cleanedRaw);
@@ -1842,7 +1842,7 @@ function changeDevice($command) {
 	if (isset($list) && isset($type)) {
 		$typeString = (($type == 'player') ? 'client' : 'server');
 		$score = 0;
-		$target = intval($_SESSION['searchAccuracy']) * .1;
+		$target = intval($_SESSION['searchAccuracy']) * .01;
 		foreach ($list as $device) {
 			$value = similarity(cleanCommandString($device['name']), cleanCommandString($command));
 			if (($value >= $target) && ($value >= $score)) {
@@ -1857,8 +1857,8 @@ function changeDevice($command) {
 			$speech = buildSpeech($_SESSION['lang']['speechChangeDeviceSuccessStart'], $typeString, $_SESSION['lang']['speechWordTo'], $command . ".");
 			$contextName = 'waitforplayer';
 			returnSpeech($speech, $contextName);
-			$name = (($result['product'] == 'Plex Media Server') ? 'plexServerId' : 'plexClientId');
-			$GLOBALS['config']->set('user-_-' . $_SESSION['plexUserName'], $name, $result['id']);
+			$name = (($result['product'] == 'Plex Media Server') ? 'plexServer' : 'plexClient');
+			$GLOBALS['config']->set('user-_-' . $_SESSION['plexUserName'], $name . 'Id', $result['id']);
 			$GLOBALS['config']->set('user-_-' . $_SESSION['plexUserName'], $name . 'Uri', $result['uri']);
 			$GLOBALS['config']->set('user-_-' . $_SESSION['plexUserName'], $name . 'Name', $result['name']);
 			$GLOBALS['config']->set('user-_-' . $_SESSION['plexUserName'], $name . 'Product', $result['product']);
@@ -2085,6 +2085,40 @@ function scanDevices($force = false) {
 		$results['servers'] = $servers;
 		$results['clients'] = $clients;
 		$results['dvrs'] = $dvrs;
+
+        $static = fetchStaticDevices();
+        $clients = $results['clients'];
+        $unique = [];
+        if ($static) {
+            $count = count($static);
+            write_log("Merging $count static devices.");
+            foreach($clients as $client) {
+                foreach ($static as $device) {
+                    if ($device['id'] !== $client['id']) {
+                        array_push($unique,$client);
+                    }
+                }
+            }
+            $clients = array_merge($static,$unique);
+        }
+
+        if (count($clients)) {
+            $clients = removeDuplicates($clients);
+            foreach ($clients as &$client) {
+                if (isset($_SESSION['plexClientId'])) {
+                    if ($_SESSION['plexClientId'] == $client['id']) {
+                        $_SESSION['plexClientUri'] = $client['uri'];
+                        $client['selected'] = true;
+                    } else {
+                        $client['selected'] = false;
+                    }
+                }
+            }
+        }
+        $results['clients'] = $clients;
+
+
+
 		$_SESSION['list_plexdevices'] = $results;
 		$string = base64_encode(json_encode($results));
 		$GLOBALS['config']->set('user-_-' . $_SESSION['plexUserName'], 'dlist', $string);
@@ -2094,36 +2128,6 @@ function scanDevices($force = false) {
 	} else {
 		$results = $list;
 	}
-	$static = fetchStaticDevices();
-	$clients = $results['clients'];
-	$unique = [];
-	if ($static) {
-		$count = count($static);
-		write_log("Merging $count static devices.");
-		foreach($clients as $client) {
-			foreach ($static as $device) {
-				if ($device['id'] !== $client['id']) {
-					array_push($unique,$client);
-				}
-			}
-		}
-		$clients = array_merge($static,$unique);
-	}
-
-	if (count($clients)) {
-		$clients = removeDuplicates($clients);
-		foreach ($clients as &$client) {
-			if (isset($_SESSION['plexClientId'])) {
-				if ($_SESSION['plexClientId'] == $client['id']) {
-					$_SESSION['plexClientUri'] = $client['uri'];
-					$client['selected'] = true;
-				} else {
-					$client['selected'] = false;
-				}
-			}
-		}
-	}
-	$results['clients'] = $clients;
 	return $results;
 }
 
@@ -4081,7 +4085,7 @@ function couchDownload($command) {
 
 	$body = json_decode($result, true);
 	write_log("body:" . $result);
-	$score = intval($_SESSION['searchAccuracy'])*.1;
+	$score = intval($_SESSION['searchAccuracy'])*.01;
 	$winner = [];
 	foreach ($body['movies'] as $movie) {
 		$newScore = similarity(cleanCommandString($movie['titles'][0]), $command);
@@ -4145,7 +4149,7 @@ function radarrDownload($command, $tmdbResult = false) {
 	$movieArray = json_decode($radarr->getMovies(), true);
 	$rootPath = $rootArray[0]['path'];
 	$highest = 0;
-	$target = intval($_SESSION['searchAccuracy']) * .1;
+	$target = intval($_SESSION['searchAccuracy']) * .01;
 	foreach ($movieCheck as $check) {
 		$score = similarity(cleanCommandString($check['title']), cleanCommandString($command));
 		if (($score >=$target) && ($score > $highest)) {
