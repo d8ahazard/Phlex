@@ -162,20 +162,20 @@ class PHPTail {
 		        unset($substr[0]);
 		        $substr = implode(": ",$substr);
 
-		        preg_match('#\bhttps?://[^,\s()<>]+(?:\([\w\d]+\)|([^,[:punct:]\s]|/))#', $line, $match);
-		        $link = "<a href='$match[0]' target='_blank'>$match[0]</a>";
+		        if (preg_match('#\bhttps?://[^,\s()<>]+(?:\([\w\d]+\)|([^,[:punct:]\s]|/))#', $line, $match)) {
+		        	$link = "<a href='$match[0]' target='_blank'>$match[0]</a>";
 				$line = str_replace($match[0],$link,$line);
-
-					$test = $this->json_validate($substr);
-					if ($test) {
-						$json = json_encode($test) ?? false;
-					}
+			}
+			$test = $this->json_validate($substr);
+			if ($test) {
+				$json = json_encode($test) ?? false;
+			}
 
 
 		        if ($json !== "null" && (!preg_match("/ERROR11/",$json))) {
-					$jsonLink = '<a href="" class="jsonParse" title="'.urlencode($json).'" data-json="'.urlencode($json).'">[JSON]</a>';
-					$line = str_replace($substr, $jsonLink, $line);
-				}
+				$jsonLink = '<a href="" class="jsonParse" title="'.urlencode($json).'" data-json="'.urlencode($json).'">[JSON]</a>';
+				$line = str_replace($substr, $jsonLink, $line);
+			}
 				$line = "<span class='lineNo'>$count</span><span class='$level $linecolor logSpan' data-text='".urlencode($og)."'>$line</span>";
 				array_push($newData,$line);
 				$count++;
