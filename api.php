@@ -163,7 +163,7 @@ function initialize() {
 		$product = $_GET['product'];
 		if ($id != 'rescan') {
 			write_log('New device selected. Type is ' . $type . ". ID is " . $id . ". Name is " . $name, "INFO");
-			if ($type == 'plexServerId') {
+			if ($type == 'plexServer') {
 				$token = $_GET['token'];
 				$GLOBALS['config']->set('user-_-' . $_SESSION['plexUserName'], $type . 'Token', $token);
 			}
