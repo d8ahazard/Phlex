@@ -157,7 +157,7 @@ class PHPTail {
 		        $authString = "; <?php die('Access denied'); ?>".PHP_EOL;
         		$line = str_replace($authString,"",$line);
 		        $og = $line;
-        		$level = explode("] [",$line)[1];
+        		$level = explode("] [",$line)[1] ?? "INFO";
 		        $substr = explode(": ",$line);
 		        unset($substr[0]);
 		        $substr = implode(": ",$substr);
