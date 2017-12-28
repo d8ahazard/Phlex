@@ -4315,8 +4315,8 @@ function testConnection($serviceName) {
 			$sonarrPath = $_SESSION['sonarrPath'];
 			$sonarrApikey = $_SESSION['sonarrAuth'];
 			$sonarrPort = $_SESSION['sonarrPort'];
-			if (($sonarrURL) && ($sonarrApikey) && ($sonarrPort)) {
-				$url = $sonarrURL . ":" . $sonarrPort . $sonarrPath . "/api/profile?apikey=" . $sonarrApikey;
+			if (($sonarrURL) && ($sonarrApikey)) {
+				$url = $sonarrURL . ($sonarrPort ? ":" . $sonarrPort : "") . $sonarrPath . "/api/profile?apikey=" . $sonarrApikey;
 				$result = curlGet($url);
 				if ($result) {
 					write_log("Result retrieved.");
@@ -4346,8 +4346,8 @@ function testConnection($serviceName) {
 			$radarrPath = $_SESSION['radarrPath'];
 			$radarrApikey = $_SESSION['radarrAuth'];
 			$radarrPort = $_SESSION['radarrPort'];
-			if (($radarrURL) && ($radarrApikey) && ($radarrPort)) {
-				$url = $radarrURL . ":" . $radarrPort . $radarrPath . "/api/profile?apikey=" . $radarrApikey;
+			if (($radarrURL) && ($radarrApikey)) {
+				$url = $radarrURL . ($radarrPort ? ":" . $radarrPort : "") . $radarrPath . "/api/profile?apikey=" . $radarrApikey;
 				write_log("Request URL: " . $url);
 				$result = curlGet($url);
 				if ($result) {
