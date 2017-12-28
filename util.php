@@ -258,7 +258,7 @@ function cacheImage($url, $image = false) {
 	$path = $url;
 	$cached_filename = false;
 	try {
-		$URL_REF = $_SESSION['publicAddress'] ?? fetchUrl(true);
+		$URL_REF = $_SESSION['publicAddress'] ?? fetchUrl(false);
 		$cacheDir = file_build_path(dirname(__FILE__), "img", "cache");
 		checkCache($cacheDir);
 		if ($url) {
