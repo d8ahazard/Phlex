@@ -3099,7 +3099,7 @@ function playMediaDirect($media) {
 	$server = parse_url($_SESSION['plexServerUri']);
 	$serverProtocol = $server['scheme'];
 	$serverIP = $server['host'];
-	$serverPort = $server['port'];
+	$serverPort = $server['port'] ?: $server['scheme'] === 'https' ? 443 : 80;
 	$transientToken = fetchTransientToken();
 	$playUrl = $client . '/player/playback/playMedia' . '?key=' . urlencode($media['key']) . '&offset=' . ($media['viewOffset'] ?? 0) . '&machineIdentifier=' . $serverID . '&protocol=' . $serverProtocol . '&address=' . $serverIP . '&port=' . $serverPort . '&path=' . urlencode($_SESSION['plexServerUri'] . '/' . $media['key']) . '&token=' . $transientToken;
 	$status = playerCommand($playUrl);
