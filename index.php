@@ -61,7 +61,7 @@ if (isset($_GET['logout'])) {
 	<link rel="stylesheet" media="(min-width: 600px)" href="css/main_min_600.css"/>
 	<link rel="stylesheet" media="(min-width: 2000px)" href="css/main_min_2000.css"/>
 	<!--[if lt IE 9]>
-	<link href="/css/bootstrap-ie8.css" rel="stylesheet">
+	<link href="./css/bootstrap-ie8.css" rel="stylesheet">
 	<script src="https://cdn.jsdelivr.net/g/html5shiv@3.7.3,respond@1.4.2"></script>
 	<![endif]-->
 	<script type="text/javascript">
