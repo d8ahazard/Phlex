@@ -1,5 +1,6 @@
 <?php
 require_once dirname(__FILE__) . '/vendor/autoload.php';
+require_once dirname(__FILE__) . '/webApp.php';
 require_once dirname(__FILE__) . '/util.php';
 checkSetDeviceID();
 $forceSSL = checkSSL();
@@ -15,6 +16,7 @@ if ((empty($_SERVER['HTTPS']) || $_SERVER['HTTPS'] == "off") && $forceSSL) {
 if (substr_count($_SERVER["HTTP_ACCEPT_ENCODING"], "gzip") && hasGzip()) ob_start("ob_gzhandler"); else ob_start();
 session_start();
 setDefaults();
+
 $messages = checkFiles();
 if (isset($_GET['logout'])) {
 	clearSession();
@@ -32,7 +34,7 @@ if (isset($_GET['logout'])) {
 	<meta charset="UTF-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<meta name="description" content="Phlex">
+	<meta name="description" content="Flex TV">
 	<link rel="apple-touch-icon" sizes="180x180" href="./img/apple-icon.png">
 	<link rel="icon" type="image/png" href="./img/favicon-32x32.png" sizes="32x32">
 	<link rel="icon" type="image/png" href="./img/favicon-16x16.png" sizes="16x16">
@@ -96,12 +98,14 @@ if (isset($_GET['logout'])) {
 	<script type="text/javascript" src="./js/nouislider.min.js" defer></script>
 	<script type="text/javascript" src="./js/swiped.min.js" defer></script>
 	<script type="text/javascript" src="./js/ie10-viewport-bug-workaround.js"></script>
+	<?php echo pageHead();?>
 
 </head>
 
 <body style="background-color:black">
 <img id="holder" src="">
 <script>
+	var messageBox = [];
 	var width = window.innerWidth
 		|| document.documentElement.clientWidth
 		|| document.body.clientWidth;
@@ -109,13 +113,16 @@ if (isset($_GET['logout'])) {
 	var height = window.innerHeight
 		|| document.documentElement.clientHeight
 		|| document.body.clientHeight;
-	document.getElementById("holder").setAttribute("src", "https://phlexchat.com/img.php?random&width=" + width + "&height=" + height);
+	<?php echo pageCred();?>
 
-	function loopMessages() {
+	// We call this inside the login window if necessary, or main.js. Ignore lint warnings.
+	function loopMessages(messages) {
+		console.log("Function fired.");
+		messageBox = messages;
 		$.each(messageArray, function () {
 			if (messageArray[0] === undefined) return false;
 			var keepLooping = showMessage(messageArray[0].title, messageArray[0].message, messageArray[0].url);
-			messageArray.splice(0, 1);
+			messageBox.splice(0, 1);
 			if (!keepLooping) return false;
 		})
 	}
@@ -153,11 +160,34 @@ if (isset($_GET['logout'])) {
 </script>
 <div id="bodyWrap">
 	<?php
-	if (isset($_SESSION['plexToken'])) {
-		define('LOGGED_IN', true);
-		require_once dirname(__FILE__) . '/body.php';
-		echo makeBody();
-	}; ?>
+	$code = false;
+	foreach($_GET as $key => $value) {
+		//write_log("hey, got a key named $key with a value of $value.");
+		if ($key == "pinID") {
+			write_log("We have a PIN: $value");
+			$code = $value;
+		}
+	}
+
+	$apiToken = $_SESSION['apiToken'];
+	write_log("API? : ".$_SESSION['apiToken']);
+
+	if ($code || $apiToken) {
+		$result = false;
+		write_log("Okay, now we link a thing","INFO");
+		if (!$apiToken) $result = plexSignIn($code);
+		if ($result || $apiToken) {
+			write_log("User signin actually worked. Moving on.");
+			define('LOGGED_IN', true);
+			require_once dirname(__FILE__) . '/body.php';
+			write_log("Making body!");
+			echo makeBody();
+		} else {
+			write_log("Nothing to do.");
+		}
+	}
+
+	 ?>
 </div>
 <div class="modal fade" id="alertModal">
 	<div class="modal-dialog" role="document">
@@ -190,25 +220,16 @@ if (!isset($_SESSION['plexToken'])) {
                                     <h6 class="loginLabel card-subtitle text-muted">Please log in below to begin.</h6>
                                 </div>
                                 <div class="card-block">
-                                    <form id="loginForm" method="post">
-                                        <div class="label-static form-group loginGroup">
-                                            <label id="userLabel" for="username" class="control-label">Username</label>
-                                            <input type="text" class="form-control login-control" id="username" name ="username" autofocus/>
-                                            <span class="bmd-help">Enter your Plex username or email address.</span>
-                                        </div>
-                                        <div class="label-static form-group loginGroup">
-                                            <label id="passLabel" for="password" class="control-label">Password</label>
-                                            <input type="password" class="form-control login-control" id="password" name="password"/>
-                                            <span class="bmd-help">Enter your Plex password.</span>
-                                        </div>
-                                        <button class="btn btn-raised btn-primary" id="post">DO IT!</button>
+                                    <div id="loginForm">
+                                        <button class="btn btn-raised btn-primary" id="plexAuth">DO IT!</button>
                                         <br><br>
                                         <a href="http://phlexchat.com/Privacy.html" class="card-link">Privacy Policy</a>
-                                    </form>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <script type="text/javascript" src="./js/login.js" async></script>';
+                        </div>' .
+                       headerhtml() .
+                        '<script type="text/javascript" src="./js/login.js" async></script>';
 	die();
 }
 ?>

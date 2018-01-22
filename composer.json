@@ -1,8 +1,9 @@
 {
+	"minimium-stability": "dev",
 	"repositories": [
 		{
 			"type": "pear",
-			"url": "pear.php.net"
+			"url": "https://pear.php.net"
 		}
 	],
 	"require": {

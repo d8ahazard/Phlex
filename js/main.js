@@ -1,26 +1,25 @@
 var action = "play";
-var appName, autoUpdate, bgs, bgWrap, token, newToken, deviceID, resultDuration, logLevel, lastLog, itemJSON, apiToken,
+var apiToken, appName, autoUpdate, bgs, bgWrap, token, newToken, deviceID, resultDuration, logLevel, lastLog, itemJSON,
 	messageArray, ombi, couch, sonarr, radarr, sick, publicIP, dvr, weatherClass, city, state, updateAvailable,
 	weatherHtml;
 var condition = null;
 var devices = lastUpdate = [];
+devices.Client = [];
+devices.Dvr = [];
+devices.Server = [];
 var staticCount = 0;
 var javaStrings;
 
 $(function () {
-	$('.snackbar').hide();
 	javaStrings = decodeURIComponent($('#strings').data('array'));
 	javaStrings = javaStrings.replace(/\+/g, ' ');
 	javaStrings = JSON.parse(javaStrings);
+	apiToken = $('#apiTokenData').data('token');
+
+
+	updateStatus();
 	bgs = $('.bg');
 	bgWrap = $('#bgwrap');
-	var loginBox = $('.login-box');
-	if (loginBox.length > 0) {
-		console.log("Hiding login box.");
-		loginBox.css({"top": "-1000px"});
-		$.snackbar({content: "Login successful!"});
-
-	}
 	logLevel = "ALL";
 	if (bgs.css('display') === 'none') {
 		bgs.fadeIn(1000);
@@ -34,7 +33,6 @@ $(function () {
 	$('.castArt').fadeIn(1000);
 
 	dvr = $("#plexDvr").data('enable');
-	apiToken = $('#apiTokenData').attr('data');
 	token = $('#tokenData').attr('data');
 	deviceID = $('#deviceID').attr('data');
 	publicIP = $('#publicIP').attr('data');
@@ -45,6 +43,7 @@ $(function () {
 	radarr = $('#radarr').data('enable');
 	ombi = $('#ombi').data('enable');
 	updateAvailable = $('#updateAvailable').attr('data');
+
 	$.material.init();
 	var Logdata = $('#logData').attr('data');
 	if (Logdata !== "") {
@@ -77,7 +76,8 @@ $(function () {
 	if (messages !== "" && messages !== undefined) {
 		messages = messages.replace(/\+/g, '%20');
 		messageArray = JSON.parse(decodeURIComponent(messages));
-		loopMessages();
+		loopMessages(messageArray);
+		messageArray = [];
 	} else {
 		messageArray = [];
 	}
@@ -86,19 +86,13 @@ $(function () {
 		loopMessages();
 	});
 
-	if (newToken) {
-		var serverAddress = $('#publicAddress').val();
-		var regUrl = 'https://phlexserver.cookiehigh.us/api.php?apiToken=' + apiToken + "&serverAddress=" + serverAddress;
-		showMessage("New API Token Detected", "A new API Token was created. Click here to re-register your server.", regUrl);
-	}
-
 	if (updateAvailable >= 1) {
 		showMessage("Updates available!", "You have " + updateAvailable + " update(s) available.", false);
 	}
+
 	progressSlider.noUiSlider.on('end', function (values, handle) {
 		var value = values[handle];
 		var newOffset = Math.round((resultDuration * (value * .01)));
-		apiToken = $('#apiTokenData').attr('data');
 		var url = plexClientURI + '/player/playback/seekTo?offset=' + newOffset + '&X-Plex-Token=' + token + '&X-Plex-Client-Identifier=' + deviceID;
 		$.get(url);
 	});
@@ -134,6 +128,10 @@ $(function () {
 		var bgs = $('.bg');
 		$('#results').css({"top": "-2000px", "max-height": 0, "overflow": "hidden"});
 		$.snackbar({content: "Logging out."});
+		var auth2 = gapi.auth2.getAuthInstance();
+		auth2.signOut().then(function () {
+			console.log('User signed out.');
+		});
 		setTimeout(
 			function () {
 				$('#mainwrap').css({"top": "-200px"});
@@ -155,7 +153,8 @@ $(function () {
 
 		if ($(this).hasClass("testInput")) {
 			value = $(this).attr('value');
-			apiToken = $('#apiTokenData').attr('data');
+			apiToken = $('#apiTokenData').data('token');
+
 			$.get('api.php?test=' + value + '&apiToken=' + apiToken, function (data) {
 				var dataArray = [data];
 				$.snackbar({content: JSON.stringify(dataArray[0].status).replace(/"/g, "")});
@@ -176,7 +175,8 @@ $(function () {
 
 		if ($(this).hasClass("setupInput")) {
 			appName = $(this).data('value');
-			apiToken = $('#apiTokenData').attr('data');
+			apiToken = $('#apiTokenData').data('token');
+
 			$.get('api.php?setup&apiToken=' + apiToken, function (data) {
 				$.snackbar({content: JSON.stringify(data).replace(/"/g, "")});
 			});
@@ -195,6 +195,8 @@ $(function () {
 				}
 			} else {
 				if (action === 'test') {
+					apiToken = $('#apiTokenData').data('token');
+
 					regUrl = 'https://phlexserver.cookiehigh.us/api.php?apiToken=' + apiToken + "&serverAddress=" + serverAddress + "&test=true";
 					$.get(regUrl, function (data) {
 						console.log("Data: " + data);
@@ -207,89 +209,60 @@ $(function () {
 
 
 	$(document).on('click', '.client-item', function () {
-		if ($(this).attr('id') !== "rescan") {
-			var clientID = $(this).data('value');
-			var clientUri = $(this).data('uri');
-			var clientName = $(this).data('name');
-			var clientProduct = $(this).data('product');
-			apiToken = $('#apiTokenData').attr('data');
-			$.get('api.php?apiToken=' + apiToken, {
-				device: 'plexClient',
-				id: clientID,
-				uri: clientUri,
-				name: clientName,
-				product: clientProduct
-			});
-			$('.ddLabel').html($(this).attr('name'));
-			$('#clientURI').attr('data', decodeURIComponent($(this).data('uri')));
+		var clientId = $(this).data('id');
+		if ($(this).data('id') !== "rescan") {
+			$('.ddLabel').html($(this).text());
 			$(this).siblings().removeClass('dd-selected');
 			$(this).addClass('dd-selected');
 		} else {
-			$.get('api.php?apiToken=' + apiToken, {device: 'plexClient', id: 'rescan'});
 			console.log("Rescanning devices.");
 		}
+		updateDevice('Client',clientId,apiToken);
 	});
 
 	$("#serverList").change(function () {
 		var serverID = $(this).val();
 		var element = $(this).find('option:selected');
-		var serverUri = element.data('uri');
-		var serverPublicUri = element.data('publicuri');
-		var serverName = element.attr('name');
-		var serverToken = element.data('token');
-		var serverProduct = element.data('product');
-		apiToken = $('#apiTokenData').attr('data');
+		var type = element.data('type');
+		apiToken = $('#apiTokenData').data('token');
+
 		$.get('api.php?apiToken=' + apiToken, {
-			device: 'plexServer',
-			id: serverID,
-			uri: serverUri,
-			publicUri: serverPublicUri,
-			name: serverName,
-			token: serverToken,
-			product: serverProduct
+			device: 'Server',
+			id: serverID
+		});
+	});
+
+    $("#dvrList").change(function() {
+        var serverID = $(this).val();
+        var element = $(this).find('option:selected');
+        var type = element.data('type');
+        console.log("Fucking type: " + type);
+	    apiToken = $('#apiTokenData').data('token');
+
+	    $.get('api.php?apiToken=' + apiToken, {
+            device: 'Dvr',
+            id: serverID
 		});
 	});
 
 	$(".profileList").change(function () {
 		var service = $(this).attr('id');
 		var index = $(this).find('option:selected').data('index');
-		apiToken = $('#apiTokenData').attr('data');
+		apiToken = $('#apiTokenData').data('token');
+
 		$.get('api.php?apiToken=' + apiToken, {id: service, value: index});
 	});
 
 	$("#appLanguage").change(function () {
 		var lang = $(this).find('option:selected').data('value');
-		apiToken = $('#apiTokenData').attr('data');
+		apiToken = $('#apiTokenData').data('token');
+
 		$.get('api.php?apiToken=' + apiToken, {id: "appLanguage", value: lang});
 		$.snackbar({content: "Language changed, reloading page."});
 		setTimeout(function () {
 			location.reload();
 		}, 1000);
 	});
-
-	$("#dvrList").change(function () {
-		console.log("DVR Changed!");
-		var serverID = $(this).val();
-		var element = $(this).find('option:selected');
-		var serverUri = element.data('uri');
-		var serverPublicUri = element.data('publicaddress');
-		var serverName = element.attr('name');
-		var serverToken = element.data('token');
-		var serverProduct = element.data('product');
-		var serverKey = element.data('key');
-		apiToken = $('#apiTokenData').attr('data');
-		$.get('api.php?apiToken=' + apiToken, {
-			device: 'plexDvr',
-			id: serverID,
-			uri: serverUri,
-			key: serverKey,
-			publicUri: serverPublicUri,
-			name: serverName,
-			token: serverToken,
-			product: serverProduct
-		});
-	});
-
 
 	// This handles sending and parsing our result for the web UI.
 	$("#executeButton").click(function () {
@@ -298,8 +271,9 @@ $(function () {
 		var command = $('#commandTest').val();
 		if (command !== '') {
 			command = command.replace(/ /g, "+");
-			apiToken = $('#apiTokenData').attr('data');
 			var url = 'api.php?say&command=' + command + '&apiToken=' + apiToken;
+			apiToken = $('#apiTokenData').data('token');
+
 			$.get(url, function () {
 
 			})
@@ -321,7 +295,8 @@ $(function () {
 	});
 
 	$('#deviceFab').click(function () {
-		apiToken = $('#apiTokenData').attr('data');
+		apiToken = $('#apiTokenData').data('token');
+
 		$.getJSON('api.php?apiToken=' + apiToken + '&newDevice=true',function(data){
 			if(data.hasOwnProperty('DEVICE')) {
 				console.log("SUCCESS: ", data.Device);
@@ -350,7 +325,8 @@ $(function () {
 	});
 
 	$("#sendLog").on('click', function () {
-		apiToken = $('#apiTokenData').attr('data');
+		apiToken = $('#apiTokenData').data('token');
+
 		$.get('api.php?sendlog&apiToken=' + apiToken);
 	});
 
@@ -534,20 +510,23 @@ $(function () {
 
 
 	$('#resolution').change(function () {
-		apiToken = $('#apiTokenData').attr('data');
+		apiToken = $('#apiTokenData').data('token');
+
 		var res = $(this).find('option:selected').data('value');
 		$.get('api.php?apiToken=' + apiToken, {id: 'plexDvrResolution', value: res});
 	});
 
 	$('#checkUpdates').click(function () {
-		apiToken = $('#apiTokenData').attr('data');
+		apiToken = $('#apiTokenData').data('token');
+
 		$.get('api.php?apiToken=' + apiToken, {checkUpdates: true}, function (data) {
 			$('#updateContainer').html(data);
 		});
 	});
 
 	$('#installUpdates').click(function () {
-		apiToken = $('#apiTokenData').attr('data');
+		apiToken = $('#apiTokenData').data('token');
+
 		$.get('api.php?apiToken=' + apiToken, {installUpdates: true}, function (data) {
 			$('#updateContainer').html(data);
 		});
@@ -570,10 +549,6 @@ $(function () {
 	}
 	var sayString = IPString + "say&apiToken=" + apiToken + "&command={{TextField}}";
 	$('#sayURL').val(sayString);
-
-	var clientList = $.get('api.php?clientList&apiToken=' + apiToken, function (clientData) {
-		$('#clientWrapper').html(clientData);
-	});
 
 	setInterval(function () {
 		updateStatus();
@@ -599,15 +574,95 @@ $(function () {
 			$('#playBtn').show();
 			$('#pauseBtn').hide();
 		}
+		apiToken = $('#apiTokenData').data('token');
+
 		$.get('api.php?control&noLog=true&command=' + myId + "&apiToken=" + apiToken);
 	});
+	updateStatus();
 	scaleElements();
+	$(".remove").remove();
 });
 
 $(window).resize(function () {
 	scaleElements();
 });
 
+function deviceHtml(type,devices) {
+		var output = "";
+		$.each(devices,function(key,device) {
+			var string;
+			var selected = "";
+			console.log("What the fuck now..." + device.Selected);
+			if (device.Selected === "no") {
+				selected = "";
+			} else selected = " dd-selected";
+			var id = device.Id;
+			var name = device.Name;
+			console.log("Device "  + name + " is " + selected);
+
+			if (type === 'Client') {
+				string = "<a class='dropdown-item client-item" + selected + "' data-type='Client' data-id='" + id + "'>" + name + "</a>" ;
+			} else {
+				string = "<option data-type='" + type + "' value='"+id+"'" + (selected ? " selected" : "") + ">" + name + "</option>";
+			}
+			output += string;
+		});
+		if (type === 'Client') output += '<a class="dropdown-item client-item" data-id="rescan"><b>rescan devices</b></a>';
+		console.log("OUTPUT: ",output);
+		return output;
+}
+
+function updateDevices(newDevices) {
+	if (! $.arrayCompare(devices,newDevices)) {
+		console.log("Device array changed, updating: ",newDevices);
+		var clients = devices.Client;
+		var servers = devices.Server;
+		var dvrs = devices.Dvr;
+		if (clients.length !== newDevices.Client.length) {
+			console.log("Client array changed.");
+			var temp = deviceHtml('Client',newDevices.Client);
+			console.log("Temp??",temp);
+			$('#clientWrapper').html(temp);
+			$('.ddLabel').html($('.dd-selected').text());
+		}
+		if (servers.length !== newDevices.Server.length) {
+			console.log("Server array changed.");
+			$('#serverList').html(deviceHtml('Server',newDevices.Server));
+		}
+		if (dvrs.length !== newDevices.Dvr.length) {
+			console.log("DVR array changed.");
+			$('#dvrList').html(deviceHtml('Dvr',newDevices.Dvr));
+		}
+		devices = newDevices;
+	} else {
+		console.log("Device array is the same as before.");
+	}
+}
+
+function updateDevice(type,id,token) {
+	if (true) {
+		console.log("No socket key, sending using a thingy.");
+		apiToken = $('#apiTokenData').data('token');
+
+		$.get('api.php?apiToken=' + apiToken, {
+			device: type,
+			id: id
+		},function(data){
+			console.log("Data received: ",data);
+			updateDevices(data);
+		});
+	} else {
+		console.log("We have a socket key, using SCIENCE.");
+		var data = {
+				action:'device',
+				data: {
+					type: type,
+					id: id
+				}
+		};
+		doSend(data);
+	}
+}
 function scaleElements() {
 	var winWidth = $(window).width();
 	var commandTest = $('#actionLabel');
@@ -628,7 +683,7 @@ function setBackground() {
 	(
 		function () {
 			if (!image.complete || !image.naturalWidth) {
-				image.src = "./img/bg/" + ~~(Math.random() * 10) + ".jpg";
+				image.src = "https://app.phlexchat.com/backgrounds/" + randomIntFromInterval(1,2165) + ".jpg";
 				console.log("Returning cached image: " + image.src);
 			}
 		},
@@ -648,6 +703,13 @@ function setBackground() {
 			}
 			$('.imgHolder').remove();
 		}, 1500);
+}
+function randomIntFromInterval(min,max)
+{
+	var selection  = Math.floor(Math.random()*(max-min+1)+min);
+	var s = String(selection);
+	while (s.length < 4 ) {s = "0" + s;}
+	return s;
 }
 
 function loadImage(url, altUrl) {
@@ -694,22 +756,10 @@ function resetApiUrl(newUrl) {
 	return newUrl;
 }
 
-function fetchClientList(players) {
-	var options = "";
-	$.each(players, function (key, client) {
-		var selected = client.selected;
-		var id = client.id;
-		var name = client.name;
-		var uri = client.uri;
-		var product = client.product;
-		options += '<a class="dropdown-item client-item' + ((selected) ? ' dd-selected' : '') + '" href="#" data-product="' + product + '" data-value="' + id + '" name="' + name + '" data-uri="' + uri + '">' + name + '</a>';
-	});
-	options += '<a class="dropdown-item client-item" id="rescan"><b>' + javaStrings[4] + '</b></a>';
-	return options;
-}
 
 function updateStatus() {
-	apiToken = $('#apiTokenData').attr('data');
+	apiToken = $('#apiTokenData').data('token');
+	console.log("Using apitoken: " + apiToken);
 	var footer = $('.nowPlayingFooter');
 	var logLimit = $('#logLimit').find(":selected").val();
 	var dataCommands = false;
@@ -717,7 +767,12 @@ function updateStatus() {
 		if (data.dologout === true) {
 			document.getElementById('logout').click();
 		}
-		if (data.hasOwnProperty("commands")) dataCommands = data.commands.replace(/\+/g, '%20');
+		try {
+			if (data.hasOwnProperty("commands")) dataCommands = data.commands.replace(/\+/g, '%20');
+			if (data.hasOwnProperty("messages")) var msg = data.messages;
+		} catch (e) {
+			console.log("Parse error caught: ",e);
+		}
 		if (dataCommands) {
 			try {
 				a = JSON.parse(decodeURIComponent(dataCommands));
@@ -727,35 +782,39 @@ function updateStatus() {
 			}
 		}
 		try {
-			$('#clientWrapper').html(data.clients);
-			$('#serverList').html(data.servers);
-			$('#dvrList').html(data.dvrs);
 			$('#updateContainer').html(data.updates);
+			if (data.hasOwnProperty('logs')) {
 			$('#logBody').html(formatLog(JSON.parse(data.logs)));
 			if (data.hasOwnProperty(updateAvailable)) {
 				showMessage("An update is available.", "An update is available for Phlex.  Click here to install it now.", 'api.php?apiToken=' + apiToken + '&installUpdates=true');
 			}
-
-			if (data.hasOwnProperty('static')) {
-				devices = data.static;
-				var count = devices.length;
-				var devHtml = "";
-				if (count !== staticCount) {
-					console.log("They're not equal, setting to match.");
-					$.each(devices, function (id, device) {
-						var devString = createStaticDevice(device.id, device.name, device.uri, device.product,device.broadcast);
-						devHtml += devString[0];
-					});
-					$('#deviceContainer').html(devHtml);
-					staticCount = count;
-				}
-				console.log("Devices2: ",JSON.stringify(devices));
-				console.log("LastDevices2: ",staticCount);
-
 			}
 
-			ddText = $('.dd-selected').text();
-			$('.ddLabel').html(ddText);
+			if (data.hasOwnProperty("devices")) {
+				var deviceList = data.devices;
+
+				if (data.hasOwnProperty("static")) {
+					var clientList = data.static;
+					var count = devices.length;
+					var devHtml = "";
+					if (count !== staticCount) {
+						console.log("They're not equal, setting to match.");
+						$.each(staticList, function (id, device) {
+							var devString = createStaticDevice(device.id, device.name, device.uri, device.product,device.broadcast);
+							devHtml += devString[0];
+						});
+						$('#deviceContainer').html(devHtml);
+						staticCount = count;
+					}
+					if (deviceList.hasOwnProperty("Client")) {
+						clientList = $.merge(clientList,deviceList.Client);
+					} 
+					data.devices.Client = clientList;
+				}
+				console.log("Devices: ",data.devices);
+				updateDevices(data.devices);
+			}
+
 			data.playerStatus = JSON.parse(data.playerStatus);
 			var TitleString;
 			var playBtn = $('#playBtn');
@@ -890,6 +949,8 @@ function updateCommands(data, prepend) {
 				$(this).parent().slideUp(750, function () {
 					$(this).remove();
 				});
+				apiToken = $('#apiTokenData').data('token');
+
 				$.get('api.php?apiToken=' + apiToken + '&card=' + stamp, function (data) {
 					lastUpdate = data;
 				});
@@ -1258,7 +1319,8 @@ function setListeners() {
 	$(document).on('click', '.deviceDelete', function(){
 		id = $(this).attr('id');
 		console.log("Gonna delete static device " + id);
-		apiToken = $('#apiTokenData').attr('data');
+		apiToken = $('#apiTokenData').data('token');
+
 		$.get('api.php?apiToken=' + apiToken, {deleteDevice:true,id: id}, function () {
 		});
 		var devCard = $("#dev_" + id);
@@ -1277,8 +1339,8 @@ function setListeners() {
 			if ($(this).id === 'publicAddress') {
 				value = resetApiUrl($(this).val());
 			}
+			apiToken = $('#apiTokenData').data('token');
 
-			apiToken = $('#apiTokenData').attr('data');
 			$.get('api.php?apiToken=' + apiToken, {id: id, value: value}, function () {
 				if (id === 'darkTheme') {
 					setTimeout(function () {
@@ -1289,9 +1351,29 @@ function setListeners() {
 			});
 			if ($(this).hasClass("appParam")) {
 				id = $(this).parent().parent().parent().attr('id').replace("Group", "");
+				apiToken = $('#apiTokenData').data('token');
+
 				$.get('api.php?apiToken=' + apiToken + '&fetchList=' + id, function (data) {
 					$('#' + id + 'Profile').html(data);
 				})
 			}
 	});
 }
+jQuery.extend({
+	arrayCompare: function (arrayA, arrayB) {
+		if (arrayA.length !== arrayB.length) { return false; }
+		// sort modifies original array
+		// (which are passed by reference to our method!)
+		// so clone the arrays before sorting
+		var a = jQuery.extend(true, [], arrayA);
+		var b = jQuery.extend(true, [], arrayB);
+		a.sort();
+		b.sort();
+		for (var i = 0, l = a.length; i < l; i++) {
+			if (a[i] !== b[i]) {
+				return false;
+			}
+		}
+		return true;
+	}
+});
