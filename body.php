@@ -5,8 +5,11 @@ require_once dirname(__FILE__) . '/util.php';
 require_once dirname(__FILE__) . '/api.php';
 
 function makeBody($newToken = false) {
-	$hide = $_SESSION['webApp'] ?? false;
+	$hide = isWebApp();
 	$hidden = $hide ? " remove" : "";
+	$hidden2 = $hide ? " hidden" : "";
+	write_log("Hide is ".$_SESSION['webApp']);
+	write_log("Hide string is $hidden");
 
 	write_log("I'm here?");
 	if (!defined('LOGGED_IN')) {
@@ -14,7 +17,7 @@ function makeBody($newToken = false) {
 		die();
 	}
 	$lang = checkSetLanguage();
-
+	$webAddress = webAddress();
 	$bodyText = ($_SESSION['darkTheme'] ? '<link href="./css/dark.css" rel="stylesheet">' : '') . PHP_EOL . '			<div id="body" class="row justify-content-center">
 				<div class="wrapper col-xs-12 col-lg-8 col-xl-5" id="mainwrap">
 			        <div class="queryWrap col-xs-12" id="queryCard">
@@ -95,17 +98,17 @@ function makeBody($newToken = false) {
 				                                    </select>
 				                                    <br><br>
 			                                    </div>
-					                            <div class="form-group">
+					                            <div class="form-group'.$hidden.'">
 					                                <div class="form-group">
 					                                    <label for="apiToken" class="appLabel">' . $lang['uiSettingApiKey'] . '
 					                                        <input id="apiToken" class="appInput form-control" type="text" value="' . $_SESSION["apiToken"] . '" readonly="readonly"/>
 					                                    </label>
 					                                </div>
 					                            </div>
-					                            <div class="form-group'.$hidden.'">
+					                            <div class="form-group'.$hidden2.'">
 					                                <div class="form-group">
 					                                    <label for="publicAddress" class="appLabel">' . $lang['uiSettingPublicAddress'] . '
-					                                        <input id="publicAddress" class="appInput form-control formpop" type="text" value="' . $_SESSION["publicAddress"] . '" />
+					                                        <input id="publicAddress" class="appInput form-control formpop" type="text" value="' . $webAddress . '" />
 					                                    </label>
 					                                </div>
 					                            </div>
@@ -119,7 +122,7 @@ function makeBody($newToken = false) {
 					                            <div class="form-group">
 					                                <div class="form-group">
 					                                    <label for="rescanTime" class="appLabel">' . $lang['uiSettingRescanInterval'] . '
-					                                        <input id="rescanTime" class="appInput form-control" type="number" min="5" max="30" value="' . $_SESSION["rescanTime"] . '" />
+					                                        <input id="rescanTime" class="appInput form-control" type="number" min="10" max="30" value="' . $_SESSION["rescanTime"] . '" />
 					                                        <span class="bmd-help">' . $lang['uiSettingRescanHint'] . '</span>
 					                                    </label>
 					                                </div>
@@ -159,7 +162,7 @@ function makeBody($newToken = false) {
 					                                <button id="sayURL" class="copyInput btn btn-raised btn-primary btn-70" type="button"><i class="material-icons">message</i></button>
 					                            </div>
 					                        </div>
-					                    </div>' . ($hide ? (checkGit() ? '<div class="appContainer card updateDiv">
+					                    </div>' . ($hide ? (checkGit() ? '<div class="appContainer card updateDiv'.$hidden.'">
 					                        <div class="card-body">
 					                            <h4 class="cardHeader">' . $lang['uiSettingUpdates'] . '</h4>
 					                            <div class="form-group">

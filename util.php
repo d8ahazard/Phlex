@@ -135,7 +135,8 @@ if (!function_exists('verifyPlexToken')) {
 		}
 		if ($userData) {
 			write_log("Recieved valid user data.", "INFO");
-			$user = fetchUser($userData) ?? newUser($userData);
+			$user = fetchUser($userData);
+			if (!$user) $user = newUser($userData);
 		}
 
 
@@ -973,7 +974,7 @@ if (!function_exists('checkSetDeviceID')) {
 
 # TODO: Check for instances of this with 3 calls
 function setSelectedDevice($type,$id) {
-	$list = $_SESSION['list_plexdevices'] ?? scanDevices(false);
+	$list = $_SESSION['deviceList'] ?? scanDevices(false);
 	$selected = false;
 	foreach($list[$type] as $device) {
 		if (trim($id) === trim($device['Id'])) {
@@ -2477,3 +2478,13 @@ if (!function_exists('setDefaults')) {
 			return 'document.getElementById("holder").setAttribute("src", "https://phlexchat.com/img.php?random&width=" + width + "&height=" + height);';
 		}
 	}
+	if (! function_exists('isWebApp')) {
+		function isWebApp() {
+			return false;
+		}
+	}
+if (! function_exists('webAddress')) {
+	function webAddress() {
+		return $_SESSION['publicAddress'];
+	}
+}

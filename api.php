@@ -159,7 +159,7 @@ function initialize() {
 			updateUserPreference('static_' . $devId . "_", $device);
 			$newClients = [];
 			$pushed = false;
-			foreach ($_SESSION['list_plexdevices']['clients'] as $client) {
+			foreach ($_SESSION['deviceList']['Client'] as $client) {
 				if ($client['id'] === $devId) {
 					write_log("Replacing existing client.");
 					$client = $device;
@@ -168,9 +168,8 @@ function initialize() {
 				array_push($newClients, $client);
 			}
 			if (!$pushed) array_push($newClients, $device);
-			$_SESSION['list_plexdevices']['clients'] = $newClients;
-			write_log("New device list: " . json_encode($_SESSION['list_plexdevices']));
-			fetchStaticDevices();
+			$_SESSION['deviceList']['Client'] = $newClients;
+			write_log("New device list: " . json_encode($_SESSION['deviceList']));
 			die();
 		}
 
@@ -397,7 +396,7 @@ function setSessionVariables($rescan = true) {
 					if ($key === 'dlist') {
 						$devices = json_decode(base64_decode($value), true);
 						if (is_array($devices)) {
-							$_SESSION['list_plexdevices'] = $devices;
+							$_SESSION['deviceList'] = $devices;
 						} else {
 							scanDevices(true);
 						}
@@ -759,14 +758,14 @@ function parsePlayCommand($command, $year = false, $artist = false, $type = fals
 
 	$playerIn = false;
 
-	foreach ($_SESSION['list_plexdevices']['clients'] as $client) {
-		$name = strtolower(trim($client['name']));
+	foreach ($_SESSION['deviceList']['Client'] as $client) {
+		$name = strtolower(trim($client['Name']));
 		if ($name != "") {
 			write_log("Searhing for $name in '$command'");
 			$clientName = '/' . $name . '/';
 			if (preg_match($clientName, $command) || preg_match($clientName, strtolower($raw))) {
-				write_log("I was just asked me to play something on a specific device: " . $client['name'], "INFO");
-				$name = strtolower($client['name']);
+				write_log("I was just asked me to play something on a specific device: " . $client['Name'], "INFO");
+				$name = strtolower($client['Name']);
 				$playerIn = [
 					"on the " . $name,
 					"on " . $name,
@@ -775,7 +774,7 @@ function parsePlayCommand($command, $year = false, $artist = false, $type = fals
 					$name
 				];
 
-				setSelectedDevice('Client',$client['id']);
+				setSelectedDevice('Client',$client['Id']);
 			}
 		}
 	}
@@ -1018,7 +1017,7 @@ function parseApiCommand($request) {
 			$type = (isset($context['parameters']['type']) ? (string)$context['parameters']['type'] : false);
 			$command = cleanCommandString($command);
 			$playerIn = false;
-			foreach ($_SESSION['list_plexdevices']['clients'] as $client) {
+			foreach ($_SESSION['deviceList']['clients'] as $client) {
 				$clientName = strtolower($client['name']);
 				if (preg_match("/$clientName/", $command)) {
 					write_log("Re-removing device name from fetch search: " . $client['name'], "INFO");
@@ -1691,7 +1690,7 @@ function parseApiCommand($request) {
 		unset($_SESSION['deviceList']);
 		$type = (($action == 'player') ? 'clients' : 'servers');
 		$deviceString = (($action == 'player') ? $_SESSION['lang']['speechPlayer'] : $_SESSION['lang']['speechServer']);
-		$list = $_SESSION['list_plexdevices'];
+		$list = $_SESSION['deviceList'];
 		$list = $list[$type];
 		$speech = $_SESSION['lang']['speechDeviceListError'];
 		$contextName = "yes";
@@ -2183,17 +2182,17 @@ function scanDevices($force = false) {
 				$connections = $server['Connection'];
 				if (isset($connections['protocol'])) $connections = [$connections];
 				foreach ($connections as $connection) {
-					write_log("Connection: ".json_encode($connection));
+					write_log("Connection: " . json_encode($connection));
 					$query = '?X-Plex-Token=' . $server['Token'];
 					$uri = $connection['uri'] . $query;
-					$backup = $connection['protocol']."://".$connection['address'].":".$connection['port'].$query;
+					$backup = $connection['protocol'] . "://" . $connection['address'] . ":" . $connection['port'] . $query;
 					$local = (boolval($connection['local'] == boolval($server['publicAddressMatches'])));
 					$web = filter_var($connection['address'], FILTER_VALIDATE_IP, FILTER_FLAG_NO_RES_RANGE);
 					$secure = (($server['httpsRequired'] && $connection['protocol'] === 'https') || (!$server['httpsRequired']));
 					$cloud = preg_match("/plex.services/", $connection['address']);
-					write_log("This ".($cloud ? "is ": "is not"). " a cloud server.");
+					write_log("This " . ($cloud ? "is " : "is not") . " a cloud server.");
 					if (($local && $web && $secure) || $cloud) {
-						write_log("Connection on $name is acceptable, checking.","INFO");
+						write_log("Connection on $name is acceptable, checking.", "INFO");
 						foreach ([
 							         $uri,
 							         $backup
@@ -2214,8 +2213,8 @@ function scanDevices($force = false) {
 							if (!$cloud) array_push($reasons, "not cloud");
 						}
 						$string = "";
-						foreach ($reasons as $reason) $string.= " '$reason' ";
-						write_log("Connection on $name is NOT acceptable because, $string.","WARN");
+						foreach ($reasons as $reason) $string .= " '$reason' ";
+						write_log("Connection on $name is NOT acceptable because, $string.", "WARN");
 					}
 				}
 
@@ -2267,7 +2266,7 @@ function scanDevices($force = false) {
 		write_log("Currently have ". count($servers). " Servers and ". count($clients). " clients.","INFO");
 
 		// Don't forget the static devices
-		$static = fetchStaticDevices();
+		$static = [];
 		if (count($static)) {
 			foreach($static as $client) array_push($clients, $client);
 		}
@@ -2281,7 +2280,7 @@ function scanDevices($force = false) {
 		$results = sortDevices($results);
 		$results = selectDevices($results);
 
-		$_SESSION['list_plexdevices'] = $results;
+		$_SESSION['deviceList'] = $results;
 		$string = base64_encode(json_encode($results));
 		updateUserPreference('dlist',$string);
 		write_log("Final device array: " . json_encode($results), "INFO");
@@ -3262,6 +3261,7 @@ function playMedia($media) {
 		$clientProduct = $_SESSION['plexClientProduct'];
 		switch ($clientProduct) {
 			case 'Cast':
+
 				$result = playMediaCast($media);
 				break;
 			default:
@@ -3389,7 +3389,7 @@ function pollPlayer() {
 		$pp = true;
 	}
 	write_log("State changed, polling player.");
-	$serverUri = $_SESSION['plexServerUri'];
+	$serverUri = $_SESSION['plexClientParent'] ?? $_SESSION['plexServerUri'];
 	$count = $_SESSION['counter'] ?? 1;
 	$params = headerString(array_merge(plexHeaders(), clientHeaders()));
 	$url = "$serverUri/player/timeline/poll?wait=1&commandID=$count$params";
