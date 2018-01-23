@@ -581,7 +581,7 @@ function parseControlCommand($command) {
 	$synonyms = $_SESSION['lang']['commandSynonymsArray'];
 	$queryOut['initialCommand'] = $command;
 	$command = translateControl(strtolower($command), $synonyms);
-	$adjust = $cmd = false;
+	$cmd = false;
 	$queryOut['parsedCommand'] = "";
 	$commandArray = [
 		"play",
@@ -2122,9 +2122,11 @@ function scanDevices($force = false) {
 	$now = microtime(true);
 	$rescanTime = $_SESSION['rescanTime'] ?? 8;
 	write_log("RESCAN TIME: ".$_SESSION['lastScan']);
-	$lastCheck = strtotime($_SESSION['lastScan']) ?? ceil(round($now) / 60) - $rescanTime;
+	$ls = $_SESSION['lastScan'];
+	$lastCheck = $ls ?? ceil(round($now) / 60) - $rescanTime;
 	$diffMinutes = ceil(round($now - $lastCheck) / 60);
 	$timeOut = ($diffMinutes >= $rescanTime);
+	write_log("Vars: $ls, $lastCheck, $diffMinutes, $timeOut");
 
 	// Grab existing device list
 	$list = fetchDeviceCache();
@@ -2141,7 +2143,7 @@ function scanDevices($force = false) {
 	if ($force || $timeOut || $noServers) {
 		write_log("$msg","INFO");
 		$now = $_SESSION['webApp'] ? "now" : $now;
-		updateUserPreference('lastScan',$now, True);
+		updateUserPreference('lastScan',$now);
 		$https = !$_SESSION['noLoop'];
 		$query = "?includeHttps=$https&includeRelay=0&X-Plex-Token=" . $_SESSION['plexToken'];
 		$container = simplexml_load_string(doRequest([
@@ -2198,7 +2200,6 @@ function scanDevices($force = false) {
 							         $backup
 						         ] as $url) {
 							if (check_url($url)) {
-								write_log("Should be setting URI here.");
 								$server['uri'] = $connection['uri'];
 								break;
 							}
@@ -2214,12 +2215,10 @@ function scanDevices($force = false) {
 						}
 						$string = "";
 						foreach ($reasons as $reason) $string .= " '$reason' ";
-						write_log("Connection on $name is NOT acceptable because, $string.", "WARN");
 					}
 				}
 
 				if (isset($server['uri'])) {
-					write_log("Should be pushing here.");
 					array_push($result, $server);
 				}
 			}
@@ -2234,7 +2233,6 @@ function scanDevices($force = false) {
 				if (($server['Owned']) && ($server['Platform'] !== 'Cloud')) {
 					write_log("Scraping ". $server['Name']);
 					$result = scrapeServer($server['uri'],$server['Token']);
-					write_log("Scrape result: " .json_encode($result),"INFO");
 					if ($result) {
 						$newClients = $result['Client'];
 						if (count($newClients)) {
@@ -2263,7 +2261,6 @@ function scanDevices($force = false) {
 			}
 		}
 
-		write_log("Currently have ". count($servers). " Servers and ". count($clients). " clients.","INFO");
 
 		// Don't forget the static devices
 		$static = [];
@@ -2275,8 +2272,6 @@ function scanDevices($force = false) {
 		$results['Client'] = $clients;
 		$results['Dvr'] = $dvrs;
 
-		write_log("Currently have ". count($servers). " Servers and ". count($clients). " clients.","INFO");
-
 		$results = sortDevices($results);
 		$results = selectDevices($results);
 
@@ -2284,7 +2279,6 @@ function scanDevices($force = false) {
 		$string = base64_encode(json_encode($results));
 		updateUserPreference('dlist',$string);
 		write_log("Final device array: " . json_encode($results), "INFO");
-
 
 	} else {
 		$results = $list;
@@ -2340,7 +2334,6 @@ function sortDevices($input) {
 		write_log("Removed $ogCount duplicate devices: ".json_encode($output));
 		$results[$class] = $output;
 	}
-	write_log("Final results: ".json_encode($results));
 	return $results;
 }
 
@@ -2370,9 +2363,10 @@ function selectDevices($results) {
 	return $output;
 }
 
+
 function scrapeServer($server,$token) {
 	$clients = $returns = [];
-	$url1 = "$server/applications/FlexTV/Devices?X-Plex-Token=$token";
+	$url1 = "$server/chromecast/Devices?X-Plex-Token=$token";
 	$url2 = "$server/clients?X-Plex-Token=$token";
 	$url3 = "$server/tv.plex.providers.epg.onconnect?X-Plex-Token=$token";
 	$castContainer = curlGet($url1);
@@ -2400,13 +2394,9 @@ function scrapeServer($server,$token) {
 		}
 	}
 
-	write_log("Found ".count($clients). " cast devices.","INFO");
-
-
 	if ($localContainer) {
 		$localDevices = flattenXML($localContainer);
 		if ($localDevices) {
-			write_log("Local container: ".json_encode($localContainer));
 			$localDevices = $localDevices['Server'];
 			if (!is_array($localDevices[0])) $localDevices = [$localDevices];
 			foreach ($localDevices as $localDevice) {
@@ -2444,7 +2434,6 @@ function scrapeServer($server,$token) {
 		'Dvr'=>$dvr
 	];
 
-	write_log("Scrape results: ".json_encode($returns),"INFO");
 	return $returns;
 }
 
@@ -3342,7 +3331,7 @@ function playMediaCast($media) {
 		'Queueid' => $queueID,
 		'Token' => $transientToken
 	];
-	$url = $parent . "/applications/FlexTV/Play?X-Plex-Token=".$token;
+	$url = $parent . "/chromecast/Play?X-Plex-Token=".$token;
 	$headers = convertHeaders($headers);
 	$response = curlGet($url,$headers);
 	if ($response) {
@@ -3356,30 +3345,29 @@ function playMediaCast($media) {
 }
 
 
-function castAudio($speech) {
-	if (!isset($_SESSION['broadcastDevice']) || !count($_SESSION['broadcastDevice'])) {
-		write_log("No broadcast device defined...", "WARN");
-		return false;
-	}
+function castAudio($speech, $uri = false) {
 	$path = TTS($speech);
+	write_log("Getting ready to broadcast '$speech''.");
 	if ($path) {
 		$queryOut = [
 			'initialCommand' => "Broadcast the message '$speech'.",
 			'speech' => "Playing the clip at '$path'."
 		];
-		foreach ($_SESSION['broadcastDevice'] as $uri) {
-			write_log("Broadcasting '$speech' to $uri.", "INFO");
-			$url = $_SESSION['plexServerUri']."/applications/FlexTV/Audio?X-Plex-Token=".$_SESSION['plexServerToken'];
-			$header = convertHeaders(['Uri'=>$uri, 'Path'=>$path]);
-			$result = curlGet($url,$header);
-			if ($result) write_log("Sent a broadcast, baby!");
-		}
+		$endpoint = $uri ? "Audio" : "Broadcast";
+		write_log("Sending cast $endpoint: '$speech'.", "INFO");
+		$url = $_SESSION['plexServerUri']."/chromecast/$endpoint?X-Plex-Token=".$_SESSION['plexServerToken'];
+		$headers = ['Path'=>$path];
+		if ($uri) $headers['Uri']=$uri;
+		$header = convertHeaders($headers);
+		$result = curlGet($url,$header);
+		if ($result) write_log("Sent a broadcast, baby!");
 		logCommand(json_encode($queryOut));
 	} else {
 		write_log("Unable to retrieve audio clip!", "ERROR");
 	}
 	return $path;
 }
+
 
 
 function pollPlayer() {
@@ -3559,7 +3547,7 @@ function castCommand($cmd) {
 
 	if ($valid) {
 		write_log("Sending $cmd command");
-		$url = $_SESSION['plexServerUri']."/applications/FlexTV/Cmd?X-Plex-Token=".$_SESSION['plexServerToken'];
+		$url = $_SESSION['plexServerUri']."/chromecast/Cmd?X-Plex-Token=".$_SESSION['plexServerToken'];
 		$vol = $int ? $int : 100;
 		$headers = ['Uri'=>$_SESSION['plexClientId'],'Cmd'=>$cmd,'Vol'=>$vol];
 		$header = convertHeaders($headers);

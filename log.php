@@ -14,9 +14,11 @@ if (!isset($_GET['apiToken'])) {
 	die("Unauthorize access detected.");
 } else {
     $apiToken = trim($_GET['apiToken']);
-    $checkToken = $_SESSION['webApp'] ? ($_SESSION['logToken']?? false) : $_SESSION['apiToken'];
-    if ($apiToken) {
-	    if ($apiToken !== $checkToken) die("Invalid token, sukka.");
+    $checkToken = isWebApp() ? ($_SESSION['logToken']) : $_SESSION['apiToken'];
+	write_log("Tokens: $apiToken");
+	write_log("CheckToken: ".$checkToken);
+	if ($apiToken) {
+    	if ($apiToken !== $checkToken) die("Invalid token, sukka.");
     } else {
     	die("No token, sukka.");
     }

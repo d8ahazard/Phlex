@@ -613,6 +613,7 @@ function deviceHtml(type,devices) {
 }
 
 function updateDevices(newDevices) {
+	$(".remove").remove();
 	if (! $.arrayCompare(devices,newDevices)) {
 		console.log("Device array changed, updating: ",newDevices);
 		var clients = devices.Client;
