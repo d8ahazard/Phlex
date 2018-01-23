@@ -2366,7 +2366,7 @@ function selectDevices($results) {
 
 function scrapeServer($server,$token) {
 	$clients = $returns = [];
-	$url1 = "$server/chromecast/Devices?X-Plex-Token=$token";
+	$url1 = "$server/chromecast/devices?X-Plex-Token=$token";
 	$url2 = "$server/clients?X-Plex-Token=$token";
 	$url3 = "$server/tv.plex.providers.epg.onconnect?X-Plex-Token=$token";
 	$castContainer = curlGet($url1);
@@ -3331,7 +3331,7 @@ function playMediaCast($media) {
 		'Queueid' => $queueID,
 		'Token' => $transientToken
 	];
-	$url = $parent . "/chromecast/Play?X-Plex-Token=".$token;
+	$url = $parent . "/chromecast/play?X-Plex-Token=".$token;
 	$headers = convertHeaders($headers);
 	$response = curlGet($url,$headers);
 	if ($response) {
@@ -3353,7 +3353,7 @@ function castAudio($speech, $uri = false) {
 			'initialCommand' => "Broadcast the message '$speech'.",
 			'speech' => "Playing the clip at '$path'."
 		];
-		$endpoint = $uri ? "Audio" : "Broadcast";
+		$endpoint = $uri ? "audio" : "broadcast";
 		write_log("Sending cast $endpoint: '$speech'.", "INFO");
 		$url = $_SESSION['plexServerUri']."/chromecast/$endpoint?X-Plex-Token=".$_SESSION['plexServerToken'];
 		$headers = ['Path'=>$path];
@@ -3547,7 +3547,7 @@ function castCommand($cmd) {
 
 	if ($valid) {
 		write_log("Sending $cmd command");
-		$url = $_SESSION['plexServerUri']."/chromecast/Cmd?X-Plex-Token=".$_SESSION['plexServerToken'];
+		$url = $_SESSION['plexServerUri']."/chromecast/cmd?X-Plex-Token=".$_SESSION['plexServerToken'];
 		$vol = $int ? $int : 100;
 		$headers = ['Uri'=>$_SESSION['plexClientId'],'Cmd'=>$cmd,'Vol'=>$vol];
 		$header = convertHeaders($headers);
