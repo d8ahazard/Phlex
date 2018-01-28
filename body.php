@@ -8,10 +8,6 @@ function makeBody($newToken = false) {
 	$hide = isWebApp();
 	$hidden = $hide ? " remove" : "";
 	$hidden2 = $hide ? " hidden" : "";
-	write_log("Hide is ".$_SESSION['webApp']);
-	write_log("Hide string is $hidden");
-
-	write_log("I'm here?");
 	if (!defined('LOGGED_IN')) {
 		write_log("Dying because not logged in?", "ERROR");
 		die();
@@ -300,6 +296,10 @@ function makeBody($newToken = false) {
 				                                <div class="form-group">
 				                                    <label class="appLabel" for="serverList">' . $lang['uiSettingPlaybackServer'] . '</label>
 				                                    <select class="form-control custom-select serverList" id="serverList">
+				                                    
+				                                    </select>
+				                                    <label class="appLabel" for="parentList">' . $lang['uiSettingMasterServer'] . '</label>
+				                                    <select class="form-control custom-select serverList" id="parentList">
 				                                    
 				                                    </select>
 				                                    <br><br>
@@ -650,8 +650,8 @@ function makeBody($newToken = false) {
 			    </div>
 			    <div id="metaTags">
 			        <meta id="apiTokenData" data-token="' . $_SESSION["apiToken"] . '"/>
-			        <meta id="strings" data-array="' . urlencode(json_encode($lang['javaStrings'])) . '"/>
-			        <meta id="newToken" data="' . ($newToken ? 'true' : 'false') . '" property="" content=""/>' . metaTags() . '
+			        <meta id="strings" data-array="' . urlencode(json_encode($lang['javaStrings'])) . '"/>' .
+					metaTags() . '
 			    </div>
 			    <script type="text/javascript" src="./js/main.js"></script>
 			</div>';

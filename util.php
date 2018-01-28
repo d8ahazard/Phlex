@@ -2557,11 +2557,13 @@ function pageHead() {
 			return 'document.getElementById("holder").setAttribute("src", "https://phlexchat.com/img.php?random&width=" + width + "&height=" + height);';
 		}
 	}
+
 	if (! function_exists('isWebApp')) {
 		function isWebApp() {
 			return false;
 		}
 	}
+
 if (! function_exists('webAddress')) {
 	function webAddress() {
 		return $_SESSION['publicAddress'];

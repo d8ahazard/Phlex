@@ -13,6 +13,7 @@ if ((empty($_SERVER['HTTPS']) || $_SERVER['HTTPS'] == "off") && $forceSSL) {
 	}
 }
 
+
 if (substr_count($_SERVER["HTTP_ACCEPT_ENCODING"], "gzip") && hasGzip()) ob_start("ob_gzhandler"); else ob_start();
 session_start();
 setDefaults();
@@ -98,7 +99,7 @@ if (isset($_GET['logout'])) {
 	<script type="text/javascript" src="./js/nouislider.min.js" defer></script>
 	<script type="text/javascript" src="./js/swiped.min.js" defer></script>
 	<script type="text/javascript" src="./js/ie10-viewport-bug-workaround.js"></script>
-	<?php echo pageHead();?>
+	<?php echo pageHead(); ?>
 
 </head>
 
@@ -106,17 +107,11 @@ if (isset($_GET['logout'])) {
 <img id="holder" src="">
 <script>
 	var messageBox = [];
-	var width = window.innerWidth
-		|| document.documentElement.clientWidth
-		|| document.body.clientWidth;
-
-	var height = window.innerHeight
-		|| document.documentElement.clientHeight
-		|| document.body.clientHeight;
 	<?php echo pageCred();?>
 	// We call this inside the login window if necessary, or main.js. Ignore lint warnings.
 	function loopMessages(messages) {
 		console.log("Function fired.");
+		var messageArray = messages;
 		messageBox = messages;
 		$.each(messageArray, function () {
 			if (messageArray[0] === undefined) return false;
@@ -160,7 +155,7 @@ if (isset($_GET['logout'])) {
 <div id="bodyWrap">
 	<?php
 	$code = false;
-	foreach($_GET as $key => $value) {
+	foreach ($_GET as $key => $value) {
 		//write_log("hey, got a key named $key with a value of $value.");
 		if ($key == "pinID") {
 			write_log("We have a PIN: $value");
@@ -168,10 +163,10 @@ if (isset($_GET['logout'])) {
 		}
 	}
 	$apiToken = $_SESSION['apiToken'];
-	write_log("API? : ".$_SESSION['apiToken']);
+	write_log("API? : " . $_SESSION['apiToken']);
 	if ($code || $apiToken) {
 		$result = false;
-		write_log("Okay, now we link a thing","INFO");
+		write_log("Okay, now we link a thing", "INFO");
 		if (!$apiToken) $result = plexSignIn($code);
 		if ($result || $apiToken) {
 			write_log("User signin actually worked. Moving on.");
@@ -183,7 +178,7 @@ if (isset($_GET['logout'])) {
 			write_log("Nothing to do.");
 		}
 	}
-	 ?>
+	?>
 </div>
 <div class="modal fade" id="alertModal">
 	<div class="modal-dialog" role="document">
@@ -224,8 +219,8 @@ if (!isset($_SESSION['plexToken'])) {
                                 </div>
                             </div>
                         </div>' .
-                       headerhtml() .
-                        '<script type="text/javascript" src="./js/login.js" async></script>';
+		headerhtml() .
+		'<script type="text/javascript" src="./js/login.js" async></script>';
 	die();
 }
 ?>

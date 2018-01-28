@@ -167,7 +167,7 @@ $(function () {
 
 		if ($(this).hasClass("hookLnk")) {
 			appName = $(this).data('value');
-			var string = serverAddress + "api.php?apiToken="+apiToken+"&notify=true";
+			var string = serverAddress + "api.php?apiToken=" + apiToken + "&notify=true";
 			clipboard.copy(string);
 		}
 
@@ -215,7 +215,7 @@ $(function () {
 		} else {
 			console.log("Rescanning devices.");
 		}
-		updateDevice('Client',clientId,apiToken);
+		updateDevice('Client', clientId, apiToken);
 	});
 
 	$("#serverList").change(function () {
@@ -242,16 +242,15 @@ $(function () {
 		});
 	});
 
-    $("#dvrList").change(function() {
-        var serverID = $(this).val();
-        var element = $(this).find('option:selected');
-        var type = element.data('type');
-        console.log("Fucking type: " + type);
-	    apiToken = $('#apiTokenData').data('token');
+	$("#dvrList").change(function () {
+		var serverID = $(this).val();
+		var element = $(this).find('option:selected');
+		var type = element.data('type');
+		apiToken = $('#apiTokenData').data('token');
 
-	    $.get('api.php?apiToken=' + apiToken, {
-            device: 'Dvr',
-            id: serverID
+		$.get('api.php?apiToken=' + apiToken, {
+			device: 'Dvr',
+			id: serverID
 		});
 	});
 
@@ -284,21 +283,11 @@ $(function () {
 			var url = 'api.php?say&command=' + command + '&apiToken=' + apiToken;
 			apiToken = $('#apiTokenData').data('token');
 			$.get(url, function () {
-					$('.load-bar').hide();
+				$('.load-bar').hide();
 			});
 		}
 	});
 
-	$('#deviceFab').click(function () {
-		apiToken = $('#apiTokenData').data('token');
-
-		$.getJSON('api.php?apiToken=' + apiToken + '&newDevice=true',function(data){
-			if(data.hasOwnProperty('DEVICE')) {
-				console.log("SUCCESS: ", data.Device);
-			}
-		});
-
-	});
 
 	var client = $('#client');
 	client.click(function () {
@@ -582,49 +571,46 @@ $(window).resize(function () {
 	scaleElements();
 });
 
-function deviceHtml(type,deviceData) {
-		var output = "";
-		$.each(deviceData,function(key,device) {
-			var string;
-			var selected = "";
-			console.log("What the fuck now..." + device.Selected);
-			if (device.Selected === "no") {
-				selected = "";
-			} else selected = " dd-selected";
-			var id = device.Id;
-			var name = device.Name;
-			console.log("Device "  + name + " is " + selected);
+function deviceHtml(type, deviceData) {
+	var output = "";
+	$.each(deviceData, function (key, device) {
+		var string;
+		var selected = "";
+		if (device.Selected === "no") {
+			selected = "";
+		} else selected = " dd-selected";
+		var id = device.Id;
+		var name = device.Name;
+		console.log("Device " + name + " is " + selected);
 
-			if (type === 'Client') {
-				string = "<a class='dropdown-item client-item" + selected + "' data-type='Client' data-id='" + id + "'>" + name + "</a>" ;
-			} else {
-				selected = (device.Parent === "no") ? "" : "dd-selected";
-				string = "<option data-type='" + type + "' value='"+id+"'" + (selected ? " selected" : "") + ">" + name + "</option>";
-			}
-			output += string;
-		});
-		if (type === 'Client') output += '<a class="dropdown-item client-item" data-id="rescan"><b>rescan devices</b></a>';
-		console.log("OUTPUT: ",output);
-		return output;
+		if (type === 'Client') {
+			string = "<a class='dropdown-item client-item" + selected + "' data-type='Client' data-id='" + id + "'>" + name + "</a>";
+		} else {
+			selected = (device.Parent === "no") ? "" : "dd-selected";
+			string = "<option data-type='" + type + "' value='" + id + "'" + (selected ? " selected" : "") + ">" + name + "</option>";
+		}
+		output += string;
+	});
+	if (type === 'Client') output += '<a class="dropdown-item client-item" data-id="rescan"><b>rescan devices</b></a>';
+	return output;
 }
 
 function updateDevices(newDevices) {
 	$(".remove").remove();
 	var newString = JSON.stringify(newDevices);
 	if (newString !== devices) {
-		console.log("Device array changed, updating: ",newDevices);
-		var temp = deviceHtml('Client',newDevices.Client);
-		console.log("Temp??",temp);
+		console.log("Device array changed, updating: ", newDevices);
+		var temp = deviceHtml('Client', newDevices.Client);
 		$('#clientWrapper').html(temp);
 		$('.ddLabel').html($('.dd-selected').text());
-		$('#serverList').html(deviceHtml('Server',newDevices.Server));
-		$('#parentList').html(deviceHtml('Parent',newDevices.Server));
-		$('#dvrList').html(deviceHtml('Dvr',newDevices.Dvr));
+		$('#serverList').html(deviceHtml('Server', newDevices.Server));
+		$('#parentList').html(deviceHtml('Parent', newDevices.Server));
+		$('#dvrList').html(deviceHtml('Dvr', newDevices.Dvr));
 		devices = JSON.stringify(newDevices);
 	}
 }
 
-function updateDevice(type,id,token) {
+function updateDevice(type, id, token) {
 	if (true) {
 		console.log("No socket key, sending using a thingy.");
 		apiToken = $('#apiTokenData').data('token');
@@ -632,22 +618,23 @@ function updateDevice(type,id,token) {
 		$.get('api.php?apiToken=' + apiToken, {
 			device: type,
 			id: id
-		},function(data){
-			console.log("Data received: ",data);
+		}, function (data) {
+			console.log("Data received: ", data);
 			updateDevices(data);
 		});
 	} else {
 		console.log("We have a socket key, using SCIENCE.");
 		var data = {
-				action:'device',
-				data: {
-					type: type,
-					id: id
-				}
+			action: 'device',
+			data: {
+				type: type,
+				id: id
+			}
 		};
 		doSend(data);
 	}
 }
+
 function scaleElements() {
 	var winWidth = $(window).width();
 	var commandTest = $('#actionLabel');
@@ -668,8 +655,7 @@ function setBackground() {
 	(
 		function () {
 			if (!image.complete || !image.naturalWidth) {
-				image.src = "https://app.phlexchat.com/backgrounds/" + randomIntFromInterval(1,2165) + ".jpg";
-				console.log("Returning cached image: " + image.src);
+				image.src = "https://app.phlexchat.com/backgrounds/" + randomIntFromInterval(1, 2165) + ".jpg";
 			}
 		},
 		1000
@@ -682,18 +668,19 @@ function setBackground() {
 	bgs.last().fadeIn(1000);
 	setTimeout(
 		function () {
-			console.log("Removing first background");
 			while (bgWrap.childNodes.length > 1) {
 				bgWrap.removeChild(bgWrap.firstChild);
 			}
 			$('.imgHolder').remove();
 		}, 1500);
 }
-function randomIntFromInterval(min,max)
-{
-	var selection  = Math.floor(Math.random()*(max-min+1)+min);
+
+function randomIntFromInterval(min, max) {
+	var selection = Math.floor(Math.random() * (max - min + 1) + min);
 	var s = String(selection);
-	while (s.length < 4 ) {s = "0" + s;}
+	while (s.length < 4) {
+		s = "0" + s;
+	}
 	return s;
 }
 
@@ -755,7 +742,7 @@ function updateStatus() {
 			if (data.hasOwnProperty("commands")) dataCommands = data.commands.replace(/\+/g, '%20');
 			if (data.hasOwnProperty("messages")) var msg = data.messages;
 		} catch (e) {
-			console.log("Parse error caught: ",e);
+			console.log("Parse error caught: ", e);
 		}
 		if (dataCommands) {
 			try {
@@ -768,33 +755,14 @@ function updateStatus() {
 		try {
 			$('#updateContainer').html(data.updates);
 			if (data.hasOwnProperty('logs')) {
-			$('#logBody').html(formatLog(JSON.parse(data.logs)));
-			if (data.hasOwnProperty(updateAvailable)) {
-				showMessage("An update is available.", "An update is available for Phlex.  Click here to install it now.", 'api.php?apiToken=' + apiToken + '&installUpdates=true');
-			}
+				$('#logBody').html(formatLog(JSON.parse(data.logs)));
+				if (data.hasOwnProperty(updateAvailable)) {
+					showMessage("An update is available.", "An update is available for Phlex.  Click here to install it now.", 'api.php?apiToken=' + apiToken + '&installUpdates=true');
+				}
 			}
 
 			if (data.hasOwnProperty("devices")) {
 				var deviceList = data.devices;
-
-				if (data.hasOwnProperty("static")) {
-					var clientList = data.static;
-					var count = devices.length;
-					var devHtml = "";
-					if (count !== staticCount) {
-						console.log("They're not equal, setting to match.");
-						$.each(staticList, function (id, device) {
-							var devString = createStaticDevice(device.id, device.name, device.uri, device.product,device.broadcast);
-							devHtml += devString[0];
-						});
-						$('#deviceContainer').html(devHtml);
-						staticCount = count;
-					}
-					if (deviceList.hasOwnProperty("Client")) {
-						clientList = $.merge(clientList,deviceList.Client);
-					} 
-					data.devices.Client = clientList;
-				}
 				updateDevices(data.devices);
 			}
 
@@ -828,14 +796,13 @@ function updateStatus() {
 					TitleString = resultTitle;
 					if (resultType === "episode") TitleString = "S" + mr.parentIndex + "E" + mr.index + " - " + resultTitle;
 					if (resultType === "track") {
-						console.log("The title should be right, fucker.");
 						TitleString = mr.grandparentTitle + " - " + resultTitle;
 					}
 					progressSlider.noUiSlider.set((resultOffset / resultDuration) * 100);
 					var statusImage = $('#statusImage');
 					if (thumbPath !== false) {
 						statusImage.attr('src', thumbPath).show();
-						statusImage.css("position","relative");
+						statusImage.css("position", "relative");
 					} else {
 						statusImage.hide();
 					}
@@ -953,10 +920,10 @@ function updateCommands(data, prepend) {
 
 
 function msToTime(duration) {
-	var milliseconds = parseInt((duration%1000)/100)
-		, seconds = parseInt((duration/1000)%60)
-		, minutes = parseInt((duration/(1000*60))%60)
-		, hours = parseInt((duration/(1000*60*60))%24);
+	var milliseconds = parseInt((duration % 1000) / 100)
+		, seconds = parseInt((duration / 1000) % 60)
+		, minutes = parseInt((duration / (1000 * 60)) % 60)
+		, hours = parseInt((duration / (1000 * 60 * 60)) % 24);
 	hours = (hours < 10) ? "0" + hours : hours;
 	minutes = (minutes < 10) ? "0" + minutes : minutes;
 	seconds = (seconds < 10) ? "0" + seconds : seconds;
@@ -1267,40 +1234,40 @@ function imgError(image) {
 	return true;
 }
 
-function createStaticDevice(id, name, uri, product,broadcast) {
+function createStaticDevice(id, name, uri, product, broadcast) {
 	var nameString = 'static_' + id + '_Name';
 	var ipString = 'static_' + id + '_URI';
 	var productString = 'static_' + id + '_Product';
 	var device = {
 		'name': name,
 		'URI': uri,
-		'product':product,
-		'broadcast':broadcast
+		'product': product,
+		'broadcast': broadcast
 	};
 
 
 	devices.push({id: device});
 	device['id'] = id;
-	var dataString = "<div class='card' id='dev_"+id+"'>" +
-			'<button id="' + id + '" class="deviceDelete"><span class="material-icons">close</span></button>' +
+	var dataString = "<div class='card' id='dev_" + id + "'>" +
+		'<button id="' + id + '" class="deviceDelete"><span class="material-icons">close</span></button>' +
 		"<div class='card-header'>" +
-			'<label for="static_' + id + '_[Name]" class="appLabel">Device Name:' +
-			"<input type='text' id='static_" + id + "_[name]' value='" + name + "' class='appInput form-control'/>" +
+		'<label for="static_' + id + '_[Name]" class="appLabel">Device Name:' +
+		"<input type='text' id='static_" + id + "_[name]' value='" + name + "' class='appInput form-control'/>" +
 		'</label>' +
-			'<label for="static_' + id + '_[Uri]" class="appLabel">URI:' +
-			"<input type='text' id='static_" + id + "_[uri]' value='" + uri + "' class='appInput form-control'/>" +
+		'<label for="static_' + id + '_[Uri]" class="appLabel">URI:' +
+		"<input type='text' id='static_" + id + "_[uri]' value='" + uri + "' class='appInput form-control'/>" +
 		'</label>' +
-			'<label for="static_' + id + '_[product]" class="appLabel">Type:' +
-			"<select id='static_" + id + "_[product]' class='appInput form-control'>" +
-				'<option value="cast"'+(product === 'cast' ? 'selected' : '')+'>Cast</option>' +
-				'<option value="direct"'+(product === 'direct' ? 'selected': '')+'>Direct</option>' +
-				'<option value="indirect"'+(product === 'indirect' ? 'selected': '')+'>Indirect</option>' +
-			"</select>" +
+		'<label for="static_' + id + '_[product]" class="appLabel">Type:' +
+		"<select id='static_" + id + "_[product]' class='appInput form-control'>" +
+		'<option value="cast"' + (product === 'cast' ? 'selected' : '') + '>Cast</option>' +
+		'<option value="direct"' + (product === 'direct' ? 'selected' : '') + '>Direct</option>' +
+		'<option value="indirect"' + (product === 'indirect' ? 'selected' : '') + '>Indirect</option>' +
+		"</select>" +
 		'</label>' +
 		'<div class="togglebutton">' +
-			'<label for="static_' + id + '_[broadcast]" class="appLabel checkLabel">Broadcast' +
-				'<input id="static_' + id + '_[broadcast]" class="appInput" type="checkbox" ' +(broadcast ? 'checked' : '')+ '/>' +
-			'</label>' +
+		'<label for="static_' + id + '_[broadcast]" class="appLabel checkLabel">Broadcast' +
+		'<input id="static_' + id + '_[broadcast]" class="appInput" type="checkbox" ' + (broadcast ? 'checked' : '') + '/>' +
+		'</label>' +
 		'</div>' +
 		"</div>" +
 		"</div>";
@@ -1312,53 +1279,56 @@ function deleteStaticDevice(id) {
 }
 
 function setListeners() {
-		var id;
-	$(document).on('click', '.deviceDelete', function(){
+	var id;
+	$(document).on('click', '.deviceDelete', function () {
 		id = $(this).attr('id');
 		console.log("Gonna delete static device " + id);
 		apiToken = $('#apiTokenData').data('token');
 
-		$.get('api.php?apiToken=' + apiToken, {deleteDevice:true,id: id}, function () {
+		$.get('api.php?apiToken=' + apiToken, {deleteDevice: true, id: id}, function () {
 		});
 		var devCard = $("#dev_" + id);
 		devCard.slideUp();
 		devCard.remove();
 	});
 
-	$(document).on('change', '.appInput', function(){
-			id = $(this).attr('id');
-			var value;
-			if (($(this).attr('type') === 'checkbox') || ($(this).attr('type') === 'radio')) {
-				value = $(this).is(':checked');
-			} else {
-				value = $(this).val();
+	$(document).on('change', '.appInput', function () {
+		id = $(this).attr('id');
+		var value;
+		if (($(this).attr('type') === 'checkbox') || ($(this).attr('type') === 'radio')) {
+			value = $(this).is(':checked');
+		} else {
+			value = $(this).val();
+		}
+		if ($(this).id === 'publicAddress') {
+			value = resetApiUrl($(this).val());
+		}
+		apiToken = $('#apiTokenData').data('token');
+
+		$.get('api.php?apiToken=' + apiToken, {id: id, value: value}, function () {
+			if (id === 'darkTheme') {
+				setTimeout(function () {
+					location.reload();
+				}, 1000);
+				$.snackbar({content: "Theme changed, reloading page."});
 			}
-			if ($(this).id === 'publicAddress') {
-				value = resetApiUrl($(this).val());
-			}
+		});
+		if ($(this).hasClass("appParam")) {
+			id = $(this).parent().parent().parent().attr('id').replace("Group", "");
 			apiToken = $('#apiTokenData').data('token');
 
-			$.get('api.php?apiToken=' + apiToken, {id: id, value: value}, function () {
-				if (id === 'darkTheme') {
-					setTimeout(function () {
-						location.reload();
-					}, 1000);
-					$.snackbar({content: "Theme changed, reloading page."});
-				}
-			});
-			if ($(this).hasClass("appParam")) {
-				id = $(this).parent().parent().parent().attr('id').replace("Group", "");
-				apiToken = $('#apiTokenData').data('token');
-
-				$.get('api.php?apiToken=' + apiToken + '&fetchList=' + id, function (data) {
-					$('#' + id + 'Profile').html(data);
-				})
-			}
+			$.get('api.php?apiToken=' + apiToken + '&fetchList=' + id, function (data) {
+				$('#' + id + 'Profile').html(data);
+			})
+		}
 	});
 }
+
 jQuery.extend({
 	arrayCompare: function (arrayA, arrayB) {
-		if (arrayA.length !== arrayB.length) { return false; }
+		if (arrayA.length !== arrayB.length) {
+			return false;
+		}
 		// sort modifies original array
 		// (which are passed by reference to our method!)
 		// so clone the arrays before sorting

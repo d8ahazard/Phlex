@@ -16,4 +16,4 @@ new_js/
 /img/cache/
 /manifest.json
 /logs/*.log.php
-
+/logs/*.log.old.php

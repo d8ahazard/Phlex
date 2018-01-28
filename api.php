@@ -7,7 +7,8 @@ require_once dirname(__FILE__) . '/body.php';
 use digitalhigh\Radarr\Radarr;
 use Kryptonit3\SickRage\SickRage;
 use Kryptonit3\Sonarr\Sonarr;
-write_log("-------NEW REQUEST RECEIVED-------","INFO");
+
+write_log("-------NEW REQUEST RECEIVED-------", "INFO");
 setDefaults();
 
 if (isset($_GET['revision'])) {
@@ -42,12 +43,12 @@ if (isset($_SESSION['apiToken'])) {
 $user = $token ? verifyApiToken($token) : False;
 
 if ($user) {
-	write_log("User is valid, initializing.","INFO");
+	write_log("User is valid, initializing.", "INFO");
 	$apiToken = $user['apiToken'];
 
 	$_SESSION['dologout'] = false;
 	if (session_started() === FALSE) {
-		write_log("Starting new session.","INFO");
+		write_log("Starting new session.", "INFO");
 		session_id($apiToken);
 		session_start();
 	}
@@ -159,7 +160,7 @@ function initialize() {
 		}
 
 		if ($valid) {
-			updateUserPreference($id,$value);
+			updateUserPreference($id, $value);
 			if ((trim($id) === 'useCast') || (trim($id) === 'noLoop')) scanDevices(true);
 			if ($id == "appLanguage") checkSetLanguage($value);
 
@@ -341,8 +342,8 @@ function fetchUiData() {
 		unset($_SESSION['messages']);
 	}
 	if (isset($_SESSION['webApp'])) {
-	$lines = $_GET['logLimit'] ?? 50;
-	$result['logs'] = formatLog(tailFile(file_build_path(dirname(__FILE__), "logs", "Phlex.log.php"), $lines));
+		$lines = $_GET['logLimit'] ?? 50;
+		$result['logs'] = formatLog(tailFile(file_build_path(dirname(__FILE__), "logs", "Phlex.log.php"), $lines));
 	}
 	return $result;
 }
@@ -351,29 +352,29 @@ function fetchUiData() {
 function setSessionVariables($rescan = true) {
 	$data = fetchUserData();
 	if ($data) {
-			$userName = $data['plexUserName'];
+		$userName = $data['plexUserName'];
 		write_log("Found session data for $userName, setting.");
-			if($rescan) {
-				scanDevices($rescan);
-			} else {
-				foreach ($data as $key => $value) {
-					if ($key === 'dlist') {
-						$devices = json_decode(base64_decode($value), true);
-						if (is_array($devices)) {
-							$_SESSION['deviceList'] = $devices;
-						} else {
-							scanDevices(true);
-						}
+		if ($rescan) {
+			scanDevices($rescan);
+		} else {
+			foreach ($data as $key => $value) {
+				if ($key === 'dlist') {
+					$devices = json_decode(base64_decode($value), true);
+					if (is_array($devices)) {
+						$_SESSION['deviceList'] = $devices;
 					} else {
-						$value = toBool($value);
-						$_SESSION[$key] = $value;
+						scanDevices(true);
+					}
+				} else {
+					$value = toBool($value);
+					$_SESSION[$key] = $value;
 
 				}
 			}
 		}
 	}
 
-	if (!$data) write_log("Error, could not find userdata!!","ERROR");
+	if (!$data) write_log("Error, could not find userdata!!", "ERROR");
 	$_SESSION['mc'] = initMCurl();
 	$_SESSION['deviceID'] = checkSetDeviceID();
 	if ($_SESSION['plexServerUri']) fetchSections();
@@ -738,7 +739,7 @@ function parsePlayCommand($command, $year = false, $artist = false, $type = fals
 					$name
 				];
 
-				setSelectedDevice('Client',$client['Id']);
+				setSelectedDevice('Client', $client['Id']);
 			}
 		}
 	}
@@ -1884,7 +1885,7 @@ function changeDevice($command) {
 			$speech = buildSpeech($_SESSION['lang']['speechChangeDeviceSuccessStart'], $typeString, $_SESSION['lang']['speechWordTo'], $command . ".");
 			$contextName = 'waitforplayer';
 			returnSpeech($speech, $contextName);
-			setSelectedDevice($typeString,$result['Id']);
+			setSelectedDevice($typeString, $result['Id']);
 			$queryOut['playResult']['status'] = 'SUCCESS: ' . $typeString . ' changed to ' . $command . '.';
 		} else {
 			$speech = buildSpeech($_SESSION['lang']['speechChangeDeviceFailureStart'], $command, $_SESSION['lang']['speechChangeDeviceFailureEnd']);
@@ -2085,7 +2086,7 @@ function scanDevices($force = false) {
 	// Check to see if our cache should be refreshed.
 	$now = microtime(true);
 	$rescanTime = $_SESSION['rescanTime'] ?? 8;
-	write_log("RESCAN TIME: ".$_SESSION['lastScan']);
+	write_log("RESCAN TIME: " . $_SESSION['lastScan']);
 	$ls = $_SESSION['lastScan'];
 	$lastCheck = $ls ?? ceil(round($now) / 60) - $rescanTime;
 	$diffMinutes = ceil(round($now - $lastCheck) / 60);
@@ -2096,27 +2097,27 @@ function scanDevices($force = false) {
 	$list = fetchDeviceCache();
 
 
-	write_log("Device list at scan: ".json_encode($list));
+	write_log("Device list at scan: " . json_encode($list));
 	$noServers = (!count($list['Server']));
 
 	// Log things
 	$msg = "Re-caching because of ";
-	if ($force) $msg.= "FORCE & ";
-	if ($timeOut) $msg.= "TIMEOUT &";
-	if ($noServers) $msg.= "NO SERVERS";
+	if ($force) $msg .= "FORCE & ";
+	if ($timeOut) $msg .= "TIMEOUT &";
+	if ($noServers) $msg .= "NO SERVERS";
 
 	// Set things up to be recached
 	if ($force || $timeOut || $noServers) {
 		if (isset($_SESSION['scanning'])) {
 			if ($_SESSION['scanning']) {
 				$_SESSION['scanning'] = false;
-				write_log("Breaking scanning loop.","WARN");
+				write_log("Breaking scanning loop.", "WARN");
 				return $list;
 			}
 		} else {
-			write_log("No scanning loop check detected.","INFO");
+			write_log("No scanning loop check detected.", "INFO");
 		}
-		write_log("$msg","INFO");
+		write_log("$msg", "INFO");
 		$_SESSION['scanning'] = true;
 		$now = $_SESSION['webApp'] ? "now" : $now;
 		$https = !$_SESSION['noLoop'];
@@ -2129,7 +2130,7 @@ function scanDevices($force = false) {
 		if ($container) {
 			$devices = flattenXML($container);
 			foreach ($devices['Device'] as $device) {
-				write_log("Device: ".json_encode($device));
+				write_log("Device: " . json_encode($device));
 				if (($device['presence'] == "1" || $device['product'] == "Plex for Vizio") && count($device['Connection'])) {
 					$out = [
 						'Product' => $device['product'],
@@ -2138,8 +2139,8 @@ function scanDevices($force = false) {
 						'Token' => $device['accessToken'],
 						'Connection' => $device['Connection'],
 						'Owned' => $device['owned'],
-						'publicAddressMatches'=>$device['publicAddressMatches'],
-						'Key' =>""
+						'publicAddressMatches' => $device['publicAddressMatches'],
+						'Key' => ""
 					];
 					if (preg_match("/Server/", $device['product'])) {
 						array_push($servers, $out);
@@ -2152,7 +2153,7 @@ function scanDevices($force = false) {
 			}
 		}
 
-		write_log("Currently have ". count($servers). " Servers and ". count($clients). " clients.");
+		write_log("Currently have " . count($servers) . " Servers and " . count($clients) . " clients.");
 		// Check set URI and public URI for servers, testing both http and https variables
 		if (count($servers)) {
 			$result = [];
@@ -2203,7 +2204,7 @@ function scanDevices($force = false) {
 			$servers = $result;
 		}
 
-		write_log("Currently have ". count($servers). " Servers and ". count($clients). " clients (pre-scrape).","INFO");
+		write_log("Currently have " . count($servers) . " Servers and " . count($clients) . " clients (pre-scrape).", "INFO");
 
 		// Scrape servers for cast devices, local devices, DVR status
 		if (count($servers)) {
@@ -2215,41 +2216,42 @@ function scanDevices($force = false) {
 				}
 			}
 			$res = scrapeServers($check);
-			write_log("Server scrapin' result: ".json_encode($res),"INFO");
+			write_log("Server scrapin' result: " . json_encode($res), "INFO");
 			if ($res) {
 				$castLocal = $res['Client'];
 				$dvrs = $res['Dvr'];
 				//Push local devices first
 				foreach ($castLocal as $client) {
 					if ($client['Product'] !== 'Cast') {
-						array_push($clients,$client);
+						array_push($clients, $client);
 					}
 				}
 				//Finally, cast devices
 				foreach ($castLocal as $client) {
 					if ($client['Product'] === 'Cast') {
-						array_push($clients,$client);
+						array_push($clients, $client);
 					}
 				}
 			} else {
 				$_SESSION['alertPlugin'] = true;
 			}
 			// If this has never been set before
-			if (!isset($_SESSION['alertPlugin'])) updateUserPreference('alertPlugin',true);
+			if (!isset($_SESSION['alertPlugin'])) updateUserPreference('alertPlugin', true);
 
 			if ($_SESSION['alertPlugin'] && !$_SESSION['hasPlugin']) {
 				$message = "No FlexTV plugin detected. Click here to find out how to get it.";
-				$alert = [[
-					'title' => 'FlexTV Plugin Not Found.',
-					'message' => $message,
-					'url' => "https://github.com/d8ahazard/FlexTV.bundle"
-				]];
+				$alert = [
+					[
+						'title' => 'FlexTV Plugin Not Found.',
+						'message' => $message,
+						'url' => "https://github.com/d8ahazard/FlexTV.bundle"
+					]
+				];
 				$_SESSION['messages'] = $alert;
 				// Once we've sent the alert once, don't show it again
-				updateUserPreference('alertPlugin',false);
+				updateUserPreference('alertPlugin', false);
 			}
 		}
-
 
 
 		$results['Server'] = $servers;
@@ -2262,8 +2264,8 @@ function scanDevices($force = false) {
 		$_SESSION['deviceList'] = $results;
 		$string = base64_encode(json_encode($results));
 		$prefs = [
-			'lastScan'=>$now,
-			'dlist'=>$string
+			'lastScan' => $now,
+			'dlist' => $string
 		];
 		updateUserPreferenceArray($prefs);
 		write_log("Final device array: " . json_encode($results), "INFO");
@@ -2276,9 +2278,9 @@ function scanDevices($force = false) {
 
 function sortDevices($input) {
 	$results = [];
-	foreach($input as $class => $devices) {
+	foreach ($input as $class => $devices) {
 		$ogCount = count($devices);
-		write_log("Checking out $class devices, a total of ".$ogCount." devices.","INFO");
+		write_log("Checking out $class devices, a total of " . $ogCount . " devices.", "INFO");
 		$names = $output = [];
 
 		foreach ($devices as $device) {
@@ -2291,8 +2293,8 @@ function sortDevices($input) {
 			foreach ($output as $existing) {
 				$exUri = $existing['Uri'];
 				$exId = $existing['Id'];
-				$host = explode(":",$uri)[0] ?? "nohost";
-				$exHost = explode(":",$exUri)[0] ?? "nohost2";
+				$host = explode(":", $uri)[0] ?? "nohost";
+				$exHost = explode(":", $exUri)[0] ?? "nohost2";
 				write_log("Comparing $host to $exHost and $id to $exId");
 				if ((($exHost === $host) || ($exId === $id)) && $device['Type'] !== 'group') {
 					write_log("Skipping device $name");
@@ -2329,7 +2331,7 @@ function sortDevices($input) {
 			}
 		}
 		$ogCount = $ogCount - count($output);
-		write_log("Removed $ogCount duplicate devices: ".json_encode($output));
+		write_log("Removed $ogCount duplicate devices: " . json_encode($output));
 		$results[$class] = $output;
 	}
 	return $results;
@@ -2339,10 +2341,10 @@ function selectDevices($results) {
 	$output = [];
 	foreach ($results as $class => $devices) {
 		$classOutput = [];
-		$sessionId = $_SESSION["plex".$class."Id"] ?? false;
+		$sessionId = $_SESSION["plex" . $class . "Id"] ?? false;
 		$master = $_SESSION['plexMasterId'] ?? false;
 		$i = 0;
-		foreach($devices as $device) {
+		foreach ($devices as $device) {
 			if ($sessionId) {
 				if ($device['Id'] == $sessionId) {
 					write_log("Found a matching $class device named " . $device["Name"], "INFO");
@@ -2354,7 +2356,7 @@ function selectDevices($results) {
 				$device['Selected'] = (($i === 0) ? "yes" : "no");
 			}
 			if ($master && ($class !== "Client")) {
-				if ($device['Id']  == $master) {
+				if ($device['Id'] == $master) {
 					$device['Master'] = "yes";
 				} else {
 					$device['Master'] = "no";
@@ -2362,9 +2364,9 @@ function selectDevices($results) {
 			} else {
 				if ($class !== "Client") $device['Master'] = (($i === 0) ? "yes" : "no");
 			}
-			if ($device['Master'] === "yes") updateUserPreference('plexMasterId',$device['Id']);
+			if ($device['Master'] === "yes") updateUserPreference('plexMasterId', $device['Id']);
 			if ($device['Selected'] === "yes") setSelectedDevice($class, $device['Id']);
-			array_push($classOutput,$device);
+			array_push($classOutput, $device);
 			$i++;
 		}
 
@@ -2375,12 +2377,18 @@ function selectDevices($results) {
 
 function scrapeServers($serverArray) {
 	$clients = $dvrs = $responses = $urls = [];
-	write_log("Scraping ". count($serverArray) . "servers.");
+	write_log("Scraping " . count($serverArray) . "servers.");
 	foreach ($serverArray as $device) {
 		$server = $device['uri'];
 		$token = $device['Token'];
-		$url1 = ['url'=>"$server/chromecast/clients?X-Plex-Token=$token",'device'=>$device];
-		$url2 = ['url'=>"$server/tv.plex.providers.epg.onconnect?X-Plex-Token=$token",'device'=>$device];
+		$url1 = [
+			'url' => "$server/chromecast/clients?X-Plex-Token=$token",
+			'device' => $device
+		];
+		$url2 = [
+			'url' => "$server/tv.plex.providers.epg.onconnect?X-Plex-Token=$token",
+			'device' => $device
+		];
 		array_push($urls, $url1);
 		array_push($urls, $url2);
 	}
@@ -2391,12 +2399,15 @@ function scrapeServers($serverArray) {
 		// Handle all of our URL's
 		foreach ($urls as $item) {
 			$url = $item['url'];
-			write_log("URL: ".$url);
+			write_log("URL: " . $url);
 			$device = $item['device'];
 			$ch = curl_init($url);
 			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 			curl_multi_add_handle($mh, $ch);
-			$cr = [$ch,$device];
+			$cr = [
+				$ch,
+				$device
+			];
 			array_push($handlers, $cr);
 		}
 		// Execute queries
@@ -2412,8 +2423,11 @@ function scrapeServers($serverArray) {
 
 		foreach ($handlers as $ch) {
 			$response = curl_multi_getcontent($ch[0]);
-			write_log("Response: ".$response);
-			$data = ['response'=>$response,'device'=>$ch[1]];
+			write_log("Response: " . $response);
+			$data = [
+				'response' => $response,
+				'device' => $ch[1]
+			];
 			array_push($responses, $data);
 		}
 	}
@@ -2423,7 +2437,7 @@ function scrapeServers($serverArray) {
 		$device = $data['device'];
 		$token = $device['Token'];
 		$server = $device['uri'];
-		write_log("Raw response: ".json_encode($castContainer));
+		write_log("Raw response: " . json_encode($castContainer));
 		if (trim($castContainer)) {
 			$castDevices = flattenXML($castContainer)['Device'] ?? false;
 			$epg = flattenXML($castContainer);
@@ -2457,8 +2471,8 @@ function scrapeServers($serverArray) {
 	}
 
 
-	write_log("Found ".count($clients). " local devices.","INFO");
-	write_log("Found ".count($dvrs). " dvr devices.");
+	write_log("Found " . count($clients) . " local devices.", "INFO");
+	write_log("Found " . count($dvrs) . " dvr devices.");
 
 	if (count($clients) || count($dvrs)) {
 		$returns = [
@@ -2467,7 +2481,7 @@ function scrapeServers($serverArray) {
 		];
 	} else $returns = false;
 
-	write_log("Final returns: ".json_encode($returns));
+	write_log("Final returns: " . json_encode($returns));
 
 	return $returns;
 }
@@ -2696,7 +2710,7 @@ function plexSearch($title, $type = false) {
 	$request = [
 		'path' => '/hubs/search',
 		'query' => [
-			'query' => urlencode($title).headerQuery(plexHeaders()),
+			'query' => urlencode($title) . headerQuery(plexHeaders()),
 			'limit' => '30',
 			'X-Plex-Token' => $_SESSION['plexServerToken']
 		]
@@ -3315,9 +3329,9 @@ function playMediaRelayed($media) {
 		if ($transientToken) {
 			$_SESSION['counter']++;
 			$playUrl = "$parent/player/playback/playMedia" .
-				"?type=$type".
+				"?type=$type" .
 				"&containerKey=%2FplayQueues%2F$queueID%3Fown%3D1" .
-				"&key=$key".
+				"&key=$key" .
 				"&offset=$offset" .
 				"&machineIdentifier=$serverID" .
 				"&protocol=$serverProtocol" .
@@ -3333,11 +3347,11 @@ function playMediaRelayed($media) {
 			$status = (((preg_match("/200/", $result) && (preg_match("/OK/", $result)))) ? 'success' : 'error');
 		} else {
 			$status = "ERROR: Could not fetch transient token.";
-			write_log("Couldn't get a transient token!!","ERROR");
+			write_log("Couldn't get a transient token!!", "ERROR");
 		}
-	}  else {
+	} else {
 		$status = "ERROR: Couldn't queue media.";
-		write_log("Error queueing media!","ERROR");
+		write_log("Error queueing media!", "ERROR");
 	}
 	$return['url'] = $playUrl;
 	$return['status'] = $status;
@@ -3346,7 +3360,7 @@ function playMediaRelayed($media) {
 
 
 function playMediaCast($media) {
-	write_log("Session vars: ".json_encode(sessionData()));
+	write_log("Session vars: " . json_encode(sessionData()));
 	//Set up our variables like a good boy
 	$key = $media['key'];
 	$serverId = $_SESSION['plexServerId'];
@@ -3362,7 +3376,7 @@ function playMediaCast($media) {
 	$headers = [
 		'Uri' => $_SESSION['plexClientId'],
 		'Requestid' => $count,
-		'Contentid'=>$key,
+		'Contentid' => $key,
 		'Contenttype' => $isAudio ? 'music' : 'video',
 		'Offset' => $media['viewOffset'] ?? 0,
 		'Serverid' => $serverId,
@@ -3372,12 +3386,12 @@ function playMediaCast($media) {
 		'Queueid' => $queueID,
 		'Token' => $transientToken
 	];
-	$url = $parent . "/chromecast/play?X-Plex-Token=".$token;
+	$url = $parent . "/chromecast/play?X-Plex-Token=" . $token;
 	$headers = headerRequestArray($headers);
-	write_log("Header array: ".json_encode($headers));
-	$response = curlGet($url,$headers);
+	write_log("Header array: " . json_encode($headers));
+	$response = curlGet($url, $headers);
 	if ($response) {
-		write_log("Response from cast playback command: ".json_encode(flattenXML($response)));
+		write_log("Response from cast playback command: " . json_encode(flattenXML($response)));
 		$return['status'] = 'success';
 	} else {
 		$return['status'] = 'error';
@@ -3398,11 +3412,11 @@ function castAudio($speech, $uri = false) {
 		];
 		$endpoint = $uri ? "audio" : "broadcast";
 		write_log("Sending cast $endpoint: '$speech'.", "INFO");
-		$url = $_SESSION['plexServerUri']."/chromecast/$endpoint?X-Plex-Token=".$_SESSION['plexServerToken'];
-		$headers = ['Path'=>$path];
-		if ($uri) $headers['Uri']=$uri;
+		$url = $_SESSION['plexServerUri'] . "/chromecast/$endpoint?X-Plex-Token=" . $_SESSION['plexServerToken'];
+		$headers = ['Path' => $path];
+		if ($uri) $headers['Uri'] = $uri;
 		$header = headerRequestArray($headers);
-		$result = curlGet($url,$header);
+		$result = curlGet($url, $header);
 		if ($result) write_log("Sent a broadcast, baby!");
 		logCommand(json_encode($queryOut));
 	} else {
@@ -3410,7 +3424,6 @@ function castAudio($speech, $uri = false) {
 	}
 	return $path;
 }
-
 
 
 function pollPlayer() {
@@ -3591,15 +3604,19 @@ function castCommand($cmd) {
 
 	if ($valid) {
 		write_log("Sending $cmd command");
-		$url = $_SESSION['plexServerUri']."/chromecast/cmd?X-Plex-Token=".$_SESSION['plexServerToken'];
+		$url = $_SESSION['plexServerUri'] . "/chromecast/cmd?X-Plex-Token=" . $_SESSION['plexServerToken'];
 		$vol = $int ? $int : 100;
-		$headers = ['Uri'=>$_SESSION['plexClientId'],'Cmd'=>$cmd,'Vol'=>$vol];
+		$headers = [
+			'Uri' => $_SESSION['plexClientId'],
+			'Cmd' => $cmd,
+			'Vol' => $vol
+		];
 		$header = headerRequestArray($headers);
-		write_log("Headers: ".json_encode($headers));
-		$result = curlGet($url,$header);
+		write_log("Headers: " . json_encode($headers));
+		$result = curlGet($url, $header);
 		if ($result) {
 			$response = flattenXML($result);
-			write_log("Got me some response! ".json_encode($response));
+			write_log("Got me some response! " . json_encode($response));
 		}
 		$return['url'] = "No URL";
 		$return['status'] = 'success';
@@ -4431,8 +4448,8 @@ function testConnection($serviceName) {
 					}
 					$_SESSION['couchList'] = $array;
 					if (!$_SESSION['couchProfile']) $_SESSION['couchProfile'] = $first;
-					updateUserPreference('couchProfile',$first);
-					updateUserPreference('couchList',$array);
+					updateUserPreference('couchProfile', $first);
+					updateUserPreference('couchList', $array);
 				}
 				$result = ((strpos($result, '"success": true') ? 'Connection to CouchPotato Successful!' : 'ERROR: Server not available.'));
 			} else $result = "ERROR: Missing server parameters.";
@@ -4458,8 +4475,8 @@ function testConnection($serviceName) {
 					write_log("Final array is " . json_encode($array));
 					$_SESSION['sonarrList'] = $array;
 					if (!$_SESSION['sonarrProfile']) $_SESSION['sonarrProfile'] = $first;
-					updateUserPreference('sonarrProfile',$first);
-					updateUserPreference('sonarrList',$array);
+					updateUserPreference('sonarrProfile', $first);
+					updateUserPreference('sonarrList', $array);
 				}
 				$result = (($result !== false) ? 'Connection to Sonarr successful!' : 'ERROR: Server not available.');
 			} else $result = "ERROR: Missing server parameters.";
@@ -4488,8 +4505,8 @@ function testConnection($serviceName) {
 					write_log("Final array is " . json_encode($array));
 					$_SESSION['radarrList'] = $array;
 					if (!$_SESSION['radarrProfile']) $_SESSION['radarrProfile'] = $first;
-					updateUserPreference("radarrProfile",$first);
-					updateUserPreference("radarrList",$array);
+					updateUserPreference("radarrProfile", $first);
+					updateUserPreference("radarrList", $array);
 				}
 				$result = (($result !== false) ? 'Connection to Radarr successful!' : 'ERROR: Server not available.');
 			} else $result = "ERROR: Missing server parameters.";
@@ -4519,7 +4536,7 @@ function testConnection($serviceName) {
 					$count++;
 				}
 				$_SESSION['sickList'] = $array;
-				updateUserPreference('sickList',$array);
+				updateUserPreference('sickList', $array);
 				write_log("List: " . print_r($_SESSION['sickList'], true));
 				$result = (($result) ? 'Connection to Sick successful!' : 'ERROR: Server not available.');
 			} else $result = "ERROR: Missing server parameters.";
@@ -4702,7 +4719,6 @@ function returnAlexaSpeech($speech, $contextName, $cards, $waitForResponse, $sug
 
 // Register our server with the mothership and link google account
 function registerServer() {
-	$realIP = fetchUrl();
 	$_SESSION['publicAddress'] = $_SESSION['appAddress'] ?? $_SESSION['publicAddress'];
 	$registerUrl = "https://phlexserver.cookiehigh.us/api.php" . "?apiToken=" . $_SESSION['apiToken'] . "&serverAddress=" . htmlentities($_SESSION['publicAddress']);
 	write_log("registerServer: URL is " . protectURL($registerUrl), 'INFO');
