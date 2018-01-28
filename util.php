@@ -8,7 +8,7 @@ require_once dirname(__FILE__) . '/vendor/autoload.php';
 function plexSignIn($token) {
 	$url = "https://plex.tv/pins/$token.xml";
 	$user = $token = false;
-	$headers = convertHeaders(plexHeaders());
+	$headers = headerRequestArray(plexHeaders());
 	$result = curlGet($url,$headers);
 	$data = $result ? flattenXML(new SimpleXMLElement($result)) : false;
 	if ($data) {
@@ -128,7 +128,7 @@ if (!function_exists('verifyPlexToken')) {
 				'plexUserName' => $data['title'] ?? $data['username'],
 				'plexEmail' => $data['email'],
 				'plexAvatar' => $data['thumb'],
-				'plexPassUser' => ($data['roles']['role']['id'] == "plexpass"),
+				'plexPassUser' => ($data['roles']['role']['id'] == "plexpass") ? "1" : "0",
 				'appLanguage' => $data['profile_settings']['default_subtitle_language'],
 				'plexToken' => $data['authToken']
 			];
@@ -239,7 +239,7 @@ function flattenXML($xml) {
 	if (is_string($xml)) {
 		try {
 			$xml = new SimpleXMLElement($xml);
-		} catch (ParseError $e) {
+		} catch (Exception $e) {
 			write_log("PARSE ERROR: $e","ERROR");
 			return false;
 		}
@@ -475,6 +475,11 @@ function curlGet($url, $headers = null, $timeout = 4) {
 	$cert = getContent(file_build_path(dirname(__FILE__), "cacert.pem"), 'https://curl.haxx.se/ca/cacert.pem');
 	if (!$cert) $cert = file_build_path(dirname(__FILE__), "cert", "cacert.pem");
 	write_log("GET url $url","INFO","curlGet");
+	$url = filter_var($url, FILTER_SANITIZE_URL);
+	if (!filter_var($url, FILTER_VALIDATE_URL)) {
+		write_log("URL $url is not valid.");
+		return false;
+	}
 	$ch = curl_init();
 	curl_setopt($ch, CURLOPT_URL, $url);
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -499,6 +504,12 @@ function curlGet($url, $headers = null, $timeout = 4) {
 
 function curlPost($url, $content = false, $JSON = false, Array $headers = null) {
     write_log("POST url $url","INFO","curlPost");
+	$url = filter_var($url, FILTER_SANITIZE_URL);
+	if (!filter_var($url, FILTER_VALIDATE_URL)) {
+		write_log("URL $url is not valid.");
+		return false;
+	}
+
 	$cert = getContent(file_build_path(dirname(__FILE__), "cacert.pem"), 'https://curl.haxx.se/ca/cacert.pem');
 	if (!$cert) $cert = file_build_path(dirname(__FILE__), "cert", "cacert.pem");
 	$curl = curl_init($url);
@@ -743,21 +754,21 @@ if (!function_exists('fetchCommands')) {
 }
 
 function plexHeaders() {
+	$name = deviceName();
 	$headers = [
-		"X-Plex-Product"=>"PhlexWeb",
+		"X-Plex-Product"=>$name,
 		"X-Plex-Version"=>"1.1.0",
 		"X-Plex-Client-Identifier"=>checkSetDeviceID(),
 		"X-Plex-Platform"=>"Web",
 		"X-Plex-Platform-Version"=>"1.0.0",
 		"X-Plex-Sync-Version"=>"2",
-		"X-Plex-Device"=>"PhlexWeb",
+		"X-Plex-Device"=>$name,
 		"X-Plex-Device-Name"=>"Phlex",
 		"X-Plex-Device-Screen-Resolution"=>"1920x1080",
 		"X-Plex-Provider-Version"=>"1.1"
 	];
 	if (isset($_SESSION['plexServerToken'])) $headers["X-Plex-Token"]=$_SESSION['plexServerToken'];
 	return $headers;
-
 }
 
 function clientHeaders() {
@@ -766,7 +777,7 @@ function clientHeaders() {
 	]);
 }
 
-function headerString($headers) {
+function headerQuery($headers) {
 	$string = "";
 	foreach($headers as $key => $val) {
 		$string.="&".urlencode($key)."=".urlencode($val);
@@ -783,7 +794,7 @@ function headerHtml() {
 	return $string;
 }
 
-function convertHeaders($headers) {
+function headerRequestArray($headers) {
 	$headerArray = [];
 	foreach ($headers as $key => $val) {
 		$headerArray[] = "$key:$val";
@@ -972,11 +983,55 @@ if (!function_exists('checkSetDeviceID')) {
 	}
 }
 
-# TODO: Check for instances of this with 3 calls
+if (!function_exists("deviceName")) {
+	function deviceName() {
+		return "Phlex Home";
+	}
+}
+
+
+
+function updateDeviceSelection($type, $id) {
+	write_log("I was called by ".getCaller("updateDeviceSelection"));
+	if ($id != 'rescan') {
+		if ($type === "Parent") {
+			updateUserPreference('plexMasterId',$id);
+			return scanDevices();
+		}
+		write_log("New $type selected, ID is $id");
+		$devices = scanDevices(false);
+		write_log("Gonna loop over this array: ".json_encode($devices));
+		write_log("And the type array: ".json_encode($devices[$type]));
+		foreach ($devices[$type] as $device) {
+			if ($device['Id'] === $id) {
+				write_log("Got it.");
+				$temp = [];
+				foreach ($device as $key => $value) {
+					if ((($key !== 'Parent') || ($type === "Client")) && ($key !== 'Master') && ($key !== 'Selected')) $temp["plex$type$key"] = $value;
+				}
+				updateUserPreferenceArray($temp);
+			}
+		}
+		write_log("Session data: " . json_encode(sessionData()));
+	} else {
+		$devices = scanDevices(true);
+	}
+	return $devices;
+}
+
+
 function setSelectedDevice($type,$id) {
-	$list = $_SESSION['deviceList'] ?? scanDevices(false);
+	write_log("Function fired.");
+	$list = $_SESSION['deviceList'] ?? [];
 	$selected = false;
+	$current = $_SESSION['plex'.$type."Id"] ?? "000";
+	if ($current == $id) {
+		write_log("Skipping because device is already selected.");
+		return $list;
+	}
+
 	foreach($list[$type] as $device) {
+		write_log("Comparing $id to ".$device['Id']);
 		if (trim($id) === trim($device['Id'])) {
 			$selected = $device;
 		}
@@ -987,15 +1042,28 @@ function setSelectedDevice($type,$id) {
 		$selected = $list[$type][0];
 	}
 
-	if ($selected) {
-		$push = [];
+	if (is_array($selected)) {
+		$new = $push = [];
+		foreach($list[$type] as $device) {
+			$device['Selected'] = ($device['Id'] === $id) ? "yes" : "no";
+			array_push($new, $device);
+		}
+		$list[$type] = $new;
+		write_log("Going to select ". $selected['Name']);
 		foreach ($selected as $key=>$value) {
 			$uc = ucfirst($key);
-			$itemKey = "plex$type$uc";
-			$push[$itemKey] = $value;
+			if ($type === 'Server' && ($uc === "Parent" || $uc === "Selected")) {
+				write_log("Skipping attributes.");
+			} else {
+				$itemKey = "plex$type$uc";
+				$push[$itemKey] = $value;
+			}
 		}
+		$_SESSION['deviceList'] = $list;
+		$push['dList'] = base64_encode(json_encode($list));
 		updateUserPreferenceArray($push);
 	}
+	return $list;
 }
 
 function fetchDirectory($id = 1) {
@@ -2249,7 +2317,7 @@ if (!function_exists('setDefaults')) {
 	}
 
 
-	function doRequest($parts, $timeout = 3) {
+	function doRequest($parts, $timeout = 6) {
 		$type = isset($parts['type']) ? $parts['type'] : 'get';
 		$response = false;
 		$options = [];
@@ -2283,6 +2351,11 @@ if (!function_exists('setDefaults')) {
 			$url = (isset($parts['scheme']) ? "{$parts['scheme']}:" : '') . ((isset($parts['user']) || isset($parts['host'])) ? '//' : '') . (isset($parts['user']) ? "{$parts['user']}" : '') . (isset($parts['pass']) ? ":{$parts['pass']}" : '') . (isset($parts['user']) ? '@' : '') . (isset($parts['host']) ? "{$parts['host']}" : '') . (isset($parts['port']) ? ":{$parts['port']}" : '') . (isset($parts['path']) ? "{$parts['path']}" : '') . (isset($parts['query']) ? "{$parts['query']}" : '') . (isset($parts['fragment']) ? "#{$parts['fragment']}" : '');
 		} else {
 			$url = $parts;
+		}
+		$url = filter_var($url, FILTER_SANITIZE_URL);
+		if (!filter_var($url, FILTER_VALIDATE_URL)) {
+			//write_log("URL $url is not valid.");
+			return false;
 		}
 		write_log("URL is " . protectURL($url), "INFO", getCaller());
 

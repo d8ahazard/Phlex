@@ -3,10 +3,8 @@ var apiToken, appName, autoUpdate, bgs, bgWrap, token, newToken, deviceID, resul
 	messageArray, ombi, couch, sonarr, radarr, sick, publicIP, dvr, weatherClass, city, state, updateAvailable,
 	weatherHtml;
 var condition = null;
-var devices = lastUpdate = [];
-devices.Client = [];
-devices.Dvr = [];
-devices.Server = [];
+var lastUpdate = [];
+var devices = "foo";
 var staticCount = 0;
 var javaStrings;
 
@@ -232,6 +230,18 @@ $(function () {
 		});
 	});
 
+	$("#parentList").change(function () {
+		var serverID = $(this).val();
+		var element = $(this).find('option:selected');
+		var type = element.data('type');
+		apiToken = $('#apiTokenData').data('token');
+
+		$.get('api.php?apiToken=' + apiToken, {
+			device: 'Parent',
+			id: serverID
+		});
+	});
+
     $("#dvrList").change(function() {
         var serverID = $(this).val();
         var element = $(this).find('option:selected');
@@ -273,25 +283,10 @@ $(function () {
 			command = command.replace(/ /g, "+");
 			var url = 'api.php?say&command=' + command + '&apiToken=' + apiToken;
 			apiToken = $('#apiTokenData').data('token');
-
 			$.get(url, function () {
-
-			})
-				.done(function (data) {
-					setTimeout(function () {
-						$('.load-bar').hide();
-					}, 1500);
-					var dataArray = [JSON.parse(data)];
-					updateCommands(dataArray, true);
-				}, dataType = "json")
-				.always(function () {
-					setTimeout(function () {
-						$('.load-bar').hide();
-					}, 1500);
-
-				});
+					$('.load-bar').hide();
+			});
 		}
-
 	});
 
 	$('#deviceFab').click(function () {
@@ -587,9 +582,9 @@ $(window).resize(function () {
 	scaleElements();
 });
 
-function deviceHtml(type,devices) {
+function deviceHtml(type,deviceData) {
 		var output = "";
-		$.each(devices,function(key,device) {
+		$.each(deviceData,function(key,device) {
 			var string;
 			var selected = "";
 			console.log("What the fuck now..." + device.Selected);
@@ -603,6 +598,7 @@ function deviceHtml(type,devices) {
 			if (type === 'Client') {
 				string = "<a class='dropdown-item client-item" + selected + "' data-type='Client' data-id='" + id + "'>" + name + "</a>" ;
 			} else {
+				selected = (device.Parent === "no") ? "" : "dd-selected";
 				string = "<option data-type='" + type + "' value='"+id+"'" + (selected ? " selected" : "") + ">" + name + "</option>";
 			}
 			output += string;
@@ -614,29 +610,17 @@ function deviceHtml(type,devices) {
 
 function updateDevices(newDevices) {
 	$(".remove").remove();
-	if (! $.arrayCompare(devices,newDevices)) {
+	var newString = JSON.stringify(newDevices);
+	if (newString !== devices) {
 		console.log("Device array changed, updating: ",newDevices);
-		var clients = devices.Client;
-		var servers = devices.Server;
-		var dvrs = devices.Dvr;
-		if (clients.length !== newDevices.Client.length) {
-			console.log("Client array changed.");
-			var temp = deviceHtml('Client',newDevices.Client);
-			console.log("Temp??",temp);
-			$('#clientWrapper').html(temp);
-			$('.ddLabel').html($('.dd-selected').text());
-		}
-		if (servers.length !== newDevices.Server.length) {
-			console.log("Server array changed.");
-			$('#serverList').html(deviceHtml('Server',newDevices.Server));
-		}
-		if (dvrs.length !== newDevices.Dvr.length) {
-			console.log("DVR array changed.");
-			$('#dvrList').html(deviceHtml('Dvr',newDevices.Dvr));
-		}
-		devices = newDevices;
-	} else {
-		console.log("Device array is the same as before.");
+		var temp = deviceHtml('Client',newDevices.Client);
+		console.log("Temp??",temp);
+		$('#clientWrapper').html(temp);
+		$('.ddLabel').html($('.dd-selected').text());
+		$('#serverList').html(deviceHtml('Server',newDevices.Server));
+		$('#parentList').html(deviceHtml('Parent',newDevices.Server));
+		$('#dvrList').html(deviceHtml('Dvr',newDevices.Dvr));
+		devices = JSON.stringify(newDevices);
 	}
 }
 
@@ -760,7 +744,6 @@ function resetApiUrl(newUrl) {
 
 function updateStatus() {
 	apiToken = $('#apiTokenData').data('token');
-	console.log("Using apitoken: " + apiToken);
 	var footer = $('.nowPlayingFooter');
 	var logLimit = $('#logLimit').find(":selected").val();
 	var dataCommands = false;
@@ -812,7 +795,6 @@ function updateStatus() {
 					} 
 					data.devices.Client = clientList;
 				}
-				console.log("Devices: ",data.devices);
 				updateDevices(data.devices);
 			}
 
@@ -849,12 +831,13 @@ function updateStatus() {
 						console.log("The title should be right, fucker.");
 						TitleString = mr.grandparentTitle + " - " + resultTitle;
 					}
-					console.log("Width: " + resultOffset / resultDuration * 100)
 					progressSlider.noUiSlider.set((resultOffset / resultDuration) * 100);
+					var statusImage = $('#statusImage');
 					if (thumbPath !== false) {
-						$('#statusImage').attr('src', thumbPath).show();
+						statusImage.attr('src', thumbPath).show();
+						statusImage.css("position","relative");
 					} else {
-						$('#statusImage').hide();
+						statusImage.hide();
 					}
 					$('#playerName').html($('.ddLabel').html());
 					$('#mediaTitle').html(TitleString);
@@ -966,6 +949,19 @@ function updateCommands(data, prepend) {
 		})
 
 	}
+}
+
+
+function msToTime(duration) {
+	var milliseconds = parseInt((duration%1000)/100)
+		, seconds = parseInt((duration/1000)%60)
+		, minutes = parseInt((duration/(1000*60))%60)
+		, hours = parseInt((duration/(1000*60*60))%24);
+	hours = (hours < 10) ? "0" + hours : hours;
+	minutes = (minutes < 10) ? "0" + minutes : minutes;
+	seconds = (seconds < 10) ? "0" + seconds : seconds;
+
+	return hours + ":" + minutes + ":" + seconds;
 }
 
 
@@ -1366,15 +1362,14 @@ jQuery.extend({
 		// sort modifies original array
 		// (which are passed by reference to our method!)
 		// so clone the arrays before sorting
-		var a = jQuery.extend(true, [], arrayA);
-		var b = jQuery.extend(true, [], arrayB);
-		a.sort();
-		b.sort();
-		for (var i = 0, l = a.length; i < l; i++) {
-			if (a[i] !== b[i]) {
+		console.log("Parent length is equal.");
+		for (var i = 0, l = arrayA.length; i < l; i++) {
+			console.log("Lengths are " + arrayA[i].length + " and " + arrayB[i].length);
+			if (arrayA[i].length !== arrayB[i].length) {
 				return false;
 			}
 		}
+
 		return true;
 	}
 });

@@ -114,7 +114,6 @@ if (isset($_GET['logout'])) {
 		|| document.documentElement.clientHeight
 		|| document.body.clientHeight;
 	<?php echo pageCred();?>
-
 	// We call this inside the login window if necessary, or main.js. Ignore lint warnings.
 	function loopMessages(messages) {
 		console.log("Function fired.");
@@ -168,10 +167,8 @@ if (isset($_GET['logout'])) {
 			$code = $value;
 		}
 	}
-
 	$apiToken = $_SESSION['apiToken'];
 	write_log("API? : ".$_SESSION['apiToken']);
-
 	if ($code || $apiToken) {
 		$result = false;
 		write_log("Okay, now we link a thing","INFO");
@@ -186,7 +183,6 @@ if (isset($_GET['logout'])) {
 			write_log("Nothing to do.");
 		}
 	}
-
 	 ?>
 </div>
 <div class="modal fade" id="alertModal">

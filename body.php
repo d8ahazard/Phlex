@@ -600,22 +600,33 @@ function makeBody($newToken = false) {
 			        </div>
 				</div>
 				<div class="nowPlayingFooter">
-			        <div class="statusWrapper">
-			            <img id="statusImage" src=""/>
-			            <div class="statusText">
-			                <h6>Now Playing on <span id="playerName"></span>: </h6>
-			                <h4><span id="mediaTitle"></span></h4>
-			                <span id="mediaSummary"></span>
-			                <div id="progressSlider" class="slider shor slider-material-orange"></div>
-			                <div id="controlBar">
-			                    <button class="controlBtn btn btn-default" id="previousBtn"><span class="material-icons">skip_previous</span></button>
-			                    <button class="controlBtn btn btn-default" id="stepBackBtn"><span class="material-icons">fast_rewind</span></button>
-			                    <button class="controlBtn btn btn-default" id="playBtn"><span class="material-icons">play_circle_filled</span></button>
-			                    <button class="controlBtn btn btn-default" id="pauseBtn"><span class="material-icons">pause_circle_filled</span></button>
-			                    <button class="controlBtn btn btn-default" id="stopBtn"><span class="material-icons">stop</span></button>
-			                    <button class="controlBtn btn btn-default" id="stepForwardBtn"><span class="material-icons">fast_forward</span></button>
-			                    <button class="controlBtn btn btn-default" id="nextBtn"><span class="material-icons">skip_next</span></button>
+			        <div class="statusWrapper row">
+			        	<div class="coverImage">
+			        		<div>
+			            		<img id="statusImage" src=""/>
+		                    </div>
+			            </div>
+			            <div class="col-sm-3">
+			            	<div id="textBar">
+				                <h6>Now Playing on <span id="playerName"></span>: </h6>
+				                <h4><span id="mediaTitle"></span></h4>
+				                <span id="mediaSummary"></span>
+				                <div id="progressSlider" class="slider shor slider-material-orange"></div>
+			                </div>
+			            </div>
+			            <div class="col-sm-4">
+			            	<div id="controlBar">
+		                       	<button class="controlBtn btn btn-default" id="previousBtn"><span class="material-icons mat-md">skip_previous</span></button>
+			                    <button class="controlBtn btn btn-default" id="playBtn"><span class="material-icons mat-lg">play_circle_filled</span></button>
+			                    <button class="controlBtn btn btn-default" id="pauseBtn"><span class="material-icons mat-lg">pause_circle_filled</span></button>
+			                    <button class="controlBtn btn btn-default" id="nextBtn"><span class="material-icons mat-md">skip_next</span></button>
 							</div>
+						</div>
+						<div class="col-sm-3 volumeBar">
+						
+						</div>	
+			            <div class="col-sm-1">
+			            	<button class="controlBtn btn btn-default" id="stopBtn"><span class="material-icons">close</span></button>
 			            </div>
 			        </div>
 			    </div>
