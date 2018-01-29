@@ -167,7 +167,7 @@ In settings, under the Phlex tab, make sure you fill in the "Public Address" box
 
 **It is important to try the URL you are providing for "public address" before attempting to link your Google account.  If the address is not accessible via a device that is not on your local network (your cell phone with the wifi turned off), then I can't talk to your Phlex client, and the server will refuse to link your account.**
 
-Once you've got the address entered, click the "register server" button.  Your server address will be sent to the Phlex Mothership and verified, and if I determine your client is set up correctly for communication, will register you with the db and forward you to google to link your account.
+Once you've got the address entered, click the "Link Google" button.  Your server address will be sent to the Phlex Mothership and verified, and if I determine your client is set up correctly for communication, will register you with the db and forward you to google to link your account.
 
 Once this is done, you just need to ask your Google Assistant to "Talk to Flex TV". This is the invocation name you will use to talk to Phlex.
 
