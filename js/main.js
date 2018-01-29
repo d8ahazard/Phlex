@@ -730,6 +730,7 @@ function resetApiUrl(newUrl) {
 
 
 function updateStatus() {
+	var statusImage = $('#statusImage');
 	apiToken = $('#apiTokenData').data('token');
 	var footer = $('.nowPlayingFooter');
 	var logLimit = $('#logLimit').find(":selected").val();
@@ -799,9 +800,9 @@ function updateStatus() {
 						TitleString = mr.grandparentTitle + " - " + resultTitle;
 					}
 					progressSlider.noUiSlider.set((resultOffset / resultDuration) * 100);
-					var statusImage = $('#statusImage');
 					if (thumbPath !== false) {
-						statusImage.attr('src', thumbPath).show();
+						statusImage.attr('src', thumbPath);
+						statusImage.show();
 						statusImage.css("position", "relative");
 					} else {
 						statusImage.hide();

