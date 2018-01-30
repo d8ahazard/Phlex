@@ -650,17 +650,7 @@ function setBackground() {
 	//Add your images, we'll set the path in the next step
 	console.log("Caching background image.");
 	var image = new Image();
-	image.src = "https://phlexchat.com/img.php?random&height=" + $(document).height() + "&width=" + $(document).width() + "&v=" + (Math.floor(Math.random() * (1084)));
-	setTimeout
-	(
-		function () {
-			if (!image.complete || !image.naturalWidth) {
-				image.src = "https://app.phlexchat.com/backgrounds/" + randomIntFromInterval(1, 2165) + ".jpg";
-			}
-		},
-		1000
-	);
-
+	image.src = "https://img.phlexchat.com?height=" + $(document).height() + "&width=" + $(document).width() + "&v=" + (Math.floor(Math.random() * (1084)));
 	$('#bgwrap').append("<div class='bg'></div>");
 	bgs = $('.bg');
 	var bgWrap = document.getElementById('bgwrap');
@@ -730,7 +720,6 @@ function resetApiUrl(newUrl) {
 
 
 function updateStatus() {
-	var statusImage = $('#statusImage');
 	apiToken = $('#apiTokenData').data('token');
 	var footer = $('.nowPlayingFooter');
 	var logLimit = $('#logLimit').find(":selected").val();
@@ -800,9 +789,9 @@ function updateStatus() {
 						TitleString = mr.grandparentTitle + " - " + resultTitle;
 					}
 					progressSlider.noUiSlider.set((resultOffset / resultDuration) * 100);
+					var statusImage = $('#statusImage');
 					if (thumbPath !== false) {
-						statusImage.attr('src', thumbPath);
-						statusImage.show();
+						statusImage.attr('src', thumbPath).show();
 						statusImage.css("position", "relative");
 					} else {
 						statusImage.hide();

@@ -114,7 +114,11 @@ function initialize() {
 		$type = $_GET['device'];
 		$id = $_GET['id'];
 		header('Content-Type: application/json');
-		$data = setSelectedDevice($type, $id);
+		if ($id !== 'rescan') {
+			$data = setSelectedDevice($type, $id);
+		} else {
+			$data = scanDevices(true);
+		}
 		write_log("Echoing new $type list: " . json_encode($data));
 		echo json_encode(setSelectedDevice($type, $id));
 		bye();
@@ -2455,7 +2459,7 @@ function scrapeServers($serverArray) {
 						$type = ($type == 'audio' || $type == 'group' || $type == 'cast') ? 'Cast' : $type;
 						$device = [
 							'Name' => $castDevice['name'],
-							'Id' => $castDevice['uri'],
+							'Id' => $castDevice['id'],
 							'Product' => $type,
 							'Type' => $castDevice['type'],
 							'Token' => $token,

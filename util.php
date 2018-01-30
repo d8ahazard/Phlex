@@ -2539,11 +2539,7 @@ if (!function_exists('setDefaults')) {
 	}
 
 
-	if (! function_exists('pageCred')) {
-		function pageCred() {
-			return 'document.getElementById("holder").setAttribute("src", "https://phlexchat.com/img.php?random&width=" + width + "&height=" + height);';
-		}
-	}
+
 
 	if (! function_exists('isWebApp')) {
 		function isWebApp() {
@@ -2554,5 +2550,17 @@ if (!function_exists('setDefaults')) {
 if (! function_exists('webAddress')) {
 	function webAddress() {
 		return $_SESSION['publicAddress'];
+	}
+}
+
+if (! function_exists("fetchBackground")) {
+	function fetchBackground() {
+		$path = "https://img.phlexchat.com";
+
+		$code = 'var elem = document.createElement("img");'.PHP_EOL.
+			'elem.setAttribute("src", "'.$path.'");'.PHP_EOL.
+			'elem.className += "fade-in bg bgLoaded";'.PHP_EOL.
+			'document.getElementById("bgwrap").appendChild(elem);'.PHP_EOL;
+		return $code;
 	}
 }
