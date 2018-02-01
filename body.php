@@ -44,7 +44,7 @@ function makeBody($newToken = false) {
 			                                </div>
 			                            </div>
 			                            <a href="" id="settings" class="btn btn-sm barBtn" data-toggle="modal" data-target="#settingsModal"><i class="material-icons barIcon">settings</i></a>
-			                            <a href="?logout" id="logout" class="btn btn-sm barBtn"><i class="material-icons barIcon">power_settings_new</i></a>
+			                            <a href="?logout" id="logout" class="btn btn-sm barBtn"><i class="material-icons barIcon">exit_to_app</i></a>
 			
 			                        </div>
 			                    </div>
@@ -600,35 +600,46 @@ function makeBody($newToken = false) {
 			        </div>
 				</div>
 				<div class="nowPlayingFooter">
-			        <div class="statusWrapper row">
-			        	<div class="coverImage">
-			        		<div>
-			            		<img id="statusImage" src=""/>
-		                    </div>
+
+		            <div class="coverImage">
+	                    <img class="statusImage card-1" src=""/>
+	                    <div id="textBar">
+			                <h6>Now Playing on <span id="playerName"></span>: </h6>
+			                <h6><span id="mediaTitle"></span></h6>
+			                <span id="mediaTagline"></span>
+		                </div>
+		            </div>
+					
+					<div class="statusWrapper row justify-content-around">
+			            <div class="col-sm-5">
+			            	
 			            </div>
-			            <div class="col-sm-3">
-			            	<div id="textBar">
-				                <h6>Now Playing on <span id="playerName"></span>: </h6>
-				                <h4><span id="mediaTitle"></span></h4>
-				                <span id="mediaSummary"></span>
-				                <div id="progressSlider" class="slider shor slider-material-orange"></div>
-			                </div>
-			            </div>
-			            <div class="col-sm-4">
-			            	<div id="controlBar">
-		                       	<button class="controlBtn btn btn-default" id="previousBtn"><span class="material-icons mat-md">skip_previous</span></button>
-			                    <button class="controlBtn btn btn-default" id="playBtn"><span class="material-icons mat-lg">play_circle_filled</span></button>
-			                    <button class="controlBtn btn btn-default" id="pauseBtn"><span class="material-icons mat-lg">pause_circle_filled</span></button>
-			                    <button class="controlBtn btn btn-default" id="nextBtn"><span class="material-icons mat-md">skip_next</span></button>
+			            
+						<div class="col-sm-4 volumeBar">
+							<div class="scrollContainer">
+								<div class="scrollContent" id="mediaSummary"></div>
 							</div>
 						</div>
-						<div class="col-sm-3 volumeBar">
-						
-						</div>	
-			            <div class="col-sm-1">
-			            	<button class="controlBtn btn btn-default" id="stopBtn"><span class="material-icons">close</span></button>
-			            </div>
 			        </div>
+					
+					<div id="progressSlider" class="slider shor slider-material-orange"></div>
+					
+					<div class="controlWrap">
+		                <div id="controlBar">
+	                        <button class="controlBtn btn btn-default" id="previousBtn"><span class="material-icons mat-md">skip_previous</span></button>
+		                    <button class="controlBtn btn btn-default" id="playBtn"><span class="material-icons mat-lg">play_circle_filled</span></button>
+		                    <button class="controlBtn btn btn-default" id="pauseBtn"><span class="material-icons mat-lg">pause_circle_filled</span></button>
+		                    <button class="controlBtn btn btn-default" id="nextBtn"><span class="material-icons mat-md">skip_next</span></button>
+						</div>
+					</div>
+					
+			        
+			        
+			        <div id="stopBtnDiv">
+		                <button class="controlBtn btn btn-default" id="stopBtn"><span class="material-icons">close</span></button>
+		                <div id="volumeSlider" class="slider shor slider-material-orange"></div>
+		            </div>
+		            
 			    </div>
 			    <div class="wrapperArt"></div>
 			    <div class="castArt">

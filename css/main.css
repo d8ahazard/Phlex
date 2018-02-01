@@ -125,10 +125,22 @@ html {
 	top: 0;
 	left: 0;
 	z-index: -6;
-	background-image: url("https://phlexchat.com/img.php?random");
+
+}
+
+.scrollContainer {
+	height: 100%;
+	position: absolute;
+	top: 0;
+	/* top: 5px; */
+	padding: 10px 10px;
+	overflow: hidden;
+	margin-bottom: 10px;
 }
 
 #textBar {
+	float:right;
+	margin-left:15px;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	display: -webkit-box;
@@ -139,17 +151,24 @@ html {
 	margin-top: 15px;
 }
 
-#controlBar {
+#mediaSummary {
 	position: relative;
-	height: 100%;
-	text-align: center;
-	top: 40px;
 }
 
-#stopBtn {
+#controlBar {
 	position: absolute;
-	right: 15px;
 	height: 100%;
+	width: 100%;
+	text-align: center;
+	top: 40px;
+	z-index: 15;
+}
+
+#stopBtnDiv {
+	position: absolute;
+	right: -5px;
+	height: 100%;
+	top: 10px;
 }
 
 .mat-lg {
@@ -305,10 +324,29 @@ p.card-subtitle {
 	text-align: center;
 }
 
+#stopBtn {
+	position: absolute;
+	right: -5px;
+}
+
 #progressSlider {
 	position: absolute;
 	top: -15px;
-	margin-left: -15px;
+	width: 100%;
+}
+
+#volumeSlider {
+	position: absolute;
+	height: 50%;
+	top: 30px;
+	right: 6px;
+}
+
+.sliderDiv {
+	height: 100%;
+	width: 100%;
+	position: absolute;
+
 }
 
 .slider {
@@ -323,7 +361,10 @@ p.card-subtitle {
 }
 
 .statusWrapper {
+	position: absolute;
 	height:100%;
+	width:100%;
+	padding: 15px 10px;
 }
 
 .statusArt {
@@ -352,21 +393,12 @@ p.card-subtitle {
 }
 
 .coverImage {
-	text-align: center;
 	height: 100%;
-	margin-left: 15px;
-	position: relative;
-}
-.coverImage img {
-	display: block;
-	height: 100%;
-}
-.coverImage div {
-	position: relative;
 	display: inline-block;
-	/* if you need ie6/7 support */
-	*display: inline;
-	zoom: 1;
+	float: left;
+}
+
+.coverImage img {
 	height: 100%;
 }
 
@@ -833,6 +865,15 @@ span.toggle {
 
 .hiddenCard, .hidden {
 	display: none;
+}
+
+.card-1 {
+	box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+	transition: all 0.3s cubic-bezier(.25,.8,.25,1);
+}
+
+.card-1:hover {
+	box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
 }
 
 .castArt, .castArt * {

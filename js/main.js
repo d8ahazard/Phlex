@@ -1,7 +1,8 @@
 var action = "play";
 var apiToken, appName, autoUpdate, bgs, bgWrap, token, newToken, deviceID, resultDuration, logLevel, lastLog, itemJSON,
 	messageArray, ombi, couch, sonarr, radarr, sick, publicIP, dvr, weatherClass, city, state, updateAvailable,
-	weatherHtml;
+	weatherHtml, scrollTimer, direction;
+var scrolling = false;
 var condition = null;
 var lastUpdate = [];
 var devices = "foo";
@@ -60,6 +61,7 @@ $(function () {
 	var ddText = $('.dd-selected').text();
 	$('.ddLabel').html(ddText);
 	var progressSlider = document.getElementById('progressSlider');
+	var volumeSlider = document.getElementById('volumeSlider');
 	noUiSlider.create(progressSlider, {
 		start: [20],
 		range: {
@@ -68,6 +70,17 @@ $(function () {
 		}
 	});
 
+	noUiSlider.create(volumeSlider, {
+		start: [100],
+		range: {
+			'min': 0,
+			'max': 100
+		},
+		orientation: 'vertical'
+	});
+
+	progressSlider.fadeOut;
+	volumeSlider.fadeOut;
 	$('.formpop').popover();
 
 	var messages = $('#messages').data('array');
@@ -90,8 +103,16 @@ $(function () {
 
 	progressSlider.noUiSlider.on('end', function (values, handle) {
 		var value = values[handle];
+		apiToken = $('#apiTokenData').data('token');
 		var newOffset = Math.round((resultDuration * (value * .01)));
-		var url = plexClientURI + '/player/playback/seekTo?offset=' + newOffset + '&X-Plex-Token=' + token + '&X-Plex-Client-Identifier=' + deviceID;
+		var url = 'api.php?control&command=seek&value=' + newOffset + "&apiToken=" + apiToken;
+		$.get(url);
+	});
+
+	volumeSlider.noUiSlider.on('end', function (values, handle) {
+		var value = values[handle];
+		apiToken = $('#apiTokenData').data('token');
+		var url = 'api.php?control&command=volume&value=' + value + "&apiToken=" + apiToken;
 		$.get(url);
 	});
 
@@ -641,9 +662,6 @@ function scaleElements() {
 	if (winWidth <= 340) commandTest.html(javaStrings[1]);
 	if ((winWidth >= 341) && (winWidth <= 400)) commandTest.html(javaStrings[1]);
 	if (winWidth >= 401) commandTest.html(javaStrings[0]);
-	var sliderWidth = $('.statusWrapper').width() - $('#statusImage').width() - 60;
-	$("#progressSlider").css('width', sliderWidth);
-
 }
 
 function setBackground() {
@@ -778,38 +796,60 @@ function updateStatus() {
 					var resultYear = mr.year;
 					var thumbPath = mr.thumb;
 					var artPath = mr.art;
+					console.log("MediaResult: ",mr);
 					var resultSummary = mr.summary;
-					if (resultSummary === "") resultSummary = mr.tagline;
+					var tagline = mr.tagline;
+					TitleString = resultTitle;
+					if (resultType === "episode") {
+						TitleString = "S" + mr.parentIndex + "E" + mr.index + " - " + resultTitle;
+						tagline = mr.grandParentTitle + " (" + mr.year + ") ";
+					}
+
+					if (resultType === "track") {
+						TitleString = resultTitle;
+						tagline = mr.grandParentTitle + " - " + mr.parentTitle;
+					}
+
 					var resultOffset = data.playerStatus.time;
+					var volume = data.playerStatus.volume;
 					resultDuration = mr.duration;
 					var progressSlider = document.getElementById('progressSlider');
-					TitleString = resultTitle;
-					if (resultType === "episode") TitleString = "S" + mr.parentIndex + "E" + mr.index + " - " + resultTitle;
-					if (resultType === "track") {
-						TitleString = mr.grandparentTitle + " - " + resultTitle;
-					}
+					var volumeSlider = document.getElementById('progressSlider');
+
 					progressSlider.noUiSlider.set((resultOffset / resultDuration) * 100);
-					var statusImage = $('#statusImage');
+					console.log("Voluem is " + volume);
+					volumeSlider.noUiSlider.set(volume);
+					var statusImage = $('.statusImage');
 					if (thumbPath !== false) {
 						statusImage.attr('src', thumbPath).show();
-						statusImage.css("position", "relative");
+						scaleSlider();
 					} else {
 						statusImage.hide();
+						scaleSlider();
 					}
 					$('#playerName').html($('.ddLabel').html());
 					$('#mediaTitle').html(TitleString);
+					$('#mediaTagline').html(tagline);
+					var s1 = $('.scrollContent').height();
+					var s2 = $('.scrollContainer').height();
+					if ((s1 > s2 + 10) && ((s1 !== 0) && (s2 !== 0))) {
+						if (scrolling !== true) startScrolling();
+					} else {
+						if (scrolling !== false) stopScrolling();
+					}
 					$('#mediaSummary').html(resultSummary);
 					$('.wrapperArt').css('background-image', 'url(' + artPath + ')');
 					if ((!(footer.is(":visible"))) && (!(footer.hasClass('reHide')))) {
 						footer.slideDown(1000);
+
+						scaleSlider();
 						footer.addClass("playing");
-						var sliderWidth = $('.statusWrapper').width() - $('#statusImage').width() - 60;
-						$("#progressSlider").css('width', sliderWidth);
 					}
 				}
 			} else {
 				if (footer.is(":visible")) {
 					footer.slideUp(1000);
+					stopScrolling();
 					footer.removeClass("playing");
 					$('.wrapperArt').css('background-image', '');
 				}
@@ -978,8 +1018,8 @@ function formatLog(logJSON) {
 
 // Scale the dang diddly-ang slider to the correct width, as it doesn't like to be responsive by itself
 $(window).on('resize', function () {
-	var sliderWidth = $('.nowPlayingFooter').width() - 30;
-	$("#progressSlider").css('width', sliderWidth);
+	// TODO: Make sure this isn't needed anymore
+	scaleSlider();
 });
 
 
@@ -989,6 +1029,21 @@ var userScrolled = false;
 $(window).scroll(function () {
 	userScrolled = true;
 });
+
+
+function scaleSlider() {
+	var ps = $('#progressSlider');
+	var imgWidth = $('.statusImage').width();
+	var sliderWidth = $('.nowPlayingFooter').width() - imgWidth;
+	if (imgWidth === 0) {
+		ps.fadeOut();
+	} else {
+		ps.css('width', sliderWidth);
+		ps.css("left", imgWidth);
+		ps.fadeIn();
+	}
+}
+
 
 
 setInterval(function () {
@@ -1066,6 +1121,49 @@ function buildCards(value, i) {
 		'<br>';
 	//'</div>';
 	return [htmlResult, cardBg];
+}
+
+function animateContent(angle,speed)
+{
+	console.log("Animate called, direction is " + angle);
+	var sc = $('.scrollContent');
+	var animationOffset = $('.scrollContainer').height() - sc.height();
+	if (angle === 'up') {
+		animationOffset = 0;
+	}
+
+	console.log("animationOffset:"+animationOffset);
+	sc.animate({ "marginTop": (animationOffset)+ "px" }, speed, 'swing',function() {
+		console.log("Animation complete.");
+		scrolling = 'pause';
+		direction = (direction ==="up") ? "down" : "up";
+		console.log("Switched direction to " + direction);
+	});
+}
+
+
+function startScrolling(){
+	if (!scrolling) {
+		direction = "down";
+		scrollTimer = setInterval(function () {
+			if (!scrolling) {
+				animateContent(direction, 3000);
+				scrolling = true;
+			} else {
+				if (scrolling === 'pause') {
+					scrolling = false;
+				}
+			}
+		}, 5000);
+	}
+}
+
+function stopScrolling() {
+	if (scrolling === true) {
+		scrolling = false;
+		console.log("Scroller stopped");
+		clearInterval(scrollTimer);
+	}
 }
 
 function hasContent(obj) {

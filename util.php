@@ -159,7 +159,7 @@ if (!function_exists('verifyApiToken')) {
 						'plexUserName' => $data['plexUserName'],
 						'plexEmail' => $data['plexEmail'],
 						'plexAvatar' => $data['plexAvatar'],
-						'plexPassUser' => $data['plexPassUser'],
+						'plexPassUser' => $data['plexPassUser'] ? 1 : 0,
 						'appLanguage' => $data['appLanguage'],
 						'apiToken' => $apiToken
 					];
@@ -185,7 +185,7 @@ function cleanCommandString($string) {
 	$string = preg_replace("/tell Flex TV/", "", $string);
 	$string = preg_replace("/Flex TV/", "", $string);
 	$stringArray = explode(" ", $string);
-	$stripIn = ["th", "nd", "rd"];
+	$stripIn = ["th", "nd", "rd", "by"];
 	$stringArray = array_diff($stringArray, array_intersect($stringArray, $stripIn));
 	foreach ($stringArray as &$word) {
 		$word = preg_replace("/[^\w\']+|\'(?!\w)|(?<!\w)\'/", "", $word);
@@ -1005,6 +1005,7 @@ function updateDeviceSelection($type, $id) {
 			if ($device['Id'] === $id) {
 				write_log("Got it.");
 				$temp = [];
+				unset($device['Selected']);
 				foreach ($device as $key => $value) {
 					if ((($key !== 'Parent') || ($type === "Client")) && ($key !== 'Master') && ($key !== 'Selected')) $temp["plex$type$key"] = $value;
 				}
@@ -1024,10 +1025,10 @@ function setSelectedDevice($type,$id) {
 	$list = $_SESSION['deviceList'] ?? [];
 	$selected = false;
 	$current = $_SESSION['plex'.$type."Id"] ?? "000";
-	if ($current == $id) {
-		write_log("Skipping because device is already selected.");
-		return $list;
-	}
+//	if ($current == $id) {
+//		write_log("Skipping because device is already selected.");
+//		return $list;
+//	}
 
 	foreach($list[$type] as $device) {
 		write_log("Comparing $id to ".$device['Id']);
@@ -1051,7 +1052,7 @@ function setSelectedDevice($type,$id) {
 		write_log("Going to select ". $selected['Name']);
 		foreach ($selected as $key=>$value) {
 			$uc = ucfirst($key);
-			if ($type === 'Server' && ($uc === "Parent" || $uc === "Selected")) {
+			if (($type === 'Server' || $type==='Dvr') && ($uc === "Parent" || $uc === "Selected" || $uc === "Master")) {
 				write_log("Skipping attributes.");
 			} else {
 				$itemKey = "plex$type$uc";
