@@ -2080,6 +2080,7 @@ function NumbersToWord($data) {
 	return $data;
 }
 
+// #TODO: Move functions around so they're all here...
 //
 // ############# Client/Server Functions ############
 //
@@ -2693,6 +2694,7 @@ function fetchInfo($matrix) {
 				if ($winner['type'] === 'artist') {
 					$queueId = queueMedia($winner, true);
 					write_log("Queue ID is $queueId");
+					$winner['queueID'] = $queueId;
 				}
 			}
 		}
@@ -3205,14 +3207,15 @@ function queueMedia($media, $audio = false, $queueID = false, $shuffle = false, 
 		$media = $container;
 	}
 	if (isset($media['librarySectionUUID'])) {
-		$uri = 'library://' . $media['librarySectionUUID'] . '/item/' . urlencode($key);
+		$uri = urlencode('library:///item/' . urlencode($key));
 		$query = [
 			'type' => ($audio ? 'audio' : 'video'),
 			'uri' => $uri,
 			'shuffle' => $shuffle ? '1' : '0',
 			'repeat' => 0,
-			'includeChapters' => 1,
 			'own' => 1,
+			'includeChapters' => 1,
+			'includeGeolocation'=>1,
 			'X-Plex-Client-Identifier' => $_SESSION['plexClientId']
 		];
 		$headers = clientHeaders();
@@ -3322,21 +3325,42 @@ function playMedia($media) {
 
 
 function playMediaRelayed($media) {
+	write_log("Incoming media: ".json_encode($media));
 	$playUrl = false;
 	$server = parse_url($_SESSION['plexServerUri']);
 	$serverProtocol = $server['scheme'];
 	$serverIP = $server['host'];
 	$serverPort = $server['port'];
 	$serverID = $_SESSION['plexServerId'];
-	$parent = $_SESSION['plexClientParent'] ?? $_SESSION['plexServerUri'];
+	$parent = $_SESSION['plexServerUri'];
+	if (isset($_SESSION['plexClientParent'])) {
+		if (trim($_SESSION['plexClientParent']) !== "") $parent = $_SESSION['plexClientParent'];
+	}
 	if ($parent == "no") $parent = $_SESSION['plexServerUri'];
+	$uri = $_SESSION['plexClientParent'];
+
+	foreach($_SESSION['deviceList']['Server'] as $server) {
+		write_log("Comparing ".$server['Uri']." to $parent");
+		if ($server['Uri'] == $uri) {
+			$serverAddress = parse_url($uri);
+			$serverProtocol = $serverAddress['scheme'];
+			$serverIP = $serverAddress['host'];
+			$serverPort = $serverAddress['port'];
+			$serverID = $server['Id'];
+			$data = [$serverProtocol,$serverIP,$serverPort,$serverID];
+			write_log("GOT AN UPDATED SET OF VARS FOR OUR TARGET: ".json_encode($data));
+			break;
+		}
+	}
+
 	write_log("Relay target is $parent");
 	$queueID = (isset($media['queueID']) ? $media['queueID'] : queueMedia($media));
 	$isAudio = ($media['type'] == 'album' || $media['type'] == 'artist' || $media['type'] == 'track');
-	$type = $isAudio ? 'audio' : 'video';
+	$type = $isAudio ? 'music' : 'video';
 	$key = urlencode($media['key']);
 	$offset = ($media['viewOffset'] ?? 0);
 	$commandId = $_SESSION['counter'];
+	pollPlayer();
 	if ($queueID) {
 		write_log("Media has a queue ID, we're good.");
 		$transientToken = fetchTransientToken();
@@ -3451,10 +3475,11 @@ function pollPlayer() {
 		$pp = true;
 	}
 	$serverUri = $_SESSION['plexClientParent'] ?? $_SESSION['plexServerUri'];
+	if (trim($serverUri) == "") $serverUri = $_SESSION['plexServerUri'];
 	$count = $_SESSION['counter'] ?? 1;
 	$params = headerQuery(array_merge(plexHeaders(), clientHeaders()));
 	$url = "$serverUri/player/timeline/poll?wait=1&commandID=$count$params";
-	$result = doRequest($url);
+	$result = doRequest($url,1);
 	if ($result) {
 		write_log("State changed, polling player.");
 
@@ -3583,7 +3608,6 @@ function playerCommand($url) {
 }
 
 function castCommand($cmd,$value=false) {
-	$int = 100;
 	// Set up our cast device
 	if (preg_match("/volume/", $cmd)) {
 		$value = $value ? $value : filter_var($cmd, FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
@@ -3614,7 +3638,7 @@ function castCommand($cmd,$value=false) {
 	if ($valid) {
 		write_log("Sending $cmd command");
 		$url = $_SESSION['plexServerUri'] . "/chromecast/cmd?X-Plex-Token=" . $_SESSION['plexServerToken'];
-		$vol = $int ? $int : 100;
+		$value = $value ? $value : 100;
 		$headers = [
 			'Uri' => $_SESSION['plexClientId'],
 			'Cmd' => $cmd,
@@ -3937,7 +3961,6 @@ function sickDownload($command, $season = false, $episode = false, $tmdbResult =
 				array_push($epsList, $episodeItem);
 				if ($i) $f++;
 			}
-			//if ($winner) break;
 			$i++;
 		}
 		// Find the newest aired episode
@@ -4583,6 +4606,7 @@ function returnSpeech($speech, $contextName, $cards = false, $waitForResponse = 
 	}
 }
 
+// #TODO: API.ai now has a V2 api, we should probably update it...
 // APIAI ITEMS
 // Put our calls to API.ai here
 // #######################################################################

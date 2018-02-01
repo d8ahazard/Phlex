@@ -191,19 +191,14 @@ if (isset($_GET['logout'])) {
 		}
 	}
 	$apiToken = $_SESSION['apiToken'];
-	write_log("API? : " . $_SESSION['apiToken']);
 	if ($code || $apiToken) {
 		$result = false;
-		write_log("Okay, now we link a thing", "INFO");
 		if (!$apiToken) $result = plexSignIn($code);
 		if ($result || $apiToken) {
-			write_log("User signin actually worked. Moving on.");
 			define('LOGGED_IN', true);
 			require_once dirname(__FILE__) . '/body.php';
 			write_log("Making body!");
 			echo makeBody();
-		} else {
-			write_log("Nothing to do.");
 		}
 	}
 	?>

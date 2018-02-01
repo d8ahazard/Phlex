@@ -817,7 +817,7 @@ function updateStatus() {
 					var volumeSlider = document.getElementById('progressSlider');
 
 					progressSlider.noUiSlider.set((resultOffset / resultDuration) * 100);
-					console.log("Voluem is " + volume);
+					console.log("Volume is " + volume);
 					volumeSlider.noUiSlider.set(volume);
 					var statusImage = $('.statusImage');
 					if (thumbPath !== false) {
