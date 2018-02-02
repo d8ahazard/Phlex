@@ -357,8 +357,8 @@ function makeBody($newToken = false) {
 					                                    </label>
 					                                </div>
 					                                <div class="form-group">
-					                                    <label for="dvr_endoffset" class="appLabel">' . $lang['uiSettingDvrEndOffset'] . '
-					                                        <input id="dvr_endoffset" class="appInput form-control" type="number" min="1" max="30" value="' . $_SESSION["plexDvrEndOffset"] . '" />
+					                                    <label for="plexDvrEndOffset" class="appLabel">' . $lang['uiSettingDvrEndOffset'] . '
+					                                        <input id="plexDvrEndOffset" class="appInput form-control" type="number" min="1" max="30" value="' . $_SESSION["plexDvrEndOffset"] . '" />
 					                                    </label>
 					                                </div>
 					
@@ -417,8 +417,8 @@ function makeBody($newToken = false) {
 					                                </div>
 					                                <div class="text-center">
 					                                    <div class="form-group btn-group">
-					                                        <button value="CouchPotato" class="testInput btn btn-raised btn-info">' . $lang['uiSettingBtnTest'] . '</button>
-					                                        <button id="resetCouch" value="CouchPotato" class="resetInput btn btn-raised btn-danger btn-100">' . $lang['uiSettingBtnReset'] . '</button>
+					                                        <button value="Couch" class="testInput btn btn-raised btn-info">' . $lang['uiSettingBtnTest'] . '</button>
+					                                        <button id="resetCouch" value="Couch" class="resetInput btn btn-raised btn-danger btn-100">' . $lang['uiSettingBtnReset'] . '</button>
 					                                    </div>
 					                                </div>
 					                            </div>

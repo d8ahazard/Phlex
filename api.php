@@ -4465,7 +4465,7 @@ function testConnection($serviceName) {
 			} else $result = "ERROR: Missing server parameters.";
 			break;
 
-		case "CouchPotato":
+		case "Couch":
 			$couchURL = $_SESSION['couchUri'];
 			$couchToken = $_SESSION['couchToken'];
 			if (($couchURL) && ($couchToken)) {
