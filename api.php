@@ -1728,6 +1728,7 @@ function parseApiCommand($request) {
 		if (($_SESSION['couchEnabled']) || ($_SESSION['radarrEnabled'])) array_push($suggestions, $_SESSION['lang']['suggestionCouch']);
 		if (($_SESSION['sickEnabled']) || ($_SESSION['sonarrEnabled'])) array_push($suggestions, $_SESSION['lang']['suggestionSick']);
 		array_push($suggestions, $_SESSION['lang']['suggestionCancel']);
+		array_push($suggestions, $_SESSION['lang']['suggestionNowYou']);
 		foreach ($suggestions as $suggestion) $speech = buildSpeech($speech, $suggestion);
 		write_log("Speech: $speech");
 		if (!$GLOBALS['screen']) $card = $suggestions = false;
