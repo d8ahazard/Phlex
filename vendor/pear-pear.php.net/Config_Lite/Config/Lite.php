@@ -200,10 +200,8 @@ class Config_Lite implements ArrayAccess, IteratorAggregate, Countable, Serializ
         } elseif (is_numeric($value)) {
             return $value;
         }
-        if (is_string($value)) {
-        	$value = preg_replace('~[\r\n]+~', '', $value);
-        }
         if ($this->quoteStrings) {
+            $value = str_replace($this->delim, '\\'.$this->delim, $value);
             $value = $this->delim . $value . $this->delim;
         }
         return $value;
@@ -399,11 +397,11 @@ class Config_Lite implements ArrayAccess, IteratorAggregate, Countable, Serializ
         if ((null === $sec) && (null === $key) && (null === $default)) {
             return $this->sections;
         }
-        if ((null !== $sec) && array_key_exists($sec, $this->sections)
-            && isset($this->sections[$sec][$key])
-        ) {
-            return $this->sections[$sec][$key];
-        }
+	if (is_array($this->sections)) {
+		if ((null !== $sec) && array_key_exists(strval($sec), $this->sections) && isset($this->sections[$sec][$key])) {
+			return $this->sections[$sec][$key];
+		}
+	}
         // global value
         if ((null === $sec) && array_key_exists($key, $this->sections)) {
             return $this->sections[$key];
@@ -464,23 +462,24 @@ class Config_Lite implements ArrayAccess, IteratorAggregate, Countable, Serializ
                     return $this->_booleans[$value];
                 }
             }
-        }
-        if (array_key_exists($key, $this->sections[$sec])) {
-            if (empty($this->sections[$sec][$key])) {
-                return false;
-            }
-            $value = strtolower($this->sections[$sec][$key]);
-            if (!in_array($value, $this->_booleans) && (null === $default)) {
-                throw new Config_Lite_Exception_InvalidArgument(
-                    sprintf(
-                        'Not a boolean: %s, and no default value given.',
-                        $value
-                    )
-                );
-            } else {
-                return $this->_booleans[$value];
-            }
-        }
+        } else if (is_array($this->sections[strval($sec)])) {
+		if (array_key_exists($key, $this->sections[$sec])) {
+			if (empty($this->sections[$sec][$key])) {
+				return false;
+			}
+			$value = strtolower($this->sections[$sec][$key]);
+			if (!in_array($value, $this->_booleans) && (null === $default)) {
+				throw new Config_Lite_Exception_InvalidArgument(
+					sprintf(
+						'Not a boolean: %s, and no default value given.',
+						$value
+					)
+				);
+			} else {
+				return $this->_booleans[$value];
+			}
+		}
+	}
         if (null !== $default) {
             return $default;
         }

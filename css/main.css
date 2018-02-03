@@ -329,13 +329,13 @@ p.card-subtitle {
 	right: -5px;
 }
 
-#progressSlider {
+#progressWrap {
 	position: absolute;
-	top: -15px;
+	top: -8px;
 	width: 100%;
 }
 
-#volumeSlider {
+#volumeWrap {
 	position: absolute;
 	height: 50%;
 	top: 30px;
@@ -350,7 +350,7 @@ p.card-subtitle {
 }
 
 .slider {
-	height: 4px;
+	background: rgba(200, 200, 200, 0) !important;
 }
 
 .wrapper {

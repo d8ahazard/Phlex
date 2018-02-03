@@ -1,7 +1,7 @@
 var action = "play";
 var apiToken, appName, autoUpdate, bgs, bgWrap, token, newToken, deviceID, resultDuration, logLevel, lastLog, itemJSON,
-	messageArray, ombi, couch, sonarr, radarr, sick, publicIP, dvr, weatherClass, city, state, updateAvailable,
-	weatherHtml, scrollTimer, direction;
+	messageArray, ombi, couch, headphones, sonarr, radarr, sick, publicIP, dvr, weatherClass, city, state, updateAvailable,
+	weatherHtml, scrollTimer, direction, progressSlider, volumeSlider;
 var scrolling = false;
 var condition = null;
 var lastUpdate = [];
@@ -41,6 +41,7 @@ $(function () {
 	couch = $('#couchpotato').data('enable');
 	radarr = $('#radarr').data('enable');
 	ombi = $('#ombi').data('enable');
+	headphones = $('#headphones').data('enable');
 	updateAvailable = $('#updateAvailable').attr('data');
 
 	$.material.init();
@@ -60,27 +61,13 @@ $(function () {
 	$('#play').addClass('clicked');
 	var ddText = $('.dd-selected').text();
 	$('.ddLabel').html(ddText);
-	var progressSlider = document.getElementById('progressSlider');
-	var volumeSlider = document.getElementById('volumeSlider');
-	noUiSlider.create(progressSlider, {
-		start: [20],
-		range: {
-			'min': 0,
-			'max': 100
-		}
+	progressSlider = $('#progressSlider').bootstrapSlider();
+	volumeSlider = $('#volumeSlider').bootstrapSlider({
+		reversed : true
 	});
 
-	noUiSlider.create(volumeSlider, {
-		start: [100],
-		range: {
-			'min': 0,
-			'max': 100
-		},
-		orientation: 'vertical'
-	});
-
-	progressSlider.fadeOut;
-	volumeSlider.fadeOut;
+	$('#progressSlider').fadeOut;
+	$('#volumeSlider').fadeOut;
 	$('.formpop').popover();
 
 	var messages = $('#messages').data('array');
@@ -101,20 +88,20 @@ $(function () {
 		showMessage("Updates available!", "You have " + updateAvailable + " update(s) available.", false);
 	}
 
-	progressSlider.noUiSlider.on('end', function (values, handle) {
-		var value = values[handle];
-		apiToken = $('#apiTokenData').data('token');
-		var newOffset = Math.round((resultDuration * (value * .01)));
-		var url = 'api.php?control&command=seek&value=' + newOffset + "&apiToken=" + apiToken;
-		$.get(url);
-	});
-
-	volumeSlider.noUiSlider.on('end', function (values, handle) {
-		var value = values[handle];
-		apiToken = $('#apiTokenData').data('token');
-		var url = 'api.php?control&command=volume&value=' + value + "&apiToken=" + apiToken;
-		$.get(url);
-	});
+	// progressSlider.noUiSlider.on('end', function (values, handle) {
+	// 	var value = values[handle];
+	// 	apiToken = $('#apiTokenData').data('token');
+	// 	var newOffset = Math.round((resultDuration * (value * .01)));
+	// 	var url = 'api.php?control&command=seek&value=' + newOffset + "&apiToken=" + apiToken;
+	// 	$.get(url);
+	// });
+	//
+	// volumeSlider.noUiSlider.on('end', function (values, handle) {
+	// 	var value = values[handle];
+	// 	apiToken = $('#apiTokenData').data('token');
+	// 	var url = 'api.php?control&command=volume&value=' + value + "&apiToken=" + apiToken;
+	// 	$.get(url);
+	// });
 
 	// Handle our input changes and zap them to PHP for immediate saving
 	setListeners();
@@ -348,6 +335,7 @@ $(function () {
 	var sonarrEnabled = $('#sonarrEnabled');
 	var sickEnabled = $('#sickEnabled');
 	var radarrEnabled = $('#radarrEnabled');
+	var headphonesEnabled = $('#headphonesEnabled');
 	var hookEnabled = $('#hookEnabled');
 	var hookSplit = $('#hookSplit');
 	var hookPlay = $('#hookPlay');
@@ -359,6 +347,7 @@ $(function () {
 
 	ombiEnabled.prop("checked", ombi);
 	couchEnabled.prop("checked", couch);
+	headphonesEnabled.prop("checked", headphones);
 	sonarrEnabled.prop("checked", sonarr);
 	sickEnabled.prop("checked", sick);
 	radarrEnabled.prop("checked", radarr);
@@ -379,6 +368,12 @@ $(function () {
 		$('#couchGroup').show();
 	} else {
 		$('#couchGroup').hide();
+	}
+
+	if (headphonesEnabled.is(':checked')) {
+		$('#headphonesGroup').show();
+	} else {
+		$('#headphonesGroup').hide();
 	}
 
 	if (sonarrEnabled.is(':checked')) {
@@ -466,6 +461,10 @@ $(function () {
 
 	couchEnabled.change(function () {
 		$('#couchGroup').toggle();
+	});
+
+	headphonesEnabled.change(function () {
+		$('#headphonesGroup').toggle();
 	});
 
 	$('#apiEnabled').change(function () {
@@ -607,8 +606,7 @@ function deviceHtml(type, deviceData) {
 		if (type === 'Client') {
 			string = "<a class='dropdown-item client-item" + selected + "' data-type='Client' data-id='" + id + "'>" + name + "</a>";
 		} else {
-			selected = (device.Parent === "no") ? "" : "dd-selected";
-			string = "<option data-type='" + type + "' value='" + id + "'" + (selected ? " selected" : "") + ">" + name + "</option>";
+			string = "<option data-type='" + type + "' value='" + id + "'" + (device.selected === "yes" ? " selected" : "") + ">" + name + "</option>";
 		}
 		output += string;
 	});
@@ -813,12 +811,11 @@ function updateStatus() {
 					var resultOffset = data.playerStatus.time;
 					var volume = data.playerStatus.volume;
 					resultDuration = mr.duration;
-					var progressSlider = document.getElementById('progressSlider');
-					var volumeSlider = document.getElementById('progressSlider');
-
-					progressSlider.noUiSlider.set((resultOffset / resultDuration) * 100);
-					console.log("Volume is " + volume);
-					volumeSlider.noUiSlider.set(volume);
+					var progress = (resultOffset / 1000);
+					progressSlider.bootstrapSlider({max:resultDuration/1000});
+					progressSlider.bootstrapSlider('setValue',progress);
+					console.log("Progress and volume are " + progress + " and " + volume);
+					volumeSlider.bootstrapSlider('setValue',volume);
 					var statusImage = $('.statusImage');
 					if (thumbPath !== false) {
 						statusImage.attr('src', thumbPath).show();
@@ -1032,7 +1029,7 @@ $(window).scroll(function () {
 
 
 function scaleSlider() {
-	var ps = $('#progressSlider');
+	var ps = $('#progress');
 	var imgWidth = $('.statusImage').width();
 	var sliderWidth = $('.nowPlayingFooter').width() - imgWidth;
 	if (imgWidth === 0) {
@@ -1393,7 +1390,15 @@ function setListeners() {
 		}
 		apiToken = $('#apiTokenData').data('token');
 
-		$.get('api.php?apiToken=' + apiToken, {id: id, value: value}, function () {
+		$.get('api.php?apiToken=' + apiToken, {id: id, value: value}, function (data) {
+			if (data === "valid") {
+				console.log("Data saved.");
+				$.snackbar({content: "Value saved successfully."});
+			} else {
+				console.log("Data value was invalid.");
+				$.snackbar({content: "Invalid entry specified for " + id + "."});
+				$(this).val("");
+			}
 			if (id === 'darkTheme') {
 				setTimeout(function () {
 					location.reload();

@@ -554,6 +554,34 @@ function makeBody($newToken = false) {
 					                            </div>
 					                        </div>
 					                    </div>
+					                    <div class="appContainer card">
+					                        <div class="card-body">
+					                            <h4 class="cardHeader">Headphones</h4>
+					                            <div class="togglebutton">
+					                                <label for="headphonesEnabled" class="appLabel checkLabel">' . $lang['uiSettingEnable'] . '
+					                                    <input id="headphonesEnabled" type="checkbox" class="appInput appToggle"/>
+					                                </label>
+					                            </div>
+					                            <div class="form-group" id="headphonesGroup">
+					                                <div class="form-group">
+					                                    <label for="headphonesUri" class="appLabel">Headphones URI:
+					                                        <input id="headphonesUri" class="appInput form-control Headphones appParam" type="text" value="' . $_SESSION["headphonesUri"] . '"/>
+					                                    </label>
+					                                </div>
+					                                <div class="form-group">
+					                                    <label for="headphonesToken" class="appLabel">Headphones ' . $lang['uiSettingFetcherToken'] . ':
+					                                        <input id="headphonesToken" class="appInput form-control Headphones appParam" type="text" value="' . $_SESSION["headphonesToken"] . '"/>
+					                                    </label>
+					                                </div>
+					                                <div class="text-center">
+					                                    <div class="form-group btn-group">
+					                                        <button value="Headphones" class="testInput btn btn-raised btn-info btn-100" type="button">' . $lang['uiSettingBtnTest'] . '</button>
+					                                        <button id="resetHeadphones" value="Headphones" class="resetInput btn btn-raised btn-danger btn-100" type="button">' . $lang['uiSettingBtnReset'] . '</button>
+					                                    </div>
+					                                </div>
+					                            </div>
+					                        </div>
+					                    </div>
 			                    </div>
 			                </div>
 			                <div class="tab-pane fade'.$hidden.'" id="logTab" role="tabpanel">
@@ -621,9 +649,9 @@ function makeBody($newToken = false) {
 							</div>
 						</div>
 			        </div>
-					
-					<div id="progressSlider" class="slider shor slider-material-orange"></div>
-					
+					<div id="progressWrap">
+	                	<input id="progressSlider" type="text" data-slider-min="0" data-slider-id="progress" data-slider-tooltip="hide"></input>
+					</div>
 					<div class="controlWrap">
 		                <div id="controlBar">
 	                        <button class="controlBtn btn btn-default" id="previousBtn"><span class="material-icons mat-md">skip_previous</span></button>
@@ -637,7 +665,9 @@ function makeBody($newToken = false) {
 			        
 			        <div id="stopBtnDiv">
 		                <button class="controlBtn btn btn-default" id="stopBtn"><span class="material-icons">close</span></button>
-		                <div id="volumeSlider" class="slider shor slider-material-orange"></div>
+		                <div id="volumeWrap">
+		                	<input id="volumeSlider" type="text" data-slider-min="0" data-slider-max="100" data-slider-id="volume" data-slider-orientation="vertical"></input>
+	                    </div>
 		            </div>
 		            
 			    </div>

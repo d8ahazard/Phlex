@@ -115,24 +115,6 @@
 
 
 		/**
-		 * Read Log Messages to JSON
-		 *
-		 * @param  string $branch - The branch to read logs from
-		 * @param  string|int $limit - Number of commits to return, or the commit hash to return logs until
-		 * @throws Cz\Git\GitException
-		 * @return array $logs
-		 */
-
-		function readLog($branch="origin/master",$limit=10);
-
-		/**
-		 * Gets the current revision of the local repository.
-		 * @returns String
-		 */
-		function getRev();
-
-
-		/**
 		 * Adds all created, modified & removed files.
 		 * @throws Cz\Git\GitException
 		 */
@@ -161,10 +143,8 @@
 		 * Exists changes?
 		 * @return bool
 		 */
+		function hasChanges();
 
-		function hasLocalChanges();
-		
-		function hasRemoteChanges();
 
 		/**
 		 * Pull changes from a remote
@@ -190,7 +170,8 @@
 		 * Run fetch command to get latest branches
 		 * @param  string|NULL
 		 * @param  array|NULL
-		 * @return string Result
+		 * @return self
+		 * @throws GitException
 		 */
 		function fetch($remote = NULL, array $params = NULL);
 

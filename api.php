@@ -2,9 +2,9 @@
 require_once dirname(__FILE__) . '/vendor/autoload.php';
 require_once dirname(__FILE__) . '/webApp.php';
 require_once dirname(__FILE__) . '/util.php';
+require_once dirname(__FILE__) . '/fetchers.php';
 require_once dirname(__FILE__) . '/body.php';
 
-use digitalhigh\Radarr\Radarr;
 use Kryptonit3\SickRage\SickRage;
 use Kryptonit3\Sonarr\Sonarr;
 
@@ -82,8 +82,13 @@ function initialize() {
 
 	if (isset($_GET['test'])) {
 		$result = [];
-		$result['status'] = testConnection($_GET['test']);
+		if ($_GET['test'] == 'plex') {
+			$status = testPlex();
+		} else {
+			$status = testConnection($_GET['test']);
+		}
 		header('Content-Type: application/json');
+		$result['status'] = $status;
 		echo json_encode($result);
 		bye();
 	}
@@ -136,6 +141,11 @@ function initialize() {
 			$value = cleanUri($value);
 			if (!$value) $valid = false;
 		}
+		if (preg_match("Uri",$id)) {
+			write_log("Sanitizing URI.");
+			$value = cleanUri($value);
+			if (!$value) $valid = false;
+		}
 
 		if (preg_match("/Path/", $id)) if ((substr($value, 0, 1) != "/") && (trim($value) !== "")) $value = "/" . $value;
 		if (preg_match("/static_/", $id)) {
@@ -169,7 +179,7 @@ function initialize() {
 			if ($id == "appLanguage") checkSetLanguage($value);
 
 		}
-		echo $valid;
+		echo ($valid ? "valid" : "invalid");
 		bye();
 	}
 
@@ -259,81 +269,6 @@ function initialize() {
 			write_log(json_encode($error->getMessage()), "ERROR");
 		}
 	}
-
-	// This tells the api to parse our command with the plex "play" parser
-	if (isset($_GET['play'])) {
-		if (isset($_GET['command'])) {
-			$command = cleanCommandString($_GET['command']);
-			write_log('Got a request to play ' . $command, "INFO");
-			$resultArray = parsePlayCommand($command);
-			$queryOut = [];
-			$queryOut['initialCommand'] = $command;
-			$queryOut['parsedCommand'] = $command;
-			if ($resultArray) {
-				$result = $resultArray[0];
-				$queryOut['mediaResult'] = $result;
-				$playResult = playMedia($result);
-				$searchType = $result['searchType'];
-				$type = (($searchType == '') ? $result['type'] : $searchType);
-				$queryOut['parsedCommand'] = 'Play the ' . $type . ' named ' . $command . '.';
-				$queryOut['playResult'] = $playResult;
-
-				if ($queryOut['mediaResult']['exact'] == 1) {
-					$queryOut['mediaStatus'] = "SUCCESS: Exact match found.";
-				} else {
-					$queryOut['mediaStatus'] = "SUCCESS: Approximate match found.";
-				}
-			} else {
-				$queryOut['mediaStatus'] = 'ERROR: No results found';
-			}
-			$queryOut['timestamp'] = timeStamp();
-			$queryOut['serverURI'] = $_SESSION['plexServerUri'];
-			$queryOut['serverToken'] = $_SESSION['plexServerToken'];
-			$queryOut['clientURI'] = $_SESSION['plexClientUri'];
-			$queryOut['clientName'] = $_SESSION['plexClientName'];
-			$queryOut['commandType'] = 'play';
-			$result = json_encode($queryOut);
-			header('Content-Type: application/json');
-			logCommand($result);
-			echo $result;
-			bye();
-		}
-	}
-
-
-	// This tells the api to parse our command with the plex "control" parser
-	if (isset($_GET['control'])) {
-		if (isset($_GET['command'])) {
-			$value = $_GET['value'] ?? false;
-			$command = cleanCommandString($_GET['command']);
-			write_log('Got a control request: ' . $command, "INFO");
-			$result = parseControlCommand($command,$value);
-			$newCommand = json_decode($result, true);
-			$newCommand['timestamp'] = timeStamp();
-			$result = json_encode($newCommand);
-			header('Content-Type: application/json');
-			if (!isset($_GET['noLog'])) {
-				logCommand($result);
-				echo $result;
-			}
-			bye();
-		}
-	}
-
-	// This tells the api to parse our command with the "fetch" parser
-	if (isset($_GET['fetch'])) {
-		if (isset($_GET['command'])) {
-			$command = cleanCommandString($_GET['command']);
-			write_log('Got a fetch request: ' . $command, "INFO");
-			$result = parseFetchCommand($command);
-			$result['commandType'] = 'fetch';
-			$result['timestamp'] = timeStamp();
-			logCommand(json_encode($result));
-			header('Content-Type: application/json');
-			echo json_encode($result);
-			bye();
-		}
-	}
 }
 
 function fetchUiData() {
@@ -411,124 +346,7 @@ function sessionData() {
 
 	*/
 
-function parseFetchCommand($command, $type = false) {
-	fireHook($command, "Fetch");
-	$resultOut = [];
-	$episode = $remove = $season = $tmdbResult = $useNext = false;
-	//Sanitize our string and try to rule out synonyms for commands
-	$result['initialCommand'] = $command;
-	$command = translateControl(strtolower($command), $_SESSION['lang']['fetchSynonymsArray']);
-	$commandArray = explode(' ', strtolower($command));
-	if (arrayContains('movie', $commandArray)) {
-		$commandArray = array_diff($commandArray, ['movie']);
-		$command = implode(" ", $commandArray);
-		$type = 'movie';
-	}
-	if (arrayContains('show', $commandArray)) {
-		$commandArray = array_diff($commandArray, ['show']);
-		$command = implode(" ", $commandArray);
-		$type = 'show';
-	}
-	if (arrayContains('season', $commandArray)) {
-		foreach ($commandArray as $word) {
-			if ($useNext) {
-				$season = intVal($word);
-				break;
-			}
-			if ($word == 'season') {
-				$useNext = true;
-			}
-		}
-		if ($season) {
-			$type = 'show';
-			$commandArray = array_diff($commandArray, [
-				'season',
-				$season
-			]);
-			$command = implode(" ", $commandArray);
-		}
-	}
-	$useNext = false;
-	if (arrayContains('episode', $commandArray)) {
-		foreach ($commandArray as $word) {
-			if ($useNext) {
-				$episode = intVal($word);
-				break;
-			}
-			if ($word == 'episode') {
-				$useNext = true;
-			}
-			if (($word == 'latest')) {
-				$remove = $word;
-				$episode = -1;
-				break;
-			}
-		}
-		if ($episode) {
-			$type = 'show';
-			$commandArray = array_diff($commandArray, [
-				'episode',
-				$episode
-			]);
-			if (($episode == -1) && ($remove)) $commandArray = array_diff($commandArray, [
-				'episode',
-				$remove
-			]);
-			$command = implode(" ", $commandArray);
-		}
-	}
 
-	write_log("No type specified, let's ask the internet.", "INFO");
-	$tmdbResult = fetchTMDBInfo($command);
-	if ($tmdbResult) $type = $tmdbResult['type'] ?? false;
-	if (!$type) $resultOut['parsedCommand'] = 'Fetch the first movie or show named ' . implode(" ", $commandArray);
-
-
-	switch ($type) {
-		case 'show':
-			write_log("Searching explicitely for a show.", "INFO");
-			if ($_SESSION['sonarrEnabled'] || $_SESSION['sickEnabled']) {
-				$result = downloadSeries(implode(" ", $commandArray), $season, $episode, $tmdbResult);
-				$resultTitle = $result['mediaResult']['title'];
-				$resultOut['parsedCommand'] = 'Fetch ' . ($season ? 'Season ' . $season . ' of ' : '') . ($episode ? 'Episode ' . $episode . ' of ' : '') . 'the show named ' . $resultTitle;
-				write_log("Result " . json_encode($result));
-
-			} else {
-				$result['status'] = 'ERROR: No fetcher configured for ' . $type . '.';
-				write_log($result['status'], "WARN");
-			}
-			break;
-		case 'movie':
-			write_log("Searching explicitely for a movie.", "INFO");
-			if (($_SESSION['couchEnabled']) || ($_SESSION['ombiEnabled']) || ($_SESSION['radarrEnabled'])) {
-				$result = downloadMovie(implode(" ", $commandArray), $tmdbResult);
-			} else {
-				$result['status'] = 'ERROR: No fetcher configured for ' . $type . '.';
-				write_log($result['status'], "WARN");
-			}
-			break;
-		default:
-
-			if (($_SESSION['couchEnabled']) || ($_SESSION['radarrEnabled'])) {
-				write_log("Searching for first media matching title, starting with movies.");
-				$result = downloadMovie(implode(" ", $commandArray), $tmdbResult);
-			}
-
-			if ((preg_match("/ERROR/", $result['status'])) && (($_SESSION['sonarrEnabled']) || ($_SESSION['sickEnabled']))) {
-				$result = downloadSeries(implode(" ", $commandArray), $tmdbResult);
-				break;
-			}
-			if (preg_match("/ERROR/", $result['status'])) {
-				$result['status'] = 'ERROR: No results found or no fetcher configured.';
-				write_log($result['status'], "WARN");
-			}
-			break;
-	}
-	$result['mediaStatus'] = $result['status'];
-	$result['parsedCommand'] = $resultOut['parsedCommand'];
-	$result['initialCommand'] = $command;
-	return $result;
-}
 
 function translateControl($string, $searchArray) {
 	foreach ($searchArray as $replace => $search) {
@@ -896,6 +714,7 @@ function parseApiCommand($request) {
 	write_log("Full API.AI request: " . json_encode($request), "INFO");
 	$result = $request["result"];
 	$action = $result['parameters']["action"] ?? false;
+	$request = $result['parameters'];
 	$command = $result["parameters"]["command"] ?? false;
 	$control = $result["parameters"]["Controls"] ?? false;
 	$year = $request["result"]["parameters"]["age"]["amount"] ?? false;
@@ -936,6 +755,8 @@ function parseApiCommand($request) {
 	write_log("Action is currently " . $action);
 
 	$contexts = $result["contexts"];
+	$tokens = ['originalRequest']['data']['conversation']['conversationToken'];
+	write_log("TOKENS: ".json_encode($tokens));
 	$inputs = ['originalRequest']['data']['inputs'];
 	foreach ($inputs as $input) {
 		if ($input['intent'] == 'actions.intent.OPTION') {
@@ -943,7 +764,21 @@ function parseApiCommand($request) {
 			$command = $rawspeech;
 		}
 	}
+	$con = [];
 	foreach ($contexts as $context) {
+		if (!isset($context['name']) && is_array($context)) {
+			foreach($context as $sub) {
+				if (isset($sub['name'])) array_push($con,$sub);
+			}
+		} else {
+			array_push($con,$context);
+		}
+
+	}
+
+	write_log("Session fallback? :".json_encode($_SESSION['fallback']));
+	foreach ($con as $context) {
+		write_log("Input context: ".json_encode($context));
 		if ($context['name'] == 'actions_intent_option') {
 			if (preg_match("/play/", $context['parameters']['OPTION'])) {
 				$option = $context['parameters']['OPTION'];
@@ -983,6 +818,35 @@ function parseApiCommand($request) {
 		if (($command == '') && ($control == '') && ($action == 'play') && ($type == '')) {
 			$action = 'control';
 			$command = 'play';
+		}
+
+		if (($context['name'] == 'downloadmedia-followup') && (isset($_SESSION['fallback']['media']))) {
+			write_log("Firing fallback request");
+			$newResult = $_SESSION['fallback'];
+			$resultTitle = $newResult['media']['lastEpisodeName'] ?? $newResult['media']['title'];
+			$resultSummary = $newResult['media']['summary'];
+			$resultSubtitle = $newResult['media']['artist'] ?? $newResult['media']['grandparentTitle'] ?? $newResult['media']['tagline'] ?? $newResult[1]['year'];
+			$resultImage = $newResult['media']['thumb'];
+			$speech = "Okay, playing $resultTitle on ".$_SESSION['plexClientName'].".";
+
+			$card = [
+				[
+					"title" => $resultTitle,
+					"subtitle" => $resultSubtitle,
+					"formattedText" => $resultSummary,
+					'image' => ['url' => $resultImage]
+				]
+			];
+
+			// #TODO: Work out whether to wait for a response or not...
+			returnSpeech($speech, $context['name'], $card,false);
+			fireFallback();
+			$queryOut['mediaStatus'] = "SUCCESS: Playing media.";
+			$queryOut['card'] = $card;
+			$queryOut['speech'] = $speech;
+			logCommand(json_encode($queryOut));
+			bye();
+
 		}
 
 		if (($context['name'] == 'yes') && ($action == 'fetchAPI')) {
@@ -1747,49 +1611,28 @@ function parseApiCommand($request) {
 		}
 	}
 
-	if (($action == 'fetch') && ($command)) {
-		$queryOut['parsedCommand'] = 'Fetch the media named ' . $command . '.';
-		$result = parseFetchCommand($command, $type);
-		$media = $result['mediaResult'];
-		$stats = explode(":", $result['status']);
-		write_log("Fetch Result: " . json_encode($result), "INFO");
-		if ($stats[0] === 'SUCCESS') {
-			$queryOut['mediaResult'] = $media;
-			$resultTitle = $media['title'] ?? $media['@attributes']['title'];
-			$resultYear = $media['year'];
-			$resultImage = $media['art'];
-			$resultSummary = $media['summary'];
-			$resultSubtitle = $media['subtitle'] ?? $media['tagline'];
-			if (isset($media['type']) && isset($media['subtitle'])) {
-				$itemString = $resultTitle . " " . $media['subtitle'];
-			} else {
-				$itemString = $resultTitle . " (" . $resultYear . ")";
-			}
-			$resultData['image'] = $resultImage;
-			if (preg_match("/Already/", $stats[1])) {
-				$speech = buildSpeech($_SESSION['lang']['speechDownloadExists1'], $resultTitle, $_SESSION['lang']['speechDownloadExists2']);
-			} else {
-				$speech = buildSpeech($_SESSION['lang']['speechDownloadAdded1'], $itemString, $_SESSION['lang']['speechDownloadAdded2']);
-			}
+	if ($action === 'fetch' && count($params)) {
+		$newResult = fetchMedia($request);
+		if ($newResult) {
+			write_log("Got the result, wtf: ".json_encode($newResult));
+			$speech = $newResult['message'];
+			$resultTitle = $newResult['media']['lastEpisodeName'] ?? $newResult['media']['title'];
+			$resultSummary = $newResult['media']['summary'];
+			$resultSubtitle = $newResult['media']['artist'] ?? $newResult['media']['grandparentTitle'] ?? $newResult['media']['tagline'] ?? $newResult[1]['year'];
+			$resultImage = $newResult['media']['thumb'];
 			$card = [
 				[
-					"title" => $resultTitle . " (" . $resultYear . ")",
+					"title" => $resultTitle,
 					"subtitle" => $resultSubtitle,
 					"formattedText" => $resultSummary,
 					'image' => ['url' => $resultImage]
 				]
 			];
-			returnSpeech($speech, $contextName, $card);
-			$queryOut['mediaStatus'] = $result['status'];
+
+			// #TODO: Work out whether to wait for a response or not...
+			returnSpeech($speech, 'DownloadMedia-followup', $card,true);
+			$queryOut['mediaStatus'] = "SUCCESS: Media exists";
 			$queryOut['card'] = $card;
-			$queryOut['speech'] = $speech;
-			logCommand(json_encode($queryOut));
-			bye();
-		} else {
-			$errors = $_SESSION['lang']['speechDownloadErrorArray'];
-			$speech = $errors[array_rand($errors)];
-			returnSpeech($speech, $contextName);
-			$queryOut['mediaStatus'] = $result['status'];
 			$queryOut['speech'] = $speech;
 			logCommand(json_encode($queryOut));
 			bye();
@@ -2787,8 +2630,9 @@ function plexSearch($title, $type = false) {
 			$cleaned = cleanCommandString($title);
 			$cleanedTitle = cleanCommandString($item['title']);
 			array_push($returns, $item);
-			if ($cleaned === $cleanedTitle || preg_match("/$cleaned/", $cleanedTitle)) {
-				write_log("Returning exact result: " . $item['title']);
+			$match = compareTitles($cleaned,$cleanedTitle);
+			if ($match) {
+				write_log("Returning exact result: " . ucfirst($match));
 				array_push($returns, $item);
 				break;
 			}
@@ -2815,7 +2659,7 @@ function plexSearch($title, $type = false) {
 		if ($item['type'] === 'artist') $item['key'] = str_replace("/children", "", $item['key']);
 	}
 	write_log("Return array: " . json_encode($returns), "INFO");
-	return array_unique($returns);
+	return $returns;
 }
 
 function fetchHubList($section, $type = null) {
@@ -3479,7 +3323,7 @@ function pollPlayer() {
 	$count = $_SESSION['counter'] ?? 1;
 	$params = headerQuery(array_merge(plexHeaders(), clientHeaders()));
 	$url = "$serverUri/player/timeline/poll?wait=1&commandID=$count$params";
-	$result = doRequest($url,1);
+	$result = doRequest($url,3);
 	if ($result) {
 		write_log("State changed, polling player.");
 
@@ -3681,6 +3525,7 @@ function metaTags() {
 		'<meta id="plexDvr" data-enable="' . $dvr . '"/>' . PHP_EOL .
 		'<meta id="rez" value="' . $_SESSION['plexDvrResolution'] . '"/>' . PHP_EOL .
 		'<meta id="couchpotato" data-enable="' . $_SESSION['couchEnabled'] . '"/>' . PHP_EOL .
+		'<meta id="headphones" data-enable="' . $_SESSION['headphonesEnabled'] . '"/>' . PHP_EOL .
 		'<meta id="sonarr" data-enable="' . $_SESSION['sonarrEnabled'] . '"/>' . PHP_EOL .
 		'<meta id="sick" data-enable="' . $_SESSION['sickEnabled'] . '"/>' . PHP_EOL .
 		'<meta id="radarr" data-enable="' . $_SESSION['radarrEnabled'] . '"/>' . PHP_EOL .
@@ -3838,60 +3683,74 @@ function fetchAirings($days) {
 }
 
 
-function downloadSeries($command, $season = false, $episode = false, $tmdbResult = false) {
-	$enableSick = $_SESSION['sickEnabled'];
-	$enableSonarr = $_SESSION['sonarrEnabled'];
+/**
+ * fetchMedia - Parse our API.ai response, determine if it's already in the library,
+ * and send it to the appropriate fetcher if possible.
+ *
+ * Since we're now fetching information on the media in this method before sending to an app,
+ * we only need the app's method to return an int representing a status of the search.
+ *
+ * This way, it's easier to format a response message that can be translated later.
+ *
+ * Possible returns from fetchers:
+ *
+ * INT_SUCCESS = 0 / The thing we want was added
+ * INT_EXISTS = 1 / The thing was already there
+ * INT_NOMATCH = 2 / Don't know what thing you're talking about
+ * INT_ERROR = -1 / There was a problem searching
+ * INT_NOFETCHERS = -2 / Nothing to search with for the request
+ *
+ * @param array $params
+ * @return array|bool|mixed
+ */
 
-	if ($enableSonarr == 'true') {
-		write_log("Using Sonarr for Episode agent");
-		$response = sonarrDownload($command, $season, $episode, $tmdbResult);
-		return $response;
-	}
 
-	if ($enableSick == 'true') {
-		write_log("Using Sick for Episode agent");
-		$response = sickDownload($command, $season, $episode, $tmdbResult);
-		return $response;
-	}
-	return "No downloader";
-}
+function fetchMedia(Array $params) {
+	write_log("Function fired with params: ".json_encode($params));
+	$type = $subtype = $season = $mod = $episode = $artist = $title = false;
+	$data = [];
+	// Iterate over params and set our data
+	foreach($params as $key=>$value) {
+		switch($key) {
+			case "mediaType":
+				$type = explode("-",$value[0])[0];
+				$i = 0;
+				foreach($value as $sub) {
+					if (preg_match("/season/",$sub)) {
+						if ($subtype !== "episode") $subtype = "season";
+						$season = $params['number'][$i] ?? $params['ordinal'][$i] ?? $params['timeModifier'][$i];
+					}
+					if (preg_match("/episode/",$sub)) {
+						$subtype = "episode";
+						$episode = $params['number'][$i] ?? $params['ordinal'][$i] ?? $params['timeModifier'][$i];
+					}
+					if (preg_match("/artist/",$sub)) {
+						if (($subtype !== "track") && ($subtype !== "album")) $subtype = "artist";
+					}
 
-function sickDownload($command, $season = false, $episode = false, $tmdbResult = false) {
-	write_log("Function fired");
-	$exists = $id = $response = $responseJSON = $resultID = $resultYear = $status = $results = $result = $show = false;
-	$sickUri = $_SESSION['sickUri'];
-	$sickApiKey = $_SESSION['sickToken'];
-	$sick = new SickRage($sickUri, $sickApiKey);
-	$results = json_decode($sick->shows(), true)['data'];
-	foreach ($results as $show) {
-		if (cleanCommandString($show['show_name']) == cleanCommandString($command)) {
-			$title = $show['show_name'];
-			write_log("Found $title in the library: " . json_encode($show));
-			$exists = true;
-			$result = $show;
-			$id = $result['tvdbid'];
-			$status = 'SUCCESS: Already in searcher.';
-			break;
-		}
-	}
-
-	if (!$result) {
-		write_log("Not in library, searching TVDB.");
-		$results = $sick->sbSearchTvdb($command);
-		$responseJSON = json_decode($results, true);
-		$results = $responseJSON['data']['results'];
-		if ($results) {
-			$score = .69;
-			foreach ($results as $searchResult) {
-				$resultName = ($exists ? (string)$searchResult['show_name'] : (string)$searchResult['name']);
-				$newScore = similarity($command, cleanCommandString($resultName));
-				if ($newScore > $score) {
-					write_log("This is the highest matched result so far.");
-					$score = $newScore;
-					$result = $searchResult;
-					if ($score === 1) break;
+					if (preg_match("/album/",$sub)) {
+						if ($subtype !== "track") $subtype = "album";
+						$subtype = "album";
+						$mod = $params['number'][$i] ?? $params['ordinal'][$i] ?? $params['timeModifier'][$i];
+					}
+					if (preg_match("/track/",$sub)) {
+						$subtype = "track";
+						$mod = $params['number'][$i] ?? $params['ordinal'][$i] ?? $params['timeModifier'][$i];
+					}
+					if ($type === 'album') {
+						$mod = $params['number'][$i] ?? $params['ordinal'][$i] ?? $params['timeModifier'][$i];
+						write_log("Album, mod- $mod ");
+					}
+					$i ++;
 				}
-			}
+				break;
+			case "title":
+			case "command":
+				$title = $value;
+				break;
+			case "music-artist":
+				$artist = $value;
+				break;
 		}
 	}
 

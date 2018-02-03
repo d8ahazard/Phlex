@@ -13,34 +13,13 @@ class ComposerStaticInitf7f0b8b64790bd42b927eb029aa43b35
         '0e6d7bf4a5811bfa5cf40c5ccd6fae6a' => __DIR__ . '/..' . '/symfony/polyfill-mbstring/bootstrap.php',
     );
 
-    public static $prefixLengthsPsr4 = array (
-        'd' => 
-        array (
-            'digitalhigh\\Radarr\\' => 19,
-        ),
-        'S' => 
-        array (
-            'Symfony\\Polyfill\\Mbstring\\' => 26,
-        ),
-        'P' => 
-        array (
-            'Psr\\Http\\Message\\' => 17,
-        ),
-        'K' => 
-        array (
-            'Kryptonit3\\Sonarr\\' => 18,
-            'Kryptonit3\\SickRage\\' => 20,
-        ),
-        'J' => 
-        array (
-            'JMathai\\PhpMultiCurl\\' => 21,
-        ),
-        'G' => 
-        array (
-            'GuzzleHttp\\Psr7\\' => 16,
-            'GuzzleHttp\\Promise\\' => 19,
-            'GuzzleHttp\\' => 11,
-        ),
+    public static $firstCharsPsr4 = array (
+        'd' => true,
+        'S' => true,
+        'P' => true,
+        'K' => true,
+        'J' => true,
+        'G' => true,
     );
 
     public static $prefixDirsPsr4 = array (
@@ -63,6 +42,10 @@ class ComposerStaticInitf7f0b8b64790bd42b927eb029aa43b35
         'Kryptonit3\\SickRage\\' => 
         array (
             0 => __DIR__ . '/..' . '/kryptonit3/sickrage/src',
+        ),
+        'Kryptonit3\\CouchPotato\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/kryptonit3/couchpotato/src',
         ),
         'JMathai\\PhpMultiCurl\\' => 
         array (
@@ -96,7 +79,7 @@ class ComposerStaticInitf7f0b8b64790bd42b927eb029aa43b35
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInitf7f0b8b64790bd42b927eb029aa43b35::$prefixLengthsPsr4;
+            $loader->firstCharsPsr4 = ComposerStaticInitf7f0b8b64790bd42b927eb029aa43b35::$firstCharsPsr4;
             $loader->prefixDirsPsr4 = ComposerStaticInitf7f0b8b64790bd42b927eb029aa43b35::$prefixDirsPsr4;
             $loader->classMap = ComposerStaticInitf7f0b8b64790bd42b927eb029aa43b35::$classMap;
 

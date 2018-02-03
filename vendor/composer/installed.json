@@ -1,59 +1,72 @@
 [
     {
-        "name": "pear-pear.php.net/Config_Lite",
-        "version": "0.2.5",
-        "version_normalized": "0.2.5.0",
-        "dist": {
-            "type": "file",
-            "url": "http://pear.php.net/get/Config_Lite-0.2.5.tgz",
-            "reference": null,
-            "shasum": null
-        },
-        "require": {
-            "php": ">=5.2.0.0"
-        },
-        "replace": {
-            "pear-pear/config_lite": "== 0.2.5.0"
-        },
-        "type": "pear-library",
-        "installation-source": "dist",
-        "autoload": {
-            "classmap": [
-                ""
-            ]
-        },
-        "include-path": [
-            "/"
-        ],
-        "license": [
-            "lgpl"
-        ],
-        "description": "This package defines a class for config/settings text files in ini style.\n\t\tCurrently classes available are:\n\t\t* Config_Lite: a class with arrayaccess to handle ini style files\n\t\t* Config_Lite_Exception: Interface implemented by Exceptions"
-    },
-    {
-        "name": "kryptonit3/sickrage",
-        "version": "1.0.1",
-        "version_normalized": "1.0.1.0",
+        "name": "czproject/git-php",
+        "version": "3.10.0",
+        "version_normalized": "3.10.0.0",
         "source": {
             "type": "git",
-            "url": "https://github.com/Kryptonit3/SickRage.git",
-            "reference": "441a293b5c219c3cdd1ebebd2bcf4518598f84aa"
+            "url": "https://github.com/czproject/git-php.git",
+            "reference": "43c646c6c444d5196ff2dd387c60556193b82c7a"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/Kryptonit3/SickRage/zipball/441a293b5c219c3cdd1ebebd2bcf4518598f84aa",
-            "reference": "441a293b5c219c3cdd1ebebd2bcf4518598f84aa",
+            "url": "https://api.github.com/repos/czproject/git-php/zipball/43c646c6c444d5196ff2dd387c60556193b82c7a",
+            "reference": "43c646c6c444d5196ff2dd387c60556193b82c7a",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.4.0"
+        },
+        "require-dev": {
+            "nette/tester": "~1.1.0"
+        },
+        "time": "2017-09-07T09:26:57+00:00",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "classmap": [
+                "src/"
+            ]
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "BSD-3-Clause"
+        ],
+        "authors": [
+            {
+                "name": "Jan Pecha",
+                "email": "janpecha@email.cz"
+            }
+        ],
+        "description": "Library for work with Git repository in PHP.",
+        "keywords": [
+            "git"
+        ]
+    },
+    {
+        "name": "digitalhigh/radarr",
+        "version": "dev-master",
+        "version_normalized": "9999999-dev",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/d8ahazard/Radarr.git",
+            "reference": "b95006178c9f568ca56f863adb35227ec325f96a"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/d8ahazard/Radarr/zipball/b95006178c9f568ca56f863adb35227ec325f96a",
+            "reference": "b95006178c9f568ca56f863adb35227ec325f96a",
             "shasum": ""
         },
         "require": {
             "guzzlehttp/guzzle": "^6.1"
         },
-        "time": "2016-08-08T00:57:46+00:00",
+        "time": "2017-07-26T22:23:48+00:00",
         "type": "library",
-        "installation-source": "dist",
+        "installation-source": "source",
         "autoload": {
             "psr-4": {
-                "Kryptonit3\\SickRage\\": "src/"
+                "digitalhigh\\Radarr\\": "src/"
             }
         },
         "notification-url": "https://packagist.org/downloads/",
@@ -64,9 +77,80 @@
             {
                 "name": "Jesse Szypulski",
                 "email": "jesse.szypulski@gmail.com"
+            },
+            {
+                "name": "Digitalhigh",
+                "email": "donate.to.digitalhigh@gmail.com"
             }
         ],
-        "description": "PHP Wrapper for SickRage / SickBeard API"
+        "description": "PHP Radarr API Wrapper"
+    },
+    {
+        "name": "guzzlehttp/guzzle",
+        "version": "6.3.0",
+        "version_normalized": "6.3.0.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/guzzle/guzzle.git",
+            "reference": "f4db5a78a5ea468d4831de7f0bf9d9415e348699"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/guzzle/guzzle/zipball/f4db5a78a5ea468d4831de7f0bf9d9415e348699",
+            "reference": "f4db5a78a5ea468d4831de7f0bf9d9415e348699",
+            "shasum": ""
+        },
+        "require": {
+            "guzzlehttp/promises": "^1.0",
+            "guzzlehttp/psr7": "^1.4",
+            "php": ">=5.5"
+        },
+        "require-dev": {
+            "ext-curl": "*",
+            "phpunit/phpunit": "^4.0 || ^5.0",
+            "psr/log": "^1.0"
+        },
+        "suggest": {
+            "psr/log": "Required for using the Log middleware"
+        },
+        "time": "2017-06-22T18:50:49+00:00",
+        "type": "library",
+        "extra": {
+            "branch-alias": {
+                "dev-master": "6.2-dev"
+            }
+        },
+        "installation-source": "dist",
+        "autoload": {
+            "files": [
+                "src/functions_include.php"
+            ],
+            "psr-4": {
+                "GuzzleHttp\\": "src/"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "Michael Dowling",
+                "email": "mtdowling@gmail.com",
+                "homepage": "https://github.com/mtdowling"
+            }
+        ],
+        "description": "Guzzle is a PHP HTTP client library",
+        "homepage": "http://guzzlephp.org/",
+        "keywords": [
+            "client",
+            "curl",
+            "framework",
+            "http",
+            "http client",
+            "rest",
+            "web service"
+        ]
     },
     {
         "name": "guzzlehttp/promises",
@@ -119,58 +203,6 @@
         "description": "Guzzle promises library",
         "keywords": [
             "promise"
-        ]
-    },
-    {
-        "name": "psr/http-message",
-        "version": "1.0.1",
-        "version_normalized": "1.0.1.0",
-        "source": {
-            "type": "git",
-            "url": "https://github.com/php-fig/http-message.git",
-            "reference": "f6561bf28d520154e4b0ec72be95418abe6d9363"
-        },
-        "dist": {
-            "type": "zip",
-            "url": "https://api.github.com/repos/php-fig/http-message/zipball/f6561bf28d520154e4b0ec72be95418abe6d9363",
-            "reference": "f6561bf28d520154e4b0ec72be95418abe6d9363",
-            "shasum": ""
-        },
-        "require": {
-            "php": ">=5.3.0"
-        },
-        "time": "2016-08-06T14:39:51+00:00",
-        "type": "library",
-        "extra": {
-            "branch-alias": {
-                "dev-master": "1.0.x-dev"
-            }
-        },
-        "installation-source": "dist",
-        "autoload": {
-            "psr-4": {
-                "Psr\\Http\\Message\\": "src/"
-            }
-        },
-        "notification-url": "https://packagist.org/downloads/",
-        "license": [
-            "MIT"
-        ],
-        "authors": [
-            {
-                "name": "PHP-FIG",
-                "homepage": "http://www.php-fig.org/"
-            }
-        ],
-        "description": "Common interface for HTTP messages",
-        "homepage": "https://github.com/php-fig/http-message",
-        "keywords": [
-            "http",
-            "http-message",
-            "psr",
-            "psr-7",
-            "request",
-            "response"
         ]
     },
     {
@@ -279,47 +311,29 @@
         ]
     },
     {
-        "name": "guzzlehttp/guzzle",
-        "version": "6.3.0",
-        "version_normalized": "6.3.0.0",
+        "name": "kryptonit3/couchpotato",
+        "version": "1.0.0",
+        "version_normalized": "1.0.0.0",
         "source": {
             "type": "git",
-            "url": "https://github.com/guzzle/guzzle.git",
-            "reference": "f4db5a78a5ea468d4831de7f0bf9d9415e348699"
+            "url": "https://github.com/Kryptonit3/CouchPotato.git",
+            "reference": "7a1fc892f70f120f74ff005850e923a0f1566376"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/guzzle/guzzle/zipball/f4db5a78a5ea468d4831de7f0bf9d9415e348699",
-            "reference": "f4db5a78a5ea468d4831de7f0bf9d9415e348699",
+            "url": "https://api.github.com/repos/Kryptonit3/CouchPotato/zipball/7a1fc892f70f120f74ff005850e923a0f1566376",
+            "reference": "7a1fc892f70f120f74ff005850e923a0f1566376",
             "shasum": ""
         },
         "require": {
-            "guzzlehttp/promises": "^1.0",
-            "guzzlehttp/psr7": "^1.4",
-            "php": ">=5.5"
+            "guzzlehttp/guzzle": "^6.1"
         },
-        "require-dev": {
-            "ext-curl": "*",
-            "phpunit/phpunit": "^4.0 || ^5.0",
-            "psr/log": "^1.0"
-        },
-        "suggest": {
-            "psr/log": "Required for using the Log middleware"
-        },
-        "time": "2017-06-22T18:50:49+00:00",
+        "time": "2016-02-06T22:02:39+00:00",
         "type": "library",
-        "extra": {
-            "branch-alias": {
-                "dev-master": "6.2-dev"
-            }
-        },
         "installation-source": "dist",
         "autoload": {
-            "files": [
-                "src/functions_include.php"
-            ],
             "psr-4": {
-                "GuzzleHttp\\": "src/"
+                "Kryptonit3\\CouchPotato\\": "src/"
             }
         },
         "notification-url": "https://packagist.org/downloads/",
@@ -328,22 +342,49 @@
         ],
         "authors": [
             {
-                "name": "Michael Dowling",
-                "email": "mtdowling@gmail.com",
-                "homepage": "https://github.com/mtdowling"
+                "name": "Jesse Szypulski",
+                "email": "jesse.szypulski@gmail.com"
             }
         ],
-        "description": "Guzzle is a PHP HTTP client library",
-        "homepage": "http://guzzlephp.org/",
-        "keywords": [
-            "client",
-            "curl",
-            "framework",
-            "http",
-            "http client",
-            "rest",
-            "web service"
-        ]
+        "description": "PHP Wrapper for CouchPotato API"
+    },
+    {
+        "name": "kryptonit3/sickrage",
+        "version": "1.0.1",
+        "version_normalized": "1.0.1.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/Kryptonit3/SickRage.git",
+            "reference": "441a293b5c219c3cdd1ebebd2bcf4518598f84aa"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/Kryptonit3/SickRage/zipball/441a293b5c219c3cdd1ebebd2bcf4518598f84aa",
+            "reference": "441a293b5c219c3cdd1ebebd2bcf4518598f84aa",
+            "shasum": ""
+        },
+        "require": {
+            "guzzlehttp/guzzle": "^6.1"
+        },
+        "time": "2016-08-08T00:57:46+00:00",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "Kryptonit3\\SickRage\\": "src/"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "Jesse Szypulski",
+                "email": "jesse.szypulski@gmail.com"
+            }
+        ],
+        "description": "PHP Wrapper for SickRage / SickBeard API"
     },
     {
         "name": "kryptonit3/sonarr",
@@ -384,29 +425,65 @@
         "description": "PHP Sonarr API Wrapper"
     },
     {
-        "name": "digitalhigh/radarr",
-        "version": "dev-master",
-        "version_normalized": "9999999-dev",
+        "name": "pear-pear.php.net/Config_Lite",
+        "version": "0.2.6",
+        "version_normalized": "0.2.6.0",
+        "dist": {
+            "type": "file",
+            "url": "https://pear.php.net/get/Config_Lite-0.2.6.tgz",
+            "reference": null,
+            "shasum": null
+        },
+        "require": {
+            "php": ">=5.2.0.0"
+        },
+        "replace": {
+            "pear-pear/config_lite": "== 0.2.6.0"
+        },
+        "type": "pear-library",
+        "installation-source": "dist",
+        "autoload": {
+            "classmap": [
+                ""
+            ]
+        },
+        "include-path": [
+            "/"
+        ],
+        "license": [
+            "lgpl"
+        ],
+        "description": "This package defines a class for config/settings text files in ini style.\n\t\tCurrently classes available are:\n\t\t* Config_Lite: a class with arrayaccess to handle ini style files\n\t\t* Config_Lite_Exception: Interface implemented by Exceptions"
+    },
+    {
+        "name": "psr/http-message",
+        "version": "1.0.1",
+        "version_normalized": "1.0.1.0",
         "source": {
             "type": "git",
-            "url": "https://github.com/d8ahazard/Radarr.git",
-            "reference": "00815a97c5f46263831e23ab81f86897586119af"
+            "url": "https://github.com/php-fig/http-message.git",
+            "reference": "f6561bf28d520154e4b0ec72be95418abe6d9363"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/d8ahazard/Radarr/zipball/00815a97c5f46263831e23ab81f86897586119af",
-            "reference": "00815a97c5f46263831e23ab81f86897586119af",
+            "url": "https://api.github.com/repos/php-fig/http-message/zipball/f6561bf28d520154e4b0ec72be95418abe6d9363",
+            "reference": "f6561bf28d520154e4b0ec72be95418abe6d9363",
             "shasum": ""
         },
         "require": {
-            "guzzlehttp/guzzle": "^6.1"
+            "php": ">=5.3.0"
         },
-        "time": "2017-06-30T14:02:54+00:00",
+        "time": "2016-08-06T14:39:51+00:00",
         "type": "library",
-        "installation-source": "source",
+        "extra": {
+            "branch-alias": {
+                "dev-master": "1.0.x-dev"
+            }
+        },
+        "installation-source": "dist",
         "autoload": {
             "psr-4": {
-                "digitalhigh\\Radarr\\": "src/"
+                "Psr\\Http\\Message\\": "src/"
             }
         },
         "notification-url": "https://packagist.org/downloads/",
@@ -415,73 +492,34 @@
         ],
         "authors": [
             {
-                "name": "Jesse Szypulski",
-                "email": "jesse.szypulski@gmail.com"
-            },
-            {
-                "name": "Digitalhigh",
-                "email": "donate.to.digitalhigh@gmail.com"
+                "name": "PHP-FIG",
+                "homepage": "http://www.php-fig.org/"
             }
         ],
-        "description": "PHP Radarr API Wrapper"
-    },
-    {
-        "name": "czproject/git-php",
-        "version": "v3.9.1",
-        "version_normalized": "3.9.1.0",
-        "source": {
-            "type": "git",
-            "url": "https://github.com/czproject/git-php.git",
-            "reference": "f2d29f5255ed4a5bcae5e25dff3505297c58cb66"
-        },
-        "dist": {
-            "type": "zip",
-            "url": "https://api.github.com/repos/czproject/git-php/zipball/f2d29f5255ed4a5bcae5e25dff3505297c58cb66",
-            "reference": "f2d29f5255ed4a5bcae5e25dff3505297c58cb66",
-            "shasum": ""
-        },
-        "require": {
-            "php": ">=5.4.0"
-        },
-        "require-dev": {
-            "nette/tester": "~1.1.0"
-        },
-        "time": "2017-06-02T16:43:43+00:00",
-        "type": "library",
-        "installation-source": "dist",
-        "autoload": {
-            "classmap": [
-                "src/"
-            ]
-        },
-        "notification-url": "https://packagist.org/downloads/",
-        "license": [
-            "BSD-3-Clause"
-        ],
-        "authors": [
-            {
-                "name": "Jan Pecha",
-                "email": "janpecha@email.cz"
-            }
-        ],
-        "description": "Library for work with Git repository in PHP.",
+        "description": "Common interface for HTTP messages",
+        "homepage": "https://github.com/php-fig/http-message",
         "keywords": [
-            "git"
+            "http",
+            "http-message",
+            "psr",
+            "psr-7",
+            "request",
+            "response"
         ]
     },
     {
         "name": "symfony/polyfill-mbstring",
-        "version": "v1.6.0",
-        "version_normalized": "1.6.0.0",
+        "version": "v1.7.0",
+        "version_normalized": "1.7.0.0",
         "source": {
             "type": "git",
             "url": "https://github.com/symfony/polyfill-mbstring.git",
-            "reference": "2ec8b39c38cb16674bbf3fea2b6ce5bf117e1296"
+            "reference": "78be803ce01e55d3491c1397cf1c64beb9c1b63b"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/symfony/polyfill-mbstring/zipball/2ec8b39c38cb16674bbf3fea2b6ce5bf117e1296",
-            "reference": "2ec8b39c38cb16674bbf3fea2b6ce5bf117e1296",
+            "url": "https://api.github.com/repos/symfony/polyfill-mbstring/zipball/78be803ce01e55d3491c1397cf1c64beb9c1b63b",
+            "reference": "78be803ce01e55d3491c1397cf1c64beb9c1b63b",
             "shasum": ""
         },
         "require": {
@@ -490,11 +528,11 @@
         "suggest": {
             "ext-mbstring": "For best performance"
         },
-        "time": "2017-10-11T12:05:26+00:00",
+        "time": "2018-01-30T19:27:44+00:00",
         "type": "library",
         "extra": {
             "branch-alias": {
-                "dev-master": "1.6-dev"
+                "dev-master": "1.7-dev"
             }
         },
         "installation-source": "dist",

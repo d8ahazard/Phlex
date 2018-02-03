@@ -890,32 +890,26 @@ function protectURL($string) {
 	return $string;
 }
 
-// A more precise way of calculating the similarity between two strings
+// # TODO: Replace this with the more thorough method compareTitles()
 function similarity($str1, $str2) {
-	$len1 = strlen($str1);
-	$len2 = strlen($str2);
+	return similar_text($str1,$str2);
+}
 
-	$max = max($len1, $len2);
-	$similarity = $i = $j = 0;
-
-	while (($i < $len1) && isset($str2[$j])) {
-		if ($str1[$i] == $str2[$j]) {
-			$similarity++;
-			$i++;
-			$j++;
-		} elseif ($len1 < $len2) {
-			$len1++;
-			$j++;
-		} elseif ($len1 > $len2) {
-			$i++;
-			$len1--;
-		} else {
-			$i++;
-			$j++;
-		}
+function compareTitles(string $search, string $check,$sendWeight = false) {
+	$goal = $_SESSION['searchAccuracy'] ?? 70;
+	$strength = similar_text($search,$check);
+	$lev = levenshtein($search,$check);
+	$len = strlen($search) > strlen($check) ? strlen($search) : strlen($check);
+	$similarity = 100-(($lev/$len) * 100);
+	$heavy = ($strength >= $goal || $similarity >= $goal);
+	$substring = (stripos($search,$check) !== false || stripos($check,$search) !== false);
+	if ($heavy || $substring) {
+		$str = (strlen($search) == $len) ? $search : $check;
+		$weight = ($strength > $similarity) ? $strength : $similarity;
+		write_log("This meets criteria: $str");
+		return $sendWeight ? $weight : $str;
 	}
-
-	return round($similarity / $max, 2);
+	return false;
 }
 
 // Check if we have a running session before trying to start one
@@ -1070,6 +1064,7 @@ function fetchDirectory($id = 1) {
 	if ($id == 1) return base64_decode("Y2QyMjlmNTU5NWZjYWEyNzI3MGI0NDU4OTIyOGE0OTI=");
 	if ($id == 2) return base64_decode("Njk0Nzg2RjBBMkVCNEUwOQ==");
 	if ($id == 3) return base64_decode("NjU2NTRmODIwZDQ2NDdhYjljZjdlZGRkZGJiYTZlMDI=");
+	if ($id == 4) return base64_decode("MTk1MDAz");
 	return false;
 }
 
@@ -1126,6 +1121,7 @@ if (!function_exists('setDefaults')) {
 			$created = http_build_url($parsed);
 			$parsed = $created;
 		}
+		$parsed = rtrim($parsed,"/");
 		write_log("Cleaned URI: $parsed");
 		return $parsed;
 	}

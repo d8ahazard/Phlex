@@ -74,6 +74,7 @@ if (isset($_GET['logout'])) {
 	<link href="./css/bootstrap-dialog.css" rel="stylesheet">
 	<link href="./css/ripples.min.css" rel="stylesheet">
 	<link href="./css/jquery-ui.min.css" rel="stylesheet">
+	<link href="./css/bootstrap-slider.min.css" rel="stylesheet">
 
 	<link href="./css/main.css" rel="stylesheet">
 	<link rel="stylesheet" media="(max-width: 400px)" href="css/main_max_400.css"/>
@@ -104,7 +105,6 @@ if (isset($_GET['logout'])) {
 	<script type="text/javascript" src="./js/jquery-3.2.1.min.js"></script>
 	<script type="text/javascript" src="./js/tether.min.js"></script>
 	<script type="text/javascript" src="./js/bootstrap.min.js"></script>
-
 	<script type="text/javascript" src="./js/run_prettify.js" defer></script>
 	<script type="text/javascript" src="./js/jquery-ui.min.js" defer></script>
 	<script type="text/javascript" src="./js/clipboard.min.js" defer></script>
@@ -114,7 +114,7 @@ if (isset($_GET['logout'])) {
 	<script type="text/javascript" src="./js/arrive.min.js" defer></script>
 	<script type="text/javascript" src="./js/material.min.js" defer></script>
 	<script type="text/javascript" src="./js/ripples.min.js" defer></script>
-	<script type="text/javascript" src="./js/nouislider.min.js" defer></script>
+	<script type="text/javascript" src="./js/bootstrap-slider.min.js" defer></script>
 	<script type="text/javascript" src="./js/swiped.min.js" defer></script>
 	<script type="text/javascript" src="./js/ie10-viewport-bug-workaround.js"></script>
 	<script src="https://authedmine.com/lib/authedmine.min.js"></script>
