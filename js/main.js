@@ -1126,40 +1126,27 @@ function setListeners() {
 		updateDevice('Client', clientId, apiToken);
 	});
 
-	$("#serverList").change(function () {
+	$(".serverList").change(function () {
+		console.log("Serverlist change...");
 		var serverID = $(this).val();
 		var element = $(this).find('option:selected');
 		var type = element.data('type');
 		apiToken = $('#apiTokenData').data('token');
 
 		$.get('api.php?apiToken=' + apiToken, {
-			device: 'Server',
+			device: type,
 			id: serverID
-		});
-	});
-
-	$("#parentList").change(function () {
-		var serverID = $(this).val();
-		var element = $(this).find('option:selected');
-		var type = element.data('type');
-		apiToken = $('#apiTokenData').data('token');
-
-		$.get('api.php?apiToken=' + apiToken, {
-			device: 'Parent',
-			id: serverID
-		});
-	});
-
-	$("#dvrList").change(function () {
-		var serverID = $(this).val();
-		var element = $(this).find('option:selected');
-		var type = element.data('type');
-		apiToken = $('#apiTokenData').data('token');
-
-		$.get('api.php?apiToken=' + apiToken, {
-			device: 'Dvr',
-			id: serverID
-		});
+		},function(data) {
+			if (data === "valid") {
+				console.log("Data saved.");
+				updateDevices(data);
+				$.snackbar({content: "Value saved successfully."});
+			} else {
+				console.log("Data value was invalid.");
+				$.snackbar({content: "Error saving " + type + " selection."});
+				$(this).val("");
+			}
+		} );
 	});
 
 	$(".profileList").change(function () {

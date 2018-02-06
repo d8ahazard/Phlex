@@ -306,11 +306,11 @@ function settingBody() {
 					                            <h4 class='cardHeader'>" . $lang["uiSettingGeneral"] . "</h4>
 				                                <div class='form-group'>
 				                                    <label class='appLabel' for='serverList'>" . $lang["uiSettingPlaybackServer"] . "</label>
-				                                    <select class='form-control custom-select serverList' id='serverList'>
+				                                    <select class='form-control custom-select serverList' data-type='Server' id='serverList'>
 				                                    
 				                                    </select>
 				                                    <label class='appLabel' for='parentList'>" . $lang["uiSettingMasterServer"] . "</label>
-				                                    <select class='form-control custom-select serverList' id='parentList'>
+				                                    <select class='form-control custom-select serverList' data-type='Parent' id='parentList'>
 				                                    
 				                                    </select>
 				                                    <br><br>
@@ -334,8 +334,8 @@ function settingBody() {
 					                            <h4 class='cardHeader'>" . $lang["uiSettingPlexDVR"] . "</h4>
 					                            <div class='form-group'>
 					                                <div class='form-group'>
-					                                    <label class='appLabel serverList' for='dvrList'>" . $lang["uiSettingDvrServer"] . "</label>
-					                                    <select class='form-control custom-select' id='dvrList'>
+					                                    <label class='appLabel' for='dvrList'>" . $lang["uiSettingDvrServer"] . "</label>
+					                                    <select class='form-control custom-select serverList' data-type='Dvr' id='dvrList'>
 					                                    </select>
 					                                </div>
 					                                <div class='form-group'>

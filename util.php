@@ -609,7 +609,7 @@ function write_log($text, $level = false, $caller = false, $force=false) {
 	if ((isset($_GET['pollPlayer']) && !$force) || (trim($text) === "")) return;
 	$caller = $caller ? getCaller($caller) : getCaller();
 	$text = '[' . date(DATE_RFC2822) . '] [' . $level . '] [' . $caller . "] - " . trim($text) . PHP_EOL;
-	if (filesize($log) > 1048576) {
+	if (filesize($log) > 2097152) {
 		$oldLog = file_build_path(dirname(__FILE__),'logs',"Phlex.log.php.old");
 		if (file_exists($oldLog)) unlink($oldLog);
 		rename($log, $oldLog);
