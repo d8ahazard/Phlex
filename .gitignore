@@ -17,3 +17,6 @@ new_js/
 /manifest.json
 /logs/*.log.php
 
+rw/cacert.pem
+rw/commands.php
+rw/config.ini.php
