@@ -1,4 +1,4 @@
-importScripts('./js/cache-polyfill.js');
+importScripts('./js/lib/src/support/12_cache-polyfill.js');
 self.addEventListener('install', function (e) {
 	e.waitUntil(
 		caches.open('phlex').then(function (cache) {
