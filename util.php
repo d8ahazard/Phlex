@@ -232,6 +232,7 @@ function TTS($text) {
 	return false;
 }
 
+
 function flattenXML($xml) {
 	libxml_use_internal_errors(true);
 	$return = [];
@@ -440,14 +441,15 @@ function setStartUrl() {
 	}
 }
 
-function transcodeImage($path, $uri = "", $token = "") {
+function transcodeImage($path, $uri = "", $token = "",$full=false) {
 	if (preg_match("/library/", $path)) {
 		if ($uri) $server = $uri;
 		$server = $server ?? $_SESSION['plexServerPublicUri'] ?? $_SESSION['plexServerUri'] ?? false;
 		if ($token) $serverToken = $token;
 		$token = $serverToken ?? $_SESSION['plexServerToken'];
+		$size = $full ? 'width=1920&height=1920' : 'width=600&height=600';
 		if ($server && $token) {
-			return $server . "/photo/:/transcode?width=1920&height=1920&minSize=1&url=" . urlencode($path) . "%3FX-Plex-Token%3D" . $token . "&X-Plex-Token=" . $token;
+			return $server . "/photo/:/transcode?$size&minSize=1&url=" . urlencode($path) . "%3FX-Plex-Token%3D" . $token . "&X-Plex-Token=" . $token;
 		}
 	}
 	write_log("Invalid image path, returning generic image.", "WARN");
@@ -589,26 +591,30 @@ function curl201($url, $content = false, $JSON = false, Array $headers = null) {
 // Write log information to $filename
 // Auto rotates files larger than 2MB
 if (!function_exists('write_log')) {
-function write_log($text, $level = null, $caller = false) {
-	$filename = file_build_path(dirname(__FILE__), 'logs', "Phlex.log.php");
-	if ($level === null) $level = 'DEBUG';
-	//if (isset($_SESSION) && $level === 'DEBUG' && !$_SESSION['Debug']) return;
-	if (isset($_GET['pollPlayer']) || !file_exists($filename) || (trim($text) === "")) return;
-	$caller = $caller ? $caller : getCaller();
-	$text = '[' . date(DATE_RFC2822) . '] [' . $level . '] [' . $caller . "] - " . trim($text) . PHP_EOL;
-	$youIdiot = file_build_path(dirname(__FILE__),'logs',"Phlex.log.php.old");
-	if (file_exists($youIdiot)) unlink($youIdiot);
-	if (filesize($filename) > 5 * 1024 * 1024) {
-		$filename2 = "Phlex.log.old.php";
-		if (file_exists($filename2)) unlink($filename2);
-		rename($filename, $filename2);
-		touch($filename);
-		chmod($filename, 0666);
+function write_log($text, $level = false, $caller = false, $force=false) {
+	$log = file_build_path(dirname(__FILE__), 'logs', "Phlex.log.php");
+	if (!file_exists($log)) {
+		touch($log);
+		chmod($log, 0666);
 		$authString = "; <?php die('Access denied'); ?>".PHP_EOL;
-		file_put_contents($filename,$authString);
+		file_put_contents($log,$authString);
 	}
-	if (!is_writable($filename)) return;
-	if (!$handle = fopen($filename, 'a+')) return;
+	if (!file_exists($log)) return;
+	if (!$level) $level = 'DEBUG';
+	if ((isset($_GET['pollPlayer']) && !$force) || (trim($text) === "")) return;
+	$caller = $caller ? getCaller($caller) : getCaller();
+	$text = '[' . date(DATE_RFC2822) . '] [' . $level . '] [' . $caller . "] - " . trim($text) . PHP_EOL;
+	if (filesize($log) > 1048576) {
+		$oldLog = file_build_path(dirname(__FILE__),'logs',"Phlex.log.php.old");
+		if (file_exists($oldLog)) unlink($oldLog);
+		rename($log, $oldLog);
+		touch($log);
+		chmod($log, 0666);
+		$authString = "; <?php die('Access denied'); ?>".PHP_EOL;
+		file_put_contents($log,$authString);
+	}
+	if (!is_writable($log)) return;
+	if (!$handle = fopen($log, 'a+')) return;
 	if (fwrite($handle, $text) === FALSE) return;
 	fclose($handle);
 }
@@ -689,6 +695,12 @@ function isDomainAvailible($domain) {
 // read by the webUI.
 if (!function_exists('logCommand')) {
 function logCommand($resultObject) {
+	if (isset($_GET['noLog'])) {
+		write_log("UI command, not logging.");
+		return;
+	}
+
+	$_SESSION['newCommand'][] = json_decode($resultObject,true);
 	$newCommand = json_decode($resultObject, true);
 	$newCommand['timecode'] = date_timestamp_get(new DateTime($newCommand['timestamp']));
 	if (isset($_GET['say'])) echo json_encode($newCommand);
@@ -707,34 +719,30 @@ function logCommand($resultObject) {
 	$cache_new .= json_encode($json_a, JSON_PRETTY_PRINT);
 	if (fwrite($handle, $cache_new) === FALSE) die;
 	fclose($handle);
-	scanDevices();
-	return $json_a;
 }
 }
 
 if (!function_exists('popCommand')) {
-function popCommand($id) {
-	write_log("Popping ID of " . $id);
-	$filename = "commands.php";
-	// Check for our JSON file and make sure we can access it
-	$contents = fetchCommands();
-	// Read contents into an array
-	$jsondata = $contents;
-	$json_a = json_decode($jsondata, true);
-	$json_b = [];
-	foreach ($json_a as $command) {
-		if (strtotime($command['timestamp']) !== strtotime($id)) {
-			array_push($json_b, $command);
+	function popCommand($id) {
+		write_log("Popping ID of " . $id);
+		$filename = "commands.php";
+		// Check for our JSON file and make sure we can access it
+		$contents = fetchCommands();
+		// Read contents into an array
+		$jsondata = $contents;
+		$json_a = json_decode($jsondata, true);
+		$json_b = [];
+		foreach ($json_a as $command) {
+			if (strtotime($command['timestamp']) !== strtotime($id)) {
+				array_push($json_b, $command);
+			}
 		}
+		// Triple-check we can write, write JSON to file
+		if (!$handle = fopen($filename, 'wa+')) die;
+		$cache_new = "'; <?php die('Access denied'); ?>" . PHP_EOL . json_encode($json_b, JSON_PRETTY_PRINT);
+		if (fwrite($handle, $cache_new) === FALSE) return false;
+		fclose($handle);
 	}
-	// Triple-check we can write, write JSON to file
-	if (!$handle = fopen($filename, 'wa+')) die;
-	$cache_new = "'; <?php die('Access denied'); ?>" . PHP_EOL . json_encode($json_b, JSON_PRETTY_PRINT);
-	if (fwrite($handle, $cache_new) === FALSE) return false;
-	fclose($handle);
-	return $json_b;
-
-}
 }
 
 if (!function_exists('fetchCommands')) {
@@ -748,7 +756,7 @@ if (!function_exists('fetchCommands')) {
 		while (!feof($handle)) {
 			$contents .= fgets($handle);
 		}
-		return $contents;
+		return json_decode($contents,true);
 	}
 }
 
@@ -1054,7 +1062,7 @@ function setSelectedDevice($type,$id) {
 			}
 		}
 		$_SESSION['deviceList'] = $list;
-		$push['dList'] = base64_encode(json_encode($list));
+		$push['dlist'] = base64_encode(json_encode($list));
 		updateUserPreferenceArray($push);
 	}
 	return $list;
@@ -1093,6 +1101,9 @@ if (!function_exists('setDefaults')) {
 
 	function clearSession() {
 		write_log("Function fired");
+		foreach($_SESSION as $key=>$val) {
+			unset($_SESSION[$key]);
+		}
 		if (!session_started()) session_start();
 		if (isset($_SERVER['HTTP_COOKIE'])) {
 			write_log("Cookies found, unsetting.");
@@ -1104,6 +1115,9 @@ if (!function_exists('setDefaults')) {
 				setcookie($name, '', time() - 1000);
 				setcookie($name, '', time() - 1000, '/');
 			}
+		}
+		foreach($_SESSION as $key=>$val) {
+			unset($_SESSION[$key]);
 		}
 		session_start();
 		session_unset();
@@ -2116,7 +2130,7 @@ if (!function_exists('setDefaults')) {
 		return (function_exists('ob_gzhandler') && ini_get('zlib.output_compression'));
 	}
 
-	if (! isset($_SESSION['webApp'])) {
+	if (!function_exists("checkUpdates")) {
 		function checkUpdates($install = false) {
 			write_log("Function fired." . ($install ? " Install requested." : ""));
 			$installed = $pp = $result = false;
@@ -2281,35 +2295,37 @@ if (!function_exists('setDefaults')) {
 		return $output;
 	}
 
-	function formatLog($logData) {
-		$authString = "'; <?php die('Access denied'); ?>" . PHP_EOL;
-		$logData = str_replace($authString, "", $logData);
-		$lines = array_reverse(explode("\n", $logData));
-		$JSON = false;
-		$records = [];
-		unset($_GET['pollPlayer']);
-		foreach ($lines as $line) {
-			$sections = explode(" - ", $line);
-			preg_match_all("/\[([^\]]*)\]/", $sections[0], $matches);
-			$params = $matches[0];
-			if (count($sections) >= 2) {
-				$message = trim($sections[1]);
-				$message = preg_replace('~\{(?:[^{}]|(?R))*\}~', '', $message);
-				if ($message !== trim($sections[1])) $JSON = true;
-				if ($JSON) $JSON = str_replace($message, "", trim($sections[1]));
-				if (count($params) >= 3) {
-					$record = [
-						'time' => substr($params[0], 1, -1),
-						'level' => substr($params[1], 1, -1),
-						'caller' => substr($params[2], 1, -1),
-						'message' => $message
-					];
-					if ($JSON) $record['JSON'] = trim($JSON);
-					array_push($records, $record);
+	if (!function_exists("formatLog")) {
+		function formatLog($logData) {
+			$authString = "'; <?php die('Access denied'); ?>" . PHP_EOL;
+			$logData = str_replace($authString, "", $logData);
+			$lines = array_reverse(explode("\n", $logData));
+			$JSON = false;
+			$records = [];
+			unset($_GET['pollPlayer']);
+			foreach ($lines as $line) {
+				$sections = explode(" - ", $line);
+				preg_match_all("/\[([^\]]*)\]/", $sections[0], $matches);
+				$params = $matches[0];
+				if (count($sections) >= 2) {
+					$message = trim($sections[1]);
+					$message = preg_replace('~\{(?:[^{}]|(?R))*\}~', '', $message);
+					if ($message !== trim($sections[1])) $JSON = true;
+					if ($JSON) $JSON = str_replace($message, "", trim($sections[1]));
+					if (count($params) >= 3) {
+						$record = [
+							'time' => substr($params[0], 1, -1),
+							'level' => substr($params[1], 1, -1),
+							'caller' => substr($params[2], 1, -1),
+							'message' => $message
+						];
+						if ($JSON) $record['JSON'] = trim($JSON);
+						array_push($records, $record);
+					}
 				}
 			}
+			return json_encode($records);
 		}
-		return json_encode($records);
 	}
 
 

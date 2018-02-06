@@ -4,6 +4,7 @@ require_once dirname(__FILE__) . '/webApp.php';
 require_once dirname(__FILE__) . '/util.php';
 require_once dirname(__FILE__) . '/fetchers.php';
 require_once dirname(__FILE__) . '/body.php';
+require_once dirname(__FILE__) . '/JsonXmlElement.php';
 
 use Kryptonit3\SickRage\SickRage;
 use Kryptonit3\Sonarr\Sonarr;
@@ -35,7 +36,7 @@ if (isset($_SERVER['HTTP_METHOD'])) {
 	write_log("Using token from Google Auth.", "INFO");
 }
 
-if (isset($_SESSION['apiToken'])) {
+if (!$token && isset($_SESSION['apiToken'])) {
 	write_log("Using stored session token.", "INFO");
 	$token = $_SESSION['apiToken'];
 }
@@ -68,7 +69,10 @@ function initialize() {
 
 	if (isset($_GET['pollPlayer'])) {
 		if (substr_count($_SERVER["HTTP_ACCEPT_ENCODING"], "gzip")) ob_start("ob_gzhandler"); else ob_start();
-		$result = fetchUiData();
+		$force = ($_GET['force'] === 'true');
+		$result = fetchUiData($force);
+		unset($_GET['pollPlayer']);
+		if (isset($result['commands'])) write_log("UI DATA: ".json_encode($result));
 		header('Content-Type: application/json');
 		echo JSON_ENCODE($result);
 		bye();
@@ -101,7 +105,7 @@ function initialize() {
 	}
 
 	if (isset($_GET['card'])) {
-		echo json_encode(popCommand($_GET['card']));
+		popCommand($_GET['card']);
 		bye();
 	}
 
@@ -271,16 +275,50 @@ function initialize() {
 	}
 }
 
-function fetchUiData() {
-	$result['playerStatus'] = playerStatus();
-	$contents = fetchCommands();
-	$result['commands'] = urlencode(($contents));
-	$result['devices'] = scanDevices(false);
-	$result['dologout'] = $_SESSION['dologout'];
+	function fetchUiData($force=false) {
+
+	$playerStatus = playerStatus();
+	$updates = checkUpdates();
+	$devices = scanDevices(false);
+	if ($playerStatus) {
+		$result['playerStatus'] = $playerStatus;
+	}
+
+	if (!isset($_SESSION['devices']) || $force) {
+		$_SESSION['devices'] = json_encode($devices);
+		$result['devices'] = $devices;
+		$result['commands'] = fetchCommands();
+		if ($force) {
+			$result['ui'] = settingBody();
+			$result['updates'] = checkUpdates();
+			$result['userdata'] = sessionData();
+			$_SESSION['updates'] = $result['updates'];
+		}
+	} else {
+		if (isset($_SESSION['newCommand'])) {
+			write_log("New command: ".json_encode($_SESSION['newCommand']),"INFO",false,true);
+			$result['commands'] = $_SESSION['newCommand'];
+			unset($_SESSION['newCommand']);
+		}
+		if ($_SESSION['devices'] !== json_encode($devices)) {
+			$_SESSION['devices'] = json_encode($devices);
+			$result['devices'] = $devices;
+		}
+		if ($_SESSION['updates'] !== $updates) {
+			$result['updates'] = $updates;
+			if(!$_SESSION['autoUpdate']) $result['messages'][] = ["An update is available.",
+			                         "An update is available for Phlex.  Click here to install it now.",
+			                         'api.php?apiToken=' .$_SESSION['apiToken']. '&installUpdates=true'];
+		}
+	}
+
+	if ($_SESSION['dologout'] ?? false) $result['dologout'] = true;
+
 	if (isset($_SESSION['messages'])) {
 		$result['messages'] = $_SESSION['messages'];
 		unset($_SESSION['messages']);
 	}
+
 	if (isset($_SESSION['webApp'])) {
 		$lines = $_GET['logLimit'] ?? 50;
 		$result['logs'] = formatLog(tailFile(file_build_path(dirname(__FILE__), "logs", "Phlex.log.php"), $lines));
@@ -327,6 +365,7 @@ function sessionData() {
 	$data = [];
 	foreach ($_SESSION as $key => $value) {
 		if ($key !== "lang") {
+			$value = boolval($value) ?? $value;
 			$data[$key] = $value;
 		}
 	}
@@ -694,7 +733,7 @@ function parsePlayCommand($command, $year = false, $artist = false, $type = fals
 
 	if ((empty($commandArray)) && (count($mods['num']) > count($mods['media']))) {
 		array_push($commandArray, $mods['num'][count($mods['num']) - 1]);
-		unset($mods['num'][count($mods['num']) - 1]);
+		($mods['num'][count($mods['num']) - 1]);
 	}
 	$mods['target'] = implode(" ", $commandArray);
 	if ($artist) $mods['artist'] = $artist;
@@ -2659,7 +2698,15 @@ function plexSearch($title, $type = false) {
 		if ($item['type'] === 'artist') $item['key'] = str_replace("/children", "", $item['key']);
 	}
 	write_log("Return array: " . json_encode($returns), "INFO");
-	return $returns;
+	$new = [];
+	foreach($returns as $return) {
+		$skip = false;
+		foreach($new as $existing) {
+			if ($return['ratingKey'] == $existing['ratingKey']) $skip = true;
+		}
+		if (!$skip) array_push($new,$return);
+	}
+	return $new;
 }
 
 function fetchHubList($section, $type = null) {
@@ -3312,29 +3359,24 @@ function castAudio($speech, $uri = false) {
 }
 
 
-function pollPlayer() {
-	$pp = false;
-	if (isset($_GET['pollPlayer'])) {
-		unset($_GET['pollPlayer']);
-		$pp = true;
-	}
+function pollPlayer($wait=false) {
+	$timeout = $wait ? 5 : 1;
+	$status = ['status'=>'idle'];
 	$serverUri = $_SESSION['plexClientParent'] ?? $_SESSION['plexServerUri'];
-	if (trim($serverUri) == "") $serverUri = $_SESSION['plexServerUri'];
 	$count = $_SESSION['counter'] ?? 1;
 	$params = headerQuery(array_merge(plexHeaders(), clientHeaders()));
 	$url = "$serverUri/player/timeline/poll?wait=1&commandID=$count$params";
-	$result = doRequest($url,3);
+	$result = doRequest($url, $timeout);
 	if ($result) {
-		write_log("State changed, polling player.");
-
 		$result = flattenXML(new SimpleXMLElement($result));
 		if (isset($result['commandID'])) $_SESSION['counter'] = $result['commandID'] + 1;
 		foreach ($result['Timeline'] as $timeline) {
+			write_log("Timeline: ".json_encode($timeline),"INFO",false,true);
 			if ($timeline['state'] !== "stopped") {
 				$controls = $timeline['controllable'];
 				$state = $timeline['state'];
 				$volume = $timeline['volume'];
-				return [
+				$status = [
 					'state' => $state,
 					'controls' => $controls,
 					'volume' => $volume
@@ -3343,78 +3385,88 @@ function pollPlayer() {
 		}
 
 	}
-	if ($pp) $_GET['pollPlayer'] = true;
-	return ["stopped"];
+	return $status;
 }
 
 
 function playerStatus() {
 	write_log("Function fired.");
 	$addresses = parse_url($_SESSION['plexClientUri']);
-	$status = [];
-	$prestate['status'] = 'error';
-	$url = $_SESSION['plexServerUri'] . '/status/sessions/?X-Plex-Token=' . $_SESSION['plexServerToken'];
-	write_log("Status URL: " . protectURL($url));
+	$clientIp = $addresses['host'] ?? false;
+	$clientId = $_SESSION['plexClientId'] ?? false;
+	$state = 'idle';
+	$status = ['status'=>$state];
+	$url = $_SESSION['plexServerUri'] . '/status/sessions?X-Plex-Token=' . $_SESSION['plexServerToken'];
 	$result = curlGet($url);
+	$_SESSION['sessionId'] = false;
 	if ($result) {
-		$container = new SimpleXMLElement($result);
-		foreach ($container->children() as $Media) {
-			$vidArray = json_decode(json_encode($Media), true);
-			$ip = $addresses['host'];
-			$isCast = (preg_match("/$ip/", $vidArray['Player']['@attributes']['address']));
-			$isPlayer = ($vidArray['Player']['@attributes']['machineIdentifier'] == $_SESSION['plexClientId']);
-			if (($isPlayer) || ($isCast)) {
-				write_log("Current vidarray: " . json_encode($vidArray));
-				$_SESSION['sessionId'] = $vidArray['Session']['@attributes']['id'];
-				$state = $vidArray['Player']['@attributes']['state'];
-				$time = $vidArray['@attributes']['viewOffset'];
-				$duration = $vidArray['@attributes']['duration'];
-				$result['plexServerId'] = $_SESSION['plexServerUri'];
-				$type = $vidArray['@attributes']['type'];
-				$summary = $vidArray['@attributes']['summary'] ?? $vidArray['@attributes']['parentTitle'] ?? "";
-				$title = $vidArray['@attributes']['title'] ?? "";
-				$year = $vidArray['@attributes']['year'] ?? false;
-				$tagline = $vidArray['@attributes']['tagline'] ?? "";
-				$parentTitle = $vidArray['@attributes']['parentTitle'] ?? "";
-				$grandParentTitle = $vidArray['@attributes']['grandparentTitle'] ?? "";
-				$parentIndex = $vidArray['@attributes']['parentIndex'] ?? "";
-				$index = $vidArray['@attributes']['index'] ?? "";
-				$thumb = (($vidArray['@attributes']['type'] == 'movie') ? $vidArray['@attributes']['thumb'] : $vidArray['@attributes']['parentThumb']);
-				$thumb = (string)transcodeImage($thumb);
-				$art = transcodeImage($vidArray['@attributes']['art']);
-				$vidArray['thumb'] = $thumb;
-				$vidArray['art'] = $art;
-				$result['mediaResult'] = $vidArray;
-				$volume = 100;
+		$jsonXML = new JsonXmlElement($result);
+		$jsonXML = $jsonXML->asJson();
+		$mc = $jsonXML['MediaContainer'] ?? false;
+		if ($mc) {
+			$track = $mc['Track'] ?? [];
+			$video = $mc['Video'] ?? [];
+			$obj = array_merge($track,$video);
+			foreach($obj as $media) {
+				// Get player info
+				$player = $media['Player'][0] ?? $media['Player'];
+				$playerIp = $player['address'];
+				$playerId = $player['machineIdentifier'] ?? false;
+				$isCast = (($clientIp && $playerIp) && ($clientIp == $playerIp));
+				$isPlayer = (($clientId && $playerId) && ($clientId == $playerId));
+				if ($isPlayer || $isCast) {
+					$state = strtolower($player['state']);
+					$time = $media['viewOffset'];
+					$duration = $media['duration'];
+					$type = $media['type'];
+					$summary = $media['summary'] ?? $media['parentTitle'] ?? "";
+					$title = $media['title'] ?? "";
+					$year = $media['year'] ?? false;
+					$tagline = $media['tagline'] ?? "";
+					$parentTitle = $media['parentTitle'] ?? "";
+					$grandParentTitle = $media['grandparentTitle'] ?? "";
+					$parentIndex = $media['parentIndex'] ?? "";
+					$index = $media['index'] ?? "";
+					$thumb = (($media['type'] == 'movie') ? $media['thumb'] : $media['parentThumb']);
+					$thumb = (string)transcodeImage($thumb);
+					$art = transcodeImage($media['art'],"","",true);
 
+					$mediaResult = [
+						'title' => $title,
+						'parentTitle' => $parentTitle,
+						'grandParentTitle' => $grandParentTitle,
+						'parentIndex' => $parentIndex,
+						'index' => $index,
+						'tagline' => $tagline,
+						'duration' => $duration,
+						'time' => $time,
+						'summary' => $summary,
+						'year' => $year,
+						'art' => $art,
+						'thumb' => $thumb,
+						'type' => $type
+					];
 
-				$mediaResult = [
-					'title' => $title,
-					'parentTitle' => $parentTitle,
-					'grandParentTitle' => $grandParentTitle,
-					'parentIndex' => $parentIndex,
-					'index' => $index,
-					'tagline' => $tagline,
-					'duration' => $duration,
-					'summary' => $summary,
-					'year' => $year,
-					'art' => $art,
-					'thumb' => $thumb,
-					'type' => $type
-				];
-				$status = [
-					'status' => strtolower($state),
-					'time' => $time,
-					'type' => 'cast',
-					'volume' => $volume,
-					'mediaResult' => $mediaResult
-				];
-			} else {
-				$_SESSION['sessionId'] = false;
+					$status = [
+						'status' => $state,
+						'time' => $time,
+						'mediaResult' => $mediaResult,
+						'volume' => 100
+					];
+				}
 			}
 		}
 	}
-	return json_encode($status);
+
+	write_log("Status: ".json_encode($status));
+
+	if ($_SESSION['playerStatus'] !== $status) {
+		$_SESSION['stateChanged'] = true;
+		$playerData = pollPlayer();
+		if (isset($playerData['volume'])) $status['volume'] = $playerData['volume'];
+	}
+
+	return $status;
 }
 
 function sendCommand($cmd,$value=false) {
@@ -3511,26 +3563,15 @@ function castCommand($cmd,$value=false) {
 // IDK If we need this anymore
 function metaTags() {
 	$tags = '';
-	$contents = fetchCommands();
 	$dvr = ($_SESSION['plexDvrUri'] ? "true" : "");
-	if ($contents == '[') $contents = '[]';
-	$commandData = urlencode($contents);
 	$tags .= '<meta id="usernameData" data="' . $_SESSION['plexUserName'] . '"/>' . PHP_EOL .
 		'<meta id="updateAvailable" data="' . $_SESSION['updateAvailable'] . '"/>' . PHP_EOL .
-		'<meta id="publicIP" data="' . $_SESSION['publicAddress'] . '"/>' . PHP_EOL .
 		'<meta id="deviceID" data="' . $_SESSION['deviceID'] . '"/>' . PHP_EOL .
 		'<meta id="serverURI" data="' . $_SESSION['plexServerUri'] . '"/>' . PHP_EOL .
 		'<meta id="clientURI" data="' . $_SESSION['plexClientUri'] . '"/>' . PHP_EOL .
 		'<meta id="clientName" data="' . $_SESSION['plexClientName'] . '"/>' . PHP_EOL .
 		'<meta id="plexDvr" data-enable="' . $dvr . '"/>' . PHP_EOL .
-		'<meta id="rez" value="' . $_SESSION['plexDvrResolution'] . '"/>' . PHP_EOL .
-		'<meta id="couchpotato" data-enable="' . $_SESSION['couchEnabled'] . '"/>' . PHP_EOL .
-		'<meta id="headphones" data-enable="' . $_SESSION['headphonesEnabled'] . '"/>' . PHP_EOL .
-		'<meta id="sonarr" data-enable="' . $_SESSION['sonarrEnabled'] . '"/>' . PHP_EOL .
-		'<meta id="sick" data-enable="' . $_SESSION['sickEnabled'] . '"/>' . PHP_EOL .
-		'<meta id="radarr" data-enable="' . $_SESSION['radarrEnabled'] . '"/>' . PHP_EOL .
-		'<meta id="ombi" data-enable="' . $_SESSION['ombiEnabled'] . '"/>' . PHP_EOL .
-		'<meta id="logData" data="' . $commandData . '"/>' . PHP_EOL;
+		'<meta id="rez" value="' . $_SESSION['plexDvrResolution'] . '"/>' . PHP_EOL;
 	return $tags;
 }
 

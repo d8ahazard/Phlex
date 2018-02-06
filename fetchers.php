@@ -372,6 +372,8 @@ function sickDownload($data) {
 	return $response;
 }
 
+
+
 function sonarrDownload($command, $season = false, $episode = false, $tmdbResult = false) {
 	write_log("Function fired, searching for " . $command);
 	$exists = $score = $seriesId = $show = $wanted = false;

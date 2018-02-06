@@ -12,6 +12,30 @@ html {
 	overflow-x: hidden;
 }
 
+.noHeight {
+	display: none;
+}
+
+#progressWrap .slider-track {
+	height: 7px!important;
+	border-radius: 0;
+}
+
+#progressWrap .slider-handle.round {
+	border-radius: 0;
+	top: 4px;
+	width: 25px;
+	height: 8px;
+}
+
+#progressWrap .slider-handle.round:hover {
+	border-radius: 0;
+	top: 0;
+	width: 30px;
+	height: 15px;
+	background-image: linear-gradient(to bottom,#0d6fc3 0,#2e6da4 100%);
+}
+
 #holder {
 	position: fixed;
 	top: 0;
@@ -118,14 +142,12 @@ html {
 }
 
 .bg {
-	display: none;
 	width: 100%;
 	height: 100%;
 	position: fixed;
 	top: 0;
 	left: 0;
 	z-index: -6;
-
 }
 
 .scrollContainer {
@@ -1075,5 +1097,5 @@ span.toggle {
 	top: 0;
 	left: 0;
 	z-index: -1;
-
+	background-size: cover;
 }

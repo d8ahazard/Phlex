@@ -319,7 +319,7 @@
 		"No",
 		"Yes"
 	],
-	"uiGreetingDefault": "Hi, I'm Flex TV. What can I do for you?",
+	"uiGreetingDefault": "How can I help?",
 	"uiPageTitle": "Phlex Web",
 	"uiPlayerSelectPrompt": "Select a player to control.",
 	"uiRescanDevices": "Rescan devices",

@@ -1,5 +1,6 @@
 var bg, bodyWrap, loginBox, loginButton, mainwrap, messageArray, code, id;
 var deviceId, product, version, platform, platformVersion, device, deviceName, deviceResolution, providerVersion, session;
+
 $(function ($) {
 	bg = $('.bg');
 	bodyWrap = $('#bodyWrap');
@@ -21,8 +22,9 @@ $(function ($) {
 
 	messageArray = [];
 	if (mainwrap.length === 0) {
-		bg.fadeIn(2000);
+		bg.fadeIn(1000);
 		loginBox.css({"top": "50%"});
+		$('body').addClass('loaded');
 	}
 	var success = false;
 

