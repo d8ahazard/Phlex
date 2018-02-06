@@ -25,7 +25,8 @@ function plexSignIn($token) {
 
 if (!function_exists('fetchUser')) {
 	function fetchUser($userData) {
-		$config = $GLOBALS['config'] ?? new Config_Lite('config.ini.php', LOCK_EX);
+		$configDir = file_build_path(dirname(__FILE__),'rw', "config.ini.php");
+		$config = $GLOBALS['config'] ?? new Config_Lite($configDir, LOCK_EX);
 		$email = $userData['plexEmail'];
 		foreach ($config as $key => $section) {
 			$userEmail = $section['plexEmail'] ?? false;
@@ -41,7 +42,8 @@ if (!function_exists('fetchUser')) {
 
 if (!function_exists('fetchUserData')) {
 	function fetchUserData() {
-		$config = $GLOBALS['config'] ?? new Config_Lite('config.ini.php', LOCK_EX);
+		$configDir = file_build_path(dirname(__FILE__),'rw', "config.ini.php");
+		$config = $GLOBALS['config'] ?? new Config_Lite($configDir, LOCK_EX);
 		foreach ($config as $token => $data) {
 			if ($token == $_SESSION['apiToken']) {
 				return $data;
@@ -85,7 +87,8 @@ if (!function_exists('newUser')) {
 
 if (!function_exists('updateUserPreferenceArray')) {
 	function updateUserPreferenceArray($array) {
-		$config = $GLOBALS['config'] ?? new Config_Lite(dirname(__FILE__) . '/config.ini.php', LOCK_EX);
+		$configDir = file_build_path(dirname(__FILE__),'rw', "config.ini.php");
+		$config = $GLOBALS['config'] ?? new Config_Lite($configDir, LOCK_EX);
 		$apiToken = $_SESSION['apiToken'] ?? false;
 		if (trim($apiToken)) {
 			write_log("Updating session and saved values with array: " . json_encode($array));
@@ -102,7 +105,8 @@ if (!function_exists('updateUserPreferenceArray')) {
 
 if (!function_exists('updateUserPreference')) {
 	function updateUserPreference($key, $value) {
-		$config = $GLOBALS['config'] ?? new Config_Lite(dirname(__FILE__) . '/config.ini.php', LOCK_EX);
+		$configDir = file_build_path(dirname(__FILE__),'rw', "config.ini.php");
+		$config = $GLOBALS['config'] ?? new Config_Lite($configDir, LOCK_EX);
 		$apiToken = $_SESSION['apiToken'] ?? false;
 		if (trim($apiToken)) {
 			write_log("Updating session value and saving $key as $value", "INFO");
@@ -152,7 +156,8 @@ if (!function_exists('verifyApiToken')) {
 	function verifyApiToken($apiToken) {
 		$caller = getCaller("verifyApiToken");
 		if (trim($apiToken)) {
-			$config = $GLOBALS['config'] ?? new Config_Lite('config.ini.php');
+			$configDir = file_build_path(dirname(__FILE__),'rw', "config.ini.php");
+			$config = $GLOBALS['config'] ?? new Config_Lite($configDir);
 			foreach ($config as $token => $data) {
 				if (trim($token) == trim($apiToken)) {
 					$userData = [
@@ -473,7 +478,7 @@ function initMCurl() {
 // TODO: Set a system variable for timeout
 // Fetch data from a URL using CURL
 function curlGet($url, $headers = null, $timeout = 4) {
-	$cert = getContent(file_build_path(dirname(__FILE__), "cacert.pem"), 'https://curl.haxx.se/ca/cacert.pem');
+	$cert = getContent(file_build_path(dirname(__FILE__),"rw", "cacert.pem"), 'https://curl.haxx.se/ca/cacert.pem');
 	if (!$cert) $cert = file_build_path(dirname(__FILE__), "cert", "cacert.pem");
 	write_log("GET url $url","INFO","curlGet");
 	$url = filter_var($url, FILTER_SANITIZE_URL);
@@ -705,7 +710,7 @@ function logCommand($resultObject) {
 	$newCommand['timecode'] = date_timestamp_get(new DateTime($newCommand['timestamp']));
 	if (isset($_GET['say'])) echo json_encode($newCommand);
 	// Check for our JSON file and make sure we can access it
-	$filename = "commands.php";
+	$filename = file_build_path(dirname(__FILE__),"rw","commands.php");
 	$jsondata = fetchCommands();
 	$json_a = json_decode($jsondata);
 	if (empty($json_a)) $json_a = [];
@@ -725,7 +730,7 @@ function logCommand($resultObject) {
 if (!function_exists('popCommand')) {
 	function popCommand($id) {
 		write_log("Popping ID of " . $id);
-		$filename = "commands.php";
+		$filename = file_build_path(dirname(__FILE__),"rw","commands.php");
 		// Check for our JSON file and make sure we can access it
 		$contents = fetchCommands();
 		// Read contents into an array
@@ -747,7 +752,7 @@ if (!function_exists('popCommand')) {
 
 if (!function_exists('fetchCommands')) {
 	function fetchCommands() {
-		$filename = "commands.php";
+		$filename = file_build_path(dirname(__FILE__),"rw","commands.php");
 		$handle = fopen($filename, "r");
 		//Read first line, but do nothing with it
 		fgets($handle);
@@ -810,7 +815,8 @@ function headerRequestArray($headers) {
 }
 
 function logUpdate(array $log) {
-	$config = $GLOBALS['config'] ?? new Config_Lite('config.ini.php', LOCK_EX);
+	$configDir = file_build_path(dirname(__FILE__),'rw', "config.ini.php");
+	$config = $GLOBALS['config'] ?? new Config_Lite($configDir, LOCK_EX);
 	$filename = file_build_path(dirname(__FILE__), 'logs', "Phlex_update.log.php");
 	$data['installed'] = date(DATE_RFC2822);
 	$data['commits'] = $log;
@@ -973,7 +979,8 @@ function buildSpeech(...$segments) {
 
 if (!function_exists('checkSetDeviceID')) {
 	function checkSetDeviceID() {
-		$config = $GLOBALS['config'] ?? new Config_Lite('config.ini.php', LOCK_EX);
+		$configDir = file_build_path(dirname(__FILE__),'rw', "config.ini.php");
+		$config = $GLOBALS['config'] ?? new Config_Lite($configDir, LOCK_EX);
 		$deviceID = $config->get('general', 'deviceID', false);
 		if (!$deviceID) {
 			$deviceID = randomToken(12);
@@ -1078,7 +1085,8 @@ function fetchDirectory($id = 1) {
 
 if (!function_exists('fetchDeviceCache')) {
 	function fetchDeviceCache() {
-		$config = $GLOBALS['config'] ?? new Config_Lite('config.ini.php', LOCK_EX);
+		$configDir = file_build_path(dirname(__FILE__),'rw', "config.ini.php");
+		$config = $GLOBALS['config'] ?? new Config_Lite($configDir, LOCK_EX);
 		$list = $config->get($_SESSION['apiToken'], 'dlist', []);
 		$list = json_decode(base64_decode($list), true);
 		return $list;
@@ -1087,7 +1095,8 @@ if (!function_exists('fetchDeviceCache')) {
 
 if (!function_exists('setDefaults')) {
 	function setDefaults() {
-		if (!isset($_SESSION['webApp'])) $GLOBALS['config'] = new Config_Lite(dirname(__FILE__) . '/config.ini.php', LOCK_EX);
+		$configDir = file_build_path(dirname(__FILE__),'rw', "config.ini.php");
+		if (!isset($_SESSION['webApp'])) $GLOBALS['config'] = new Config_Lite($configDir, LOCK_EX);
 		ini_set("log_errors", 1);
 		ini_set('max_execution_time', 300);
 		error_reporting(E_ERROR);
@@ -1180,8 +1189,9 @@ if (!function_exists('setDefaults')) {
 	if (!function_exists("checkSSL")) {
 		function checkSSL() {
 			$forceSSL = false;
-			if (file_exists(dirname(__FILE__) . "/config.ini.php")) {
-				$config = $GLOBALS['config'] ?? new Config_Lite('config.ini.php');
+			$configDir = file_build_path(dirname(__FILE__),'rw', "config.ini.php");
+			if (file_exists($configDir)) {
+				$config = $GLOBALS['config'] ?? new Config_Lite($configDir);
 				$forceSSL = $config->getBool('general', 'forceSsl', false);
 			}
 			return $forceSSL;
@@ -2133,9 +2143,10 @@ if (!function_exists('setDefaults')) {
 
 	function backupConfig() {
 		write_log("Function fired!!");
-		$newFile = file_build_path(dirname(__FILE__), "config.ini.php_" . time() . ".bk");
+		$configDir = file_build_path(dirname(__FILE__),'rw', "config.ini.php");
+		$newFile = file_build_path($configDir . time() . ".bk");
 		write_log("Backing up configuration file to $newFile.", "INFO");
-		if (!copy(file_build_path(dirname(__FILE__), "config.ini.php"), $newFile)) {
+		if (!copy($configDir, $newFile)) {
 			write_log("Failed to back up configuration file!", "ERROR");
 			return false;
 		} else write_log("Configuration backup successful.", "INFO");
@@ -2250,7 +2261,7 @@ if (!function_exists('setDefaults')) {
 		$type = isset($parts['type']) ? $parts['type'] : 'get';
 		$response = false;
 		$options = [];
-		$cert = getContent(file_build_path(dirname(__FILE__), "cacert.pem"), 'https://curl.haxx.se/ca/cacert.pem');
+		$cert = getContent(file_build_path(dirname(__FILE__),'rw', "cacert.pem"), 'https://curl.haxx.se/ca/cacert.pem');
 		if (!$cert) $cert = file_build_path(dirname(__FILE__), "cert", "cacert.pem");
 		if (is_array($parts)) {
 			if (!isset($parts['uri'])) $parts['uri'] = $_SESSION['plexServerUri'];

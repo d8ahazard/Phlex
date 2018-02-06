@@ -1,7 +1,8 @@
 <?php
 require_once dirname(__FILE__) . '/vendor/autoload.php';
 use Cz\Git\GitRepository;
-$GLOBALS['config'] = new Config_Lite('config.ini.php', LOCK_EX);
+$configDir = dirname(__FILE__) . "/rw/config.ini.php";
+$GLOBALS['config'] = new Config_Lite($configDir, LOCK_EX);
 
 function checkFiles() {
 	if (isset($_SESSION['webApp'])) return [];
@@ -12,27 +13,12 @@ function checkFiles() {
 	];
 
 	$logDir = file_build_path(dirname(__FILE__), "logs");
-
 	$logPath = file_build_path($logDir, "Phlex.log.php");
+	$rwDir = file_build_path(dirname(__FILE__),"rw");
 	$errorLogPath = file_build_path($logDir, "Phlex_error.log.php");
 	$updateLogPath = file_build_path($logDir, "Phlex_update.log.php");
-	$configPath = file_build_path(dirname(__FILE__), "config.ini.php");
-	$cmdPath = file_build_path(dirname(__FILE__), "commands.php");
-
-	$old = [
-		file_build_path($logDir, "PhlexUpdate.log"),
-		file_build_path($logDir, "Phlex.log"),
-		file_build_path($logDir, "Phlex.log.old"),
-		file_build_path($logDir, "Phlex_error.log"),
-		file_build_path($logDir, "Phlex_update.log")
-	];
-
-	foreach ($old as $delete) {
-		if (file_exists($delete)) {
-			write_log("Deleting insecure file $delete", "INFO");
-			unlink($delete);
-		}
-	}
+	$configPath = file_build_path($rwDir, "config.ini.php");
+	$cmdPath = file_build_path($rwDir, "commands.php");
 
 	$files = [
 		$logPath,
@@ -46,6 +32,17 @@ function checkFiles() {
 	if (!file_exists($logDir)) {
 		if (!mkdir($logDir, 0777, true)) {
 			$message = "Unable to create log folder directory, please check permissions and try again.";
+			$error = [
+				'title' => 'Permission error.',
+				'message' => $message,
+				'url' => false
+			];
+			array_push($messages, $error);
+		}
+	}
+	if (!file_exists($rwDir)) {
+		if (!mkdir($rwDir, 0777, true)) {
+			$message = "Unable to create secure storage directory, please check permissions and try again.";
 			$error = [
 				'title' => 'Permission error.',
 				'message' => $message,
@@ -83,7 +80,6 @@ function checkFiles() {
 		}
 	}
 
-
 	foreach ($extensions as $extension) {
 		if (!extension_loaded($extension)) {
 			$message = "The " . $extension . " PHP extension, which is required for Phlex to work correctly, is not loaded." . " Please enable it in php.ini, restart your webserver, and then reload this page to continue.";
@@ -98,7 +94,6 @@ function checkFiles() {
 		}
 	}
 
-	# TODO: Only do this if not server-only
 	try {
 		new Config_Lite('config.ini.php');
 	} catch (Config_Lite_Exception_Runtime $e) {
