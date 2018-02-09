@@ -13,19 +13,18 @@ if (!isset($_GET['apiToken'])) {
 	//write_log("Unauthorized access detected.");
 	die("Unauthorize access detected.");
 } else {
-    $apiToken = trim($_GET['apiToken']);
-    $checkToken = $_SESSION['webApp'] ? ($_SESSION['logToken']?? false) : $_SESSION['apiToken'];
-    if ($apiToken) {
-	    if ($apiToken !== $checkToken) die("Invalid token, sukka.");
-    } else {
-    	die("No token, sukka.");
-    }
+	$apiToken = $_GET['apiToken'];
+	if (!validateToken($apiToken)) {
+		write_log("Invalid API Token used for logfile access.");
+		die("Invalid API Token");
+	}
 }
-$logs = [
-    "Main" => dirname(__FILE__) . "/logs/Phlex.log.php",
-	"Error Log" => dirname(__FILE__)."/logs/Phlex_error.log.php"
-];
-if (!isset($_SESSION['webApp'])) $logs["Updates"] = dirname(__FILE__)."/logs/Phlex_update.log.php";
+$logs = array(
+	"Main" => dirname(__FILE__)."/logs/Phlex.log.php",
+	"Updates" => dirname(__FILE__)."/logs/Phlex_update.log.php",
+	"Error Log" => dirname(__FILE__)."/logs/Phlex_error.log.php",
+
+);
 
 $tail = new PHPTail($logs,1000,2097152,$apiToken);
 

@@ -48,7 +48,7 @@ if ($user) {
 	$apiToken = $user['apiToken'];
 
 	$_SESSION['dologout'] = false;
-	if (session_started() === FALSE) {
+	if (!session_started()) {
 		write_log("Starting new session.", "INFO");
 		session_id($apiToken);
 		session_start();
@@ -362,10 +362,34 @@ function setSessionVariables($rescan = true) {
 
 
 function sessionData() {
+	webAddress();
 	$data = [];
+	$boolKeys = [
+		'couchEnabled',
+		'sonarrEnabled',
+		'radarrEnabled',
+		'ombiEnabled',
+		'sickEnabled',
+		'headphonesEnabled',
+		'lidarrEnabled',
+		'darkTheme',
+		'hasPlugin',
+		'alertPlugin',
+		'plexPassUser',
+		'plexDvrReplaceLower',
+		'plexDvrNewAirings',
+	    'hook',
+	    'hookPaused',
+	    'hookPlay',
+	    'hookFetch',
+	    'hookCustom',
+	    'hookSplit',
+	    'hookStop'
+	];
+
 	foreach ($_SESSION as $key => $value) {
 		if ($key !== "lang") {
-			$value = boolval($value) ?? $value;
+			if (array_key_exists($key,$boolKeys)) $value = boolval($value);
 			$data[$key] = $value;
 		}
 	}
@@ -3563,10 +3587,12 @@ function castCommand($cmd,$value=false) {
 // Write and save some data to the webUI for us to parse
 // IDK If we need this anymore
 function metaTags() {
+	webAddress();
 	$tags = '';
 	$dvr = ($_SESSION['plexDvrUri'] ? "true" : "");
 	$tags .= '<meta id="usernameData" data="' . $_SESSION['plexUserName'] . '"/>' . PHP_EOL .
 		'<meta id="updateAvailable" data="' . $_SESSION['updateAvailable'] . '"/>' . PHP_EOL .
+		'<meta id="publicAddress" data="' . $_SESSION['publicAddress'] . '"/>' . PHP_EOL .
 		'<meta id="deviceID" data="' . $_SESSION['deviceID'] . '"/>' . PHP_EOL .
 		'<meta id="serverURI" data="' . $_SESSION['plexServerUri'] . '"/>' . PHP_EOL .
 		'<meta id="clientURI" data="' . $_SESSION['plexClientUri'] . '"/>' . PHP_EOL .
