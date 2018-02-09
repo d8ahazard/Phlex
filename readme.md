@@ -5,7 +5,7 @@ This version of Phlex is no longer under development, and only critical fixes an
 Development has continued on the /beta branch, but mind you, this is in *active development*.
 
 All code and features in the /beta branch are subject to change, so please refrain from submitting issues 
-regarding anything you find there. It's more of a referenceor sneak peek, and not a finished product.
+regarding anything you find there. It's more of a reference or sneak peek, and not a finished product.
 
 ## CHROMECAST PLUGIN
 
@@ -26,6 +26,6 @@ Can be found (here)[https://github.com/d8ahazard/Phlex/wiki].
 
 ## SUPPORT
 
-If you like this product, feel free to (buy me a beer)[https://paypal.me/digitalhigh]
+If you like this product, feel free to  buy me a beer: https://paypal.me/digitalhigh
 
-If you really like it, I've also got a (Patreon)[https://www.patreon.com/digitalhigh] set up.
+If you really like it, I've also got a Patreon: https://www.patreon.com/digitalhigh
