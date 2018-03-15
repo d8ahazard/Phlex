@@ -449,7 +449,7 @@ function sessionData() {
 	}
 	$dvr = $_SESSION['plexDvrId'] ?? false;
 	$data['dvrEnabled'] = $dvr ? true : false;
-	write_log("Session data: ".json_encode($data),"INFO",false,true);
+	write_log("Session data: ".json_encode($data),"INFO");
 	return $data;
 }
 

@@ -15,12 +15,12 @@ function checkFiles() {
 		'xml'
 	];
 
-	$logDir = file_build_path(dirname(__FILE__), "logs");
+	$logDir = file_build_path(dirname(__FILE__),"..", "logs");
 	$logPath = file_build_path($logDir, "Phlex.log.php");
-	$rwDir = file_build_path(dirname(__FILE__),"rw");
+	$rwDir = file_build_path(dirname(__FILE__),"..","rw");
 	$errorLogPath = file_build_path($logDir, "Phlex_error.log.php");
 	$updateLogPath = file_build_path($logDir, "Phlex_update.log.php");
-	$configFile = file_build_path(dirname(__FILE__), "..","rw","config.ini.php");
+	$configFile = file_build_path($rwDir,"config.ini.php");
 	$cmdPath = file_build_path($rwDir, "commands.php");
 
 	$files = [

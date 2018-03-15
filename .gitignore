@@ -20,3 +20,6 @@ new_js/
 /rw/config.ini.php
 /rw/commands.php
 /rw/cacert.pem
+*.old
+*.log.php
+

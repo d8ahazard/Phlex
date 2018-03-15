@@ -623,7 +623,7 @@ function write_log($text, $level = false, $caller = false, $force=false) {
 	$caller = $caller ? getCaller($caller) : getCaller();
 	$text = '[' . date(DATE_RFC2822) . '] [' . $level . '] [' . $caller . "] - " . trim($text) . PHP_EOL;
 	if (filesize($log) > 1048576) {
-		$oldLog = file_build_path(dirname(__FILE__),'logs',"Phlex.log.php.old");
+		$oldLog = file_build_path(dirname(__FILE__),"..",'logs',"Phlex.log.php.old");
 		if (file_exists($oldLog)) unlink($oldLog);
 		rename($log, $oldLog);
 		touch($log);
@@ -720,12 +720,11 @@ if (!function_exists('logCommand')) {
 		$resultObject['timecode'] = date_timestamp_get(new DateTime($resultObject['timestamp']));
 		$commands = $_SESSION['newCommand'] ?? [];
 		array_push($commands,$resultObject);
-		writeSession($commands);
+		writeSession('newCommand',$commands);
 		if (isset($_GET['say'])) echo json_encode($resultObject);
 		// Check for our JSON file and make sure we can access it
 		$filename= file_build_path(dirname(__FILE__), "..","rw","commands.php");
-		$jsondata = fetchCommands();
-		$json_a = json_decode($jsondata);
+		$json_a = fetchCommands();
 		if (empty($json_a)) $json_a = [];
 		// Append our newest command to the beginning
 		array_unshift($json_a, $resultObject);
@@ -745,10 +744,8 @@ if (!function_exists('popCommand')) {
 		write_log("Popping ID of " . $id);
 		$filename= file_build_path(dirname(__FILE__), "..","rw","commands.php");
 		// Check for our JSON file and make sure we can access it
-		$contents = fetchCommands();
+		$json_a = fetchCommands();
 		// Read contents into an array
-		$jsondata = $contents;
-		$json_a = json_decode($jsondata, true);
 		$json_b = [];
 		foreach ($json_a as $command) {
 			if (strtotime($command['timestamp']) !== strtotime($id)) {
@@ -834,7 +831,7 @@ function headerRequestArray($headers) {
 
 function logUpdate(array $log) {
 	$config = file_build_path(dirname(__FILE__), "..","rw","config.ini.php");
-	$filename = file_build_path(dirname(__FILE__), 'logs', "Phlex_update.log.php");
+	$filename = file_build_path(dirname(__FILE__), "..",'logs', "Phlex_update.log.php");
 	$data['installed'] = date(DATE_RFC2822);
 	$data['commits'] = $log;
 	$config->set("general", "lastUpdate", $data['installed']);
@@ -859,7 +856,7 @@ function logUpdate(array $log) {
 
 function readUpdate() {
 	$log = false;
-	$filename = file_build_path(dirname(__FILE__), 'logs', "Phlex_update.log.php");
+	$filename = file_build_path(dirname(__FILE__), "..",'logs', "Phlex_update.log.php");
 	if (file_exists($filename)) {
 		$authString = "'; <?php die('Access denied'); ?>".PHP_EOL;
 		$file = file_get_contents($filename);
@@ -1212,8 +1209,8 @@ if (!function_exists('setDefaults')) {
 		ini_set("log_errors", 1);
 		ini_set('max_execution_time', 300);
 		error_reporting(E_ERROR);
-		$errorLogPath = file_build_path(dirname(__FILE__), 'logs', "Phlex_error.log.php");
-		//ini_set("error_log", $errorLogPath);
+		$errorLogPath = file_build_path(dirname(__FILE__),'..', 'logs', "Phlex_error.log.php");
+		ini_set("error_log", $errorLogPath);
 		date_default_timezone_set((date_default_timezone_get() ? date_default_timezone_get() : "America/Chicago"));
 	}
 }
