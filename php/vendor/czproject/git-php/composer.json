@@ -1,0 +1,22 @@
+{
+	"name": "czproject/git-php",
+	"type": "library",
+	"description": "Library for work with Git repository in PHP.",
+	"keywords": ["git"],
+	"license": "BSD-3-Clause",
+	"authors": [
+		{
+			"name": "Jan Pecha",
+			"email": "janpecha@email.cz"
+		}
+	],
+	"require": {
+		"php": ">=5.4.0"
+	},
+	"autoload": {
+		"classmap": ["src/"]
+	},
+	"require-dev": {
+		"nette/tester": "~1.1.0"
+	}
+}

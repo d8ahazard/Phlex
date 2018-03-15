@@ -4,7 +4,6 @@ self.addEventListener('install', function (e) {
 		caches.open('phlex').then(function (cache) {
 			console.log("opening caches?");
 			return cache.addAll([
-				'./',
 				'./css/loader_main.css',
 				'./css/lib/dist/support.css',
 				'./css/main_max_400.css',

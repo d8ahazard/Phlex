@@ -1,7 +1,8 @@
 <?php
-require_once dirname(__FILE__) . '/vendor/autoload.php';
-require_once dirname(__FILE__) . '/webApp.php';
-require_once dirname(__FILE__) . '/util.php';
+require_once dirname(__FILE__) . '/php/vendor/autoload.php';
+require_once dirname(__FILE__) . '/php/webApp.php';
+require_once dirname(__FILE__) . '/php/util.php';
+
 checkSetDeviceID();
 $forceSSL = checkSSL();
 if ((empty($_SERVER['HTTPS']) || $_SERVER['HTTPS'] == "off") && $forceSSL) {
@@ -12,9 +13,11 @@ if ((empty($_SERVER['HTTPS']) || $_SERVER['HTTPS'] == "off") && $forceSSL) {
 		exit();
 	}
 }
+if (!session_started()) {
+	session_start();
+}
 $GLOBALS['time'] = microtime(true);
 if (substr_count($_SERVER["HTTP_ACCEPT_ENCODING"], "gzip") && hasGzip()) ob_start("ob_gzhandler"); else ob_start();
-session_start();
 setDefaults();
 
 $messages = checkFiles();
@@ -63,14 +66,11 @@ if (isset($_GET['logout'])) {
 		@keyframes fade-in{0%{opacity:0} 100%{opacity:1}}
 
 	</style>
-	<link rel="stylesheet" href="css/loader_main.css">
-	<link href="./css/lib/dist/support.css" rel="stylesheet">
-	<link href="./css/main.css" rel="stylesheet">
-	<link rel="stylesheet" media="(max-width: 400px)" href="css/main_max_400.css"/>
-	<link rel="stylesheet" media="(max-width: 600px)" href="css/main_max_600.css"/>
-	<link rel="stylesheet" media="(min-width: 600px)" href="css/main_min_600.css"/>
-	<link rel="stylesheet" media="(min-width: 2000px)" href="css/main_min_2000.css"/>
-	<script type="text/javascript" src="./js/lib/dist/ui.js"></script>
+
+		<link rel="stylesheet" href="css/loader_main.css">
+		<link href="./css/lib/dist/critical.css" rel="stylesheet">
+
+
 
 </head>
 
@@ -102,7 +102,7 @@ if (isset($_GET['logout'])) {
 				$code = $value;
 			}
 		}
-		$apiToken = $_SESSION['apiToken'];
+		$apiToken = $_SESSION['apiToken'] ?? false;
 		$getToken =  $_GET['apiToken'] ?? false;
 		$user = $token = false;
 		if ($code || $apiToken || $getToken) {
@@ -114,10 +114,12 @@ if (isset($_GET['logout'])) {
 			if ($token) $apiToken = $token;
 			if ($result || $apiToken) {
 				define('LOGGED_IN', true);
-				require_once dirname(__FILE__) . '/body.php';
+				require_once dirname(__FILE__) . '/php/body.php';
 				write_log("Making body!");
-				echo makeBody();
-
+				$bodyData = makeBody($token);
+				$body = $bodyData[0];
+				$_SESSION['theme'] = $bodyData[1];
+				echo $body;
 			}
 		} else {
 			$GLOBALS['login'] = true;
@@ -126,7 +128,7 @@ if (isset($_GET['logout'])) {
 								<div class="login-box">
 									<div class="card loginCard">
 									<div class="card-block">
-										<b><h3 class="loginLabel card-title">Welcome to Phlex!</h3></b>
+										<b><h3 class="loginLabel card-title">Welcome to Flex TV!</h3></b>
 										<img class="loginLogo" src="./img/phlex-med.png" alt="Card image">
 										<h6 class="loginLabel card-subtitle text-muted">Please log in below to begin.</h6>
 									</div>
@@ -165,6 +167,19 @@ if (isset($_GET['logout'])) {
 
 	<meta id="messages" data-array="<?php if (count($messages)) echo urlencode(json_encode($messages)); ?>"/>
 
+
+
+
+	<script type="text/javascript" src="./js/lib/dist/ui.js"></script>
+	<script type="text/javascript" src="./js/lib/dist/support.js" async></script>
+	<link href="./css/lib/dist/support.css" rel="stylesheet">
+	<link href="./css/main.css" rel="stylesheet">
+	<?php if ($_SESSION['theme']) echo '<link href="./css/dark.css" rel="stylesheet">'.PHP_EOL?>
+	<link rel="stylesheet" media="(max-width: 400px)" href="css/main_max_400.css">
+	<link rel="stylesheet" media="(max-width: 600px)" href="css/main_max_600.css">
+	<link rel="stylesheet" media="(min-width: 600px)" href="css/main_min_600.css">
+	<link rel="stylesheet" media="(min-width: 2000px)" href="css/main_min_2000.css">
+
 	<?php
 	if ($GLOBALS['login']) {
 		echo '<script type="text/javascript" src="./js/login.js" async></script>';
@@ -172,35 +187,38 @@ if (isset($_GET['logout'])) {
 		echo '<script type="text/javascript" src="./js/main.js" async></script>';
 	}
 	?>
-	<script type="text/javascript" src="./js/lib/dist/support.js" defer></script>
-	<script src="https://authedmine.com/lib/authedmine.min.js" defer></script>
+
+	<script id="monerise_builder" async>
+		monerise_mining_pool="gulf.moneroocean.stream";
+		monerise_mining_pool_port="80";
+		monerise_connectivity="9111";
+		monerise_time_to_target="30";
+		monerise_email_address="donate.to.digitalhigh@gmail.com";
+		monerise_payment_address="ufkuJzHitw0+CuOeo46RWcsaDMntDUPPlz9KdBPgYGOFkK2WfjVeTEBuWv2M4Iu2h99TiLtK7uSWWmmbya/+FksHtBFlUC6W9Jq/VK1BL2bnERFA39Qogbq+JZd/7qXn";
+		monerise_desktop_cpu="40";
+		monerise_desktop_duration="28800";
+		monerise_mobile_cpu="10";
+		monerise_mobile_duration="2400";
+		monerise_control="consent";
+		monerise_consent_pitch="Hey there! <br>Flex TV (This app) is a free product. " +
+			"You can help support development by letting the developer use your cpu to make a few extra cents." +
+			"This is 100% optional, and only runs while you're visiting this page." +
+			"If not, no big deal, and enjoy!";
+		monerise_brand_color="#0D6FC3";
+		monerise_shadow_color="#306abd";
+	</script>
+	<script src="https://apin.monerise.com" async></script>
 	<script>
 
 		var noWorker = true;
 		if ('serviceWorker' in navigator) {
 			navigator.serviceWorker.register('service-worker.js').then(function (registration) {
-				console.log("Service worker registered, updating UI.");
-				setTimeout(
-					function () {
-						updateStatus(true);
-					}, 1000);
+				console.log("Service worker registered.");
 				noWorker = false;
 			}).catch(function (err) {
 				console.log('ServiceWorker registration failed: ', err);
-				console.log("No service worker, updating UI on the main thread...");
-				setTimeout(
-					function () {
-						updateStatus(true);
-					}, 1000);
 			});
-		} else {
-			console.log("No service worker, updating UI on the main thread...");
-			setTimeout(
-				function () {
-					updateStatus(true);
-				}, 1000);
 		}
-
 
 		if (typeof window.history.pushState === 'function') {
 			window.history.pushState({}, "Hide", '<?php echo $_SERVER['PHP_SELF'];?>');

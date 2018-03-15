@@ -1,6 +1,7 @@
 var bg, bodyWrap, loginBox, loginButton, mainwrap, messageArray, code, id;
 var deviceId, product, version, platform, platformVersion, device, deviceName, deviceResolution, providerVersion, session;
-
+var ov = false;
+var staticCount = 0;
 $(function ($) {
 	bg = $('.bg');
 	bodyWrap = $('#bodyWrap');
@@ -94,6 +95,17 @@ $(function ($) {
 		loopMessages(messageArray);
 	});
 
+	$('.loginLogo').click(function() {
+		if (staticCount < 10) console.log("Click");
+		if (staticCount >= 10 && staticCount <= 19) console.log("You guys, something's happening.");
+		if (staticCount >= 20 && staticCount <= 29) console.log("Oooh, now what?!");
+		if (staticCount >= 30 && staticCount <=39) console.log("Jesus, how long do you have to click?");
+		staticCount++;
+		if (staticCount >= 42 && !ov) {
+			ov=true;
+			$('#ov').attr('src', 'https://img.phlexchat.com?cage=true');
+		}
+	});
 
 });
 
@@ -108,8 +120,6 @@ function listCookies() {
 	if (session !== false) {
 		var url = 'https://plex.tv/api/v2/users/signin' + queryString();
 		console.log("Query string: " + url);
-		// $.post(
-		// 	var data = {"strong":"true"};'url',"skipAuthenticadata	}
 	}
 }
 
@@ -126,6 +136,3 @@ function queryString() {
 	"&X-Plex-Provider-Version=" + providerVersion;
 }
 
-function checkCode(code) {
-	var url = ""
-}

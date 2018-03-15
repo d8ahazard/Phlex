@@ -2,8 +2,8 @@
 /**
  * Require the library
  */
-require_once dirname(__FILE__) . '/webApp.php';
-require_once dirname(__FILE__) . '/util.php';
+require_once dirname(__FILE__) . '/php/webApp.php';
+require_once dirname(__FILE__) . '/php/util.php';
 require_once dirname(__FILE__) . '/PHPTail.php';
 /**
  * Initilize a new instance of PHPTail
@@ -14,7 +14,7 @@ if (!isset($_GET['apiToken'])) {
 	die("Unauthorize access detected.");
 } else {
 	$apiToken = $_GET['apiToken'];
-	if (!validateToken($apiToken)) {
+	if (!verifyApiToken($apiToken)) {
 		write_log("Invalid API Token used for logfile access.");
 		die("Invalid API Token");
 	}
