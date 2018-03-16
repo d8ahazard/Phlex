@@ -200,6 +200,9 @@ class Config_Lite implements ArrayAccess, IteratorAggregate, Countable, Serializ
         } elseif (is_numeric($value)) {
             return $value;
         }
+        if ($value == 'no' || $value == 'yes') {
+
+        }
         if ($this->quoteStrings) {
             $value = str_replace($this->delim, '\\'.$this->delim, $value);
             $value = $this->delim . $value . $this->delim;
@@ -337,7 +340,30 @@ class Config_Lite implements ArrayAccess, IteratorAggregate, Countable, Serializ
         return 'no';
     }
 
-    /**
+	/**
+	 * converts a representable Config Bool Format to actual boolean
+	 *
+	 * @param string $value value
+	 *
+	 * @return string
+	 * @throws Config_Lite_Exception_UnexpectedValue when format is unknown
+	 */
+	public function fromBool($value)
+	{
+		switch($value) {
+			case 'yes':
+				return true;
+				break;
+			case 'no':
+				return false;
+				break;
+			default:
+				return $value;
+		}
+	}
+
+
+	/**
      * returns a stripslashed string
      *
      * @param string $sec     Section
@@ -399,16 +425,16 @@ class Config_Lite implements ArrayAccess, IteratorAggregate, Countable, Serializ
         }
 	if (is_array($this->sections)) {
 		if ((null !== $sec) && array_key_exists(strval($sec), $this->sections) && isset($this->sections[$sec][$key])) {
-			return $this->sections[$sec][$key];
+			return $this->fromBool($this->sections[$sec][$key]);
 		}
 	}
         // global value
         if ((null === $sec) && array_key_exists($key, $this->sections)) {
-            return $this->sections[$key];
+            return $this->fromBool($this->sections[$key]);
         }
         // section
         if ((null === $key) && array_key_exists($sec, $this->sections)) {
-            return $this->sections[$sec];
+            return $this->fromBool($this->sections[$sec]);
         }
 
         if (null !== $default) {

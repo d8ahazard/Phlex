@@ -120,7 +120,7 @@ function settingBody() {
 					        <li class='nav-item'>
 						        <a href='#musicFetcherSettingsTab' class='nav-link' data-toggle='tab' role='tab'>" . $lang["uiSettingHeaderMusic"] . "</a>
 					        </li>
-					        <li class='nav-item".$hidden."'>
+					        <li class='nav-item logNav".$hidden."'>
 						        <a href='#logTab' class='nav-link' data-toggle='tab' role='tab'>" . $lang["uiSettingHeaderLogs"] . "</a>
 					        </li>
 				            <button type='button' id='settingsClose' data-dismiss='modal' aria-label='Close'>
@@ -159,6 +159,11 @@ function settingBody() {
 					                                    </label>
 					                                </div>
 					                            </div>
+					                            <div class='noNewUsersGroup togglebutton".$hidden."'>
+					                                <label for='noNewUsers' class='appLabel checkLabel'>" . $lang["uiSettingNoNewUsers"] . "
+					                                    <input id='noNewUsers' title='".$lang["uiSettingNoNewUsersHint"]."' class='appInput' type='checkbox' " . ($_SESSION['noNewUsers'] ? 'checked' : '') . "/>
+					                                </label>
+					                           	</div>
 					                            <div class='togglebutton".$hidden."'>
 					                                <label for='cleanLogs' class='appLabel checkLabel'>" . $lang["uiSettingObscureLogs"] . "
 					                                    <input id='cleanLogs' type='checkbox' class='appInput appToggle' " . ($_SESSION['cleanLogs'] ? 'checked' : '') . "/>
@@ -167,11 +172,6 @@ function settingBody() {
 					                            <div class='togglebutton'>
 					                                <label for='darkTheme' class='appLabel checkLabel'>" . $lang["uiSettingThemeColor"] . "
 					                                    <input id='darkTheme' class='appInput' type='checkbox' " . ($_SESSION['darkTheme'] ? 'checked' : '') . "/>
-					                                </label>
-					                            </div>
-					                            <div class='togglebutton".$hidden."'>
-					                                <label for='NoNewUsers' class='appLabel checkLabel'>" . $lang["uiSettingNoNewUsers"] . "
-					                                    <input id='NoNewUsers' class='appInput' type='checkbox' " . ($_SESSION['NoNewUsers'] ? 'checked' : '') . "/>
 					                                </label>
 					                            </div>
 					                            <div class='togglebutton".$hidden."'>
@@ -382,12 +382,12 @@ function settingBody() {
 				                                    </div>
 					                                <div class='form-group'>
 					                                    <label for='plexDvrStartOffsetMinutes' class='appLabel'>" . $lang["uiSettingDvrStartOffset"] . "
-					                                        <input id='plexDvrStartOffsetMinutes' class='appInput form-control' type='number' min='1' max='30' value='" . $_SESSION['plexDvrStartOffsetMinutes'] . "' />
+					                                        <input id='plexDvrStartOffsetMinutes' class='appInput form-control' type='number' min='1' max='30' value='" . $_SESSION['plexDvrStartOffsetMinutes']  . "' />
 					                                    </label>
 					                                </div>
 					                                <div class='form-group'>
 					                                    <label for='plexDvrEndOffsetMinutes' class='appLabel'>" . $lang["uiSettingDvrEndOffset"] . "
-					                                        <input id='plexDvrEndOffsetMinutes' class='appInput form-control' type='number' min='1' max='30' value='" . $_SESSION['plexDvrEndOffsetMinutes'] . "' />
+					                                        <input id='plexDvrEndOffsetMinutes' class='appInput form-control' type='number' min='1' max='30' value='" . $_SESSION['plexDvrEndOffsetMinutes']  . "' />
 					                                    </label>
 					                                </div>
 					
@@ -694,14 +694,11 @@ function settingBody() {
 				                        </label>
 				                        <div id='log'>
 								             <div id='logInner'>
-								                  <div class='modal-body' id='logBody'>
-								                        <div class='card'>
-								                            <div class='card-body'>
-								                                <h4 class='cardHeader' id='updateHeader'>" . $lang["uiSettingLogupdate"] ."</h4>
-								                                <div class='form-group' id='logBody'/>
-															</div>
-														</div>
-								                  </div>
+								                  
+								                 <div>
+								                     <iframe class='card card-body' id='logFrame' src=''></iframe>															
+												 </div>
+								                  
 								             </div> 
 								        </div>
 				                        <a class='logbutton' href='log.php?apiToken=$apiToken' target='_blank'>

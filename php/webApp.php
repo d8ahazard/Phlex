@@ -4,8 +4,6 @@ require_once dirname(__FILE__). '/util.php';
 use Cz\Git\GitRepository;
 $configFile = file_build_path(dirname(__FILE__), "..","rw","config.ini.php");
 $GLOBALS['config'] = new Config_Lite($configDir, LOCK_EX);
-$_SESSION['webApp'] = false;
-$GLOBALS['webApp'] = false;
 
 function checkFiles() {
 	if (isset($_SESSION['webApp'])) return [];

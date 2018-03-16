@@ -22,6 +22,47 @@ function plexSignIn($token) {
 	return $user;
 }
 
+// Sign in, get a token if we need it
+if (!function_exists('verifyPlexToken')) {
+	function verifyPlexToken($token) {
+		$user = $userData = false;
+		$url = "https://plex.tv/users/account?X-Plex-Token=$token";
+		$result = curlGet($url);
+		$data = $result ? flattenXML(new SimpleXMLElement($result)) : false;
+		if ($data) {
+			write_log("Received userdata from Plex: " . json_encode($data));
+			$userData = [
+				'plexUserName' => $data['title'] ?? $data['username'],
+				'plexEmail' => $data['email'],
+				'plexAvatar' => $data['thumb'],
+				'plexPassUser' => ($data['roles']['role']['id'] == "plexpass") ? "1" : "0",
+				'appLanguage' => $data['profile_settings']['default_subtitle_language'],
+				'plexToken' => $data['authToken']
+			];
+		}
+		if ($userData) {
+			write_log("Recieved valid user data.", "INFO");
+			$user = fetchUser($userData);
+			if (!$user) {
+				$webApp = $_SESSION['webApp'] ?? false;
+				if (!$webApp) {
+					$configFile = file_build_path(dirname(__FILE__), "..", "rw", "config.ini.php");
+					$config = new Config_Lite($configFile, LOCK_EX);
+					$noNewUsers = $config->getBool("general", "noNewUsers", false);
+				} else $noNewUsers = false;
+				$user = $noNewUsers ? false : newUser($userData);
+				if (!$user) return "Not allowed.";
+			}
+		}
+
+		if ($user) {
+			$_SESSION['apiToken'] = $user['apiToken'];
+			updateUserPreferenceArray($user);
+		}
+		return $user;
+	}
+}
+
 if (!function_exists('fetchUser')) {
 	function fetchUser($userData) {
 		$configFile = file_build_path(dirname(__FILE__), "..","rw","config.ini.php");
@@ -39,12 +80,26 @@ if (!function_exists('fetchUser')) {
 	}
 }
 
+function firstUser() {
+	$configFile = file_build_path(dirname(__FILE__), "..","rw","config.ini.php");
+	$config = new Config_Lite($configFile, LOCK_EX);
+	$firstUser = true;
+	foreach($config as $key => $section) {
+		if ($key !== 'general') {
+			$firstUser = false;
+		}
+	}
+	return $firstUser;
+}
+
 if (!function_exists('fetchUserData')) {
 	function fetchUserData() {
 		$configFile = file_build_path(dirname(__FILE__), "..","rw","config.ini.php");
 		$config = new Config_Lite($configFile, LOCK_EX);
+		$noNewUsers = $config->getBool('general','noNewUsers',false);
 		foreach ($config as $token => $data) {
 			if ($token == $_SESSION['apiToken']) {
+				$data['noNewUsers'] = $noNewUsers;
 				return $data;
 			}
 		}
@@ -69,12 +124,13 @@ if (!function_exists('newUser')) {
 			'radarrUri' => 'http://localhost',
 			'plexDvrResolution' => '0',
 			'plexDvrNewAirings' => 'true',
-			'plexDvrStartOffset' => '2',
-			'plexDvrEndOffset' => '2',
+			'plexDvrStartOffsetMinutes' => '2',
+			'plexDvrEndOffsetMinutes' => '2',
 			'appLanguage' => 'en',
 			'searchAccuracy' => '70',
-			'darkTheme' => 1,
-			'hasPlugin' => 0
+			'darkTheme' => true,
+			'hasPlugin' => false,
+			'masterUser' =>firstUser()
 		];
 
 		$userData = array_merge($defaults, $user);
@@ -89,13 +145,26 @@ if (!function_exists('updateUserPreferenceArray')) {
 		$configFile = file_build_path(dirname(__FILE__), "..","rw","config.ini.php");
 		$config = new Config_Lite($configFile, LOCK_EX);
 		$apiToken = $_SESSION['apiToken'] ?? false;
+		$session = [];
 		if (trim($apiToken)) {
 			write_log("Updating session and saved values with array: " . json_encode($array));
-			foreach ($array as $key => $value) {
-				if (is_bool($value)) {
-
+			try {
+				foreach ($array as $key => $value) {
+					$value = toBool($value);
+					$sessionValue = $value;
+					if ($value == 'yes') $sessionValue = true;
+					if ($value == 'no') $sessionValue = false;
+					$session[$key] = $sessionValue;
+					$apiToken = ($key === 'noNewUsers') ? 'general' : $apiToken;
+					$master = $_SESSION['masterUser'] ?? false;
+					if ($key === 'noNewUsers' && !$master) {
+						write_log("Error, someone's trying to change things they shouldn't be.","ERROR");
+						break;
+					}
+					$config->set($apiToken, $key, $value);
 				}
-				$config->set($apiToken, $key, $value);
+			} catch (Config_Lite_Exception $e) {
+				write_log("Error saving key $key: $e","ERROR");
 			}
 			writeSessionArray($array);
 			saveConfig($config);
@@ -107,13 +176,28 @@ if (!function_exists('updateUserPreferenceArray')) {
 
 if (!function_exists('updateUserPreference')) {
 	function updateUserPreference($key, $value) {
+		$value = toBool($value);
+		$sessionValue = $value;
+		if ($value == 'yes') $sessionValue = true;
+		if ($value == 'no') $sessionValue = false;
+		$session[$key] = $sessionValue;
 		$configFile = file_build_path(dirname(__FILE__), "..","rw","config.ini.php");
 		$config = new Config_Lite($configFile, LOCK_EX);
 		$apiToken = $_SESSION['apiToken'] ?? false;
+		$apiToken = ($key=='noNewUsers') ? 'general' : $apiToken;
 		if (trim($apiToken)) {
 			write_log("Updating session value and saving $key as $value", "INFO");
-			writeSession($key,$value);
-			$config->set($apiToken, $key, $value);
+			$master = $_SESSION['masterUser'] ?? false;
+			if ($key === 'noNewUsers' && !$master) {
+				write_log("Error, someone's trying to change things they shouldn't be.","ERROR");
+				return false;
+			}
+			writeSession($key,$sessionValue);
+			try {
+				$config->set($apiToken, $key, $value);
+			} catch (Config_Lite_Exception $e) {
+				write_log("Error saving key $key: $e","ERROR");
+			}
 			saveConfig($config);
 		} else {
 			write_log("No session username, can't save value.");
@@ -121,38 +205,6 @@ if (!function_exists('updateUserPreference')) {
 	}
 }
 
-// Sign in, get a token if we need it
-if (!function_exists('verifyPlexToken')) {
-	function verifyPlexToken($token) {
-		$user = $userData = false;
-		$url = "https://plex.tv/users/account?X-Plex-Token=$token";
-		$result = curlGet($url);
-		$data = $result ? flattenXML(new SimpleXMLElement($result)) : false;
-		if ($data) {
-			write_log("Received userdata from Plex: " . json_encode($data));
-			$userData = [
-				'plexUserName' => $data['title'] ?? $data['username'],
-				'plexEmail' => $data['email'],
-				'plexAvatar' => $data['thumb'],
-				'plexPassUser' => ($data['roles']['role']['id'] == "plexpass") ? "1" : "0",
-				'appLanguage' => $data['profile_settings']['default_subtitle_language'],
-				'plexToken' => $data['authToken']
-			];
-		}
-		if ($userData) {
-			write_log("Recieved valid user data.", "INFO");
-			$user = fetchUser($userData);
-			if (!$user) $user = newUser($userData);
-		}
-
-
-		if ($user) {
-			$_SESSION['apiToken'] = $user['apiToken'];
-			updateUserPreferenceArray($user);
-		}
-		return $user;
-	}
-}
 
 if (!function_exists('verifyApiToken')) {
 	function verifyApiToken($apiToken) {
@@ -1292,16 +1344,19 @@ function xmlToJson($data) {
 
 
 	function toBool($var) {
-		if (is_bool($var)) return $var;
-		if (!is_string($var)) return $var;
-		switch (strtolower($var)) {
-			case 'true':
-				return true;
-			case 'false':
-				return false;
-			default:
-				return $var;
+		$webApp = $_SESSION['webApp'] ?? false;
+		if (is_bool($var) || is_int($var)) {
 		}
+		if (is_string($var)) {
+			if (strtolower($var) === 'true') {
+				return $webApp ? true : 'yes';
+			}
+			if (strtolower($var) === 'false') {
+				return $webApp ? false : 'no';
+			}
+		}
+
+		return $var;
 	}
 
 	if (!function_exists("checkSSL")) {
@@ -2374,9 +2429,13 @@ function xmlToJson($data) {
 	}
 
 	function checkGit() {
-		exec("git", $lines);
-		write_log("Git result: ".json_encode($lines),"INFO",false,true);
-		return ((preg_match("/git help/", implode(" ", $lines))) && (file_exists(dirname(__FILE__) . '/../.git')));
+		if (isset($_SESSION['hasGit'])) {
+			return $_SESSION['hasGit'];
+		} else {
+			exec("git", $lines);
+			$hasGit = ((preg_match("/git help/", implode(" ", $lines))) && (file_exists(dirname(__FILE__) . '/../.git')));
+			writeSession('hasGit',$hasGit);
+		}
 	}
 
 	/* gets content from a URL via curl */

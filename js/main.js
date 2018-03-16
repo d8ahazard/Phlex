@@ -3,9 +3,10 @@ var apiToken, appName, bgs, bgWrap, cv, token, newToken, deviceID, resultDuratio
 	messageArray, publicIP, weatherClass, city, state, updateAvailable,
 	weatherHtml, scrollTimer, direction, progressSlider, volumeSlider;
 
-var couchEnabled=false, lidarrEnabled=false, ombiEnabled=false, sickEnabled=false, sonarrEnabled=false, radarrEnabled=false,
+var cleanLogs=true, couchEnabled=false, lidarrEnabled=false, ombiEnabled=false, sickEnabled=false, sonarrEnabled=false, radarrEnabled=false,
 	headphonesEnabled=false, watcherEnabled=false, dvrEnabled=false, hook=false, hookPlay=false, polling=false, pollcount=false,
-	hookPause=false, hookStop=false, hookCustom=false, hookFetch=false, hookSplit = false, autoUpdate = false;
+	hookPause=false, hookStop=false, hookCustom=false, hookFetch=false, hookSplit = false, autoUpdate = false, masterUser = false,
+	noNewUsers=false;
 
 var forceUpdate = true;
 
@@ -176,6 +177,7 @@ function scaleElements() {
 	if (winWidth <= 340) commandTest.html(javaStrings[1]);
 	if ((winWidth >= 341) && (winWidth <= 400)) commandTest.html(javaStrings[1]);
 	if (winWidth >= 401) commandTest.html(javaStrings[0]);
+	$('#logFrame').height(($(window).height()/3) * 2);
 }
 
 function setBackground() {
@@ -257,9 +259,6 @@ function updateStatus() {
 						case "devices":
 							updateDevices(data.devices);
 							break;
-						case "logs":
-							$('#logBody').html(formatLog(JSON.parse(data.logs)));
-							break;
 						case "playerStatus":
 							updatePlayerStatus(data.playerStatus);
 							break;
@@ -306,6 +305,10 @@ function setUiVariables(data) {
 			case 'hookCustom':
 			case 'hookSplit':
 			case 'dvrEnabled':
+			case 'noNewUsers':
+			case 'masterUser':
+			case 'cleanLogs':
+			case 'autoUpdate':
 				value = JSON.parse(data[propertyName]);
 				if(window[propertyName] !== value) {
 					console.log("Updating " + propertyName + " to " + value);
@@ -353,28 +356,28 @@ function toggleGroups() {
 		"hookCustom": hookCustom,
 		"hookSplit": hookSplit,
 		"hook": hook,
-		"dvr": dvrEnabled
+		"dvr": dvrEnabled,
+		"masterUser": masterUser
 	};
-	for (var key in vars){
 
+	for (var key in vars){
 		if (vars.hasOwnProperty(key)) {
 			var value = vars[key];
 			console.log("Setting " + key + " to ",value);
 			var element = $('#'+key);
 			var group = (key === 'hookSplit') ? $('.'+key+'Group') : group = $('#'+key+'Group');
+			group = (value === 'masterUser') ?  $('.noNewUsersGroup') : group;
 
 			if (element.prop('checked') != value) {
 				element.prop('checked', value);
 			}
 
 			if (value) {
-					group.show();
-					console.log("Showing ", group);
-
+				group.show();
+				console.log("Showing ", group);
 			} else {
-					group.hide();
-					console.log("Hiding ", group);
-
+				group.hide();
+				console.log("Hiding ", group);
 			}
 		}
 	}
@@ -577,66 +580,11 @@ function msToTime(duration) {
 }
 
 
-function formatLog(logJSON) {
-	if (lastLog !== logJSON) {
-		var htmlOut = '';
-		$.each(logJSON, function (index, line) {
-			var skip = false;
-			var alertClass;
-			switch (line.level) {
-				case "DEBUG":
-					alertClass = "alert alert-success";
-					if (logLevel === "INFO") skip = true;
-					if (logLevel === "WARN") skip = true;
-					if (logLevel === "ERROR") skip = true;
-					break;
-				case "INFO":
-					alertClass = "alert alert-info";
-					if (logLevel === "WARN") skip = true;
-					if (logLevel === "ERROR") skip = true;
-					break;
-				case "WARN":
-					alertClass = "alert alert-warning";
-					if (logLevel === "ERROR") skip = true;
-					break;
-				case "ERROR":
-					alertClass = "alert alert-danger";
-					break;
-			}
-			if (!skip) {
-				var logHTML = "";
-				if (line.hasOwnProperty('JSON')) {
-					logHTML = "<br>";
-					try {
-						var logJSON = JSON.parse(line.JSON);
-						logHTML = logHTML + recurseJSON(logJSON);
-					} catch (err) {
-
-					}
-
-				}
-				htmlOut = htmlOut + '<div class="' + alertClass + '">' +
-					'<p class="badge badge-custom"><b>' + line.time + '</b></p>' +
-					'<p class="badge badge-default">' + line.caller + '</p><br>' +
-					'<span>' + line.message + logHTML + '</span></div>';
-			}
-		});
-		if (htmlOut === '') htmlOut = '<div class="alert alert-info">' +
-			'<span class="badge badge-default"><b>No records found.</b></span>' +
-
-			'</div>';
-		lastLog = logJSON;
-		return htmlOut;
-	}
-}
-
-
 // Scale the dang diddly-ang slider to the correct width, as it doesn't like to be responsive by itself
 $(window).on('resize', function () {
 	// TODO: Make sure this isn't needed anymore
 	scaleSlider();
 });
-
 
 // Show/hide the now playing footer when scrolling
 var userScrolled = false;
@@ -1097,6 +1045,18 @@ function setListeners() {
 		}
 		updateDevice('Client', clientId, apiToken);
 	});
+
+	$(document).on('click', '.nav-item', function () {
+		var frame = $('#logFrame');
+		if($(this).hasClass('logNav')) {
+			apiToken = $('#apiTokenData').data('token');
+			frame.attr('src',"log.php?noHeader=true&apiToken=" + apiToken);
+		} else {
+			frame.attr('src',"");
+		}
+
+	});
+
 
 	$("#serverList").change(function () {
 		var serverID = $(this).val();

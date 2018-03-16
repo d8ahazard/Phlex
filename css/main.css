@@ -40,20 +40,24 @@ a, .barBtn, .clientBtn, .sendBtn, .appLabel, .btnAdd {
 	color: var(--theme-primary-inverse-75) !important;
 }
 
-
+#logFrame {
+	width: 100%;
+	height: 100%;
+}
 
 .dd-selected {
 	font-style: italic;
 	color: var(--theme-primary-75) !important;
 }
 
-a:hover, .barBtn:hover, .barBtn:hover, .barBtn:hover > .clientBtn, .barBtn:hover > .ddLabel {
+a:hover:not(#executeButton), .barBtn:hover, .barBtn:hover, .barBtn:hover > .clientBtn, .barBtn:hover > .ddLabel {
 	color: var(--theme-primary-75) !important;
 }
 
-.dd-selected, a:hover,  .btn-primary:hover, .barBtn:hover, .btn-info {
+.dd-selected, a:hover:not(#executeButton),  .btn-primary:hover, .barBtn:hover, .btn-info {
 	background-color: var(--theme-accent) !important;
 }
+
 
 .nav-item > .nav-link, .appContainer, .userGroup *, .form-control, .text-muted {
 	color: var(--theme-primary-shade2) !important;
@@ -68,6 +72,9 @@ a:hover, .barBtn:hover, .barBtn:hover, .barBtn:hover > .clientBtn, .barBtn:hover
 	color: var(--theme-primary-shade3) !important;
 }
 
+.sendBtn:hover {
+	color: var(--theme-accent-dark) !important;
+}
 
 .nowPlayingFooter, .snackbar, modal-backdrop {
 	background-color: var(--theme-primary-inverse);

@@ -35,12 +35,13 @@ class PHPTail {
      * @param integer $defaultUpdateTime The time between AJAX requests to the server.
      * @param integer $maxSizeToLoad This variable holds the maximum amount of bytes this application can load into memory (in bytes). Default is 2 Megabyte = 2097152 byte
      */
-    public function __construct($log, $defaultUpdateTime = 1000, $maxSizeToLoad = 2097152,$token) {
+    public function __construct($log, $defaultUpdateTime = 1000, $maxSizeToLoad = 2097152,$token,$noHeader=false) {
         $this->log = is_array($log) ? $log : array($log);
         $this->updateTime = $defaultUpdateTime;
         $this->maxSizeToLoad = $maxSizeToLoad;
         $this->apiToken = $token;
         $this->count = 0;
+        $this->noHeader = $noHeader;
     }
 
 	function json_validate($string)
@@ -473,7 +474,7 @@ console.log(e);
 </script>
 </head>
 <body>
-    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation" <?php if ($this->noHeader) echo 'style="display:none"'?>>
         <div class="container">
             <div class="navbar-header">
                 <a class="navbar-brand" href="#">Phlex.log</a>

@@ -156,30 +156,7 @@ function initialize() {
 			if (!$value) $valid = false;
 		}
 		if (preg_match("/Path/", $id)) if ((substr($value, 0, 1) != "/") && (trim($value) !== "")) $value = "/" . $value;
-		if (preg_match("/static_/", $id)) {
-			$devId = explode("_", $id)[1];
-			$subKey = str_replace([
-				'[',
-				']'
-			], '', explode("_", $id)[2]);
-			$device = $GLOBALS['config']->get($_SESSION['apiToken'], "static_" . $devId . "_");
-			$device[$subKey] = $value;
-			updateUserPreference('static_' . $devId . "_", $device);
-			$newClients = [];
-			$pushed = false;
-			foreach ($_SESSION['deviceList']['Client'] as $client) {
-				if ($client['id'] === $devId) {
-					write_log("Replacing existing client.");
-					$client = $device;
-					$pushed = true;
-				}
-				array_push($newClients, $client);
-			}
-			if (!$pushed) array_push($newClients, $device);
-			writeSession("deviceList", ['Client' => $newClients]);
-			write_log("New device list: " . json_encode($_SESSION['deviceList']));
-			die();
-		}
+
 		if ($valid) {
 			updateUserPreference($id, $value);
 			if ((trim($id) === 'useCast') || (trim($id) === 'noLoop')) scanDevices(true);

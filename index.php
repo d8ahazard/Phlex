@@ -113,16 +113,26 @@ if (isset($_GET['logout'])) {
 			if ($user) $token = $user['apiToken'] ?? false;
 			if ($token) $apiToken = $token;
 			if ($result || $apiToken) {
-				define('LOGGED_IN', true);
-				require_once dirname(__FILE__) . '/php/body.php';
-				write_log("Making body!");
-				$bodyData = makeBody($token);
-				$body = $bodyData[0];
-				$_SESSION['theme'] = $bodyData[1];
-				echo $body;
+				if ($result == "Not allowed.") {
+					showError();
+				} else {
+					define('LOGGED_IN', true);
+					require_once dirname(__FILE__) . '/php/body.php';
+					write_log("Making body!");
+					$bodyData = makeBody($token);
+					$body = $bodyData[0];
+					$_SESSION['theme'] = $bodyData[1];
+					echo $body;
+				}
 			}
 		} else {
-			$GLOBALS['login'] = true;
+			showLogin();
+	}
+	$execution_time = (microtime(true) - $GLOBALS['time']);
+
+	write_log("Execution time till body echo was $execution_time seconds.");
+	function showLogin() {
+		$GLOBALS['login'] = true;
 		echo '
 							<div class="loginBox">
 								<div class="login-box">
@@ -143,9 +153,23 @@ if (isset($_GET['logout'])) {
 							</div>' .
 			headerhtml();
 	}
-	$execution_time = (microtime(true) - $GLOBALS['time']);
 
-	write_log("Execution time till body echo was $execution_time seconds.");
+	function showError() {
+		write_log("A new user tried to sign in, but new users are not allowed!","ERROR");
+		$GLOBALS['login'] = true;
+		echo '
+							<div class="loginBox">
+								<div class="login-box">
+									<div class="card loginCard">
+									<div class="card-block">
+										<b><h3 class="loginLabel card-title">NOT ALLOWED!</h3></b>
+										<img class="loginLogo" src="./img/phlex-med.png" alt="Card image">
+										<h6 class="loginLabel card-subtitle text-muted">Sorry, the administrator has disabled new logins.</h6>
+									</div>
+								</div>
+							</div>' .
+			headerhtml();
+	}
 	?>
 	</div>
 

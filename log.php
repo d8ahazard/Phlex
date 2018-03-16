@@ -25,8 +25,8 @@ $logs = array(
 	"Error Log" => dirname(__FILE__)."/logs/Phlex_error.log.php",
 
 );
-
-$tail = new PHPTail($logs,1000,2097152,$apiToken);
+$noHeader = $_GET['noHeader'] ?? false;
+$tail = new PHPTail($logs,1000,2097152,$apiToken,$noHeader);
 
 /**
  * We're getting an AJAX call
