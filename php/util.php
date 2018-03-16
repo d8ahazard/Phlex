@@ -2,6 +2,7 @@
 
 require_once dirname(__FILE__) . "/webApp.php";
 require_once dirname(__FILE__) . '/vendor/autoload.php';
+use Cz\Git\GitRepository;
 
 function plexSignIn($token) {
 	$url = "https://plex.tv/pins/$token.xml";
@@ -2277,7 +2278,8 @@ function xmlToJson($data) {
 						$revision = $repo->getRev();
 						$logHistory = readUpdate();
 						if ($revision) {
-							$config = file_build_path(dirname(__FILE__), "..","rw","config.ini.php");
+							$configFile = file_build_path(dirname(__FILE__), "..","rw","config.ini.php");
+							$config = new Config_Lite($configFile);
 							$old = $config->get('general', 'revision', false);
 							if ($old !== $revision) {
 								$config->set('general', 'revision', $revision);
@@ -2373,7 +2375,8 @@ function xmlToJson($data) {
 
 	function checkGit() {
 		exec("git", $lines);
-		return ((preg_match("/git help/", implode(" ", $lines))) && (file_exists(dirname(__FILE__) . '/.git')));
+		write_log("Git result: ".json_encode($lines),"INFO",false,true);
+		return ((preg_match("/git help/", implode(" ", $lines))) && (file_exists(dirname(__FILE__) . '/../.git')));
 	}
 
 	/* gets content from a URL via curl */
