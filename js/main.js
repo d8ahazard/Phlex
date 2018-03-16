@@ -1074,7 +1074,7 @@ function setListeners() {
 				if (action === 'test') {
 					apiToken = $('#apiTokenData').data('token');
 
-					regUrl = 'https://app.phlexchat.com/api.php?apiToken=' + apiToken + "&serverAddress=" + encodeURIComponent(serverAddress) + "&test=true";
+					regUrl = 'https://phlexchat.com/api.php?apiToken=' + apiToken + "&serverAddress=" + encodeURIComponent(serverAddress) + "&test=true";
 					$.get(regUrl, function (data) {
 						console.log("Data: " + data);
 						$.snackbar({content: data});
