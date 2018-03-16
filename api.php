@@ -88,7 +88,6 @@ function initialize() {
 		if (substr_count($_SERVER["HTTP_ACCEPT_ENCODING"], "gzip")) ob_start("ob_gzhandler"); else ob_start();
 		$force = ($_GET['force'] === 'true');
 		$result = fetchUiData($force);
-		if (isset($result['commands'])) write_log("UI DATA: " . json_encode($result),"INFO",false,true);
 		header('Content-Type: application/json');
 		echo JSON_ENCODE($result);
 		bye();

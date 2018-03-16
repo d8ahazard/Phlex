@@ -153,11 +153,6 @@ function settingBody() {
 					                            </div>
 					                            <div class='form-group'>
 					                                <div class='form-group'>
-					                                    <label for='searchAccuracy' class='appLabel'>" . $lang["uiSettingSearchAccuracy"] . "
-					                                        <input id='searchAccuracy' class='appInput form-control' type='number' min='5' max='100' value='" . $_SESSION['searchAccuracy'] . "' />
-					                                    </label>
-					                                </div>
-					                                <div class='form-group'>
 					                                    <label for='rescanTime' class='appLabel'>" . $lang["uiSettingRescanInterval"] . "
 					                                        <input id='rescanTime' class='appInput form-control' type='number' min='10' max='30' value='" . $_SESSION['rescanTime'] . "' />
 					                                        <span class='bmd-help'>" . $lang["uiSettingRescanHint"] . "</span>
