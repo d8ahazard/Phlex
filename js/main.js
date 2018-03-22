@@ -6,7 +6,7 @@ var apiToken, appName, bgs, bgWrap, cv, token, newToken, deviceID, resultDuratio
 var cleanLogs=true, couchEnabled=false, lidarrEnabled=false, ombiEnabled=false, sickEnabled=false, sonarrEnabled=false, radarrEnabled=false,
 	headphonesEnabled=false, watcherEnabled=false, dvrEnabled=false, hook=false, hookPlay=false, polling=false, pollcount=false,
 	hookPause=false, hookStop=false, hookCustom=false, hookFetch=false, hookSplit = false, autoUpdate = false, masterUser = false,
-	noNewUsers=false;
+	noDvrs=true,noNewUsers=false;
 
 var forceUpdate = true;
 
@@ -218,7 +218,6 @@ function updateStatus() {
 		polling = true;
 		pollcount = 1;
 		$.get('api.php?pollPlayer&apiToken=' + apiToken + '&force=' + force + '&logLimit=' + logLimit, function (data) {
-			console.log("Received poll data.");
 			if (data !== null) {
 
 				if (data.hasOwnProperty('ui')) {
@@ -249,8 +248,10 @@ function updateStatus() {
 							break;
 						case "messages":
 							messages = data.messages;
-							for (msg in messages) {
-								//Show a message
+                            for (var i = 0, l = messages.length; i < l; i++) {
+                            	var msg = messages[i];
+								console.log("Showing message: ",msg);
+								showMessage(msg.title,msg.message,msg.url);
 							}
 							break;
 						case "updates":
@@ -309,7 +310,7 @@ function setUiVariables(data) {
 			case 'masterUser':
 			case 'cleanLogs':
 			case 'autoUpdate':
-				value = JSON.parse(data[propertyName]);
+				var value = JSON.parse(data[propertyName]);
 				if(window[propertyName] !== value) {
 					console.log("Updating " + propertyName + " to " + value);
 					window[propertyName] = value;

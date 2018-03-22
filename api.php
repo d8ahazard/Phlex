@@ -386,6 +386,7 @@ function getUiData($force = false) {
 	} else {
 
 		$updated = $_SESSION['updated'] ?? false;
+		unset($_SESSION['updated']);
 		if (is_array($updated)) {
 			write_log("Data: ".json_encode($updated));
 			foreach($updated as $key=>$value) {
@@ -398,12 +399,10 @@ function getUiData($force = false) {
 			}
 			write_log("Echoing new userdata: ".json_encode($updated), "INFO", false, true);
 			$result['userData'] = $_SESSION['updated'];
-			unset($_SESSION['updated']);
 		}
 		$deviceUpdated = $_SESSION['devices'] !== $deviceText;
 		if ($deviceUpdated) {
-			write_log("Echoing new device list.", "INFO", false, true);
-			$result['devices'] = $devices;
+		   $result['devices'] = $devices;
 			writeSession('devices',$deviceText);
 		}
 		$sessionCommands = $_SESSION['commands'] ?? [];
@@ -443,6 +442,10 @@ function getUiData($force = false) {
 		$lines = $_GET['logLimit'] ?? 50;
 		$result['logs'] = formatLog(tailFile(file_build_path(dirname(__FILE__), "logs", "Phlex.log.php"), $lines));
 	}
+	if (isset($_SESSION['messages'])) {
+	    write_log("Messages!");
+	    $result['messages'] = $_SESSION['messages'];
+    }
 	return $result;
 }
 
@@ -2373,15 +2376,17 @@ function scanDevices($force = false) {
 					}
 				}
 			} else {
+			    write_log("NO PLUGIN DETECTED!!","ERROR",false,true);
 				writeSession('alertPlugin', true);
 			}
 			// If this has never been set before
 			if (!isset($_SESSION['alertPlugin'])) updateUserPreference('alertPlugin', true);
 			if ($_SESSION['alertPlugin'] && !$_SESSION['hasPlugin']) {
-				$message = "No FlexTV plugin detected. Click here to find out how to get it.";
+			    write_log("Building message now!","INFO");
+				$message = "The Cast plugin was not found on any of your servers. Click here to find out how to get it.";
 				$alert = [
 					[
-						'title' => 'FlexTV Plugin Not Found.',
+						'title' => 'Cast Plugin Not Found!',
 						'message' => $message,
 						'url' => "https://github.com/d8ahazard/FlexTV.bundle"
 					]
@@ -2600,7 +2605,8 @@ function setSelectedDevice($type,$id) {
         updateUserPreferenceArray($push);
     } else {
         if ($type == 'Dvr') {
-            updateUserPreference('plexDvrId',false);
+		$dvr = $_SESSION['plexDvrId'] ?? false;
+		if ($dvr) updateUserPreference('plexDvrId',false);
         }
     }
     return $list;

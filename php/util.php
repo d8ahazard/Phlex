@@ -1799,7 +1799,6 @@ function plexHeaders($device=false) {
 }
 
 function plexSignIn($token) {
-    write_log("Function fired.");
 	$url = "https://plex.tv/pins/$token.xml";
 	$user = $token = false;
 	$headers = headerRequestArray(plexHeaders());
@@ -2199,20 +2198,17 @@ function writeSession($key, $value, $unset = false) {
 }
 
 function writeSessionArray($array, $unset = false) {
-	$token = $_SESSION['apiToken'];
-//	if (!session_started()) {
-//		session_id($token);
-//		session_start();
-//	} else {
-//		write_log("Session is already started?","WARN");
-//	}
 	if ($unset) {
 		foreach($array as $key=>$value) {
 			unset($_SESSION[$key]);
 		}
 	} else {
 		foreach($array as $key=>$value) {
-			$_SESSION["$key"] = $value;
+		    if ($key === 'updated' && empty($value)) {
+
+            } else {
+                $_SESSION["$key"] = $value;
+            }
 		}
 	}
 	//session_write_close();
