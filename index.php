@@ -1,13 +1,16 @@
 <?php
 require_once dirname(__FILE__) . '/php/vendor/autoload.php';
-require_once dirname(__FILE__) . '/php/webApp.php';
+require_once dirname(__FILE__) . "/php/webApp.php";
+$homeApp = dirname(__FILE__) . '/php/homeApp.php';
+if (file_exists($homeApp)) require_once $homeApp;
 require_once dirname(__FILE__) . '/php/util.php';
+
 
 checkSetDeviceID();
 $forceSSL = checkSSL();
 if ((empty($_SERVER['HTTPS']) || $_SERVER['HTTPS'] == "off") && $forceSSL) {
 	$redirect = 'https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
-	if (isDomainAvailible($redirect)) {
+	if (isDomainAvailable($redirect)) {
 		header('HTTP/1.1 301 Moved Permanently');
 		header('Location: ' . $redirect);
 		exit();

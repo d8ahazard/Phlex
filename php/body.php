@@ -1,7 +1,5 @@
 <?php
 require_once dirname(__FILE__) . '/vendor/autoload.php';
-require_once dirname(__FILE__) . '/webApp.php';
-require_once dirname(__FILE__) . '/util.php';
 require_once dirname(__FILE__) . '/../api.php';
 
 
@@ -61,11 +59,26 @@ function makeBody($token) {
 	return [$bodyText,$_SESSION['darkTheme']];
 }
 
+function makeMetaTags() {
+    webAddress();
+    $tags = '';
+    $dvr = ($_SESSION['plexDvrUri'] ? "true" : "");
+    $tags .= '<meta id="usernameData" data="' . $_SESSION['plexUserName'] . '"/>' . PHP_EOL .
+        '<meta id="updateAvailable" data="' . $_SESSION['updateAvailable'] . '"/>' . PHP_EOL .
+        '<meta id="publicAddress" data="' . $_SESSION['publicAddress'] . '"/>' . PHP_EOL .
+        '<meta id="deviceID" data="' . $_SESSION['deviceID'] . '"/>' . PHP_EOL .
+        '<meta id="serverURI" data="' . $_SESSION['plexServerUri'] . '"/>' . PHP_EOL .
+        '<meta id="clientURI" data="' . $_SESSION['plexClientUri'] . '"/>' . PHP_EOL .
+        '<meta id="clientName" data="' . $_SESSION['plexClientName'] . '"/>' . PHP_EOL .
+        '<meta id="plexDvr" data-enable="' . $dvr . '"/>' . PHP_EOL .
+        '<meta id="rez" value="' . $_SESSION['plexDvrResolution'] . '"/>' . PHP_EOL;
+    return $tags;
+}
 
-function settingBody() {
+function makeSettingsBody() {
 	$hide = isWebApp();
 	$hidden = $hide ? " remove" : "";
-	$hidden2 = $hide ? " hidden" : "";
+	$hiddenHome = $hide ? "" : " remove";
 	$useGit = $hide ? false : checkGit();
 	$webAddress = webAddress();
 	$lang = checkSetLanguage();
@@ -163,7 +176,7 @@ function settingBody() {
 					                                <label for='noNewUsers' class='appLabel checkLabel'>" . $lang["uiSettingNoNewUsers"] . "
 					                                    <input id='noNewUsers' title='".$lang["uiSettingNoNewUsersHint"]."' class='appInput' type='checkbox' " . ($_SESSION['noNewUsers'] ? 'checked' : '') . "/>
 					                                </label>
-					                           	</div>
+					                            </div>
 					                            <div class='togglebutton".$hidden."'>
 					                                <label for='cleanLogs' class='appLabel checkLabel'>" . $lang["uiSettingObscureLogs"] . "
 					                                    <input id='cleanLogs' type='checkbox' class='appInput appToggle' " . ($_SESSION['cleanLogs'] ? 'checked' : '') . "/>
@@ -187,9 +200,9 @@ function settingBody() {
 					                    	<h4 class='cardHeader'>".$lang["uiSettingAccountLinking"]."</h4>
 					                    	<div class='form-group text-center'>
 					                                <div class='form-group'>
-					                                    <button class='btn btn-raised linkBtn btn-primary testServer".$hidden."' id='testServer' data-action='test'>" . $lang["uiSettingTestServer"] . "</button><br>
-					                                    <button id='linkAccountv2' data-action='googlev2' class='btn btn-raised linkBtn btn-danger'>" . $lang["uiSettingLinkGoogle"] . "V2</button><br>
-					                                    <button id='linkAccount' data-action='google' class='btn btn-raised linkBtn btn-danger'>" . $lang["uiSettingLinkGoogle"] . "</button>
+					                                    <button class='btn btn-raised linkBtn btn-primary testServer".$hidden."' id='testServer' data-action='test'>" . $lang["uiSettingTestServer"] . "</button>
+					                                    <button id='linkAccountv2' data-action='googlev2' class='btn btn-raised linkBtn btn-danger$hiddenHome'>" . $lang["uiSettingLinkGoogle"] . "V2</button>
+					                                    <button id='linkAccount' data-action='google' class='btn btn-raised linkBtn btn-danger$hidden'>" . $lang["uiSettingLinkGoogle"] . "</button>
 					                                    <button id='linkAmazonAccount' data-action='amazon' class='btn btn-raised linkBtn btn-info'>" . $lang["uiSettingLinkAmazon"] . "</button>
 					                                </div>
 					                            </div>
@@ -382,12 +395,12 @@ function settingBody() {
 				                                    </div>
 					                                <div class='form-group'>
 					                                    <label for='plexDvrStartOffsetMinutes' class='appLabel'>" . $lang["uiSettingDvrStartOffset"] . "
-					                                        <input id='plexDvrStartOffsetMinutes' class='appInput form-control' type='number' min='1' max='30' value='" . $_SESSION['plexDvrStartOffsetMinutes']  . "' />
+					                                        <input id='plexDvrStartOffsetMinutes' class='appInput form-control' type='number' min='1' max='30' value='" . $_SESSION['plexDvrStartOffsetMinutes'] . "' />
 					                                    </label>
 					                                </div>
 					                                <div class='form-group'>
 					                                    <label for='plexDvrEndOffsetMinutes' class='appLabel'>" . $lang["uiSettingDvrEndOffset"] . "
-					                                        <input id='plexDvrEndOffsetMinutes' class='appInput form-control' type='number' min='1' max='30' value='" . $_SESSION['plexDvrEndOffsetMinutes']  . "' />
+					                                        <input id='plexDvrEndOffsetMinutes' class='appInput form-control' type='number' min='1' max='30' value='" . $_SESSION['plexDvrEndOffsetMinutes'] . "' />
 					                                    </label>
 					                                </div>
 					
@@ -697,8 +710,7 @@ function settingBody() {
 								                  
 								                 <div>
 								                     <iframe class='card card-body' id='logFrame' src=''></iframe>															
-												 </div>
-								                  
+								                  </div>
 								             </div> 
 								        </div>
 				                        <a class='logbutton' href='log.php?apiToken=$apiToken' target='_blank'>
@@ -789,9 +801,11 @@ function settingBody() {
 			    <div id='metaTags'>
 			        <meta id='apiTokenData' data-token='" . $_SESSION['apiToken'] . "'/>
 			        <meta id='strings' data-array='" . urlencode(json_encode($lang["javaStrings"])) . "'/>" .
-					metaTags() . "
+					makeMetaTags() . "
 			    </div>";
 
 	return $string;
 }
+
+
 ?>

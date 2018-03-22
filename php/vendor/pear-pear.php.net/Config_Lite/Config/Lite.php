@@ -439,10 +439,11 @@ class Config_Lite implements ArrayAccess, IteratorAggregate, Countable, Serializ
 
         if (null !== $default) {
             return $default;
+        } else {
+            throw new Config_Lite_Exception_UnexpectedValue(
+                'key not found, no default value given.'
+            );
         }
-        throw new Config_Lite_Exception_UnexpectedValue(
-            'key not found, no default value given.'
-        );
     }
 
     /**
