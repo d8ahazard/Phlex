@@ -352,7 +352,7 @@ function getSessionData() {
     }
     $dvr = $_SESSION['plexDvrId'] ?? false;
     $data['dvrEnabled'] = boolval($dvr) ? true : false;
-    write_log("Session data: ".json_encode($data),"INFO");
+    write_log("Session data: ".json_encode($data),"INFO",false,true);
     return $data;
 }
 
@@ -424,13 +424,15 @@ function getUiData($force = false) {
 			$result['commands'] = $commandData;
 			writeSession('commands', $commands);
 		}
-		if ($_SESSION['updates'] !== $updates) {
+		if ($_SESSION['updates'] !== json_encode($updates)) {
 			$result['updates'] = $updates;
+			# TODO: These need to be internationalized
 			if (!$_SESSION['autoUpdate']) $result['messages'][] = [
-				"An update is available.",
-				"An update is available for Phlex.  Click here to install it now.",
-				'api.php?apiToken=' . $_SESSION['apiToken'] . '&installUpdates=true'
+				'title'=>"An update is available.",
+				'message'=>"An update is available for Phlex.  Click here to install it now.",
+				'url'=>'api.php?apiToken=' . $_SESSION['apiToken'] . '&installUpdates=true'
 			];
+			writeSession('updates',json_encode($updates));
 		}
 	}
 	if ($_SESSION['dologout'] ?? false) $result['dologout'] = true;
@@ -442,9 +444,11 @@ function getUiData($force = false) {
 		$lines = $_GET['logLimit'] ?? 50;
 		$result['logs'] = formatLog(tailFile(file_build_path(dirname(__FILE__), "logs", "Phlex.log.php"), $lines));
 	}
-	if (isset($_SESSION['messages'])) {
+	$messages = $_SESSION['messages'] ?? false;
+	if ($messages) {
 	    write_log("Messages!");
 	    $result['messages'] = $_SESSION['messages'];
+	    writeSession('messages',false);
     }
 	return $result;
 }
@@ -2383,6 +2387,7 @@ function scanDevices($force = false) {
 			if (!isset($_SESSION['alertPlugin'])) updateUserPreference('alertPlugin', true);
 			if ($_SESSION['alertPlugin'] && !$_SESSION['hasPlugin']) {
 			    write_log("Building message now!","INFO");
+			    # TODO: Internationalize this
 				$message = "The Cast plugin was not found on any of your servers. Click here to find out how to get it.";
 				$alert = [
 					[
