@@ -140,18 +140,29 @@ function initialize() {
 	}
 	if (isset($_GET['device'])) {
 		$type = $_GET['device'];
-		$id = $_GET['id'];
+		$id = $_GET['id'] ?? false;
+		$data = $dev = false;
+		if (!$id) {
+		    write_log("No id specified, let's see if there's a name or URI");
+		    $name = $_GET['name'] ?? false;
+		    $uri = $_GET['uri'] ?? false;
+		    if ($name) $dev = findDevice("Name",$name,$type);
+            if ($uri) $dev = findDevice("Uri",$name,$type);
+            if ($dev) $id = $dev['Id'] ?? false;
+        }
 		header('Content-Type: application/json');
-		if ($id !== 'rescan') {
+		if ($id !== 'rescan' && $id !== false) {
 			$data = setSelectedDevice($type, $id);
-		} else {
+		} else if ($id == 'rescan') {
 			$force = $_GET['passive'] ?? false;
 			if (isset($_GET['passive'])) write_log("Passive refresh?","INFO",false,true);
 			$data = selectDevices(scanDevices(!$force));
 		}
-		writeSession('deviceUpdated', true);
-		write_log("Echoing new $type list: " . json_encode($data));
-		echo json_encode($data);
+		if ($data) {
+            writeSession('deviceUpdated', true);
+            write_log("Echoing new $type list: " . json_encode($data));
+            echo json_encode($data);
+        }
 		bye();
 	}
 	if ((isset($_GET['id'])) && (!isset($_GET['device']))) {
@@ -160,7 +171,7 @@ function initialize() {
 		$value = $_GET['value'];
 		write_log("Setting Value changed: $id = $value", "INFO");
 		$value = str_replace("?logout", "", $value);
-		if (preg_match("/IP/", $id) && !preg_match("/device/", $id)) {
+		if ((preg_match("/IP/", $id) || preg_match("/Uri/", $id)) && !preg_match("/device/", $id)) {
 			write_log("Sanitizing URL.");
 			$value = cleanUri($value);
 			if (!$value) $valid = false;
@@ -352,7 +363,7 @@ function getSessionData() {
     }
     $dvr = $_SESSION['plexDvrId'] ?? false;
     $data['dvrEnabled'] = boolval($dvr) ? true : false;
-    write_log("Session data: ".json_encode($data),"INFO",false,true);
+    write_log("Session data: ".json_encode($data),"INFO");
     return $data;
 }
 
@@ -398,7 +409,7 @@ function getUiData($force = false) {
 				}
 			}
 			write_log("Echoing new userdata: ".json_encode($updated), "INFO", false, true);
-			$result['userData'] = $_SESSION['updated'];
+			$result['userData'] = $updated;
 		}
 		$deviceUpdated = $_SESSION['devices'] !== $deviceText;
 		if ($deviceUpdated) {
@@ -1942,11 +1953,7 @@ function fetchInfo($matrix) {
     }
 }
 
-/**
- * @deprecated
- * @param array $params
- * @return array
- */
+
 function fetchMediaInfo(Array $params) {
     write_log("Function fired with params: " . json_encode($params));
     $track = $album = $subtype = $season = $mod = $episode = $title = $media = false;
@@ -3198,6 +3205,19 @@ function fetchMovieInfo($title, $type = false, $season = false, $episode = false
     return $url;
 }
 
+function fetchNowPlaying() {
+    $result = $urls = [];
+    $servers = $_SESSION['deviceList']['Server'] ?? [];
+    foreach ($servers as $server) $urls[] = $server['Uri'] . "/status/sessions?X-Plex-Token=" . $server['Token'];
+    $sessions = count($urls) ? multiCurl($urls) : false;
+    foreach ($sessions as $serverSession) {
+        $serverSession = new JsonXmlElement($serverSession);
+        $serverSession = $serverSession->asArray();
+        if (is_array($serverSession)) $sessionList = $serverSession['MediaContainer'] ?? false;
+    }
+    return $result;
+}
+
 function fetchTtsFile($text) {
     $words = substr($text, 0, 2000);
     write_log("Building speech for '$words'");
@@ -3287,23 +3307,28 @@ function fetchNumberedTVItem($seriesKey, $num, $epNum = false, $parent = false) 
 }
 
 function fetchPlayerState($wait = false) {
+    $result = false;
     $timeout = $wait ? 5 : 1;
     $status = ['status' => 'idle'];
     $serverId = $_SESSION['plexClientParent'] ?? $_SESSION['plexServerId'];
     $server = findDevice("Id", $serverId, "Server");
-    $serverUri = $server['Uri'];
-    $count = $_SESSION['counter'] ?? 1;
-    $headers = array_merge(plexHeaders(), clientHeaders());
-    $headers = array_unique($headers);
-    $params = headerQuery($headers);
-    if ($_SESSION['plexClientProduct'] == 'Cast') {
-        $uri = urlencode($_SESSION['plexClientId']);
-        $url = "$serverUri/chromecast/status?X-Plex-Clienturi=$uri&X-Plex-Token=" . $_SESSION['plexClientToken'];
+    $serverUri = $server['Uri'] ?? false;
+    if ($serverUri) {
+        $count = $_SESSION['counter'] ?? 1;
+        $headers = array_merge(plexHeaders(), clientHeaders());
+        $headers = array_unique($headers);
+        $params = headerQuery($headers);
+        if ($_SESSION['plexClientProduct'] == 'Cast') {
+            $uri = urlencode($_SESSION['plexClientId']);
+            $url = "$serverUri/chromecast/status?X-Plex-Clienturi=$uri&X-Plex-Token=" . $_SESSION['plexClientToken'];
+        } else {
+            $url = "$serverUri/player/timeline/poll?wait=1&commandID=$count$params";
+        }
+        write_log("URL is '$url'", "INFO", false, true);
+        $result = doRequest($url, $timeout);
     } else {
-        $url = "$serverUri/player/timeline/poll?wait=1&commandID=$count$params";
+        write_log("Error fetching Server info: ".json_encode($server),"ERROR",false,true);
     }
-    write_log("URL is '$url'", "INFO", false, true);
-    $result = doRequest($url, $timeout);
     if ($result) {
         $result = new JsonXmlElement($result);
         $result = $result->asArray();
