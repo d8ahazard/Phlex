@@ -52,16 +52,26 @@ function makeBody($token) {
 			        <div id="results" class="queryWrap">
 			        	<div id="resultsInner"  class=""></div>
 			    	</div>
+			    	'.makeSettingsBody().'
 	            </div>
-	            <meta id="apiTokenData" data-token="' . $_SESSION["apiToken"] . '"/>
-			        
+	            
+				<div id="metaTags">
+			        <meta id="apiTokenData" data-token="' . $_SESSION["apiToken"] . '"/>
+			        <meta id="strings" data-array="' . urlencode(json_encode($lang['javaStrings'])) . '"/>' .
+					makeMetaTags() . '
+			    </div>
 			</div>';
-	return [$bodyText,$_SESSION['darkTheme']];
+    return [$bodyText,$_SESSION['darkTheme']];
 }
+
+
+
 
 function makeMetaTags() {
     webAddress();
     $tags = '';
+    $uiData = json_encode(getUiData(true));
+    $uiData = str_replace("'","`",$uiData);
     $dvr = ($_SESSION['plexDvrUri'] ? "true" : "");
     $tags .= '<meta id="usernameData" data="' . $_SESSION['plexUserName'] . '"/>' . PHP_EOL .
         '<meta id="updateAvailable" data="' . $_SESSION['updateAvailable'] . '"/>' . PHP_EOL .
@@ -71,7 +81,9 @@ function makeMetaTags() {
         '<meta id="clientURI" data="' . $_SESSION['plexClientUri'] . '"/>' . PHP_EOL .
         '<meta id="clientName" data="' . $_SESSION['plexClientName'] . '"/>' . PHP_EOL .
         '<meta id="plexDvr" data-enable="' . $dvr . '"/>' . PHP_EOL .
+        '<div id="uiData" data-default=\''.$uiData.'\' class="hidden"></div>' . PHP_EOL .
         '<meta id="rez" value="' . $_SESSION['plexDvrResolution'] . '"/>' . PHP_EOL;
+
     return $tags;
 }
 
@@ -735,33 +747,51 @@ function makeSettingsBody() {
 		                </div>
 		            </div>
 					<div class='statusWrapper row justify-content-around'>
-			            <div class='col-sm-5'/>
-						<div class='col-sm-4 volumeBar'>
-							<div class='scrollContainer'>
-								<div class='scrollContent' id='mediaSummary'></div>
+						<div id='progressWrap'>
+							<input id='progressSlider' type='text' data-slider-min='0' data-slider-id='progress' data-slider-tooltip='hide'/>
+						</div>
+						<div id='controlWrap'>
+							<div id='controlBar'>
+								<button class='controlBtn btn btn-default' id='previousBtn'><span class='material-icons mat-md'>skip_previous</span></button>
+								<button class='controlBtn btn btn-default' id='playBtn'><span class='material-icons mat-lg'>play_circle_filled</span></button>
+								<button class='controlBtn btn btn-default' id='pauseBtn'><span class='material-icons mat-lg'>pause_circle_filled</span></button>
+								<button class='controlBtn btn btn-default' id='nextBtn'><span class='material-icons mat-md'>skip_next</span></button>
 							</div>
 						</div>
-			        </div>
-					<div id='progressWrap'>
-	                	<input id='progressSlider' type='text' data-slider-min='0' data-slider-id='progress' data-slider-tooltip='hide'/>
-					</div>
-					<div class='controlWrap'>
-		                <div id='controlBar'>
-	                        <button class='controlBtn btn btn-default' id='previousBtn'><span class='material-icons mat-md'>skip_previous</span></button>
-		                    <button class='controlBtn btn btn-default' id='playBtn'><span class='material-icons mat-lg'>play_circle_filled</span></button>
-		                    <button class='controlBtn btn btn-default' id='pauseBtn'><span class='material-icons mat-lg'>pause_circle_filled</span></button>
-		                    <button class='controlBtn btn btn-default' id='nextBtn'><span class='material-icons mat-md'>skip_next</span></button>
+						<div class='scrollContainer'>
+							<div class='scrollContent' id='mediaSummary'></div>
 						</div>
-					</div>
-			        <div id='stopBtnDiv'>
-		                <button class='controlBtn btn btn-default' id='stopBtn'><span class='material-icons'>close</span></button>
-		                <div id='volumeWrap'>
-		                	<input id='volumeSlider' type='text' data-slider-min='0' data-slider-max='100' data-slider-id='volume' data-slider-orientation='vertical' data-slider-tooltip='hide'></input>
-	                    </div>
-		            </div>
+			            <div id='volumeWrap'/>
+							<div class='volumeBar'>
+							</div>
+						</div>
+						<div id='stopBtnDiv'>
+							<button class='controlBtn btn btn-default' id='stopBtn'><span class='material-icons'>close</span></button>
+							<div id='volumeWrap'>
+								<input id='volumeSlider' type='text' data-slider-min='0' data-slider-max='100' data-slider-id='volume' data-slider-orientation='vertical' data-slider-tooltip='hide'></input>
+							</div>
+						</div>
+			    	</div>
 			    </div>
 			    
-		        <div class='wrapperArt'>
+		        
+			    <div class='modal fade' id='jsonModal'>
+					<div class='modal-dialog' role='document'>
+						<div class='modal-content'>
+							<div class='modal-header'>
+								<h5 class='modal-title' id='jsonTitle'>Modal title</h5>
+								<button type='button' class='close' data-dismiss='modal' aria-label='Close'>
+									<span aria-hidden='true'>&times;</span>
+								</button>
+							</div>
+							<div class='modal-body' id='jsonBody'>
+								<p>Modal body text goes here.</p>
+							</div><div class='modal-footer'>
+							<button class='btnAdd' title='Copy JSON to clipboard'>Copy JSON</button></div>
+						</div>
+					</div>
+				</div>
+				<div class='wrapperArt'>
 		        
 				</div>
 				
@@ -782,27 +812,7 @@ function makeSettingsBody() {
 			            </div>
 			        </div>
 			    </div>
-			    <div class='modal fade' id='jsonModal'>
-					<div class='modal-dialog' role='document'>
-						<div class='modal-content'>
-							<div class='modal-header'>
-								<h5 class='modal-title' id='jsonTitle'>Modal title</h5>
-								<button type='button' class='close' data-dismiss='modal' aria-label='Close'>
-									<span aria-hidden='true'>&times;</span>
-								</button>
-							</div>
-							<div class='modal-body' id='jsonBody'>
-								<p>Modal body text goes here.</p>
-							</div><div class='modal-footer'>
-							<button class='btnAdd' title='Copy JSON to clipboard'>Copy JSON</button></div>
-						</div>
-					</div>
-				</div>
-			    <div id='metaTags'>
-			        <meta id='apiTokenData' data-token='" . $_SESSION['apiToken'] . "'/>
-			        <meta id='strings' data-array='" . urlencode(json_encode($lang["javaStrings"])) . "'/>" .
-					makeMetaTags() . "
-			    </div>";
+				";
 
 	return $string;
 }

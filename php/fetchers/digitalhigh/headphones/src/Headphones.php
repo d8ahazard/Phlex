@@ -22,8 +22,6 @@ class Headphones
      * Example: $radarr->getCalendar('2015-01-25', '2016-01-15');
      * 'start' and 'end' not required. You may supply, one or both.
      *
-     * @param string|null $start
-     * @param string|null $end
      * @return array|object|string
      * @throws InvalidException
      */
@@ -145,7 +143,7 @@ class Headphones
 	 * @internal param $artistId
 	 */
 
-    public function getartist($id = null)
+    public function getartist2($id = null)
     {
 	    $uri = ($id) ? 'artist/' . $id : 'artist';
 

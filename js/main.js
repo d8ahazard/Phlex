@@ -6,7 +6,7 @@ var apiToken, appName, bgs, bgWrap, cv, token, newToken, deviceID, resultDuratio
 var cleanLogs=true, couchEnabled=false, lidarrEnabled=false, ombiEnabled=false, sickEnabled=false, sonarrEnabled=false, radarrEnabled=false,
 	headphonesEnabled=false, watcherEnabled=false, dvrEnabled=false, hook=false, hookPlay=false, polling=false, pollcount=false,
 	hookPause=false, hookStop=false, hookCustom=false, hookFetch=false, hookSplit = false, autoUpdate = false, masterUser = false,
-	noDvrs=true,noNewUsers=false;
+	noDvrs=true,noNewUsers=false, waiting=false;
 
 var forceUpdate = true;
 
@@ -18,8 +18,6 @@ var staticCount = 0;
 var javaStrings;
 
 $(function () {
-
-	console.log("JS Function.");
 	// Set up variables
 	$(".select").dropdown({"optionClass": "withripple"});
 	$("#mainWrap").css({"top": 0});
@@ -54,7 +52,6 @@ $(window).resize(function () {
 
 // Build the UI elements after document load
 function buildUiDeferred() {
-	console.log("Building UI.");
 	$.material.init();
 
 	var messages = $('#messages').data('array');
@@ -148,18 +145,15 @@ function updateDevices(newDevices) {
 function updateDevice(type, id, token) {
 	var noSocket = true;
 	if (noSocket) {
-		console.log("No socket key, sending using a thingy.");
 		apiToken = $('#apiTokenData').data('token');
 
 		$.get('api.php?apiToken=' + apiToken, {
 			device: type,
 			id: id
 		}, function (data) {
-			console.log("Received new device array: ", data);
 			updateDevices(data);
 		});
 	} else {
-		console.log("We have a socket key, using SCIENCE.");
 		var data = {
 			action: 'device',
 			data: {
@@ -182,7 +176,6 @@ function scaleElements() {
 
 function setBackground() {
 	//Add your images, we'll set the path in the next step
-	console.log("Caching background image.");
 	var image = new Image();
 	image.src = "https://img.phlexchat.com?height=" + $(window).height() + "&width=" + $(window).width() + "&v=" + (Math.floor(Math.random() * (1084))) + cv;
 	$('#bgwrap').append("<div class='bg hidden'></div>");
@@ -210,72 +203,25 @@ function resetApiUrl(newUrl) {
 
 
 function updateStatus() {
-	force = forceUpdate;
 	apiToken = $('#apiTokenData').data('token');
 	var logLimit = $('#logLimit').find(":selected").val();
 	var dataCommands = false;
 	if (!polling) {
 		polling = true;
 		pollcount = 1;
-		$.get('api.php?pollPlayer&apiToken=' + apiToken + '&force=' + force + '&logLimit=' + logLimit, function (data) {
-			if (data !== null) {
+		if (forceUpdate !== false) {
+            parseServerData(forceUpdate);
+			polling = forceUpdate = false;
 
-				if (data.hasOwnProperty('ui')) {
-					$('#mainWrap').append(data.ui);
-					buildUiDeferred();
-				}
-
-				if (data.hasOwnProperty('userData') && data.userData) {
-					setUiVariables(data.userData);
-					delete data.userData;
-				}
-
-				if (force) $('.queryBtnGrp').removeClass('show');
-
-				for (var propertyName in data) {
-					if (propertyName !== 'ui' && propertyName !== 'playerStatus') {
-						console.log("Received updated " + propertyName + " data:", data[propertyName]);
-					}
-
-					switch (propertyName) {
-						case "dologout":
-							if (data.dologout === true || data.dologout === "true") {
-								document.getElementById('logout').click();
-							}
-							break;
-						case "commands":
-							updateCommands(data.commands, !force);
-							break;
-						case "messages":
-							messages = data.messages;
-                            for (var i = 0, l = messages.length; i < l; i++) {
-                            	var msg = messages[i];
-								console.log("Showing message: ",msg);
-								showMessage(msg.title,msg.message,msg.url);
-							}
-							break;
-						case "updates":
-							$('#updateContainer').html(data.updates);
-							break;
-						case "devices":
-							updateDevices(data.devices);
-							break;
-						case "playerStatus":
-							updatePlayerStatus(data.playerStatus);
-							break;
-						case "ui":
-						case "userdata":
-							break;
-						default:
-							console.log("Unknown value: " + propertyName);
-					}
-				}
-
-			}
-			polling = false;
-		}, dataType = "json");
+		} else {
+            $.get('api.php?pollPlayer&apiToken=' + apiToken + '&logLimit=' + logLimit, function (data) {
+                if (data !== null) {
+                    parseServerData(data);
+                }
+                polling = false;
+            }, dataType = "json");
+        }
 	} else {
-		console.log("Waiting for poll response...");
 		pollcount++;
 		if (pollcount >= 10) {
 			console.log("Breaking poll wait.");
@@ -285,8 +231,59 @@ function updateStatus() {
 
 }
 
+function parseServerData(data) {
+	var force = (forceUpdate !== false);
+    if (force) {
+        buildUiDeferred();
+    }
+
+    if (data.hasOwnProperty('userData') && data.userData) {
+        setUiVariables(data.userData);
+        delete data.userData;
+    }
+
+    if (force) $('.queryBtnGrp').removeClass('show');
+
+    for (var propertyName in data) {
+        if (propertyName !== 'ui' && propertyName !== 'playerStatus') {
+            console.log("Received updated " + propertyName + " data:", data[propertyName]);
+        }
+
+        switch (propertyName) {
+            case "dologout":
+                if (data.dologout === true || data.dologout === "true") {
+                    document.getElementById('logout').click();
+                }
+                break;
+            case "commands":
+                updateCommands(data.commands, !force);
+                break;
+            case "messages":
+                messages = data.messages;
+                for (var i = 0, l = messages.length; i < l; i++) {
+                    var msg = messages[i];
+                    showMessage(msg.title,msg.message,msg.url);
+                }
+                break;
+            case "updates":
+                $('#updateContainer').html(data.updates);
+                break;
+            case "devices":
+                updateDevices(data.devices);
+                break;
+            case "playerStatus":
+                updatePlayerStatus(data.playerStatus);
+                break;
+            case "ui":
+            case "userdata":
+                break;
+            default:
+                console.log("Unknown value: " + propertyName);
+        }
+    }
+}
+
 function setUiVariables(data) {
-	console.log("Have some data: ", data);
 	for (var propertyName in data) {
 		switch (propertyName) {
 
@@ -312,14 +309,12 @@ function setUiVariables(data) {
 			case 'autoUpdate':
 				var value = JSON.parse(data[propertyName]);
 				if(window[propertyName] !== value) {
-					console.log("Updating " + propertyName + " to " + value);
 					window[propertyName] = value;
 				}
 				break;
 			case 'publicAddress':
 				value = data[propertyName];
 				if(window[propertyName] !== value) {
-					console.log("Updating " + propertyName + " to " + value);
 					window[propertyName] = value;
 				}
 				break;
@@ -332,15 +327,13 @@ function setUiVariables(data) {
 			case 'ombiList':
 			case 'sickList':
 				var list = data[propertyName];
-				console.log("Received a fetcher profile list for " + propertyName,list);
-				$(propertyName).html(list);
+				$('#' + propertyName).html(list);
 		}
 	}
 	toggleGroups();
 }
 
 function toggleGroups() {
-	console.log("Toggling groups.");
 	var vars = {
 		"sonarr": sonarrEnabled,
 		"sick": sickEnabled,
@@ -364,7 +357,6 @@ function toggleGroups() {
 	for (var key in vars){
 		if (vars.hasOwnProperty(key)) {
 			var value = vars[key];
-			console.log("Setting " + key + " to ",value);
 			var element = $('#'+key);
 			var group = (key === 'hookSplit') ? $('.'+key+'Group') : group = $('#'+key+'Group');
 			group = (value === 'masterUser') ?  $('.noNewUsersGroup') : group;
@@ -375,10 +367,8 @@ function toggleGroups() {
 
 			if (value) {
 				group.show();
-				console.log("Showing ", group);
 			} else {
 				group.hide();
-				console.log("Hiding ", group);
 			}
 		}
 	}
@@ -408,7 +398,6 @@ function updatePlayerStatus(data) {
 			var resultYear = mr.year;
 			var thumbPath = mr.thumb;
 			var artPath = mr.art;
-			console.log("MediaResult: ", mr);
 			var resultSummary = mr.summary;
 			var tagline = mr.tagline;
 
@@ -440,12 +429,11 @@ function updatePlayerStatus(data) {
 
 			var resultOffset = data.time;
 			var volume = data.volume;
-			console.log("Volume is " + volume);
 			resultDuration = mr.duration;
 			var progress = (resultOffset / 1000);
 			progressSlider.bootstrapSlider({max: resultDuration / 1000});
 			progressSlider.bootstrapSlider('setValue', progress);
-			volumeSlider.bootstrapSlider('setValue', volume);
+			volumeSlider.bootstrapSlider('setValue', parseInt(volume));
 			var statusImage = $('.statusImage');
 			if (thumbPath !== false) {
 				statusImage.attr('src', thumbPath).show();
@@ -545,7 +533,6 @@ function updateCommands(data, prepend) {
 			$('#CARDCLOSE' + i).click(function () {
 				var id = $(this).attr("id").replace("CARDCLOSE", "");
 				var stamp = $(this).parent().attr("id");
-				console.log("Removing card with id of " + id);
 				$(this).parent().slideUp(750, function () {
 					$(this).remove();
 				});
@@ -663,6 +650,12 @@ function buildCards(value, i) {
 				if (card.hasOwnProperty('image')) {
 					if (card.image.url !== null) cardBg = card.image.url;
 				}
+				if (card.hasOwnProperty('art') && cardBg === false) {
+				    cardBg = card.art;
+                }
+                if (card.hasOwnProperty('thumb') && cardBg === false) {
+					cardBg = card.thumb;
+                }
 			}
 		}
 	}
@@ -686,19 +679,15 @@ function buildCards(value, i) {
 
 function animateContent(angle,speed)
 {
-	console.log("Animate called, direction is " + angle);
 	var sc = $('.scrollContent');
 	var animationOffset = $('.scrollContainer').height() - sc.height();
 	if (angle === 'up') {
 		animationOffset = 0;
 	}
 
-	console.log("animationOffset:"+animationOffset);
 	sc.animate({ "marginTop": (animationOffset)+ "px" }, speed, 'swing',function() {
-		console.log("Animation complete.");
 		scrolling = 'pause';
 		direction = (direction ==="up") ? "down" : "up";
-		console.log("Switched direction to " + direction);
 	});
 }
 
@@ -722,7 +711,6 @@ function startScrolling(){
 function stopScrolling() {
 	if (scrolling === true) {
 		scrolling = false;
-		console.log("Scroller stopped");
 		clearInterval(scrollTimer);
 	}
 }
@@ -745,7 +733,6 @@ function ucFirst(string) {
 }
 
 function notify() {
-	console.log("Image loaded: ".imgUrl);
 }
 
 
@@ -764,7 +751,6 @@ function fetchWeather() {
 	$.get("https://freegeoip.net/json/", function (data) {
 		city = data.city;
 		state = data.region_name;
-		console.log("Data: ", data + "City: " + city + " State: " + state);
 		$.simpleWeather({
 			location: city + ',' + state,
 			woeid: '',
@@ -772,7 +758,6 @@ function fetchWeather() {
 			success: function (weather) {
 				weatherHtml = weather.temp + String.fromCharCode(176) + weather.units.temp;
 				condition = weather.code;
-				console.log("Setting weather for " + city + ", " + state + " of " + condition + " and description " + weatherHtml);
 			},
 			error: function (error) {
 				console.log("Error: ", error);
@@ -901,11 +886,6 @@ function setListeners() {
 	});
 
 
-	$('#logLevel').change(function () {
-		logLevel = $(this).val();
-		console.log("Log level changed to " + logLevel);
-	});
-
 	var checkbox = $(':checkbox');
 	checkbox.change(function () {
 		var label = $("label[for='" + $(this).attr('id') + "']");
@@ -928,10 +908,8 @@ function setListeners() {
 	});
 
 	$('.avatar').click(function() {
-		console.log("Click");
 		staticCount++;
 		if (staticCount >= 14 && cv==="") {
-			console.log("CAGED!");
 			cv="&cage=true";
 			$('#actionLabel').text("You don't say!?!?");
 			setBackground();
@@ -1025,7 +1003,6 @@ function setListeners() {
 
 					regUrl = 'https://phlexchat.com/api.php?apiToken=' + apiToken + "&serverAddress=" + encodeURIComponent(serverAddress) + "&test=true";
 					$.get(regUrl, function (data) {
-						console.log("Data: " + data);
 						$.snackbar({content: data});
 					});
 				}
@@ -1058,11 +1035,8 @@ function setListeners() {
 
 	});
 
-
-	$("#serverList").change(function () {
+	$(document).on("click change", "#serverList",function () {
 		var serverID = $(this).val();
-		var element = $(this).find('option:selected');
-		var type = element.data('type');
 		apiToken = $('#apiTokenData').data('token');
 
 		$.get('api.php?apiToken=' + apiToken, {
@@ -1071,22 +1045,8 @@ function setListeners() {
 		});
 	});
 
-	$("#parentList").change(function () {
+	$(document).on("click change", "#dvrList", function () {
 		var serverID = $(this).val();
-		var element = $(this).find('option:selected');
-		var type = element.data('type');
-		apiToken = $('#apiTokenData').data('token');
-
-		$.get('api.php?apiToken=' + apiToken, {
-			device: 'Parent',
-			id: serverID
-		});
-	});
-
-	$("#dvrList").change(function () {
-		var serverID = $(this).val();
-		var element = $(this).find('option:selected');
-		var type = element.data('type');
 		apiToken = $('#apiTokenData').data('token');
 
 		$.get('api.php?apiToken=' + apiToken, {
@@ -1123,15 +1083,19 @@ function setListeners() {
 			command = command.replace(/ /g, "+");
 			var url = 'api.php?say&web=true&command=' + command + '&apiToken=' + apiToken;
 			apiToken = $('#apiTokenData').data('token');
+			waiting = true;
+			setTimeout(function()  {
+				clearLoadBar();
+			},10000);
 			$.get(url, function () {
 				$('.load-bar').hide();
+				waiting = false;
 			});
 		}
 	});
 
 
 	client.click(function () {
-		console.log("CLICKED CLIENT!");
 		var pos = client.position();
 		var width = client.outerWidth();
 
@@ -1207,7 +1171,6 @@ function setListeners() {
 	$('.controlBtn').click(function () {
 		var myId = $(this).attr("id");
 		myId = myId.replace("Btn", "");
-		console.log("Firing " + myId + " command.");
 		if (myId === "play") {
 			$('#playBtn').hide();
 			$('#pauseBtn').show();
@@ -1221,17 +1184,6 @@ function setListeners() {
 		$.get('api.php?say&noLog=true&command=' + myId + "&apiToken=" + apiToken);
 	});
 
-	$(document).on('click', '.deviceDelete', function () {
-		id = $(this).attr('id');
-		console.log("Gonna delete static device " + id);
-		apiToken = $('#apiTokenData').data('token');
-
-		$.get('api.php?apiToken=' + apiToken, {deleteDevice: true, id: id}, function () {
-		});
-		var devCard = $("#dev_" + id);
-		devCard.slideUp();
-		devCard.remove();
-	});
 
 	$(document).on('change', '.appInput', function () {
 		id = $(this).attr('id');
@@ -1247,22 +1199,18 @@ function setListeners() {
 
 		if ($(this).hasClass('appToggle')) {
 			id = id + "Enabled";
-			console.log("This is an appToggle, value is now " + value);
 		}
 
 		apiToken = $('#apiTokenData').data('token');
 
 		$.get('api.php?apiToken=' + apiToken, {id: id, value: value}, function (data) {
 			if (data === "valid") {
-				console.log("Data saved.");
 				if (window.hasOwnProperty(id)) {
 					console.log("Hey, this has a global variable, changing it from " + window[id]);
 					window[id] = value;
-					console.log("Changed to " + window[id]);
 				}
 				$.snackbar({content: "Value saved successfully."});
 			} else {
-				console.log("Data value was invalid.");
 				$.snackbar({content: "Invalid entry specified for " + id + "."});
 				$(this).val("");
 			}
@@ -1292,9 +1240,7 @@ jQuery.extend({
 		// sort modifies original array
 		// (which are passed by reference to our method!)
 		// so clone the arrays before sorting
-		console.log("Parent length is equal.");
 		for (var i = 0, l = arrayA.length; i < l; i++) {
-			console.log("Lengths are " + arrayA[i].length + " and " + arrayB[i].length);
 			if (arrayA[i].length !== arrayB[i].length) {
 				return false;
 			}
@@ -1304,12 +1250,18 @@ jQuery.extend({
 	}
 });
 
+function clearLoadBar() {
+	if (waiting) {
+		$('.load-bar').hide();
+	}
+}
 
 $(window).on("load",function () {
 	$('body').addClass('loaded');
+	var uiData = $('#uiData').data('default');
+
 	if ('requestIdleCallback' in window) {
-		console.log("Request idle supported!!");
-		forceUpdate = true;
+		forceUpdate = uiData;
 		requestIdleCallback(updateStatus);
 	} else {
 		setTimeout(updateStatus, 1);

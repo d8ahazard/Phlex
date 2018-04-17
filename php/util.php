@@ -2,6 +2,42 @@
 
 require_once dirname(__FILE__) . '/vendor/autoload.php';
 require_once dirname(__FILE__) . '/JsonXmlElement.php';
+require_once dirname(__FILE__) . '/multiCurl.php';
+use digitalhigh\multiCurl;
+
+
+
+function array_diff_assoc_recursive($array1, $array2)
+{
+    foreach($array1 as $key => $value)
+    {
+        if(is_array($value))
+        {
+            if(!isset($array2[$key]))
+            {
+                $difference[$key] = $value;
+            }
+            elseif(!is_array($array2[$key]))
+            {
+                $difference[$key] = $value;
+            }
+            else
+            {
+                $new_diff = array_diff_assoc_recursive($value, $array2[$key]);
+                if($new_diff != FALSE)
+                {
+                    $difference[$key] = $new_diff;
+                }
+            }
+        }
+        elseif(!isset($array2[$key]) || $array2[$key] != $value)
+        {
+            $difference[$key] = $value;
+        }
+    }
+    return !isset($difference) ? 0 : $difference;
+}
+
 
 function array_filter_recursive(array $array, callable $callback = null) {
     $array = is_callable($callback) ? array_filter($array, $callback) : array_filter($array);
@@ -12,6 +48,7 @@ function array_filter_recursive(array $array, callable $callback = null) {
     }
     return $array;
 }
+
 
 function arrayContains($str, array $arr) {
     //write_log("Function Fired.");
@@ -34,7 +71,10 @@ function bye($msg = false, $title = false, $url = false, $log = false, $clear = 
     $url = parse_url($actual_link);
     $url = $url['scheme']."://".$url['host'].$url['path'];
     $url = "$url?device=Client&id=rescan&passive=true&apiToken=".$_SESSION['apiToken'];
-    if (!isset($_GET['pollPlayer']) && !isset($_GET['passive'])) {
+    $rescan = $_GET['pollPlayer'] ?? $_GET['passive'] ?? null;
+    $executionTime = microtime(true) - $_SERVER["REQUEST_TIME_FLOAT"];
+    write_log("Total execution time was $executionTime","INFO");
+    if ($rescan === null) {
         write_log("PollPlayer is not set?","INFO",false,true);
         curlQuick($url);
     }
@@ -111,7 +151,7 @@ function cacheImage($url, $image = false) {
 
 function check_url($url, $post=false, $device=false) {
     if (!$device) write_log("Checking URL: " . $url); else write_log("Checking URL for device $device");
-    $certPath = file_build_path(dirname(__FILE__), "cert", "cacert.pem");
+    $certPath = file_build_path(dirname(__FILE__),"..", "cert", "cacert.pem");
     $ch = curl_init($url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
     curl_setopt($ch, CURLOPT_TIMEOUT, 10);
@@ -231,19 +271,18 @@ function compareTitles(string $search, string $check,$sendWeight = false) {
     if ($heavy || $substring) {
         $str = (strlen($search) == $len) ? $search : $check;
         $weight = ($strength > $similarity) ? $strength : $similarity;
-        write_log("This meets criteria: $str");
         return $sendWeight ? $weight : $str;
     }
     return false;
 }
 
 function curlGet($url, $headers = null, $timeout = 4) {
-    $cert = getContent(file_build_path(dirname(__FILE__), "cacert.pem"), 'https://curl.haxx.se/ca/cacert.pem');
-    if (!$cert) $cert = file_build_path(dirname(__FILE__), "cert", "cacert.pem");
+    $cert = getContent(file_build_path(dirname(__FILE__),"..", "cacert.pem"), 'https://curl.haxx.se/ca/cacert.pem');
+    if (!$cert) $cert = file_build_path(dirname(__FILE__), "..","cert", "cacert.pem");
     write_log("GET url $url","INFO","curlGet");
     $url = filter_var($url, FILTER_SANITIZE_URL);
     if (!filter_var($url, FILTER_VALIDATE_URL)) {
-        write_log("URL $url is not valid.");
+        write_log("URL $url is not valid.","ERROR");
         return false;
     }
     $ch = curl_init();
@@ -562,7 +601,7 @@ function getDefaultLocale() {
         $locale = $_SESSION['appLanguage'];
     }
     if (!$locale) {
-        write_log("No saved locale set, detecting from system.", "INFO");
+        write_log("No saved locale set, detecting from system. Default is $defaultLocale", "INFO");
         if (trim($defaultLocale) != "") {
             if (preg_match("/en_/", $defaultLocale)) $locale = 'en';
             if (preg_match("/fr_/", $defaultLocale)) $locale = 'fr';
@@ -755,13 +794,42 @@ function joinSpeech(...$segments) {
     return join(" ", $segments);
 }
 
+function joinStrings($items, $tail = "and") {
+    foreach($items as &$item) {
+        if ($item == "couch") $item = "couchpotato";
+        $item = ucfirst($item);
+    }
+    $count = count($items);
+    $string = "";
+    if ($count == 1) $string = $items[0] . ".";
+    if ($count == 2) {
+        $title1 = $items[0];
+        $title2 = $items[1];
+        $string = "$title1 $tail $title2.";
+    }
+    if ($count >= 3) {
+        $last = array_pop($items);
+        $string = join(", ", $items) . ", $tail $last.";
+    }
+    return $string;
+}
+
 function joinTitles($items, $tail = "and") {
+    write_log("Dammit: ".json_encode($items),"WARN",false,true);
     $titles = [];
+    $names = [];
+    $sayType = false;
     foreach ($items as $item) {
-        $string = "";
         write_log("Item: " . json_encode($item));
+        $title = $item['Title'];
+        foreach($names as $check) if ($check['Title'] == $title) $sayType = true;
+        array_push($names, $item);
+
+    }
+    foreach ($names as $item) {
         $year = $item['year'] ?? "";
-        switch ($item['type']) {
+        $type = $item['type'];
+        switch ($type) {
             case 'movie':
                 $string = $item['title'] . " ($year)";
                 break;
@@ -775,10 +843,12 @@ function joinTitles($items, $tail = "and") {
             default:
                 $string = $item['title'];
         }
+        if ($sayType) $string = $string . " (the $type)";
         $string = trim($string);
         write_log("String is $string");
         if (!in_array($string, $titles)) array_push($titles, $string);
     }
+    $string = "";
     $count = count($titles);
     if ($count == 1) $string = $titles[0] . ".";
     if ($count == 2) {
@@ -1727,10 +1797,11 @@ function logUpdate(array $log) {
     file_put_contents($filename, json_encode($json));
 }
 
-function multiCurl($urls) {
+function multiCurl2($urls, $timeout=20) {
     $handlers = $data = [];
     $mh = curl_multi_init();
     // Handle all of our URL's
+    write_log("Function fired, max execution time is ".ini_get("max_execution_time"));
     foreach ($urls as $key => $item) {
         if (is_array($item)) {
             $url = $item[0];
@@ -1742,8 +1813,8 @@ function multiCurl($urls) {
         write_log("URL: " . $url);
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch,CURLOPT_CONNECTTIMEOUT,4);
-        curl_setopt($ch,CURLOPT_TIMEOUT,4);
+        curl_setopt($ch,CURLOPT_CONNECTTIMEOUT,$timeout);
+        curl_setopt($ch,CURLOPT_TIMEOUT,$timeout);
         if ($header) {
             write_log("We have headers: ".json_encode($header));
             curl_setopt($ch,CURLOPT_HTTPHEADER,$header);
@@ -1752,31 +1823,115 @@ function multiCurl($urls) {
         $handlers["$key"] = $ch;
     }
     $running = null;
+    $started = microtime(true);
+    $rounded = 0;
     do {
+        $now = microtime(true);
+        $time = $now - $started;
+        if (round($time,0) !== $rounded) write_log("Time is $time");
+        $rounded = round($time,0);
         curl_multi_exec($mh, $running);
     } while ($running);
+    if ($time >= $timeout) write_log("Hit our timeout.","WARN",false,true);
+    write_log("Multicurl completed in $time seconds...","INFO",false,true);
+    foreach ($handlers as $key => $h) {
+        write_log("Handler");
+        $response = curl_multi_getcontent($h);
 
-    foreach ($handlers as $key=>$ch) {
-        curl_multi_remove_handle($mh, $ch);
+        $data["$key"] = $response;
+
+
+        curl_multi_remove_handle($mh, $h);
+
     }
+
     curl_multi_close($mh);
-    $json = $xml = false;
-    foreach ($handlers as $key=>$ch) {
-        $response = curl_multi_getcontent($ch);
+    write_log("Data: ".json_encode($data));
+    return $data;
+}
+
+function multiCurl($urls, $timeout=10) {
+    write_log("Function fired!!");
+    $mh = curl_multi_init();
+    $ch = $res = [];
+    foreach($urls as $i => $item) {
+        if (is_array($item)) {
+            $url = $item[0];
+            $header = $item[1];
+        } else {
+            $url = $item;
+            $header = false;
+        }
+        write_log("URL: $url");
+        $ch[$i] = curl_init($url);
+        curl_setopt($ch[$i], CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch[$i],CURLOPT_CONNECTTIMEOUT,$timeout);
+        curl_setopt($ch[$i],CURLOPT_TIMEOUT,$timeout);
+        if ($header) {
+            write_log("We have headers: ".json_encode($header));
+            curl_setopt($ch[$i],CURLOPT_HTTPHEADER,$header);
+        }
+        curl_multi_add_handle($mh, $ch[$i]);
+    }
+
+    // Start performing the request
+    do {
+        $execReturnValue = curl_multi_exec($mh, $runningHandles);
+    } while ($execReturnValue == CURLM_CALL_MULTI_PERFORM);
+
+    // Loop and continue processing the request
+    while ($runningHandles && $execReturnValue == CURLM_OK) {
+        if (curl_multi_select($mh) != -1) {
+            usleep(100);
+        }
+
+        do {
+            $execReturnValue = curl_multi_exec($mh, $runningHandles);
+        } while ($execReturnValue == CURLM_CALL_MULTI_PERFORM);
+    }
+
+    // Check for any errors
+    if ($execReturnValue != CURLM_OK) {
+        write_log("Curl multi read error $execReturnValue!", "ERROR");
+    }
+
+    // Extract the content
+    foreach($urls as $i => $url) {
+        write_log("Closing $i","INFO");
+        // Check for errors
+        $curlError = curl_error($ch[$i]);
+        if($curlError == "") {
+            write_log("No error!");
+            $res[$i] = curl_multi_getcontent($ch[$i]);
+        } else {
+            write_log("Error handling curl for url: $url","ERROR");
+        }
+        // Remove and close the handle
+        curl_multi_remove_handle($mh, $ch[$i]);
+        curl_close($ch[$i]);
+    }
+    // Clean up the curl_multi handle
+    curl_multi_close($mh);
+    write_log("Res: ".json_encode($res));
+    $results = [];
+    foreach ($res as $url => $response) {
+        $json = $xml = false;
         try {
             $json = json_decode($response,true);
-
-            $xml = new JsonXmlElement($response);
-            $xml = $xml->asArray();
-            if (!is_array($xml)) $xml = json_decode(json_encode(new SimpleXMLElement($response)),true);
+            if (!is_array($json)) {
+                $json = new JsonXmlElement($response);
+                $json = $json->asArray();
+            }
         } catch (Exception $e) {
-
+            write_log("Exception: $e");
         }
         if (is_array($json)) $response = $json;
-        if (is_array($xml)) $response = $xml;
-        $data["$key"] = $response;
+        $results["$url"] = $response;
     }
-    return $data;
+    unset($mh);
+    unset($ch);
+    write_log("Parsed results: ".json_encode($results));
+    return $results;
 }
 
 function plexHeaders($device=false) {
@@ -2216,6 +2371,7 @@ function writeSessionArray($array, $unset = false) {
 
 function xmlToJson($data) {
 	$arr = $response = false;
+	if (!$data) return [];
 	try {
 		$temp = new JsonXmlElement($data);
 		$arr = $temp->asArray();

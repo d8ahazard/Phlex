@@ -1,140 +1,62 @@
 <?php
 require_once dirname(__FILE__) . '/vendor/autoload.php';
 require_once dirname(__FILE__) . '/webApp.php';
+require_once dirname(__FILE__) . '/fetchers/digitalhigh/watcher/src/Watcher.php';
+require_once dirname(__FILE__) . '/fetchers/digitalhigh/lidarr/src/Lidarr.php';
+require_once dirname(__FILE__) . '/fetchers/digitalhigh/headphones/src/Headphones.php';
 require_once dirname(__FILE__) . '/util.php';
+require_once dirname(__FILE__) . '/multiCurl.php';
 use Kryptonit3\CouchPotato\CouchPotato;
 use digitalhigh\Radarr\Radarr;
 use digitalhigh\Lidarr\Lidarr;
 use Kryptonit3\SickRage\SickRage;
 use Kryptonit3\Sonarr\Sonarr;
+use digitalhigh\Watcher\Watcher;
+use digitalhigh\Headphones\Headphones;
+use digitalhigh\multiCurl;
 
-// Fetch a movie from CouchPotato or Radarr
-function downloadMovie(array $data) {
-	write_log("Function fired.");
-	$enableCouch = $_SESSION['couchEnabled'];
-	$enableRadarr = $_SESSION['radarrEnabled'];
-	$enableOmbi = $_SESSION['ombiEnabled'];
-
-	$reply = [];
-	$response = false;
-	if ($enableCouch) {
-		write_log("Using Couchpotoato for Movie agent");
-		$response = downloadCouch($data);
-		return $response;
-	}
-	$reply['couch'] = $response;
-
-	$response = false;
-	if ($enableRadarr) {
-		write_log("Using Radarr for Movie agent");
-		$response = downloadRadarr($data);
-		return $response;
-	}
-	$reply['radarr'] = $response;
-
-	$response = false;
-
-	if ($enableOmbi) {
-		write_log("Using Ombi for Movie agent");
-	}
-	$reply['ombi'] = false;
-
-	return $reply;
+function downloadMedia(array $data, array $fetchers) {
+    write_log("Incoming: ".json_encode([$data,$fetchers]));
+    $results = [];
+    foreach($fetchers as $fetcher) {
+        $function = 'download'.ucfirst($fetcher);
+        $results["$fetcher"] = $function($data);
+    }
+    return $results;
 }
 
-function downloadSeries($data) {
-	$enableSick = $_SESSION['sickEnabled'];
-	$enableSonarr = $_SESSION['sonarrEnabled'];
-	$enableOmbi = $_SESSION['ombiEnabled'];
-
-	$reply = [];
-
-	$response = false;
-	if ($enableSonarr) {
-		write_log("Using Sonarr for Episode agent");
-		$response = downloadSonarr($data);
-	}
-	$reply['sonarr'] = $response;
-
-	$response = false;
-	if ($enableSick) {
-		write_log("Using Sick for Episode agent");
-		$response = downloadSick($data);
-		return $response;
-	}
-	$reply['sick'] = $response;
-
-	if ($enableOmbi) {
-		write_log("Using Ombi for Movie agent");
-	}
-	$reply['ombi'] = false;
-
-
-	return $reply;
-}
-
-function downloadMusic(array $data) {
-	$enableHeadphones = $_SESSION['headphonesEnabled'] ?? false;
-	$enableLidarr = $_SESSION['lidarrEnabled'] ?? false;
-
-	$reply = [];
-
-	$response = false;
-	if ($enableHeadphones) {
-		write_log("Using headphones for fetcher.");
-		$response = downloadHeadphones($data);
-	}
-	$reply['headphones'] = $response;
-
-	$response = false;
-	if ($enableLidarr) {
-		$response = downloadLidarr($data);
-	}
-	$reply['lidarr'] = $response;
-
-	return $reply;
-}
 
 function downloadCouch(array $data) {
+    write_log("Function fired: ".json_encode($data));
+    $success = false;
 	$couchUri = $_SESSION['couchUri'];
 	$couchApikey = $_SESSION['couchToken'];
-	write_log("Function fired.");
 	$couch = new CouchPotato($couchUri,$couchApikey);
-	write_log("Still alive?");
-	$existing = $couch->getMovieList(["search"=>$data['title']]);
-	write_log("Existing: ".$existing);
-	if ($existing) {
-		$ex = json_decode($existing,true);
-		$movies = $ex['movies'];
-		if (empty($movies)) {
-			write_log("No movies found in fetcher.");
-		} else {
-			foreach($movies as $movie) {
-				write_log("Found a movie that could be a match: ".json_encode($movie),"INFO");
-				write_log("Comparing " . $movie['info']['tmdb_id'] ." to ". $data['id']);
-				if ($movie['info']['tmdb_id'] === $data['id']) {
-					write_log("IMDB ID Match, nothing to see here.");
-					$message = $data['title']." is already added to Couchpotato.";
-					return [
-						'message'=>$message,
-						'media'=>$data
-					];
-				}
-			}
-		}
-	}
 
-	$id = $data['id'];
+	$imdbId = $data['imdbId'] ?? false;
 	$profile = $_SESSION['couchProfile'];
 	$title = $data['title'];
+    if (!$imdbId) {
+        write_log("Okay, searching here...");
+        try {
+            $movies = $couch->getSearch($title);
+        } catch (\Kryptonit3\CouchPotato\Exceptions\InvalidException $e) {
+            write_log("Error $e","ERROR");
+            $movies = false;
+        }
+        if ($movies) {
+            $movies = json_decode($movies,true);
+            foreach($movies['movies'] as $movie) {
+                if ($movie['tmdb_id'] == $data['tmdbId']) {
+                    write_log("Found our match...");
+                    $imdbId = $movie['imdb'];
+                    break;
+                }
+            }
+            write_log("Movies: ".json_encode($movies));
 
-	$search = json_decode($couch->getSearch($title),true);
-	write_log("Search results: ".json_encode($search));
-	$imdbId = false;
-
-	foreach($search['movies'] as $movie) {
-		if ($movie['tmdb_id'] === $id) $imdbId = $movie['imdb'];
-	}
+        }
+    }
 
 	if ($imdbId) {
 		$params = [
@@ -144,23 +66,19 @@ function downloadCouch(array $data) {
 		];
 
 		write_log("Search params: " . json_encode($params));
-		$added = $couch->getMovieAdd($params);
-		write_log("Result of adding movie: " . $added);
+        try {
+            $added = $couch->getMovieAdd($params);
+        } catch (\Kryptonit3\CouchPotato\Exceptions\InvalidException $e) {
+            write_log("Exception adding movie: $e");
+            $added = [];
+        }
+        write_log("Result of adding movie: " . $added);
 		$added = json_decode($added,true);
-		if (isset($added['movie']['status'])) {
-			if ($added['movie']['status'] == "active") {
-				$response = [
-					'message'=>"Okay, I've added $title to Couchpotato.",
-					'media'=>$data
-				];
+		$status = $added['movie']['status'] ?? false;
+		$success = $status == "active";
 
-				write_log("Movie successfully added!");
-				return $response;
-			}
-		}
-	} else {
-		return ['message'=>"Couldn't find anything to add."];
 	}
+	return $success;
 }
 
 function downloadHeadphones(array $data) {
@@ -172,38 +90,24 @@ function downloadLidarr(array $data) {
 }
 
 function downloadRadarr($data) {
+    write_log("Function fired: ".json_encode($data));
 	$command = $data['title'];
-	$exists = $score = $movie = $wanted = false;
-	$message = "Unable to search in Radarr.";
+	$movie = $wanted = false;
+	$success = false;
 	$radarrUri = $_SESSION['radarrUri'];
 	$radarrApiKey = $_SESSION['radarrToken'];
-	$movie = false;
-	$radarr = new Lidarr($radarrUri, $radarrApiKey);
+	$radarr = new Radarr($radarrUri, $radarrApiKey);
 	// Search for the movie object as Radarr requires it
 	$movieCheck = json_decode($radarr->getMoviesLookup($command), true);
-	// Search the library for existing media with the ID
-	$movieArray = json_decode($radarr->getMovies(), true);
-
-	write_log("MovieArray: ".json_encode($movieArray));
+    write_log("Movie check result: ".json_encode($movieCheck));
 	foreach ($movieCheck as $check) {
-		if ($check['tmdbId'] === $data['id']) {
+		if ($check['tmdbId'] === $data['tmdbId']) {
 			$movie = $check;
 			break;
 		}
 	}
 
 	if ($movie) {
-		foreach ($movieArray as $check) {
-			if ($check['tmdbId'] == $movie['tmdbId']) {
-				write_log("This movie exists already.");
-				$message = $data['title'] . " has already been added to Radarr.";
-				$exists = true;
-			}
-		}
-	}
-
-	if ($movie && !$exists) {
-
 		write_log("Need to fetch this movie: " . json_encode($movie));
 		$search = $movie;
 		// #TODO: Grab this value when we set it up instead of doing it repeatedly.
@@ -223,17 +127,11 @@ function downloadRadarr($data) {
 		if (is_array($search)) $result = json_decode($radarr->postMovie($search),true);
 		write_log("Add result: " . json_encode($result));
 		if (isset($result['addOptions']['searchForMovie'])) {
-			$message = "Successfully added " . $data['title'] . " to Radarr.";
-		} else {
-			$message = "There was an error adding " . $data['title'] . " to Radarr.";
+			$success = true;
 		}
-	}
+	} else write_log("No movie found in radarr.","WARN");
 
-	$response['media'] = $data;
-	$response['message'] = $message;
-
-	write_log("Final response: " . json_encode($response));
-	return $response;
+	return $success;
 }
 
 function downloadSick($data) {
@@ -542,8 +440,24 @@ function downloadSonarr($command, $season = false, $episode = false, $tmdbResult
 }
 
 function downloadWatcher($data) {
+    write_log("Function fired: ".json_encode($data));
+    $tmdbId = $data['tmdbId'] ?? false;
+    $imdbId = $data['imdbId'] ?? false;
+    $type = $tmdbId ? 'tmdb' : ($imdbId ? 'imdb' : false);
+    $id = $tmdbId ? $tmdbId : ($imdbId ? $imdbId : false);
+    $uri = $_SESSION['watcherUri'] ?? false;
+    $token = $_SESSION['watcherToken'] ?? false;
+    $success = false;
+    if ($uri && $token && $type) {
+        $watcher = new Watcher($uri,$token);
+        $result = $watcher->addMovie($id,$type);
+        write_log("Watcher result: ".json_encode($result));
+        $success = $result['response'] ?? false;
+    } else write_log("Missing watcher info!","ERROR");
 
+    return $success;
 }
+
 
 function fetchList($serviceName) {
     $list = $selected = false;
@@ -592,6 +506,15 @@ function fetchList($serviceName) {
             }
             $selected = $_SESSION['headphonesProfile'];
             break;
+        case "watcher":
+            if ($_SESSION['watcherList']) {
+                $list = $_SESSION['watcherList'];
+            } else {
+                testConnection("Watcher");
+                $list = $_SESSION['watcherList'];
+            }
+            $selected = $_SESSION['watcherProfile'];
+            break;
     }
     $html = PHP_EOL;
     if ($list) {
@@ -603,116 +526,277 @@ function fetchList($serviceName) {
 }
 
 
+/**
+ * parseFetchers
+ *
+ * Take our list of media from various fetchers and parse it into
+ * uniform data objects
+ * @param $data
+ * @return array
+ */
+function parseFetchers(array $data) {
+    $media = [];
+    foreach($data as $fetcher => $library) {
+        $items = [];
+        switch($fetcher) {
+            case 'couch':
+                $items = parseCouch($library);
+                break;
+            case 'headphones':
+                $items = parseHeadphones($library);
+                break;
+            case 'lidarr':
+                $items = parseLidarr($library);
+                break;
+            case 'radarr':
+                $items = parseRadarr($library);
+                break;
+            case 'sick':
+                $items = parseSick($library);
+                break;
+            case 'sonarr':
+                $items = parseSonarr($library);
+                break;
+            case 'watcher':
+                $items = parseWatcher($library);
+                break;
+        }
+        foreach($items as $item) array_push($media,$item);
+    }
+    write_log("Parsed media: ".json_encode($media));
+    return $media;
+}
+
+function parseCouch($library) {
+    $library = $library['movies'];
+    write_log("Lib in: ".json_encode($library));
+    $src = 'couch';
+    $items = [];
+    foreach($library as $item) {
+        $out = [
+            'title'=>$item['title'],
+            'year'=>$item['info']['year'],
+            'imdbId'=>$item['info']['imdb'],
+            'tmdbId'=>$item['info']['tmdb_id'],
+            'summary'=>$item['info']['plot'],
+            'source'=>$src
+        ];
+        array_push($items, $out);
+    }
+    return $items;
+}
+
+function parseHeadphones($library) {
+    write_log("Lib in: ".json_encode($library));
+    $src = 'headphones';
+    $items = [];
+    return $items;
+}
+
+function parseLidarr($library) {
+    write_log("Lib in: ".json_encode($library));
+    $src = 'lidarr';
+    $items = [];
+    return $items;
+}
+
+function parseRadarr($library) {
+    write_log("Lib in: ".json_encode($library));
+    $src = 'radarr';
+    $items = [];
+    foreach($library as $item) {
+        $out = [
+            'title'=>$item['title'],
+            'year'=>$item['year'],
+            'imdbId'=>$item['imdbId'],
+            'tmdbId'=>$item['tmdbId'],
+            'summary'=>$item['overview'],
+            'source'=>$src
+        ];
+        array_push($items,$out);
+    }
+    return $items;
+}
+
+function parseSick($library) {
+    write_log("Lib in: ".json_encode($library));
+    $src = 'sick';
+    $library = $lbrary['data'] ?? false;
+    $items = [];
+    if ($library) foreach($library as $id => $item) {
+        $out = [
+            "title" => $item["show_name"],
+            "tvdbId" => $item["tvdbid"],
+            "id" => $id,
+            "source" => $src
+        ];
+        array_push($items, $out);
+    }
+    return $items;
+}
+
+function parseSonarr($library) {
+    write_log("Lib in: ".json_encode($library));
+    $src = "sonarr";
+    $items = [];
+    foreach($library as $item) {
+        $out = [
+            "title" => $item['title'],
+            "tvdbId" => $item['tvdbId'],
+            "source" => $src
+        ];
+        $items[] = $out;
+    }
+    return $items;
+}
+
+function parseWatcher($library) {
+    write_log("Lib in: ".json_encode($library));
+    $src = 'watcher';
+    $items = [];
+    $library = $library['movies'] ?? [];
+    foreach($library as $item) {
+        $out = [
+            'title'=>$item['title'],
+            'year'=>$item['year'],
+            'imdbId'=>$item['imdbid'],
+            'tmdbId'=>$item['tmdbid'],
+            'summary'=>$item['plot'],
+            'source'=>$src
+        ];
+        array_push($items,$out);
+    }
+    return $items;
+}
 //**
 // These guys are responsible for pulling together a list of all of the library items
 //  */
 
-function scanFetchers($media) {
-    $type = $media['type'] ?? false;
-    $type = $type ? explode(".",$type)[0] : false;
-    $searchArray = [];
+function scanFetchers($type = false, $id=false) {
+    $fetchers = $searchArray = [];
+    write_log("Function fired, searching for type of $type. Session data is currently: ".json_encode(getSessionData()));
     switch($type) {
         case 'movie':
-            if ($_SESSION['couchEnabled'] ?? false) array_merge($searchArray, scanCouch($media));
-            if ($_SESSION['radarrEnabled'] ?? false) array_merge($searchArray, scanRadarr($media));
-            if ($_SESSION['watcherEnabled'] ?? false) array_merge($searchArray, scanWatcher($media));
+            if ($_SESSION['couchEnabled'] ?? false) $searchArray['couch'] = scanCouch();
+            if ($_SESSION['radarrEnabled'] ?? false) $searchArray['radarr'] = scanRadarr();
+            if ($_SESSION['watcherEnabled'] ?? false) $searchArray['watcher'] = scanWatcher();
             break;
         case 'show':
-            if ($_SESSION['sickEnabled'] ?? false) array_merge($searchArray, scanSick($media));
-            if ($_SESSION['sonarrEnabled'] ?? false) array_merge($searchArray, scanSonarr($media));
+        case 'episode':
+        case 'show.episode':
+            if ($_SESSION['sickEnabled'] ?? false) $searchArray['sick'] = scanSick($id);
+            if ($_SESSION['sonarrEnabled'] ?? false) $searchArray['sonarr'] = scanSonarr();
             break;
         case 'music':
-            if ($_SESSION['headphonesEnabled'] ?? false) array_merge($searchArray, scanHeadphones($media));
-            if ($_SESSION['lidarrEnabled'] ?? false) array_merge($searchArray, scanLidarr($media));
+        case 'album':
+        case 'artist':
+            if ($_SESSION['headphonesEnabled'] ?? false) $searchArray['headphones'] = scanHeadphones();
+            if ($_SESSION['lidarrEnabled'] ?? false) $searchArray['lidarr'] = scanLidarr();
             break;
         default:
-            if ($_SESSION['couchEnabled'] ?? false) array_merge($searchArray, scanCouch($media));
-            if ($_SESSION['radarrEnabled'] ?? false) array_merge($searchArray, scanRadarr($media));
-            if ($_SESSION['watcherEnabled'] ?? false) array_merge($searchArray, scanWatcher($media));
-            if ($_SESSION['sickEnabled'] ?? false) array_merge($searchArray, scanSick($media));
-            if ($_SESSION['sonarrEnabled'] ?? false) array_merge($searchArray, scanSonarr($media));
-            if ($_SESSION['headphonesEnabled'] ?? false) array_merge($searchArray, scanHeadphones($media));
-            if ($_SESSION['lidarrEnabled'] ?? false) array_merge($searchArray, scanLidarr($media));
+            if ($_SESSION['couchEnabled'] ?? false) $searchArray['couch'] = scanCouch();
+            if ($_SESSION['radarrEnabled'] ?? false) $searchArray['radarr'] = scanRadarr();
+            if ($_SESSION['watcherEnabled'] ?? false) $searchArray['watcher'] = scanWatcher();
+            if ($_SESSION['sickEnabled'] ?? false) $searchArray['sick'] = scanSick();
+            if ($_SESSION['sonarrEnabled'] ?? false) $searchArray['sonarr'] = scanSonarr();
+            if ($_SESSION['headphonesEnabled'] ?? false) $searchArray['headphones'] = scanHeadphones();
+            if ($_SESSION['lidarrEnabled'] ?? false) $searchArray['lidarr'] = scanLidarr();
     }
     write_log("Final fetcher search array: ".json_encode($searchArray),"INFO");
-    foreach($searchArray as $key=>$value) if (!$value) unset($searchArray["$key"]);
-    return $searchArray;
+    foreach($searchArray as $key=>$value) if (!$value) unset($searchArray["$key"]); else array_push($fetchers,$key);
+    $data = new multiCurl($searchArray);
+    $data = $data->process();
+    $parsed = parseFetchers($data);
+    return ['items'=>$parsed,'fetchers'=>$fetchers];
 }
 
 function scanCouch() {
+    write_log("Function fired!");
     $name = "couch";
     $result = false;
     $uri = $_SESSION["$name" .'Uri'] ?? false;
     $token = $_SESSION["$name".'Token'] ?? false;
     if ($uri && $token) {
-        $result['couch'] = "$uri/api/$token/movie.list";
+        $result = "$uri/api/$token/media.list?type=movie&status=active";
     }
     return $result;
 }
 
-#TODO: See if we can just grab the whole Library
 function scanHeadphones() {
+    write_log("Function fired!");
     $name = "headphones";
     $result = false;
     $uri = $_SESSION["$name" .'Uri'] ?? false;
     $token = $_SESSION["$name".'Token'] ?? false;
     if ($uri && $token) {
-        $result['headphones'] = "$uri/api?apikey=$token&cmd=getWanted";
+        $result = "$uri/api?apikey=$token&cmd=getWanted";
     }
     return $result;
 }
 
 function scanLidarr() {
+    write_log("Function fired!");
     $name = "lidarr";
     $result = false;
     $uri = $_SESSION["$name" .'Uri'] ?? false;
     $token = $_SESSION["$name".'Token'] ?? false;
     if ($uri && $token) {
-        $result['lidarr'] = "$uri/api/v1/artist?apikey=$token";
+        $result = "$uri/api/v1/artist?apikey=$token";
     }
     return $result;
 }
 
 function scanRadarr() {
+    write_log("Function fired!");
     $name = "radarr";
     $result = false;
     $uri = $_SESSION["$name" .'Uri'] ?? false;
     $token = $_SESSION["$name".'Token'] ?? false;
     if ($uri && $token) {
-        $result['radarr'] = "$uri/api/movie?apikey=$token";
+        $result = "$uri/api/movie?apikey=$token";
     }
     return $result;
 }
 
-function scanSick() {
+function scanSick($tvdbId=false) {
+    write_log("Function fired!");
     $name = "sick";
     $result = false;
     $uri = $_SESSION["$name" .'Uri'] ?? false;
     $token = $_SESSION["$name".'Token'] ?? false;
+    write_log("Uri and token are $uri and $token");
     if ($uri && $token) {
-        $result['sick'] = "$uri/api/$token/cmd=shows";
+        if ($tvdbId) {
+            $result = "$uri/api/$token/?cmd=show.seasons&tvdbid=$tvdbId";
+        } else {
+            $result = "$uri/api/$token/?cmd=shows";
+        }
+
     }
+    write_log("Result: ".json_encode($result));
     return $result;
 }
 
-function scanSonarr($media) {
+function scanSonarr() {
+    write_log("Function fired!");
     $name = "sonarr";
     $result = false;
     $uri = $_SESSION["$name" .'Uri'] ?? false;
     $token = $_SESSION["$name".'Token'] ?? false;
     if ($uri && $token) {
-        $result['sonarr'] = "$uri/api/series?apikey=$token";
+        $result = "$uri/api/series?apikey=$token";
     }
     return $result;
 }
 
-function scanWatcher($media) {
+function scanWatcher() {
+    write_log("Function fired!");
     $name = "watcher";
     $result = false;
     $uri = $_SESSION["$name" .'Uri'] ?? false;
     $token = $_SESSION["$name".'Token'] ?? false;
     if ($uri && $token) {
-
+        $result = "$uri/api/?apikey=$token&mode=liststatus";
     }
     return $result;
 }
@@ -779,8 +863,13 @@ function testConnection($serviceName) {
 		case "Radarr":
 		case "Lidarr":
 			$svc = strtolower($serviceName);
-			$url = $_SESSION[$svc . "Uri"];
-			$token = $_SESSION[$svc . 'Token'];
+			write_log("Service string should be $svc plus Uri or Token");
+			$string1 = $svc . "Uri";
+			$string2 = $svc . "Token";
+            $url = $_SESSION["$string1"] ?? false;
+            $token = $_SESSION["$string2"] ?? false;
+            write_log("Fucking session data: ".json_encode(getSessionData()));
+			write_log("DARRRRR search $serviceName, uri and token are $url and $token");
 			if (($token) && ($url)) {
 				if ($serviceName == "Lidarr") {
 					$url = "$url/api/v1/qualityprofile?apikey=$token";
@@ -789,7 +878,7 @@ function testConnection($serviceName) {
 				}
 
 				write_log("Request URL: " . $url);
-				$result = curlGet($url);
+				$result = curlGet($url,null,10);
 				if ($result) {
 					write_log("Result retrieved.");
 					$resultJSON = json_decode($result, true);
@@ -837,7 +926,31 @@ function testConnection($serviceName) {
 				$result = (($result) ? 'Connection to Sick successful!' : 'ERROR: Server not available.');
 			} else $result = "ERROR: Missing server parameters.";
 			break;
-
+        case "Watcher":
+            $url = $_SESSION['watcherUri'] ?? false;
+            $token = $_SESSION['watcherToken'] ?? false;
+            $config = false;
+            if ($url && $token) {
+                $watcher = new Watcher($url, $token);
+                $config = $watcher->getConfig('Quality');
+            }
+            if ($config) {
+                write_log("Got me a config: ".json_encode($config));
+                $list = $config['Profiles'];
+                $array = [];
+                $count = 0;
+                $selected = null;
+                foreach ($list as $name => $profile) {
+                    $selected = $profile['default'] ? $count : null;
+                    $array[$count] = $name;
+                    $count++;
+                }
+                $data = ['watcherList'=>$array,'watcherProfile'=>($selected == null ? "0": $selected)];
+                write_log("Saving some watcher data: ".json_encode($data),"INFO");
+                updateUserPreferenceArray($data);
+            }
+            $result = (($config) ? 'Connection to Watcher successful!' : 'ERROR: Connection failed.');
+            break;
 		case "Plex":
 			$url = $_SESSION['plexServerUri'] . '?X-Plex-Token=' . $_SESSION['plexServerToken'];
 			write_log('URL is: ' . protectURL($url));

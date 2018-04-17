@@ -15,6 +15,10 @@
 	--theme-primary-shade3: rgba(71, 71, 71, 0.92);
 }
 
+body {
+	overflow: hidden;
+}
+
 
 .card, .dropdown-menu, .queryBg {
 	background: var(--theme-primary);
@@ -255,10 +259,11 @@ html {
 }
 
 .scrollContainer {
+	right: 50px;
 	height: 100%;
+	width: 40%;
 	position: absolute;
-	top: 0;
-	/* top: 5px; */
+	top: 4px;
 	padding: 10px 10px;
 	overflow: hidden;
 	margin-bottom: 10px;
@@ -286,7 +291,7 @@ html {
 	height: 100%;
 	width: 100%;
 	text-align: center;
-	top: 40px;
+	top: 20px;
 	z-index: 15;
 }
 
@@ -481,6 +486,11 @@ p.card-subtitle {
 	z-index: 20;
 }
 
+#controlWrap {
+	position: absolute;
+	width: 100%;
+}
+
 .sliderDiv {
 	height: 100%;
 	width: 100%;
@@ -575,7 +585,7 @@ p.card-subtitle {
 
 .modal-header {
 	text-align: center;
-	border : 0px !important;
+	border : 0 !important;
 }
 
 .userHeader {
