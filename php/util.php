@@ -196,19 +196,20 @@ function checkSetLanguage($locale = false) {
     return json_decode($langJSON, true);
 }
 
-function cleanCommandString($string) {
+function cleanTitle($string, $remove=false) {
     $string = trim(strtolower($string));
     $string = preg_replace("/ask Flex TV/", "", $string);
     $string = preg_replace("/tell Flex TV/", "", $string);
     $string = preg_replace("/Flex TV/", "", $string);
     $stringArray = explode(" ", $string);
-    $stripIn = ["th", "nd", "rd", "by"];
+    $stripIn = ["th", "nd", "rd", "by","the"];
     $stringArray = array_diff($stringArray, array_intersect($stringArray, $stripIn));
     foreach ($stringArray as &$word) {
         $word = preg_replace("/[^\w\']+|\'(?!\w)|(?<!\w)\'/", "", $word);
+        if ($remove) $word = str_replace($remove,"",$word);
     }
     $result = implode(" ", $stringArray);
-    return $result;
+    return trim($result);
 }
 
 function clearSession() {
@@ -261,6 +262,8 @@ function cmp($a, $b) {
 }
 
 function compareTitles(string $search, string $check,$sendWeight = false) {
+    $search = cleanTitle($search);
+    $check = cleanTitle($check);
     $goal = $_SESSION['searchAccuracy'] ?? 70;
     $strength = similar_text($search,$check);
     $lev = levenshtein($search,$check);
@@ -814,15 +817,17 @@ function joinStrings($items, $tail = "and") {
     return $string;
 }
 
-function joinTitles($items, $tail = "and") {
+function joinTitles($items, $tail = "and", $params = false) {
     write_log("Dammit: ".json_encode($items),"WARN",false,true);
+    write_log("Params: ".json_encode($params));
     $titles = [];
     $names = [];
     $sayType = false;
+    $requestType = $params['type'][0] ?? false;
     foreach ($items as $item) {
         write_log("Item: " . json_encode($item));
         $title = $item['Title'];
-        foreach($names as $check) if ($check['Title'] == $title) $sayType = true;
+        foreach($names as $check) if ($check['Title'] == $title && !$requestType) $sayType = true;
         array_push($names, $item);
 
     }
@@ -831,6 +836,7 @@ function joinTitles($items, $tail = "and") {
         $type = $item['type'];
         switch ($type) {
             case 'movie':
+            case 'show':
                 $string = $item['title'] . " ($year)";
                 break;
             case 'episode':
@@ -2023,6 +2029,7 @@ function protectURL($string) {
 }
 
 function proxyImage($url) {
+    if (empty(trim($url))) return false;
     return "https://phlexchat.com/imageProxy.php?url=".urlencode($url);
 }
 

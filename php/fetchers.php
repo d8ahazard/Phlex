@@ -25,7 +25,6 @@ function downloadMedia(array $data, array $fetchers) {
     return $results;
 }
 
-
 function downloadCouch(array $data) {
     write_log("Function fired: ".json_encode($data));
     $success = false;
@@ -110,9 +109,7 @@ function downloadRadarr($data) {
 	if ($movie) {
 		write_log("Need to fetch this movie: " . json_encode($movie));
 		$search = $movie;
-		// #TODO: Grab this value when we set it up instead of doing it repeatedly.
-		$rootArray = json_decode($radarr->getRootFolder(), true);
-		$rootPath = $rootArray[0]['path'];
+		$rootPath = $_SESSION['radarrRoot'] ?? json_decode($radarr->getRootFolder(), true)[0]['path'];
 		$search['monitored'] = true;
 		$search['rootFolderPath'] = $rootPath;
 		$search['qualityProfileId'] = ($_SESSION['radarrProfile'] ? intval($_SESSION['radarrProfile']) : 0);
@@ -135,91 +132,64 @@ function downloadRadarr($data) {
 }
 
 function downloadSick($data) {
-	write_log("Function fired");
-	$exists = $id = $response = $responseJSON = $resultID = $resultYear = $status = $results = $result = $show = false;
-	$command = $data['title'];
-	$season = $data['season'];
-	$episode = $data['episode'];
-	$message = "Unable to search on Sickrage";
+	write_log("Function fired: ".json_encode($data));
+	$exists = $success = false;
+	$season = $data['season'] ?? false;
+	$episode = $data['episode'] ?? false;
 	$sickUri = $_SESSION['sickUri'];
 	$sickApiKey = $_SESSION['sickToken'];
+	if (!$sickUri || !$sickApiKey) return false;
 	$sick = new SickRage($sickUri, $sickApiKey);
-
 	$results = json_decode($sick->shows(), true)['data'];
 	foreach ($results as $show) {
-		if (cleanCommandString($show['show_name']) == cleanCommandString($command)) {
-			$title = $show['show_name'];
+        $show['title'] = $show['show_name'];
+        $show['tvdbId'] = $show['tvdbid'];
+
+		if (matchMedia($show,$data)) {
+			$title = $show['title'];
 			write_log("Found $title in the library: " . json_encode($show));
 			$exists = true;
-			$result = $show;
-			$message = $data['title'] . " has already been set to download.";
+			$data = array_merge($show,$data);
+			$success = true;
 			break;
 		}
 	}
 
-	if (!$result) {
-		write_log("Not in library, searching TVDB.");
-		$results = $sick->sbSearchTvdb($command);
-		$responseJSON = json_decode($results, true);
-		$results = $responseJSON['data']['results'];
-		if ($results) {
-			$score = .69;
-			foreach ($results as $searchResult) {
-				$resultName = ($exists ? (string)$searchResult['show_name'] : (string)$searchResult['name']);
-				$newScore = similarity($command, cleanCommandString($resultName));
-				if ($newScore > $score) {
-					write_log("This is the highest matched result so far.");
-					$score = $newScore;
-					$result = $searchResult;
-					if ($score === 1) break;
-				}
-			}
-		}
-	}
 
-	if (($result) && isset($result['tvdbid'])) {
-		$id = $result['tvdbid'];
-		$show = $data;
-		$show['type'] = 'show';
-	} else {
-		$message = "I wasn't able to find any results for that on Sickrage.";
-	}
 
-	if ((!$exists) && ($result) && ($id)) {
-		if ($season && $episode) $status = 'skipped'; else $status = 'wanted';
+    $id = $data['tvdbId'] ?? false;
+	if (!$id) return false;
+
+    $data['type'] = 'show';
+
+	if (!$exists) {
+		$status = ($season && $episode) ? 'skipped' : 'wanted';
 		write_log("Show not in list, adding.");
-		$result = $sick->showAddNew($id, null, 'en', null, $status, $_SESSION['sickProfile']);
-		$responseJSON = json_decode($result, true);
-		write_log('Fetch result: ' . $result);
-		$message = strtoupper($responseJSON['result']) . ': ' . $responseJSON['message'];
+		$result = json_decode($sick->showAddNew($id, null, 'en', null, $status, $_SESSION['sickProfile']), true);
+		write_log('Fetch result: ' . json_encode($result));
+		$success = ($result['result'] == 'success');
 	}
 
-	if ($season && $id) {
+	if ($season) {
+	    $success = false;
 		if ($episode) {
 			write_log("Searching for season $season episode $episode of show with ID of $id");
-			$result = $sick->episodeSearch($id, $season, $episode);
-			$result2 = json_decode($sick->episodeSetStatus($id, $season, 'wanted', $episode, 1), true);
-			if ($result2) {
-				write_log("Episode search worked, result is " . json_encode($result2));
-				$responseJSON = json_decode($result, true);
-				if ($result2['result'] === 'success') {
-					$show['year'] = explode("-", $responseJSON['data']['airdate'])[0];
-					$show['subtitle'] = "S" . sprintf("%02d", $season) . "E" . sprintf("%02d", $episode) . " - " . $responseJSON['data']['name'];
-					$show['summary'] = $responseJSON['data']['description'];
-					write_log("Title appended to : " . $show['title']);
-					$message = "The episode has been added successfully.";
-				}
+			$result = json_decode($sick->episodeSetStatus($id, $season, 'wanted', $episode, 1), true);
+			if ($result) {
+				write_log("Episode search worked, result is " . json_encode($result));
+				$success = ($result['result'] === 'success');
 			}
 		} else {
-			$result2 = json_decode($sick->episodeSetStatus($id, $season, 'wanted', null, 1), true);
+            $result2 = json_decode($sick->episodeSetStatus($id, $season, 'wanted', null, 1), true);
 			$status = strtoupper($result2['result']) . ": " . $result2['message'];
-			if ($result2['result'] === 'success') $show['subtitle'] = "Season " . sprintf("%02d", $season);
+			write_log("Season search status is '$status'");
+			if ($result2['result'] === 'success') $success = true;
 
 		}
-		write_log("Result2: " . json_encode($result2));
 	}
 
-	if (!$season && $id && $episode) {
+	if (!$season && $episode) {
+	    $success = false;
 		write_log("Looking for episode number $episode.");
 		$seasons = json_decode($sick->showSeasonList($id, 'asc'), true);
 		write_log("Season List: " . json_encode($seasons));
@@ -246,110 +216,98 @@ function downloadSick($data) {
 			$i++;
 		}
 		// Find the newest aired episode
-		if (!$winner) {
+		if (!$winner || $episode == -1) {
 			write_log("EpsList: " . json_encode($epsList));
 			foreach (array_reverse($epsList) as $episodeItem) {
 				if ($episodeItem['aired']) {
 					$winner = $episodeItem;
 					break;
 				}
-
 			}
 		}
-		write_log("Searching episode: " . json_encode($winner), "INFO");
+
 		if ($winner) {
+            write_log("Searching episode: " . json_encode($winner), "INFO");
 			$result = $sick->episodeSearch($id, $winner['season'], $winner['episode']);
 			$result2 = json_decode($sick->episodeSetStatus($id, $winner['season'], 'wanted', $winner['episode'], 1), true);
 			if ($result2) {
 				write_log("Episode search worked, result is " . json_encode($result2));
-				$responseJSON = json_decode($result, true);
-				if ($result2['result'] === 'success') {
-					$show['year'] = explode("-", $responseJSON['data']['airdate'])[0];
-					$show['subtitle'] = "S" . sprintf("%02d", $winner['season']) . "E" . sprintf("%02d", $winner['episode']) . " - " . $responseJSON['data']['name'];
-					$show['summary'] = $responseJSON['data']['description'];
-					$message = "The episode has been successfully added.";
-				}
+				$success = ($result2['result'] === 'success');
 			}
 		}
 		write_log("Show result: " . json_encode($winner));
 	}
 
-	$response['message'] = $message;
-	$response['media'] = $show;
-	$response['mediaResult']['type'] = 'tv';
-	return $response;
+	return $success;
 }
 
-function downloadSonarr($command, $season = false, $episode = false, $tmdbResult = false) {
+function downloadSonarr($data) {
+    $command = $data['title'];
+    $season = $data['season'] ?? false;
+    $episode = $data['episode'] ?? false;
 	write_log("Function fired, searching for " . $command);
 	$exists = $score = $seriesId = $show = $wanted = false;
-	$response = ['status' => 'ERROR'];
-	$sonarrUri = $_SESSION['sonarrUri'];
-	$sonarrApiKey = $_SESSION['sonarrAuth'];
+	$show = $search = $success = false;
+	$sonarrUri = $_SESSION['sonarrUri'] ?? false;
+	$sonarrApiKey = $_SESSION['sonarrToken'] ?? false;
+	if (!$sonarrUri || !$sonarrApiKey) {
+	    write_log("Missing Sonarr credentials!","ERROR");
+	    return false;
+    }
+
 	$sonarr = new Sonarr($sonarrUri, $sonarrApiKey);
-	$rootArray = json_decode($sonarr->getRootFolder(), true);
-	$seriesArray = json_decode($sonarr->getSeries(), true);
-	$root = $rootArray[0]['path'];
+    $root = $_SESSION['sonarrRoot'] ?? json_decode($sonarr->getRootFolder(), true)[0]['path'] ?? false;
+    if (!$root) return false;
+    $seriesArray = json_decode($sonarr->getSeries(), true);
 
-	// See if it's already in the library
-	foreach ($seriesArray as $series) {
-		if (cleanCommandString($series['title']) == cleanCommandString($command)) {
-			write_log("This show is already in the library.");
-			write_log("SERIES: " . json_encode($series));
-			$exists = $show = $series;
-			$response['status'] = "SUCCESS: Already In Searcher";
-			break;
-		}
-	}
+    // See if it's already in the library
+    foreach ($seriesArray as $series) {
+        if (matchMedia($series,$data, true)) {
+            write_log("This show is already in the library.");
+            write_log("SERIES: " . json_encode($series));
+            $show = $series;
+            $exists = true;
+            break;
+        }
+    }
 
-	// If not, look for it.
-	if ((!$exists) || ($season && !$episode)) {
-		if ($exists) $show = $exists; else {
-			$search = json_decode($sonarr->getSeriesLookup($command), true);
-			write_log("Searching for show, array is " . json_encode($search));
-			$score = .69;
-			foreach ($search as $series) {
-				$newScore = similarity(cleanCommandString($command), cleanCommandString($series['title']));
-				if ($newScore > $score) {
-					$score = $newScore;
-					$show = $series;
-				}
-				if ($newScore === 1) break;
-			}
-		}
-		// If we found something to download and don't have it in the library, add it.
-		if (is_array($show)) {
-			$show['qualityProfileId'] = ($_SESSION['sonarrProfile'] ? intval($_SESSION['sonarrProfile']) : 0);
-			$show['rootFolderPath'] = $root;
-			$skip = ($season || $episode);
-			if ($season && !$episode) {
-				$newSeasons = [];
-				foreach ($show['seasons'] as $check) {
-					if ($check['seasonNumber'] == $season) {
-						$check['monitored'] = true;
-					}
-					array_push($newSeasons, $check);
-				}
-				$show['seasons'] = $newSeasons;
-				unset($show['rootFolderPath']);
-				$show['isExisting'] = false;
-				write_log("Attempting to update the series " . $show['title'] . ", JSON is: " . json_encode($show));
-				$show = json_decode($sonarr->putSeries($show), true);
-				write_log("Season add result: " . json_encode($show));
-				$response['status'] = "SUCCESS: Season added!";
-			} else {
-				write_log("Attempting to add the series " . $show['title'] . ", JSON is: " . json_encode($show));
-				$show = json_decode($sonarr->postSeries($show, $skip), true);
-				write_log("Show add result: " . json_encode($show));
-				$response['status'] = "SUCCESS: Series added!";
-			}
-		} else {
-			$response['status'] = "ERROR: No Results Found.";
-		}
-	}
+    $tvdbId = $data['tvdbId'];
+    if (!$show) {
+        $search = json_decode($sonarr->getSeriesLookup("tvdb:$tvdbId"), true);
+        write_log("Search result: " . json_encode($search));
+        $show = $search[0] ?? false;
+    }
+
+    if (is_array($show)) {
+        $show['qualityProfileId'] = intval($_SESSION['sonarrProfile'] ?? 0);
+        $show['rootFolderPath'] = $root;
+        $skip = ($season || $episode);
+        if ($exists || $season && !$episode) {
+            $newSeasons = [];
+            foreach ($show['seasons'] as $check) {
+                $check['monitored'] = ($check['seasonNumber'] == $season);
+                array_push($newSeasons, $check);
+            }
+            $show['seasons'] = $newSeasons;
+            unset($show['rootFolderPath']);
+            $show['isExisting'] = false;
+            write_log("Attempting to update the series " . $show['title'] . ", JSON is: " . json_encode($show));
+            $show = json_decode($sonarr->putSeries($show), true);
+            write_log("Season add result: " . json_encode($show));
+            $success = true;
+        } else {
+            write_log("Attempting to add the series " . $show['title'] . ", JSON is: " . json_encode($show));
+            $show = json_decode($sonarr->postSeries($show, $skip), true);
+            $msg = $show['error']['msg'];
+            if ($msg == "This series has already been added") write_log("Show is already added.","INFO");
+            $success = true;
+        }
+    } else {
+        $success = false;
+    }
 
 	// If we want a whole season, send the command to search it.
-	if ($season && !$episode) {
+	if ($show && $season && !$episode) {
 		$data = [
 			'seasonNumber' => $season,
 			'seriesId' => $show['id'],
@@ -357,12 +315,12 @@ function downloadSonarr($command, $season = false, $episode = false, $tmdbResult
 		];
 		$result = json_decode($sonarr->postCommand("SeasonSearch", $data), true);
 		write_log("Command result: " . json_encode($result));
-		$response['status'] = (($result['body']['completionMessage'] == "Completed") ? "SUCCESS: Season added and searched." : "ERROR: Command failed");
+		$success = ($result['body']['completionMessage'] == "Completed");
 		$show['subtitle'] = "Season " . sprintf("%02d", $season);
 	}
 
 	// If we want a specific episode, then we need to search it manually.
-	if ($episode && !empty($show)) {
+	if ($episode && $show) {
 		write_log("Looking for a specific episode.");
 		$seriesId = $show['id'];
 		write_log("Show ID: " . $seriesId);
@@ -407,36 +365,13 @@ function downloadSonarr($command, $season = false, $episode = false, $tmdbResult
 			];
 			$result = json_decode($sonarr->postCommand("EpisodeSearch", $data), true);
 			write_log("Command result: " . json_encode($result));
-			$response['status'] = (($result['body']['completionMessage'] == "Completed") ? "SUCCESS: EPISODE SEARCHED" : "ERROR: COMMAND FAILED");
+			$success = ($result['body']['completionMessage'] == "Completed");
 		} else {
-			$response['status'] = "ERROR: EPISODE NOT FOUND";
+			$success = false;
 		}
 	}
 
-	if (preg_match("/SUCCESS/", $response['status'])) {
-		write_log("We have a success message, building final output.");
-		if ($show) {
-			$seriesId = $show['tvdbId'];
-			$extras = $tmdbResult ? $tmdbResult : fetchMovieInfo(false, false, $seriesId);
-			$mediaOut['thumb'] = $mediaOut['art'] = $extras['art'];
-			$mediaOut['year'] = $extras['year'];
-			$mediaOut['tagline'] = $extras['subtitle'];
-			if (isset($show['subtitle'])) $mediaOut['subtitle'] = $show['subtitle'];
-			if ($wanted) {
-				$mediaOut['title'] = $show['title'];
-				$mediaOut['subtitle'] = "S" . sprintf("%02d", $wanted['seasonNumber']) . "E" . sprintf("%02d", $wanted['episodeNumber']) . " - " . $wanted['title'];
-				$mediaOut['summary'] = $wanted['overview'];
-			} else {
-				$mediaOut['title'] = $show['title'];
-				$mediaOut['summary'] = $show['overview'];
-			}
-
-			$response['mediaResult'] = $mediaOut;
-			$response['mediaResult']['type'] = 'tv';
-		}
-	}
-	write_log("Final response: " . json_encode($response));
-	return $response;
+	return $success;
 }
 
 function downloadWatcher($data) {
@@ -526,6 +461,14 @@ function fetchList($serviceName) {
 }
 
 
+function listFetchers() {
+    $fetchers = ['couch','sonarr','radarr','lidarr','headphones','sick','watcher'];
+    $results = [];
+    foreach ($fetchers as $fetcher) {
+        if ($_SESSION[$fetcher."Enabled"]) array_push($results,$fetcher);
+    }
+    return $results;
+}
 /**
  * parseFetchers
  *
@@ -640,10 +583,12 @@ function parseSonarr($library) {
     $src = "sonarr";
     $items = [];
     foreach($library as $item) {
+        write_log("ITEM: ".json_encode($item));
         $out = [
             "title" => $item['title'],
             "tvdbId" => $item['tvdbId'],
-            "source" => $src
+            "source" => $src,
+            "year" => $item['year']
         ];
         $items[] = $out;
     }
@@ -866,22 +811,26 @@ function testConnection($serviceName) {
 			write_log("Service string should be $svc plus Uri or Token");
 			$string1 = $svc . "Uri";
 			$string2 = $svc . "Token";
-            $url = $_SESSION["$string1"] ?? false;
+            $root = $_SESSION["$string1"] ?? false;
             $token = $_SESSION["$string2"] ?? false;
             write_log("Fucking session data: ".json_encode(getSessionData()));
-			write_log("DARRRRR search $serviceName, uri and token are $url and $token");
-			if (($token) && ($url)) {
+			write_log("DARRRRR search $serviceName, uri and token are $root and $token");
+			if (($token) && ($root)) {
 				if ($serviceName == "Lidarr") {
-					$url = "$url/api/v1/qualityprofile?apikey=$token";
+					$url = "$root/api/v1/qualityprofile?apikey=$token";
+					$url2 = "$root/api/v1/rootfolder?apikey=$token";
 				} else {
-					$url = "$url/api/profile?apikey=$token";
+					$url = "$root/api/profile?apikey=$token";
+					$url2 = "$root/api/rootfolder?apikey=$token";
 				}
 
 				write_log("Request URL: " . $url);
 				$result = curlGet($url,null,10);
-				if ($result) {
-					write_log("Result retrieved.");
+				$result2 = curlGet($url2,null,10);
+				if ($result && $result2) {
+					write_log("Results retrieved.");
 					$resultJSON = json_decode($result, true);
+                    $resultJSON2 = json_decode($result2, true);
 					$array = [];
 					$first = false;
 					foreach ($resultJSON as $profile) {
@@ -892,7 +841,7 @@ function testConnection($serviceName) {
 						$array[$profile['id']] = $profile['name'];
 					}
 					write_log("Final array is " . json_encode($array));
-					updateUserPreferenceArray([$svc . 'Profile'=>$first,$svc . 'List'=>$array]);
+					updateUserPreferenceArray([$svc . 'Profile'=>$first,$svc . 'List'=>$array, $svc . 'Root'=>$resultJSON2[0]['path']]);
 				}
 				$result = (($result !== false) ? "Connection to $serviceName successful!" : 'ERROR: Server not available.');
 			} else $result = "ERROR: Missing server parameters.";
