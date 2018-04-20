@@ -52,45 +52,17 @@ class PHPTail {
 		// switch and check possible JSON errors
 		switch (json_last_error()) {
 			case JSON_ERROR_NONE:
-				$error = ''; // JSON is valid // No error has occurred
-				break;
-			case JSON_ERROR_DEPTH:
-				$error = 'ERROR11: The maximum stack depth has been exceeded.';
-				break;
-			case JSON_ERROR_STATE_MISMATCH:
-				$error = 'ERROR11: Invalid or malformed JSON.';
-				break;
-			case JSON_ERROR_CTRL_CHAR:
-				$error = 'ERROR11: Control character error, possibly incorrectly encoded.';
-				break;
-			case JSON_ERROR_SYNTAX:
-				$error = 'ERROR11: Syntax error, malformed JSON.';
-				break;
-			// PHP >= 5.3.3
-			case JSON_ERROR_UTF8:
-				$error = 'ERROR11: Malformed UTF-8 characters, possibly incorrectly encoded.';
-				break;
-			// PHP >= 5.5.0
-			case JSON_ERROR_RECURSION:
-				$error = 'ERROR11: One or more recursive references in the value to be encoded.';
-				break;
-			// PHP >= 5.5.0
-			case JSON_ERROR_INF_OR_NAN:
-				$error = 'ERROR11: One or more NAN or INF values in the value to be encoded.';
-				break;
-			case JSON_ERROR_UNSUPPORTED_TYPE:
-				$error = 'ERROR11: A value of a type that cannot be encoded was given.';
+				$error = false;
 				break;
 			default:
-				$error = 'ERROR11: Unknown JSON error occured.';
+				$error = true;
 				break;
 		}
 
-		if ($error !== '') {
-			return $error;
+		if ($error) {
+			return false;
 		}
 
-		// everything is OK
 		return $result;
 	}
 	
@@ -143,11 +115,12 @@ class PHPTail {
         else {
             $data = preg_grep("/$grepKeyword/",$data, PREG_GREP_INVERT);
         }
-        //if(preg_match("/Phlex.log/",$file)) {
-        	$newData = [];
+
         	$i = 0;
-        	if (!$count) $count = 0;
+        	$l = 0;
+        	$newData = [];
         	foreach($data as $line) {
+        		if (!trim($line)) continue;
         		if ($i === 0) {
         			$i = 1;
         			$linecolor = "white";
@@ -158,28 +131,42 @@ class PHPTail {
 		        $authString = "; <?php die('Access denied'); ?>".PHP_EOL;
         		$line = str_replace($authString,"",$line);
 		        $og = $line;
-        		$level = explode("] [",$line)[1] ?? "INFO";
+		        $level = "DEBUG";
+		        if (strpos($line,"[ERROR]") !== false || strpos($line,"[php7:error]") !== false) $level = "ERROR";
+		        if (strpos($line,"[INFO]") !== false || strpos($line,"[php7:notice]") !== false) $level = "INFO";
+		        if (strpos($line,"[WARN]") !== false || strpos($line,"[php7:warn]") !== false) $level = "WARN";
+                if (strpos($line,"[ALERT]") !== false || strpos($line,"[php7:alert]") !== false) $level = "ALERT";
+		        $og = urlencode($og);
 		        $substr = explode(": ",$line);
-		        unset($substr[0]);
-		        $substr = implode(": ",$substr);
+		        try {
+                    if (count($substr) >= 2) {
+                        unset($substr[0]);
+                        $substr = implode(": ", $substr);
+                        $test = $this->json_validate($substr);
+                        if ($test) {
+                            $json = json_encode($test) ?? false;
+                            if ($json !== "null" && (!preg_match("/ERROR11/", $json))) {
+                                $jsonLink = '<a href="" class="jsonParse" title="' . htmlentities($json) . '" data-json="' . urlencode($json) . '">[JSON]</a>';
+                                $line = str_replace($substr, $jsonLink, $line);
+                                $og = htmlentities($json);
+                            }
+                        }
+                    }
 
-		        if (preg_match('#\bhttps?://[^,\s()<>]+(?:\([\w\d]+\)|([^,[:punct:]\s]|/))#', $line, $match)) {
-		        	$link = "<a href='$match[0]' target='_blank'>$match[0]</a>";
-				$line = str_replace($match[0],$link,$line);
-			}
-			$test = $this->json_validate($substr);
-			if ($test) {
-				$json = json_encode($test) ?? false;
-			}
+                    preg_match('#\bhttps?://[^,\s()<>]+(?:\([\w\d]+\)|([^,[:punct:]\s]|/))#', $line, $match);
+                    if (isset($match[0])) {
+                        $parts = htmlentities(json_encode(parse_url($match[0])));
+                        $link = "<a href='$match[0]' title='$parts' target='_blank'>$match[0]</a>";
+                        $line = str_replace($match[0], $link, $line);
+                        $og = $parts;
+                    }
+                } catch (Exception $e) {
 
+                }
+				$line = "<span class='lineNo'>$l</span><span class='$level $linecolor logSpan' data-text='$og'>$line</span>";
+				array_push($newData, $line);
+				$l++;
 
-		        if ($json !== "null" && (!preg_match("/ERROR11/",$json))) {
-				$jsonLink = '<a href="" class="jsonParse" title="'.urlencode($json).'" data-json="'.urlencode($json).'">[JSON]</a>';
-				$line = str_replace($substr, $jsonLink, $line);
-			}
-				$line = "<span class='lineNo'>$count</span><span class='$level $linecolor logSpan' data-text='".urlencode($og)."'>$line</span>";
-				array_push($newData,$line);
-				$count++;
 			}
 			$data = $newData;
 		//}
@@ -253,6 +240,12 @@ class PHPTail {
 .DEBUG {
 	color: #007900;
 }
+
+.ALERT {
+    color: #ffffff;
+    background-color: black !important;
+}
+
 .ERROR {
 	color:red;
 }
@@ -260,7 +253,7 @@ class PHPTail {
 	color:blue;
 }
 .grey {
-	background-color:#d3d3d37d;
+	background-color: rgb(223, 223, 223);
 }
 .white {
 	background-color:white;
@@ -316,14 +309,16 @@ class PHPTail {
 		    gotoUrl("http://jsonselector.com/process",{'rawjson':data});
 	    });
 
-	    $(document).on('dblclick', '.logSpan',function(e) {
+	    $(document).on('dblclick', '.logSpan',function() {
 		    var data = $(this).data('text');
 		    console.log("Data: ",data);
-		    data = decodeURIComponent(data);
-		    data = data.replace(/\+/g, ' ');
-	    	console.log("Span clicked! ",data);
-	    	data = data.split(" - ")[1];
-	    	clipboard.copy(data);
+		    var dummy = document.createElement("input");
+		    document.body.appendChild(dummy);
+		    dummy.setAttribute("id", "dummy_id");
+		    document.getElementById("dummy_id").value=JSON.stringify(data);
+		    dummy.select();
+		    document.execCommand("copy");
+		    document.body.removeChild(dummy);
 		});
 
         // Setup the settings dialog
@@ -421,10 +416,11 @@ console.log(e);
             fileParts = fileParts.split("/");
             fileParts = fileParts[fileParts.length - 1];
             $(".navbar-brand").text(fileParts);
-            console.log("Navbar name should be " + fileParts);
-            $.each(data.data, function(key, value) {
-                $("#results").append('' + value + "\n");
-            });
+            if (data.data != null) {
+                $.each(data.data, function (key, value) {
+                    $("#results").append('' + value + "\n");
+                });
+            }
             if (scroll) {
                 scrollToBottom();
             }

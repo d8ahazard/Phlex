@@ -81,7 +81,69 @@ function downloadCouch(array $data) {
 }
 
 function downloadHeadphones(array $data) {
-    return false;
+    write_log("Function fired: ".json_encode($data));
+    $success = false;
+    $ids = [];
+    $uri = $_SESSION['headphonesUri'] ?? false;
+    $token = $_SESSION['headphonesToken'] ?? false;
+    if (!$uri || !$token) return false;
+    $phones = new Headphones($uri,$token);
+    $type = $data['type'];
+    $request = $data['title'];
+
+    write_log("Type and request are $type and $request");
+    if ($type == 'artist') {
+        $data = $phones->findArtist($request);
+    } else {
+        $data = $phones->findAlbum($request);
+    }
+    $data = json_decode($data,true);
+
+    write_log("Search data: ".json_encode($data));
+    $items = [];
+    if ($data) {
+        foreach($data as $item) {
+            if ($item['score'] == 100) {
+                write_log("Found matching item: ".json_encode($item));
+                array_push($items,$item);
+            }
+        }
+    }
+
+    write_log("ID's: ".json_encode($items));
+    $id = false;
+    $idStr = ($type == "album") ? "albumid" : "id";
+    if (count($items)) {
+        if (count($items) == 1) {
+            write_log("Single item found, adding to DB.");
+            $id = $items[0]["$idStr"];
+        } else {
+            if ($type == 'album') {
+                write_log("Multiple results with 100% match, trying to filter by country.");
+                $loc = $_SERVER['REMOTE_ADDR'] ?? false;
+                $cCode = false;
+                if ($loc) {
+                    $locInfo = json_decode(curlGet("https://api.ipdata.co/$loc"), true);
+                    write_log("Got me some location info: " . json_encode($locInfo));
+                    if ($locInfo) $cCode = $locInfo['country_code'] ?? false;
+                }
+                $cCode = $cCode ? $cCode : 'US';
+                foreach ($items as $item) {
+                    if ($item['country'] == $cCode) {
+                        write_log("Found a matching item for user's country. Cool.");
+                        $id = $item["$idStr"];
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    if ($id) {
+        $response = ($type=='artist') ? $phones->addArtist($id) : $phones->addAlbum($id);
+        write_log("Response: ".$response);
+        $success = ($response == "OK");
+    }
+    return $success;
 }
 
 function downloadLidarr(array $data) {

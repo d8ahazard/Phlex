@@ -644,7 +644,8 @@ function buildCards(value, i) {
 				description = ((card.hasOwnProperty('formattedText')) ? card.formattedText : ((card.hasOwnProperty('description')) ? card.description : ''));
 			}
 			if (cardArray.length >= 2) {
-				card = cardArray[Math.floor(Math.random() * cardArray.length - 1)];
+                		card = cardArray[Math.floor(Math.random()*cardArray.length)];
+				console.log("Multiple cards, picked card: ",card);
 			}
 			if (card !== undefined) {
 				if (card.hasOwnProperty('image')) {

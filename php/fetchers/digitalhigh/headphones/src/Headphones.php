@@ -3,7 +3,6 @@
 namespace digitalhigh\Headphones;
 
 use GuzzleHttp\Client;
-use digitalhigh\Radarr\Exceptions\InvalidException;
 
 class Headphones
 {
@@ -17,485 +16,540 @@ class Headphones
     }
 
     /**
-     * Gets upcoming artist, if start/end are not supplied artist airing today and tomorrow will be returned
-     * When supplying start and/or end date you must supply date in format yyyy-mm-dd
-     * Example: $radarr->getCalendar('2015-01-25', '2016-01-15');
-     * 'start' and 'end' not required. You may supply, one or both.
+     * Fetch data from index page. Returns: ArtistName, ArtistSortName, ArtistID, Status, DateAdded,
+     * [LatestAlbum, ReleaseDate, AlbumID], HaveTracks, TotalTracks, IncludeExtras, LastUpdated,
+     * [ArtworkURL, ThumbURL]: a remote url to the artwork/thumbnail.
+     * To get the cached image path, see getArtistArt command.
+     * ThumbURL is added/updated when an artist is added/updated.
+     * If your using the database method to get the artwork,
+     * it's more reliable to use the ThumbURL than the ArtworkURL
      *
      * @return array|object|string
-     * @throws InvalidException
      */
     public function getIndex()
     {
-        try {
-            $response = $this->_request(
-                [
-                    'uri' => 'getIndex',
-                    'type' => 'get'
-                ]
-            );
-        } catch ( \Exception $e ) {
-            throw new InvalidException($e->getMessage());
-        }
+        $uri ='getIndex';
 
-        return $response->getBody()->getContents();
+        return $this->processRequest($uri);
     }
 
     /**
-     * Queries the status of a previously started command, or all currently started commands.
      * Fetch artist data. returns the artist object (see above) and album info:
-     * Status, AlbumASIN, DateAdded, AlbumTitle, ArtistName, ReleaseDate, AlbumID, ArtistID,
-     * Type, ArtworkURL: hosted image path. For cached image, see getAlbumArt command)
-     * @param $artistid string ID to retrieve
+     * Status, AlbumASIN, DateAdded, AlbumTitle, ArtistName, ReleaseDate, AlbumID, ArtistID, Type,
+     * ArtworkURL: hosted image path. For cached image, see getAlbumArt command)
+     * @param string $id - Artist ID to retrieve. Use findArtist to get ID by name.
      * @return array|object|string
-     * @throws InvalidException
      */
-    public function getArtist($artistid)
+    public function getArtist(string $id)
     {
+        $uri ="getArtist&id=$id";
 
-        try {
-            $response = $this->_request(
-                [
-                    'uri' => 'getArtist',
-                    'type' => 'get',
-                    'data' => $artistid
-                ]
-            );
-        } catch ( \Exception $e ) {
-            throw new InvalidException($e->getMessage());
-        }
-
-        return $response->getBody()->getContents();
+        return $this->processRequest($uri);
     }
 
+
     /**
-     * Publish a new command for Radarr to run.
-     * These commands are executed asynchronously; use GET to retrieve the current status.
+     * Fetch data from album page. Returns the album object, a description object and a tracks object.
+     * Tracks contain: AlbumASIN, AlbumTitle, TrackID, Format, TrackDuration (ms), ArtistName, TrackTitle,
+     * AlbumID, ArtistID, Location, TrackNumber, CleanName (stripped of punctuation /styling), BitRate
      *
-     * Commands and their parameters can be found here:
-     * https://github.com/Radarr/Radarr/wiki
-     *
-     * @param $name
-     * @param array|null $params
+     * @param string $id - The album ID to look for. Use findAlbum to get ID by name.
      * @return string
-     * @throws InvalidException
      */
-    public function postCommand($name, array $params = null)
+    public function getAlbum(string $id)
     {
-        $uri = 'command';
-        $uriData = [
-            'name' => $name
-        ];
+        $uri = "getAlbum&id=$id";
 
-        if ($params != null) {
-        	foreach ($params as $key=>$value) {
-        		$uriData[$key]= $value;
-	        }
-        }
-
-        try {
-            $response = $this->_request(
-                [
-                    'uri' => $uri,
-                    'type' => 'post',
-                    'data' => $uriData
-                ]
-            );
-        } catch ( \Exception $e ) {
-            throw new InvalidException($e->getMessage());
-        }
-
-        return $response->getBody()->getContents();
+        return $this->processRequest($uri);
     }
 
+
     /**
-     * Gets Diskspace
+     * Returns: Status, AlbumASIN, DateAdded, AlbumTitle, ArtistName, ReleaseDate, AlbumID, ArtistID, Type
      *
      * @return array|object|string
-     * @throws InvalidException
      */
-    public function getDiskspace()
+    public function getUpcoming()
     {
-        $uri = 'diskspace';
+        $uri = 'getUpcoming';
 
-        try {
-            $response = $this->_request(
-                [
-                    'uri' => $uri,
-                    'type' => 'get',
-                    'data' => []
-                ]
-            );
-        } catch ( \Exception $e ) {
-            throw new InvalidException($e->getMessage());
-        }
-
-        return $response->getBody()->getContents();
-    }
-
-	/**
-	 * Returns all artist, or a single artist if ID or title is specified
-	 *
-	 * @param null|string $id
-	 * @param null|string $title
-	 * @return array|object|string
-	 * @throws InvalidException
-	 * @internal param $artistId
-	 */
-
-    public function getartist2($id = null)
-    {
-	    $uri = ($id) ? 'artist/' . $id : 'artist';
-
-        try {
-            $response = $this->_request(
-                [
-                    'uri' => $uri,
-                    'type' => 'get'
-                ]
-            );
-        } catch ( \Exception $e ) {
-            throw new InvalidException($e->getMessage());
-        }
-
-        return $response->getBody()->getContents();
-    }
-
-	/**
-	 * Searches for new shows on trakt
-	 * Search by name or tvdbid
-	 * Example: 'The Blacklist' or 'tvdb:266189'
-	 *
-	 * @param string $searchTerm query string for the search (Use tvdb:12345 to lookup TVDB ID 12345)
-	 * @return string
-	 */
-	public function getartistLookup($searchTerm)
-	{
-		$uri = 'artist/lookup';
-		$uriData = [
-			'term' => $searchTerm
-		];
-
-		$response = [
-			'uri' => $uri,
-			'type' => 'get',
-			'data' => $uriData
-		];
-
-		return $this->processRequest($response);
-	}
-
-	/**
-	 * Adds a new artist to your collection
-	 *
-	 * NOTE: if you do not add the required params, then the artist wont function.
-	 * Some of these without the others can indeed make a "artist". But it wont function properly in Radarr.
-	 *
-	 * Required: tmdbId (int) title (string) qualityProfileId (int) titleSlug (string) seasons (array)
-	 * See GET output for format
-	 *
-	 * path (string) - full path to the artist on disk or rootFolderPath (string)
-	 * Full path will be created by combining the rootFolderPath with the artist title
-	 *
-	 * Optional: tvRageId (int) seasonFolder (bool) monitored (bool)
-	 *
-	 * @param array $data
-	 * @param bool|true $onlyFutureartist It can be used to control which episodes Radarr monitors
-	 * after adding the artist, setting to true (default) will only monitor future episodes.
-	 *
-	 * @return array|object|string
-	 */
-    public function postartist(array $data)
-    {
-        $uri = 'artist';
-
-	    try {
-		    $response = $this->_request(
-		    	[
-		    	'uri' => $uri,
-			    'type' => 'post',
-			    'data' => $data
-		        ]
-	    );
-	    } catch ( \Exception $e ) {
-		    return $e->getMessage();
-	    }
-
-	    return $response->getBody()->getContents();
+        return $this->processRequest($uri);
     }
 
     /**
-     * Update the given artist, currently only monitored is changed, all other modifications are ignored.
+     * Returns: Status, AlbumASIN, DateAdded, AlbumTitle, ArtistName, ReleaseDate, AlbumID, ArtistID, Type
      *
-     * Required: All parameters (you should perform a GET/{id} and submit the full body with the changes
-     * and submit the full body with the changes, as other values may be editable in the future.
+     * @return array|object|string
+     */
+    public function getWanted()
+    {
+        $uri = 'getWanted';
+
+        return $this->processRequest($uri);
+    }
+
+    /**
+     * Returns similar artists - with a higher "Count" being more likely to be similar. Returns: Count,
+     * ArtistName, ArtistID
      *
-     * @param array $data
+     * @return array|object|string
+     */
+    public function getSimilar()
+    {
+        $uri = 'getSimilar';
+
+        return $this->processRequest($uri);
+    }
+
+
+    /**
+     * Returns: Status, DateAdded, Title, URL (nzb), FolderName, AlbumID, Size (bytes)
+     *
+     * @return array|object|string
+     */
+    public function getHistory()
+    {
+        $uri = 'getSimilar';
+
+        return $this->processRequest($uri);
+    }
+
+
+    /**
+     * Perform artist query on musicbrainz. Returns: url, score, name, uniquename (contains disambiguation info), id)
+     *     *
+     * @param string $name - The artist name to search
+     * @param int $limit - How many results to return
      * @return string
-     * @throws InvalidException
      */
-    public function updateartist(array $data)
+    public function findArtist(string $name, int $limit = 0)
     {
-        $uri = 'artist';
+        $name = urlencode($name);
+        $uri = "findArtist&name=$name";
+        if ($limit !== 0) $uri .= "&limit=$limit";
 
-        try {
-            $response = $this->_request(
-                [
-                    'uri' => $uri,
-                    'type' => 'put',
-                    'data' => $data
-                ]
-            );
-        } catch ( \Exception $e ) {
-            throw new InvalidException($e->getMessage());
-        }
-
-        return $response->getBody()->getContents();
-    }
-
-	/**
-	 * Delete the given artist file
-	 *
-	 * @param $id - TMDB ID of the artist to remove
-	 * @param bool $deleteFiles - Optional, delete files along with remove from Radarr.
-	 * @return string
-	 * @throws InvalidException
-	 */
-    public function deleteartist($id,$deleteFiles=false)
-    {
-        $uri = 'artist';
-
-        try {
-            $response = $this->_request(
-                [
-                    'uri' => $uri . '/' . $id,
-                    'type' => 'delete',
-                    'deleteFiles' => $deleteFiles
-                ]
-            );
-        } catch ( \Exception $e ) {
-            throw new InvalidException($e->getMessage());
-        }
-
-        return $response->getBody()->getContents();
+        return $this->processRequest($uri);
     }
 
     /**
-     * Gets history (grabs/failures/completed).
+     * Perform album query on musicbrainz. Returns: title, url (artist), id (artist), albumurl, albumid, score, uniquename (artist - with disambiguation)
      *
-     * @param int $page Page Number
-     * @param int $pageSize Results per Page
-     * @param string $sortKey 'artist.title' or 'date'
-     * @param string $sortDir 'asc' or 'desc'
-     * @return array|object|string
-     * @throws InvalidException
+     * @param string $name - The artist name to search
+     * @param int $limit - How many results to return
+     * @return string
      */
-    public function getHistory($page = 1, $pageSize = 10, $sortKey = 'artist.title', $sortDir = 'asc')
+    public function findAlbum(string $name, int $limit = 0)
     {
-        $uri = 'history';
+        $name = urlencode($name);
+        $uri = "findAlbum&name=$name";
+        if ($limit !== 0) $uri .= "&limit=$limit";
 
-        try {
-            $response = $this->_request(
-                [
-                    'uri' => $uri,
-                    'type' => 'get',
-                    'data' => [
-                        'page' => $page,
-                        'pageSize' => $pageSize,
-                        'sortKey' => $sortKey,
-                        'sortDir' => $sortDir
-                    ]
-                ]
-            );
-        } catch ( \Exception $e ) {
-            throw new InvalidException($e->getMessage());
-        }
-
-        return $response->getBody()->getContents();
+        return $this->processRequest($uri);
     }
 
-
-
-
     /**
-     * Gets all quality profiles
+     * Add an artist to the db by artistid
      *
+     * @param string $id
      * @return array|object|string
-     * @throws InvalidException
      */
-    public function getProfiles()
+    public function addArtist(string $id)
     {
-        $uri = 'profile';
+        $uri = "addArtist&id=$id";
 
-        try {
-            $response = $this->_request(
-                [
-                    'uri' => $uri,
-                    'type' => 'get',
-                    'data' => []
-                ]
-            );
-        } catch ( \Exception $e ) {
-            throw new InvalidException($e->getMessage());
-        }
-
-        return $response->getBody()->getContents();
+        return $this->processRequest($uri);
     }
 
 
-
     /**
-	 *
-	 * Returns the banner for the specified artist
-	 *
-	 * @param $artistId
-	 * @return string
-	 * @throws InvalidException
-	 */
-	public function getBanner($artistId) {
-	    $uri = 'MediaCover/'.$artistId.'/banner.jpg';
-	    try {
-		    $response = $this->_request(
-			    [
-				    'uri' => $uri,
-				    'type' => 'get',
-				    'data' => []
-			    ]
-		    );
-	    }catch ( \Exception $e ) {
-		    throw new InvalidException($e->getMessage());
-	    }
-	    return $response->getBody()->getContents();
-	}
-    /**
-     * Gets root folder
+     * Add an artist to the db by artistid
      *
+     * @param string $id
      * @return array|object|string
-     * @throws InvalidException
      */
-    public function getRootFolder()
+    public function addAlbum(string $id)
     {
-        $uri = 'rootfolder';
+        $uri = "addAlbum&id=$id";
 
-        try {
-            $response = $this->_request(
-                [
-                    'uri' => $uri,
-                    'type' => 'get',
-                    'data' => []
-                ]
-            );
-        } catch ( \Exception $e ) {
-            throw new InvalidException($e->getMessage());
-        }
-
-        return $response->getBody()->getContents();
+        return $this->processRequest($uri);
     }
 
-   
+
     /**
-     * Get System Status
+     * Delete artist from db by artistid
+     *
+     * @param $id - artistid of the artist to remove
+     * @return string
+     */
+    public function delArtist($id)
+    {
+        $uri = "delArtist&id=$id";
+
+        return $this->processRequest($uri);
+    }
+
+
+    /**
+     * Pause an artist in db
+     *
+     * @param $id - artistid of the artist to pause
+     * @return string
+     */
+    public function pauseArtist($id)
+    {
+        $uri = "pauseArtist&id=$id";
+
+        
+
+        return $this->processRequest($uri);
+    }
+
+    /**
+     * Refresh info for artist in db from musicbrainz
+     *
+     * @param $id - artistid of the artist to refresh
+     * @return string
+     */
+    public function refreshArtist($id)
+    {
+        $uri = "refreshArtist&id=$id";
+
+        
+
+        return $this->processRequest($uri);
+    }
+
+    /**
+     * Resume an artist in db
+     *
+     * @param $id - artistid of the artist to remove
+     * @return string
+     */
+    public function resumeArtist($id)
+    {
+        $uri = "resumeArtist&id=$id";
+
+        
+
+        return $this->processRequest($uri);
+    }
+
+
+    /**
+     * Mark an album as wanted and start the searcher.
+     * Optional paramters: 'new' looks for new versions, 'lossless' looks only for lossless versions
+     *
+     * @param string $id - album ID of the album to queue
+     * @param bool $new - Optional. Look for new versions. Defaults to true.
+     * @param bool $lossless - Optional. Looks only for lossless versions. Defaults to true.
+     * @return string
+     */
+    public function queueAlbum(string $id, bool $new = true, bool $lossless = true)
+    {
+        $uri = "refreshArtist&id=$id&new=$new&lossless=$lossless";
+
+        
+
+        return $this->processRequest($uri);
+    }
+
+    /**
+     * Unmark album as wanted / i.e. mark as skipped
+     *
+     * @param $id - artistid of the artist to pause
+     * @return string
+     */
+    public function unqueueAlbum($id)
+    {
+        $uri = "unqueueAlbum&id=$id";
+
+        
+
+        return $this->processRequest($uri);
+    }
+
+    /**
+     * force search for wanted albums - not launched in a separate thread so it may take a bit to complete
      *
      * @return string
-     * @throws InvalidException
      */
-    public function getSystemStatus()
+    public function forceSearch()
     {
-        $uri = 'system/status';
+        $uri = "forceSearch";
 
-        try {
-            $response = $this->_request(
-                [
-                    'uri' => $uri,
-                    'type' => 'get',
-                    'data' => []
-                ]
+        
+
+        return $this->processRequest($uri);
+    }
 
 
-            );
-        } catch ( \Exception $e ) {
-            throw new InvalidException($e->getMessage());
-        }
+    /**
+     * Force post process albums in download directory - also not launched in a separate thread
+     *
+     * @param string|bool $dir - Optional path to process downloads in (Defaults to ??)
+     * @return string
+     */
+    public function forceProcess($dir = false)
+    {
+        $uri = "forceSearch" . ($dir ? "&dir=$dir" : "");
 
-        return $response->getBody()->getContents();
+        
+
+        return $this->processRequest($uri);
+    }
+
+
+    /**
+     * force Active Artist Update - also not launched in a separate thread
+     *
+     * @return string
+     */
+    public function forceActiveArtistsUpdate()
+    {
+        $uri = "forceActiveArtistsUpdate";
+
+        
+
+        return $this->processRequest($uri);
+    }
+
+
+    /**
+     * Returns some version information: git_path, install_type, current_version, installed_version, commits_behind
+     *
+     * @return string
+     */
+    public function getVersion()
+    {
+        $uri = "getVersion";
+
+        
+
+        return $this->processRequest($uri);
+    }
+
+    /**
+     * Updates the version information above and returns getVersion data
+     *
+     * @return string
+     */
+    public function checkGithub()
+    {
+        $uri = "CheckGithub";
+
+        
+
+        return $this->processRequest($uri);
+    }
+
+    /**
+     * Shut down headphones
+     *
+     * @return string
+     */
+    public function shutdown()
+    {
+        $uri = "shutdown";
+
+        
+
+        return $this->processRequest($uri);
+    }
+
+
+    /**
+     * Restart headphones
+     *
+     * @return string
+     */
+    public function restart()
+    {
+        $uri = "restart";
+
+        
+
+        return $this->processRequest($uri);
+    }
+
+
+    /**
+     * Update headphones - you may want to check the install type in get version and not allow this if type==exe
+     *
+     * @return string
+     */
+    public function update()
+    {
+        $uri = "update";
+
+        
+
+        return $this->processRequest($uri);
+    }
+
+    /**
+     * Returns either a relative path to the cached image, or a remote url if the image can't be saved to the cache dir
+     *
+     * @param $id - Id to fetch. Use getartist/getalbum to retrieve the appropriate ID
+     * @return string
+     */
+    public function getArtistArt($id)
+    {
+        $uri = "getArtistArt&id=$id";
+
+        
+
+        return $this->processRequest($uri);
+    }
+
+
+    /**
+     * Returns either a relative path to the cached image, or a remote url if the image can't be saved to the cache dir
+     *
+     * @param $id - Id to fetch. Use getartist/getalbum to retrieve the appropriate ID
+     * @return string
+     */
+    public function getAlbumArt($id)
+    {
+        $uri = "getAlbumArt&id=$id";
+
+        
+
+        return $this->processRequest($uri);
+    }
+
+
+    /**
+     * Returns Summary and Content, both formatted in html.
+     *
+     * @param $id - Id to fetch. Use getartist/getalbum to retrieve the appropriate ID
+     * @return string
+     */
+    public function getArtistInfo($id)
+    {
+        $uri = "getArtistInfo&id=$id";
+
+        
+
+        return $this->processRequest($uri);
+    }
+
+
+    /**
+     * Returns Summary and Content, both formatted in html.
+     *
+     * @param $id - Id to fetch. Use getartist/getalbum to retrieve the appropriate ID
+     * @return string
+     */
+    public function getAlbumInfo($id)
+    {
+        $uri = "getAlbumInfo&id=$id";
+
+        return $this->processRequest($uri);
+    }
+
+
+    /**
+     * Returns either a relative path to the cached thumbnail artist image,
+     * or an http:// address if the cache dir can't be written to.
+     *
+     * @param $id - Id to fetch. Use getartist/getalbum to retrieve the appropriate ID
+     * @return string
+     */
+    public function getArtistThumb($id)
+    {
+        $uri = "getArtistThumb&id=$id";
+
+        return $this->processRequest($uri);
+    }
+
+
+    /**
+     * Returns either a relative path to the cached thumbnail artist image,
+     * or an http:// address if the cache dir can't be written to.
+     *
+     * @param $id - Id to fetch. Use getartist/getalbum to retrieve the appropriate ID
+     * @return string
+     */
+    public function getAlbumThumb($id)
+    {
+        $uri = "getAlbumThumb&id=$id";
+
+        return $this->processRequest($uri);
+    }
+
+    /**
+     * Gives you a list of results from searcher.searchforalbum().
+     * Basically runs a normal search, but rather than sorting them and downloading the best result,
+     * it dumps the data, which you can then pass on to download_specific_release().
+     *
+     * Returns a list of dictionaries with params: title, size, url, provider & kind -
+     * all of these values must be passed back to download_specific_release.
+     *
+     * @param $id - Album Id to fetch. Use getalbum to retrieve the appropriate ID.
+     * @return string
+     */
+    public function choose_specific_download($id)
+    {
+        $uri = "choose_specific_download&id=$id";
+
+        return $this->processRequest($uri);
+    }
+
+
+    /**
+     * Allows you to manually pass a choose_specific_download release back to searcher.send_to_downloader()
+     *
+     * @param $id - Album Id to fetch. Use getalbum to retrieve the appropriate ID.
+     * @param $title - Get this from choose_specific_download
+     * @param $size - Get this from choose_specific_download
+     * @param $url - Get this from choose_specific_download
+     * @param $provider - Get this from choose_specific_download
+     * @param $kind - Get this from choose_specific_download
+     * @return string
+     */
+    public function download_specific_release($id, $title, $size, $url, $provider, $kind)
+    {
+        $uri = "download_specific_release&id=$id&title=$title&size=$size&url=$url&provider=$provider&kind=$kind";
+        return $this->processRequest($uri);
     }
 
     /**
      * Process requests with Guzzle
      *
-     * @param array $params
+     * @param string $uri
      * @return bool|\Psr\Http\Message\ResponseInterface
      */
-    protected function _request(array $params)
+    protected function _request(string $uri)
     {
         $client = new Client();
+        $key = $this->apiKey;
+        $url = $this->url . "/api/?apikey=$key&cmd=$uri";
+        write_log("URL is $url");
+        return $client->get($url);
 
-        if ( $params['type'] == 'get' ) {
-            $url = $this->url . '/api/?apiKey=' . $this->apiKey . "&cmd=" . $params['uri'];
-
-            return $client->get($url);
-        }
-
-        if ( $params['type'] == 'put' ) {
-            $url = $this->url . '/api/' . $params['uri'];
-            $options['json'] = $params['data'];
-            
-            return $client->put($url, $options);
-        }
-
-        if ( $params['type'] == 'post' ) {
-            $url = $this->url . '/api/' . $params['uri'];
-            $options['json'] = $params['data'];
-            
-            return $client->post($url, $options);
-        }
-
-        if ( $params['type'] == 'delete' ) {
-            $url = $this->url . '/api/' . $params['uri'] . '?' . http_build_query($params['data']);
-
-            return $client->delete($url);
-        }
-        return false;
     }
 
-	/**
-	 * Process requests, catch exceptions, return json response
-	 *
-	 * @param array $request uri, type, data from method
-	 * @return string json encoded response
-	 */
-	protected function processRequest(array $request)
-	{
-		try {
-			$response = $this->_request(
-				[
-					'uri' => $request['uri'],
-					'type' => $request['type'],
-					'data' => $request['data']
-				]
-			);
-		} catch ( \Exception $e ) {
-			return json_encode(array(
-				'error' => array(
-					'msg' => $e->getMessage(),
-					'code' => $e->getCode(),
-				),
-			));
-		}
-
-		return $response->getBody()->getContents();
-	}
-
-	/**
-     * Verify date is in proper format
+    /**
+     * Process requests, catch exceptions, return json response
      *
-     * @param $date
-     * @param string $format
-     * @return bool
+     * @param string $uri
+     * @return string json encoded response
      */
-    private function validateDate($date, $format = 'Y-m-d')
+    protected function processRequest(string $uri)
     {
-        $d = \DateTime::createFromFormat($format, $date);
-        return $d && $d->format($format) == $date;
+        try {
+            $response = $this->_request($uri);
+        } catch (\Exception $e) {
+            return json_encode(array(
+                'error' => array(
+                    'msg' => $e->getMessage(),
+                    'code' => $e->getCode(),
+                ),
+            ));
+        }
+
+        return $response->getBody()->getContents();
     }
+
+
 }

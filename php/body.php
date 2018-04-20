@@ -68,6 +68,8 @@ function makeBody($token) {
 
 
 function makeMetaTags() {
+	$server = findDevice(false,false,"Server");
+	$client = findDevice(false,false,"Client");
     webAddress();
     $tags = '';
     $uiData = json_encode(getUiData(true));
@@ -77,9 +79,9 @@ function makeMetaTags() {
         '<meta id="updateAvailable" data="' . $_SESSION['updateAvailable'] . '"/>' . PHP_EOL .
         '<meta id="publicAddress" data="' . $_SESSION['publicAddress'] . '"/>' . PHP_EOL .
         '<meta id="deviceID" data="' . $_SESSION['deviceID'] . '"/>' . PHP_EOL .
-        '<meta id="serverURI" data="' . $_SESSION['plexServerUri'] . '"/>' . PHP_EOL .
-        '<meta id="clientURI" data="' . $_SESSION['plexClientUri'] . '"/>' . PHP_EOL .
-        '<meta id="clientName" data="' . $_SESSION['plexClientName'] . '"/>' . PHP_EOL .
+        '<meta id="serverURI" data="' . $server['Uri'] . '"/>' . PHP_EOL .
+        '<meta id="clientURI" data="' . $client['Uri'] . '"/>' . PHP_EOL .
+        '<meta id="clientName" data="' . $client['Name'] . '"/>' . PHP_EOL .
         '<meta id="plexDvr" data-enable="' . $dvr . '"/>' . PHP_EOL .
         '<div id="uiData" data-default=\''.$uiData.'\' class="hidden"></div>' . PHP_EOL .
         '<meta id="rez" value="' . $_SESSION['plexDvrResolution'] . '"/>' . PHP_EOL;

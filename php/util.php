@@ -363,12 +363,14 @@ function curlQuick($url)
 
 }
 
-function doRequest($parts, $timeout = 6) {
+function doRequest($parts, $timeout = 6, $looped=false) {
+    $server = findDevice(false,false,"Server");
+    $original = $parts;
     $type = isset($parts['type']) ? $parts['type'] : 'get';
     $response = false;
     $options = [];
     if (is_array($parts)) {
-        if (!isset($parts['uri'])) $parts['uri'] = $_SESSION['plexServerUri'];
+        if (!isset($parts['uri'])) $parts['uri'] = $server['Uri'];
         if (isset($parts['query'])) {
             if (!is_string($parts['query'])) {
                 $string = '?';
@@ -418,8 +420,18 @@ function doRequest($parts, $timeout = 6) {
             $response = $client->post($url, $options);
         }
     } catch (Throwable $e) {
-        write_log("An exception occurred: " . $e->getMessage(), "ERROR");
+        write_log("An exception occurred: " . $e->getCode(), "ERROR");
         if ($e->getCode() == 401) {
+            if(preg_match("/X-Plex-Token/",$url)) {
+                if (!$looped) {
+                    write_log("Plex authorization error, should do a thing here.", "WARN", false, true);
+                    //scanDevices(true);
+                    //write_log("Re-running fetch, fingers crossed.","WARN");
+                    //return doRequest($original, $timeout, true);
+                } else {
+                    write_log("Can't loop in a loop.","ERROR");
+                }
+            }
             return false;
         }
     }
@@ -495,6 +507,37 @@ function fetchUrl($https = false) {
 
 function file_build_path(...$segments) {
     return join(DIRECTORY_SEPARATOR, $segments);
+}
+
+/**
+ * findDevice
+ *
+ * Find a device from the list
+ *
+ * @param string | bool $key - Optional. The key to search device by.
+ * @param string | bool $value - Optional. Defaults to currently selected device if none specified.
+ * @param string $type - They device type to search for, with one of "Server", "Client", or "Dvr".
+ *
+ * @return array | bool - Device array, or false if none found.
+ */
+function findDevice($key=false, $value=false, $type) {
+    if(!$key || !$value) {
+        $key = "Id";
+        $value = $_SESSION["plex". $type ."Id"];
+    }
+    $devices = $_SESSION['deviceList'];
+    $section = $devices["$type"] ?? false;
+    write_log("Looking for a $type with a $key of $value");
+    if ($section) {
+        write_log("Full section: " . json_encode($section));
+        foreach ($section as $device) {
+            if (trim(strtolower($device["$key"])) === trim(strtolower($value))) {
+                write_log("Returning matching device: " . json_encode($device));
+                return $device;
+            }
+        }
+    }
+    return false;
 }
 
 /**
@@ -1941,7 +1984,8 @@ function multiCurl($urls, $timeout=10) {
 }
 
 function plexHeaders($device=false) {
-    $token = $device['Token'] ?? $_SESSION['plexServerToken'] ?? false;
+    $server = findDevice(false,false,"Server");
+    $token = $device['Token'] ?? $server['Token'];
     $name = deviceName();
     $headers = [
         "X-Plex-Product"=>$name,
@@ -2291,14 +2335,14 @@ function toBool($var) {
 }
 
 function transcodeImage($path, $uri = "", $token = "",$full=false) {
+    $server = findDevice(false,false,"Server");
     if (preg_match("/library/", $path)) {
-        if ($uri) $server = $uri;
-        $server = $server ?? $_SESSION['plexServerPublicUri'] ?? $_SESSION['plexServerUri'] ?? false;
-        if ($token) $serverToken = $token;
-        $token = $serverToken ?? $_SESSION['plexServerToken'];
+        $uri = $uri ? $uri : ($server['Uri'] ?? false);
+        $token = $token ? $token : $server['Token'];
         $size = $full ? 'width=1920&height=1920' : 'width=600&height=600';
         if ($server && $token) {
-            $url = $server . "/photo/:/transcode?$size&minSize=1&url=" . urlencode($path) . "&X-Plex-Token=" . $token;
+            $path = urlencode($path);
+            $url = "$uri/photo/:/transcode?$size&minSize=1&url=$path&X-Plex-Token=$token";
             return $url;
         }
     }
@@ -2367,8 +2411,9 @@ function writeSessionArray($array, $unset = false) {
 	} else {
 		foreach($array as $key=>$value) {
 		    if ($key === 'updated' && empty($value)) {
-
+                write_log("Skipping $key");
             } else {
+		        if ($key !== 'updates') write_log("Setting session value for $key of $value");
                 $_SESSION["$key"] = $value;
             }
 		}
