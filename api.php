@@ -33,7 +33,7 @@ function analyzeRequest() {
     } else {
         write_log("Session with id of ".session_id()." is already started.","WARN");
     }
-    write_log("-------NEW REQUEST RECEIVED-------", "INFO");
+    write_log("-------NEW REQUEST RECEIVED-------", "ALERT");
     setDefaults();
 
     if (isset($_GET['revision'])) {
@@ -171,7 +171,7 @@ function initialize() {
 		$valid = true;
 		$id = $_GET['id'];
 		$value = $_GET['value'];
-		write_log("Setting Value changed: $id = $value", "INFO");
+		write_log("Setting Value changed: $id = $value", "ALERT");
 		$value = str_replace("?logout", "", $value);
 		if ((preg_match("/IP/", $id) || preg_match("/Uri/", $id)) && !preg_match("/device/", $id)) {
 			write_log("Sanitizing URL.");
@@ -2033,7 +2033,7 @@ function fetchMediaInfo(Array $params) {
         $request = trim(str_replace("Track", "", $request));
         $request = trim(str_replace("track", "", $request));
     }
-    $type = ($type ? $type : ($artist ? 'music' : false));
+    $type = ($type ? $type : ($artist ? 'music.artist' : false));
     $type = ($type ? $type : ($album ? 'music.album' : false));
     $type = ($type ? $type : ($track ? 'music.track' : false));
     $data = [
@@ -4600,7 +4600,8 @@ function mapDataMusic($data) {
 			'summary' => $data["strBiography$lang"] ?? $data["strBiographyEN"],
 			'thumb' => proxyImage($data['strArtistWideThumb']),
 			'art' => proxyImage($data['strArtistFanart']),
-			'tadbId' => $data['idArtist']
+			'tadbId' => $data['idArtist'],
+            'mbId' => $data['strMusicBrainzID']
 		];
 	} else if (preg_match("/album/", $type)) {
 		;
@@ -4613,6 +4614,8 @@ function mapDataMusic($data) {
 			'thumb' => proxyImage($data['strAlbumThumb'] ?? $data['album']['cover_big']),
 			'art' => proxyImage($data['strAlbumCDart'] ?? $data['artist']['picture_big']),
 			'tadbId' => $data['idAlbum'],
+            'mbId' => $data['strMusicBrainzID'],
+            'artistMbId' => $data['strMusicBrainzArtistID'],
 			'artist' => $data['strArtist']
 		];
 	} else if ($type === 'track') {
@@ -4624,6 +4627,7 @@ function mapDataMusic($data) {
 			'artist' => $data['artist']['name'],
 			'thumb' => $data['album']['cover_big'],
 			'art' => $data['artist']['picture_big'],
+            'mbId' => $data['strMusicBrainzID']
 		];
 	}
 	if ($type == "music.deezer") {

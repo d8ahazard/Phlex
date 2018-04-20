@@ -147,7 +147,81 @@ function downloadHeadphones(array $data) {
 }
 
 function downloadLidarr(array $data) {
-    return false;
+    write_log("Function fired: ".json_encode($data));
+    $profile = $_SESSION['lidarrProfile'] ?? "1";
+    $uri = $_SESSION['lidarrUri'] ?? false;
+    $token = $_SESSION['lidarrToken'] ?? false;
+    $album = $artist = $exists = $scanId = $success = false;
+    if (!$uri || !$token) return false;
+    $type = $data['type'];
+    $lidarr = new Lidarr($uri,$token);
+    $root = $_SESSION['lidarrRoot'] ?? json_decode($lidarr->getRootFolder(),true)['path'];
+    $response = json_decode($lidarr->getArtist(),true);
+    $id = $data['artistMbId'] ?? $data['mbId'];
+    $exists = false;
+    foreach($response as $item) {
+        if ($item['foreignArtistId'] == $id) {
+            $artist = $item;
+            $exists = true;
+            break;
+        }
+    }
+
+    if (!$artist) {
+        $response = json_decode($lidarr->getArtistLookup("lidarr:$id"),true);
+        write_log("Data array: " . json_encode($response));
+        if (count($response)) $artist = $response[0];
+    }
+
+    if (is_array($artist)) {
+        write_log("We've found a matching artist: ".json_encode($artist));
+        $monitored = ($type == 'artist');
+        $artist['monitored'] = $monitored;
+        $artist['qualityProfileId'] = $profile;
+        $artist['languageProfileId'] = 1;
+        $artist['metadataProfileId'] = 1;
+        $artist['albumFolder'] = true;
+        $artist['rootFolderPath'] = $root;
+        $options = [
+            "ignoreAlbumsWithFiles" => false,
+            "ignoreAlbumsWithoutFiles" => false,
+            "monitored" => $monitored,
+            "searchForMissingAlbums" => $monitored
+        ];
+        $artist['addOptions'] = $artist['addOptions'] ?? $options;
+        write_log("Artist payload: ".json_encode($artist));
+        $result = $exists ? $lidarr->updateArtist($artist) : $lidarr->postArtist($artist);
+        $result = json_decode($result,true);
+        write_log("Result: ".json_encode($result));
+        $success = isset($result['path']);
+        //$scanId = $artist['id'];
+    }
+
+    if ($type != 'artist') {
+        $success = false;
+        write_log("Okay, now we need to find an album!");
+        $result = json_decode($lidarr->getAlbum(null, $data['mbId']),true);
+        write_log("Result: ".json_encode($result));
+        foreach ($result as $check) if ($check['foreignAlbumId'] == $data['mbId']) $album = $check;
+    }
+
+    if (is_array($album)) {
+        write_log("Okay, here's our album: ".json_encode($album));
+        $album['monitored'] = true;
+        $result = json_decode($lidarr->updateAlbum($album['id'],$album),true);
+        write_log("Result: ".json_encode($result));
+        $success = $result['monitored'] ?? false;
+        $scanId = $album['id'];
+    }
+
+    if ($success && $scanId) {
+        write_log("Aight, we're going to trigger a search now...");
+        $result = json_decode($lidarr->postCommand(ucfirst($type)."Search",[$type."Ids"=>[$scanId]]),true);
+        write_log("Search result: ".json_encode($result));
+        $success = isset($result['status']);
+    }
+
+    return $success;
 }
 
 function downloadRadarr($data) {

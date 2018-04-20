@@ -23,7 +23,7 @@ class Lidarr
     /**
      * Gets upcoming artist, if start/end are not supplied artist airing today and tomorrow will be returned
      * When supplying start and/or end date you must supply date in format yyyy-mm-dd
-     * Example: $radarr->getCalendar('2015-01-25', '2016-01-15');
+     * Example: $Lidarr->getCalendar('2015-01-25', '2016-01-15');
      * 'start' and 'end' not required. You may supply, one or both.
      *
      * @param string|null $start
@@ -92,16 +92,15 @@ class Lidarr
     }
 
     /**
-     * Publish a new command for Radarr to run.
+     * Publish a new command for Lidarr to run.
      * These commands are executed asynchronously; use GET to retrieve the current status.
      *
      * Commands and their parameters can be found here:
-     * https://github.com/Radarr/Radarr/wiki
+     * https://github.com/Lidarr/Lidarr/wiki
      *
      * @param $name
      * @param array|null $params
      * @return string
-     * @throws InvalidException
      */
     public function postCommand($name, array $params = null)
     {
@@ -116,17 +115,13 @@ class Lidarr
 	        }
         }
 
-        try {
-            $response = $this->_request(
-                [
-                    'uri' => $uri,
-                    'type' => 'post',
-                    'data' => $uriData
-                ]
-            );
-        } catch ( \Exception $e ) {
-            throw new InvalidException($e->getMessage());
-        }
+        $response = $this->_request(
+            [
+                'uri' => $uri,
+                'type' => 'post',
+                'data' => $uriData
+            ]
+        );
 
         return $response->getBody()->getContents();
     }
@@ -156,164 +151,19 @@ class Lidarr
         return $response->getBody()->getContents();
     }
 
-	/**
-	 * Returns all artist, or a single artist if ID or title is specified
-	 *
-	 * @param null|string $id
-	 * @param null|string $title
-	 * @return array|object|string
-	 * @throws InvalidException
-	 * @internal param $artistId
-	 */
 
-    public function getartist($id = null)
-    {
-	    $uri = ($id) ? 'artist/' . $id : 'artist';
-
-        try {
-            $response = $this->_request(
-                [
-                    'uri' => $uri,
-                    'type' => 'get'
-                ]
-            );
-        } catch ( \Exception $e ) {
-            throw new InvalidException($e->getMessage());
-        }
-
-        return $response->getBody()->getContents();
-    }
-
-	/**
-	 * Searches for new shows on trakt
-	 * Search by name or tvdbid
-	 * Example: 'The Blacklist' or 'tvdb:266189'
-	 *
-	 * @param string $searchTerm query string for the search (Use tvdb:12345 to lookup TVDB ID 12345)
-	 * @return string
-	 */
-	public function getartistLookup($searchTerm)
-	{
-		$uri = 'artist/lookup';
-		$uriData = [
-			'term' => $searchTerm
-		];
-
-		$response = [
-			'uri' => $uri,
-			'type' => 'get',
-			'data' => $uriData
-		];
-
-		return $this->processRequest($response);
-	}
-
-	/**
-	 * Adds a new artist to your collection
-	 *
-	 * NOTE: if you do not add the required params, then the artist wont function.
-	 * Some of these without the others can indeed make a "artist". But it wont function properly in Radarr.
-	 *
-	 * Required: tmdbId (int) title (string) qualityProfileId (int) titleSlug (string) seasons (array)
-	 * See GET output for format
-	 *
-	 * path (string) - full path to the artist on disk or rootFolderPath (string)
-	 * Full path will be created by combining the rootFolderPath with the artist title
-	 *
-	 * Optional: tvRageId (int) seasonFolder (bool) monitored (bool)
-	 *
-	 * @param array $data
-	 * @param bool|true $onlyFutureartist It can be used to control which episodes Radarr monitors
-	 * after adding the artist, setting to true (default) will only monitor future episodes.
-	 *
-	 * @return array|object|string
-	 */
-    public function postartist(array $data)
-    {
-        $uri = 'artist';
-
-	    try {
-		    $response = $this->_request(
-		    	[
-		    	'uri' => $uri,
-			    'type' => 'post',
-			    'data' => $data
-		        ]
-	    );
-	    } catch ( \Exception $e ) {
-		    return $e->getMessage();
-	    }
-
-	    return $response->getBody()->getContents();
-    }
-
-    /**
-     * Update the given artist, currently only monitored is changed, all other modifications are ignored.
-     *
-     * Required: All parameters (you should perform a GET/{id} and submit the full body with the changes
-     * and submit the full body with the changes, as other values may be editable in the future.
-     *
-     * @param array $data
-     * @return string
-     * @throws InvalidException
-     */
-    public function updateartist(array $data)
-    {
-        $uri = 'artist';
-
-        try {
-            $response = $this->_request(
-                [
-                    'uri' => $uri,
-                    'type' => 'put',
-                    'data' => $data
-                ]
-            );
-        } catch ( \Exception $e ) {
-            throw new InvalidException($e->getMessage());
-        }
-
-        return $response->getBody()->getContents();
-    }
-
-	/**
-	 * Delete the given artist file
-	 *
-	 * @param $id - TMDB ID of the artist to remove
-	 * @param bool $deleteFiles - Optional, delete files along with remove from Radarr.
-	 * @return string
-	 * @throws InvalidException
-	 */
-    public function deleteartist($id,$deleteFiles=false)
-    {
-        $uri = 'artist';
-
-        try {
-            $response = $this->_request(
-                [
-                    'uri' => $uri . '/' . $id,
-                    'type' => 'delete',
-                    'deleteFiles' => $deleteFiles
-                ]
-            );
-        } catch ( \Exception $e ) {
-            throw new InvalidException($e->getMessage());
-        }
-
-        return $response->getBody()->getContents();
-    }
 
     /**
      * Gets history (grabs/failures/completed).
      *
      * @param int $page Page Number
      * @param int $pageSize Results per Page
-     * @param string $sortKey 'artist.title' or 'date'
+     * @param string $sortKey 'artist.name' or 'date'
      * @param string $sortDir 'asc' or 'desc'
      * @return array|object|string
      * @throws InvalidException
      */
-    public function getHistory($page = 1, $pageSize = 10, $sortKey = 'artist.title', $sortDir = 'asc')
+    public function getHistory($page = 1, $pageSize = 10, $sortKey = 'artist.name', $sortDir = 'asc')
     {
         $uri = 'history';
 
@@ -338,17 +188,171 @@ class Lidarr
     }
 
 
+    /**
+     *
+     * Returns the image for the specified artist/album
+     *
+     * @param string $id - The artist or album ID the image belongs to
+     * @param int $size - Optional. See below for sizes.
+     *
+     * Available Sizes
+     * Posters: 500, 250
+     * Banners: 70,35
+     * Fanart: 360, 180
+     * Cover: 500, 250
+     *
+     * @return string
+     * @throws InvalidException
+     */
+    public function getImages(string $id,int $size = 0) {
+        $uri = "MediaCover/$id/poster.jpg";
+        if ($size) $uri = "MediaCover/$id/poster-$size.jpg";
+        try {
+            $response = $this->_request(
+                [
+                    'uri' => $uri,
+                    'type' => 'get',
+                    'data' => []
+                ]
+            );
+        }catch ( \Exception $e ) {
+            throw new InvalidException($e->getMessage());
+        }
+        return $response->getBody()->getContents();
+    }
+
+
+    /**
+     * Returns albums that are missing from disk.
+     *
+     * @param int $page Page Number
+     * @param int $pageSize Results per Page
+     * @param string $sortKey 'releaseDate', 'albumTitle', or 'artist.sortName'
+     * @param string $sortDir 'asc' or 'desc'
+     * @param bool $includeArtist - Defaults to false
+     * @param bool $monitored - Default is true
+     * @return array|object|string
+     * @throws InvalidException
+     */
+    public function getWantedMissing($page = 1, $pageSize = 10, $sortKey = 'releaseDate',
+                                     $sortDir = 'asc', $includeArtist = false, $monitored=true)
+    {
+        $uri = 'wanted/missing';
+
+        try {
+            $response = $this->_request(
+                [
+                    'uri' => $uri,
+                    'type' => 'get',
+                    'data' => [
+                        'page' => $page,
+                        'pageSize' => $pageSize,
+                        'sortKey' => $sortKey,
+                        'sortDir' => $sortDir,
+                        'includeArtist' => $includeArtist,
+                        'monitored' => $monitored
+                    ]
+                ]
+            );
+        } catch ( \Exception $e ) {
+            throw new InvalidException($e->getMessage());
+        }
+
+        return $response->getBody()->getContents();
+    }
+
+
+    /**
+     * Returns albums that have files on disk that do not meet the profile cutoff
+     *
+     * @param int $page Page Number
+     * @param int $pageSize Results per Page
+     * @param string $sortKey 'releaseDate', 'albumTitle', or 'artist.sortName'
+     * @param string $sortDir 'asc' or 'desc'
+     * @param bool $includeArtist - Defaults to false
+     * @param bool $monitored - Default is true
+     * @return array|object|string
+     * @throws InvalidException
+     */
+    public function getWantedCutoff($page = 1, $pageSize = 10, $sortKey = 'releaseDate',
+                                     $sortDir = 'asc', $includeArtist = false, $monitored=true)
+    {
+        $uri = 'wanted/cutoff';
+
+        try {
+            $response = $this->_request(
+                [
+                    'uri' => $uri,
+                    'type' => 'get',
+                    'data' => [
+                        'page' => $page,
+                        'pageSize' => $pageSize,
+                        'sortKey' => $sortKey,
+                        'sortDir' => $sortDir,
+                        'includeArtist' => $includeArtist,
+                        'monitored' => $monitored
+                    ]
+                ]
+            );
+        } catch ( \Exception $e ) {
+            throw new InvalidException($e->getMessage());
+        }
+
+        return $response->getBody()->getContents();
+    }
+
+
+    /**
+     * Gets item in activity queue
+     *
+     * @param int $page Page Number
+     * @param int $pageSize Results per Page
+     * @param string $sortKey 'estimatedCompletionTime', 'timeleft', 'artist.sortName', 'album.title',
+     * 'progress', 'quality' - Default: timeleft
+     * @param string $sortDir 'asc' or 'desc'
+     * @param bool $includeArtist - Defaults to false
+     * @param bool $includeAlbum - Default is false
+     * @return array|object|string
+     * @throws InvalidException
+     */
+    public function getQueue($page = 1, $pageSize = 10, $sortKey = 'timeleft',
+                                    $sortDir = 'asc', $includeArtist = false, $includeAlbum=false)
+    {
+        $uri = 'wanted/cutoff';
+
+        try {
+            $response = $this->_request(
+                [
+                    'uri' => $uri,
+                    'type' => 'get',
+                    'data' => [
+                        'page' => $page,
+                        'pageSize' => $pageSize,
+                        'sortKey' => $sortKey,
+                        'sortDir' => $sortDir,
+                        'includeArtist' => $includeArtist,
+                        'monitored' => $includeAlbum
+                    ]
+                ]
+            );
+        } catch ( \Exception $e ) {
+            throw new InvalidException($e->getMessage());
+        }
+
+        return $response->getBody()->getContents();
+    }
 
 
     /**
      * Gets all quality profiles
      *
+     * @param string $type - 'quality', 'language', or 'metadata'
      * @return array|object|string
      * @throws InvalidException
      */
-    public function getProfiles()
+    public function getProfiles($type = 'quality')
     {
-        $uri = 'profile';
+        $uri = $type.'profile';
 
         try {
             $response = $this->_request(
@@ -366,46 +370,136 @@ class Lidarr
     }
 
 
+    /**
+     * Gets all releases for a given album
+     *
+     * @param string|null $albumId
+     * @return array|object|string
+     * @throws InvalidException
+     */
+
+    public function getRelease($albumId = null)
+    {
+        $uri = 'release';
+        if ($albumId == null) throw new InvalidException();
+        try {
+            $response = $this->_request(
+                [
+                    'uri' => $uri,
+                    'type' => 'get',
+                    'data' => [
+                        'id' => $albumId
+                    ]
+                ]
+            );
+        } catch ( \Exception $e ) {
+            throw new InvalidException($e->getMessage());
+        }
+
+        return $response->getBody()->getContents();
+    }
+
 
     /**
-	 *
-	 * Returns the banner for the specified artist
-	 *
-	 * @param $artistId
-	 * @return string
-	 * @throws InvalidException
-	 */
-	public function getBanner($artistId) {
-	    $uri = 'MediaCover/'.$artistId.'/banner.jpg';
-	    try {
-		    $response = $this->_request(
-			    [
-				    'uri' => $uri,
-				    'type' => 'get',
-				    'data' => []
-			    ]
-		    );
-	    }catch ( \Exception $e ) {
-		    throw new InvalidException($e->getMessage());
-	    }
-	    return $response->getBody()->getContents();
-	}
+     * Download a release - use getRelease to get listings.
+     *
+     * @param string $title - Release title
+     * @param string $downloadUrl - URL to download
+     * @param string $protocol - 'Usenet' or 'Torrent'
+     * @param string $publishDate - Valid ISO8601 date string
+     * @return array|object|string
+     * @throws InvalidException
+     */
+
+    public function postRelease(string $title, string $downloadUrl, string $protocol = 'Torrent', string $publishDate)
+    {
+        $uri = 'release';
+        if (!$this->validateDate($publishDate)) throw new InvalidException("Invalid date.");
+
+        try {
+            $response = $this->_request(
+                [
+                    'uri' => $uri,
+                    'type' => 'post',
+                    'data' => [
+                        'title' => $title,
+                        'downloadUrl' => $downloadUrl,
+                        'protocol' => $protocol,
+                        'publishDate' => $publishDate
+                    ]
+                ]
+            );
+        } catch ( \Exception $e ) {
+            throw new InvalidException($e->getMessage());
+        }
+
+        return $response->getBody()->getContents();
+    }
+
+
     /**
      * Gets root folder
      *
      * @return array|object|string
-     * @throws InvalidException
      */
     public function getRootFolder()
     {
         $uri = 'rootfolder';
-
-        try {
-            $response = $this->_request(
+         $response = $this->_request(
                 [
                     'uri' => $uri,
                     'type' => 'get',
                     'data' => []
+                ]
+            );
+        return $response->getBody()->getContents();
+    }
+
+
+    /**
+	 * Returns all artists, or a single artist if ID or title is specified
+	 *
+	 * @param null|string $id
+	 * @return array|object|string
+     * @internal param $artistId
+	 */
+
+    public function getArtist($id = null)
+    {
+	    $uri = ($id) ? "artist/$id" : 'artist';
+
+
+        $response = $this->_request(
+            [
+                'uri' => $uri,
+                'type' => 'get'
+            ]
+        );
+
+        return $response->getBody()->getContents();
+    }
+
+
+    /**
+     * Delete the artist with the given ID
+     *
+     * @param $id - Artist ID to remove
+     * @param bool $deleteFiles - Optional, if true the artist folder and all files will be deleted.
+     * @return string
+     * @throws InvalidException
+     */
+    public function deleteArtist($id,$deleteFiles=false)
+    {
+        $uri = 'artist';
+
+        try {
+            $response = $this->_request(
+                [
+                    'uri' => $uri . '/' . $id,
+                    'type' => 'delete',
+                    'data' => [
+                        'deleteFiles' => $deleteFiles
+                    ]
                 ]
             );
         } catch ( \Exception $e ) {
@@ -415,7 +509,348 @@ class Lidarr
         return $response->getBody()->getContents();
     }
 
-   
+
+
+
+	/**
+	 * Adds a new artist to your collection
+	 *
+	 * NOTE: if you do not add the required params, then the artist wont function.
+	 * Some of these without the others can indeed make a "artist". But it wont function properly in Lidarr.
+	 *
+	 * Required: All the stuff in an artist object
+     * QualityProfileId in data array CANNOT be 0
+	 * See GET output for format
+	 *
+	 * path (string) - full path to the artist on disk or rootFolderPath (string)
+	 * Full path will be created by combining the rootFolderPath with the artist title
+	 *	 *
+	 * @param array $data
+	 *
+	 * @return array|object|string
+	 */
+    public function postArtist(array $data)
+    {
+        $uri = 'artist';
+
+        $response = $this->_request(
+            [
+            'uri' => $uri,
+            'type' => 'post',
+            'data' => $data
+            ]
+	    );
+
+	    return $response->getBody()->getContents();
+    }
+
+    /**
+     * Update the given artist, currently only monitored is changed, all other modifications are ignored.
+     *
+     * Required: All parameters (you should perform a GET/{id} and submit the full body with the changes
+     * and submit the full body with the changes, as other values may be editable in the future.
+     *
+     * @param array $data
+     * @return string
+     */
+    public function updateArtist(array $data)
+    {
+        $uri = 'artist';
+
+
+            $response = $this->_request(
+                [
+                    'uri' => $uri,
+                    'type' => 'put',
+                    'data' => $data
+                ]
+            );
+
+        return $response->getBody()->getContents();
+    }
+
+
+
+
+    /**
+     * Searches for new artists on Lidarr API
+     *
+     * @param string $term - Either the Artist's Name, or 'lidarr:artistId'
+     * @return string
+     */
+    public function getArtistLookup($term)
+    {
+        $uri = 'artist/lookup';
+        $term = preg_match("/lidarr/",$term) ? $term : urlencode($term);
+        $uriData = [
+            'term' => $term
+        ];
+
+        $response = [
+            'uri' => $uri,
+            'type' => 'get',
+            'data' => $uriData
+        ];
+
+        return $this->processRequest($response);
+    }
+
+
+    /**
+     * Returns all albums, or a single album if ID is specified
+     * If a MusicBrainz ID is given, a search will be performed
+     *
+     * @param null|string $id
+     * @param null $foreignAlbumId
+     * @return array|object|string
+     * @internal param $albumId
+     */
+
+    public function getAlbum($id = null, $foreignAlbumId = null)
+    {
+        $uri = ($id) ? "album/$id" : 'album';
+        $data = $foreignAlbumId == null ? [] : ['foreignAlbumId'=>$foreignAlbumId];
+
+        $response = $this->_request(
+            [
+                'uri' => $uri,
+                'type' => 'get',
+                'data' => $data
+            ]
+        );
+
+        return $response->getBody()->getContents();
+    }
+
+
+    /**
+     * Delete the album with the given ID
+     *
+     * @param $id - Album ID to remove
+     * @param bool $deleteFiles - Optional, if true the album folder and all files will be deleted.
+     * @return string
+     * @throws InvalidException
+     */
+    public function deleteAlbum($id,$deleteFiles=false)
+    {
+        $uri = 'album';
+
+        try {
+            $response = $this->_request(
+                [
+                    'uri' => $uri . '/' . $id,
+                    'type' => 'delete',
+                    'data' => [
+                        'deleteFiles' => $deleteFiles
+                    ]
+                ]
+            );
+        } catch ( \Exception $e ) {
+            throw new InvalidException($e->getMessage());
+        }
+
+        return $response->getBody()->getContents();
+    }
+
+
+
+
+    /**
+     * Adds a new album to your collection
+     *
+     * NOTE: if you do not add the required params, then the album wont function.
+     * Some of these without the others can indeed make a "album". But it wont function properly in Lidarr.
+     *
+     * Required: All the stuff in an album object
+     * See GET output for format
+     *
+     * path (string) - full path to the album on disk or rootFolderPath (string)
+     * Full path will be created by combining the rootFolderPath with the album title
+     *	 *
+     * @param array $data
+     *
+     * @return array|object|string
+     */
+    public function postAlbum(array $data)
+    {
+        $uri = 'album';
+
+        try {
+            $response = $this->_request(
+                [
+                    'uri' => $uri,
+                    'type' => 'post',
+                    'data' => $data
+                ]
+            );
+        } catch ( \Exception $e ) {
+            return $e->getMessage();
+        }
+
+        return $response->getBody()->getContents();
+    }
+
+    /**
+     * Update the given album, currently only monitored is changed, all other modifications are ignored.
+     *
+     * Required: All parameters (you should perform a GET/{id} and submit the full body with the changes
+     * and submit the full body with the changes, as other values may be editable in the future.
+     *
+     * @param $id - The album ID to update
+     * @param array $data
+     * @return string
+     */
+    public function updateAlbum($id, array $data)
+    {
+        $uri = "album/$id";
+
+        $response = $this->_request(
+            [
+                'uri' => $uri,
+                'type' => 'put',
+                'data' => $data
+            ]
+        );
+
+        return $response->getBody()->getContents();
+    }
+
+
+
+
+    /**
+     * Searches for new albums on Lidarr API
+     *
+     * @param string $term - Either the Album's Name, or 'lidarr:albumId'
+     * @return string
+     */
+    public function getAlbumLookup($term)
+    {
+        $uri = 'Album/lookup';
+        $term = preg_match("/lidarr/",$term) ? $term : urlencode($term);
+        $uriData = [
+            'term' => $term
+        ];
+
+        $response = [
+            'uri' => $uri,
+            'type' => 'get',
+            'data' => $uriData
+        ];
+
+        return $this->processRequest($response);
+    }
+
+
+    /**
+     * Gets all track for an artist or album
+     *
+     * @param string $id - The Album or artistID to search by
+     * @param string $type - Either 'artistId' or 'albumId'
+     * @return string
+     */
+    public function getTracks($id,$type)
+    {
+        $uri = 'track';
+        $uriData = [
+            "$type" => $id
+        ];
+
+        $response = [
+            'uri' => $uri,
+            'type' => 'get',
+            'data' => $uriData
+        ];
+
+        return $this->processRequest($response);
+    }
+
+
+    /**
+     * Gets a track by id
+     *
+     * @param string $id - The track ID
+     * @return string
+     */
+    public function getTrack($id)
+    {
+        $uri = "track/$id";
+
+        $response = [
+            'uri' => $uri,
+            'type' => 'get',
+            'data'=> []
+        ];
+
+        return $this->processRequest($response);
+    }
+
+
+    /**
+     * Returns all track files for the given artist or album
+     *
+     * @param string $id - The Album or artistID to search by
+     * @param string $type - Either 'artistId' or 'albumId'
+     * @return string
+     */
+    public function getTrackFiles($id,$type)
+    {
+        $uri = 'track';
+        $uriData = [
+            "$type" => $id
+        ];
+
+        $response = [
+            'uri' => $uri,
+            'type' => 'get',
+            'data' => $uriData
+        ];
+
+        return $this->processRequest($response);
+    }
+
+
+    /**
+     * Returns the track file with a given id
+     *
+     * @param string $id - The track ID
+     * @return string
+     */
+    public function getTrackFile($id)
+    {
+        $uri = "track/$id";
+
+        $response = [
+            'uri' => $uri,
+            'type' => 'get',
+            'data'=> []
+        ];
+
+        return $this->processRequest($response);
+    }
+
+    /**
+     * Delete the given track file
+     *
+     * @param string $id - The track ID
+     * @return string
+     */
+    public function deleteTrackFile($id)
+    {
+        $uri = "track/$id";
+
+        $response = [
+            'uri' => $uri,
+            'type' => 'delete',
+            'data'=> []
+        ];
+
+        return $this->processRequest($response);
+    }
+
+
+
+
     /**
      * Get System Status
      *
@@ -444,6 +879,62 @@ class Lidarr
     }
 
     /**
+     * Returns the list of available backups
+     *
+     * @return string
+     * @throws InvalidException
+     */
+    public function getSystemBackup()
+    {
+        $uri = 'system/backup';
+
+        try {
+            $response = $this->_request(
+                [
+                    'uri' => $uri,
+                    'type' => 'get',
+                    'data' => []
+                ]
+
+
+            );
+        } catch ( \Exception $e ) {
+            throw new InvalidException($e->getMessage());
+        }
+
+        return $response->getBody()->getContents();
+    }
+
+
+    /**
+     * Returns the list of available backups
+     *
+     * @param string $id - The ID of the backup to restore (use getBackup for a list of available ID's)
+     * @return string
+     * @throws InvalidException
+     */
+    public function postSystemBackup(string $id)
+    {
+        $uri = 'system/backup';
+
+        try {
+            $response = $this->_request(
+                [
+                    'uri' => $uri,
+                    'type' => 'post',
+                    'data' => ['id' => $id]
+                ]
+
+
+            );
+        } catch ( \Exception $e ) {
+            throw new InvalidException($e->getMessage());
+        }
+
+        return $response->getBody()->getContents();
+    }
+
+    /**
      * Process requests with Guzzle
      *
      * @param array $params
@@ -452,44 +943,37 @@ class Lidarr
     protected function _request(array $params)
     {
         $client = new Client();
-        $options = [
-            'headers' => [
-                'X-Api-Key' => $this->apiKey    
-            ]    
-        ];
-        
-        if ( $this->httpAuthUsername && $this->httpAuthPassword ) {
-            $options['auth'] = [
-                $this->httpAuthUsername,
-                $this->httpAuthPassword
-            ];
-        }
+        $options = [];
+        $data = ["apikey" => $this->apiKey];
+        $url = $this->url . '/api/v1/' . $params['uri'] . '?' . http_build_query($data);
 
         if ( $params['type'] == 'get' ) {
-            $url = $this->url . '/api/' . $params['uri'] . '?' . http_build_query($params['data']);
+            $data = array_merge(["apikey" => $this->apiKey],$params['data'] ?? []);
+            $url = $this->url . '/api/v1/' . $params['uri'] . '?' . http_build_query($data);
 
+            write_log("Url: ".$url);
             return $client->get($url, $options);
         }
 
         if ( $params['type'] == 'put' ) {
-            $url = $this->url . '/api/' . $params['uri'];
             $options['json'] = $params['data'];
-            
             return $client->put($url, $options);
         }
 
         if ( $params['type'] == 'post' ) {
-            $url = $this->url . '/api/' . $params['uri'];
             $options['json'] = $params['data'];
-            
             return $client->post($url, $options);
         }
 
         if ( $params['type'] == 'delete' ) {
-            $url = $this->url . '/api/' . $params['uri'] . '?' . http_build_query($params['data']);
-
             return $client->delete($url, $options);
         }
+        return json_encode(array(
+            'error' => array(
+                'msg' => "WTF",
+                'code' => 000,
+            ),
+        ));
     }
 
 	/**
@@ -509,17 +993,17 @@ class Lidarr
 				]
 			);
 		} catch ( \Exception $e ) {
+		    write_log("Exception: ".json_encode($e),"ERROR");
 			return json_encode(array(
 				'error' => array(
 					'msg' => $e->getMessage(),
 					'code' => $e->getCode(),
 				),
 			));
-
-			exit();
 		}
-
-		return $response->getBody()->getContents();
+		$content = $response->getBody()->getContents();
+        //write_log("Response: ".$content,"ALERT");
+		return $content;
 	}
 
 	/**
