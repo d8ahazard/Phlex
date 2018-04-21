@@ -947,7 +947,7 @@ function setListeners() {
 	});
 
 	$(".btn").on('click', function () {
-		var serverAddress = $("#publicAddress").attr('data');
+		var serverAddress = $("#publicAddress").attr('value');
 		var value, regUrl;
 		if ($(this).hasClass("copyInput")) {
 			value = $(this).val();
@@ -988,6 +988,7 @@ function setListeners() {
 		}
 
 		if ($(this).hasClass("linkBtn")) {
+            serverAddress = $("#publicAddress").attr('value');
 			regUrl = false;
 			action = $(this).data('action');
 			if (action === 'googlev2') regUrl = 'https://phlexchat.com/apiv2.php?apiToken=' + apiToken + "&serverAddress=" + encodeURIComponent(serverAddress);
