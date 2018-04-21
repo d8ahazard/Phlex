@@ -644,7 +644,7 @@ function getDefaultLocale() {
     $defaultLocale = setlocale(LC_ALL, 0);
     // If a session language is set
     if (isset($_SESSION['appLanguage'])) {
-        $locale = $_SESSION['appLanguage'];
+        if (trim($_SESSION['appLanguage'])) $locale = $_SESSION['appLanguage'];
     }
     if (!$locale) {
         write_log("No saved locale set, detecting from system. Default is $defaultLocale", "INFO");
@@ -659,6 +659,7 @@ function getDefaultLocale() {
         write_log("Couldn't detect a default or saved locale, defaulting to English.", "WARN");
         $locale = "en";
     }
+    updateUserPreference('appLanguage',$locale);
     return $locale;
 }
 
