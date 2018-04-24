@@ -2,21 +2,8 @@
 
 require_once dirname(__FILE__) . '/vendor/autoload.php';
 require_once dirname(__FILE__). '/util.php';
+require_once dirname(__FILE__) . "/JsonConfig.php";
 use Cz\Git\GitRepository;
-$configFile = file_build_path(dirname(__FILE__), "..","rw","config.ini.php");
-$GLOBALS['config'] = new Config_Lite($configFile, LOCK_EX);
-
-function backupConfig() {
-    write_log("Function fired!!");
-    $configFile = file_build_path(dirname(__FILE__), "..","rw","config.ini.php");
-    $newFile = file_build_path($configFile."_" . time() . ".bk");
-    write_log("Backing up configuration file to $newFile.", "INFO");
-    if (!copy($configFile, $newFile)) {
-        write_log("Failed to back up configuration file!", "ERROR");
-        return false;
-    } else write_log("Configuration backup successful.", "INFO");
-    return true;
-}
 
 if (!function_exists('checkFiles')) {
     function checkFiles()
@@ -110,18 +97,7 @@ if (!function_exists('checkFiles')) {
             }
         }
 
-        try {
-            $configFile = file_build_path(dirname(__FILE__), "..", "rw", "config.ini.php");
-            new Config_Lite($configFile);
-        } catch (Config_Lite_Exception_Runtime $e) {
-            $message = "An exception occurred trying to load config.ini.php.  Please check that the directory and file are writeable by your webserver application and try again.";
-            $error = [
-                'title' => 'Config error.',
-                'message' => $message,
-                'url' => false
-            ];
-            array_push($messages, $error);
-        };
+
         //$testMessage = ['title'=>'Test message.','message'=>"This is a test of the emergency alert system. If this were a real emergency, you'd be screwed.",'url'=>'https://www.google.com'];
         //array_push($messages,$testMessage);
         return $messages;
@@ -139,35 +115,33 @@ function checkGit() {
     return $hasGit;
 }
 
+function readConfig($section, $key, $default) {
+    $configFile = file_build_path(dirname(__FILE__), "..","rw","config.ini.php");
+    $config = new JsonConfig($configFile);
+    return ($config->getValue($section,$key,$default));
+}
+
+function saveConfig($section, $key, $value) {
+    $configFile = file_build_path(dirname(__FILE__), "..","rw","config.ini.php");
+    $config = new JsonConfig($configFile);
+    $config->setValue($section, $key, $value);
+}
+
 if (!function_exists('checkSetDeviceID')) {
     function checkSetDeviceID() {
-        $configFile = file_build_path(dirname(__FILE__), "..","rw","config.ini.php");
-        $config = new Config_Lite($configFile, LOCK_EX);
-        $deviceID = false;
-        try {
-
-            $deviceID = $config->get('general', 'deviceID', false);
-            if (!$deviceID) {
-                $deviceID = randomToken(12);
-                $config->set("general", "deviceID", $deviceID);
-                saveConfig($config);
-            }
-        } catch (Config_Lite_Exception $e) {
-            write_log("Config lite exception - '$e'.","ERROR",false,true);
+        $deviceID = readConfig('general', 'deviceID', false);
+        if (!$deviceID) {
+            $deviceID = randomToken(12);
+            saveConfig("general", "deviceID", $deviceID);
         }
+
         return $deviceID;
     }
 }
 
 if (!function_exists("checkSSL")) {
     function checkSSL() {
-        $forceSSL = false;
-        $configFile = file_build_path(dirname(__FILE__), "..","rw","config.ini.php");
-        if (file_exists($configFile)) {
-            $config = new Config_Lite($configFile);
-            $forceSSL = $config->getBool('general', 'forceSsl', false);
-        }
-        return $forceSSL;
+        return readConfig('general','forceSsl',false);
     }
 }
 
@@ -218,7 +192,6 @@ if (!function_exists("checkUpdates")) {
                             Status: ' . count($log) . ' commit(s) behind.<br><br>
                             Missing Update(s):' . $html . '</div>';
                         if (($install) || ($autoUpdate)) {
-                            backupConfig();
                             write_log("Updating from repository - " . ($install ? 'Manually triggered.' : 'Automatically triggered.'), "INFO",false,true);
                             $repo->pull('origin');
                             //write_log("Pull result: ".$result);
@@ -243,8 +216,6 @@ if (!function_exists("checkUpdates")) {
                 }
             } catch (\Cz\Git\GitException $e) {
                 write_log("An exception has occurred: " . $e, "ERROR");
-            } catch (Config_Lite_Exception $e) {
-                write_log("A config_lite exception has occurred: " . $e, "ERROR");
             }
         } else {
             write_log("Doesn't appear to be a cloned repository or git not available.", "INFO");
@@ -288,20 +259,12 @@ if (!function_exists('fetchCommands')) {
 
 if (!function_exists('fetchDeviceCache')) {
     function fetchDeviceCache() {
-        $configFile = file_build_path(dirname(__FILE__), "..","rw","config.ini.php");
-        $config = new Config_Lite($configFile, LOCK_EX);
-        try {
-            $list = $config->get($_SESSION['apiToken'], 'dlist', []);
-            $data = [
-                "plexServerId" => $config->get($_SESSION['apiToken'], 'plexServerId', ""),
-                "plexDvrId" => $config->get($_SESSION['apiToken'], 'plexDvrId', ""),
-                "plexClientId" => $config->get($_SESSION['apiToken'], 'plexClientId', "")
-            ];
-        } catch (Config_Lite_Exception $e) {
-            write_log("Config lite error - '$e'","ERROR",false,true);
-            $data = false;
-            $list = [];
-        }
+        $list = readConfig($_SESSION['apiToken'],'dlist',[]);
+        $data = [
+            "plexServerId" => readConfig($_SESSION['apiToken'], 'plexServerId', ""),
+            "plexDvrId" => readConfig($_SESSION['apiToken'], 'plexDvrId', ""),
+            "plexClientId" => readConfig($_SESSION['apiToken'], 'plexClientId', "")
+        ];
         if ($data) {
             writeSessionArray($data);
             $list = json_decode(base64_decode($list), true);
@@ -313,32 +276,29 @@ if (!function_exists('fetchDeviceCache')) {
 if (!function_exists('fetchUser')) {
     function fetchUser($userData) {
         $configFile = file_build_path(dirname(__FILE__), "..","rw","config.ini.php");
-        $config = new Config_Lite($configFile, LOCK_EX);
+        $config = new JsonConfig($configFile);
         $email = $userData['plexEmail'];
-        foreach ($config as $key => $section) {
-            $userEmail = $section['plexEmail'] ?? false;
-            if ($userEmail == $email) {
-                write_log("Found an existing user: " . $section['plexUserName']);
-                $userData['apiToken'] = $section['apiToken'];
-                return $userData;
-            }
-        }
-        return false;
+        $userData = $config->findSection('plexEmail',$email);
+        return $userData;
     }
 }
 
 if (!function_exists('fetchUserData')) {
     function fetchUserData() {
         $configFile = file_build_path(dirname(__FILE__), "..","rw","config.ini.php");
-        $config = new Config_Lite($configFile, LOCK_EX);
-        $noNewUsers = $config->getBool('general','noNewUsers',false);
-        foreach ($config as $token => $data) {
-            if ($token == $_SESSION['apiToken']) {
-                $data['noNewUsers'] = $noNewUsers;
-                return $data;
-            }
+        $config = new JsonConfig($configFile);
+        write_log("Loading config from $configFile");
+        $sections = $config->sections;
+        write_log("Parsed sections: ".json_encode($sections));
+        $noNewUsers = $config->getValue('general','noNewUsers',false);
+        $data = $_SESSION['apiToken'] ?? false;
+        if ($data) {
+            $data = $config->getSection($data,[]);
         }
-        return false;
+        if (count($data)) {
+            $data['noNewUsers'] = $noNewUsers;
+        }
+        return $data;
     }
 }
 
@@ -376,14 +336,9 @@ if (!function_exists("formatLog")) {
 
 function firstUser() {
     $configFile = file_build_path(dirname(__FILE__), "..","rw","config.ini.php");
-    $config = new Config_Lite($configFile, LOCK_EX);
-    $firstUser = true;
-    foreach($config as $key => $section) {
-        if ($key !== 'general') {
-            $firstUser = false;
-        }
-    }
-    return $firstUser;
+    $config = new JsonConfig($configFile);
+    $general = $config->getSection('general',false);
+    return is_array($general);
 }
 
 if (!function_exists('isWebApp')) {
@@ -502,29 +457,8 @@ function readUpdate() {
     return $log;
 }
 
-function saveConfig(Config_Lite $inConfig) {
-    $configFile = file_build_path(dirname(__FILE__), "..","rw","config.ini.php");
-    if (!is_writable($configFile)) write_log("Configuration file is NOT writeable.","ERROR");
-    try {
-        $inConfig->save();
-    } catch (Exception $e) {
-        $msg = $e->getMessage();
-        write_log("Error saving configuration: $msg, called by ".getCaller("saveConfig"), 'ERROR');
-    }
-    $cache_new = "'; <?php die('Access denied'); ?>"; // Adds this to the top of the config so that PHP kills the execution if someone tries to request the config-file remotely.
-    if (file_exists($configFile)) {
-        $cache_new .= file_get_contents($configFile);
-    } else {
-        $fh = fopen($configFile, 'w') or write_log("Can't create config file!","ERROR");
-    }
-    if (!file_put_contents($configFile, $cache_new)) write_log("Config save failed!", "ERROR");
-
-}
-
 if (!function_exists('setDefaults')) {
     function setDefaults() {
-        $configFile = file_build_path(dirname(__FILE__), "..","rw","config.ini.php");
-        if (!isset($_SESSION['webApp'])) $GLOBALS['config'] = new Config_Lite($configFile, LOCK_EX);
         ini_set("log_errors", 1);
         ini_set('max_execution_time', 300);
         error_reporting(E_ERROR);
@@ -564,28 +498,17 @@ function tailFile($filename, $lines = 50, $buffer = 4096) {
 
 if (!function_exists('updateUserPreference')) {
     function updateUserPreference($key, $value) {
-        $value = toBool($value);
-        $sessionValue = $value;
-        if ($value == 'yes') $sessionValue = true;
-        if ($value == 'no') $sessionValue = false;
-        $session[$key] = $sessionValue;
-        $configFile = file_build_path(dirname(__FILE__), "..","rw","config.ini.php");
-        $config = new Config_Lite($configFile, LOCK_EX);
         $apiToken = $_SESSION['apiToken'] ?? false;
-        $apiToken = ($key=='noNewUsers') ? 'general' : $apiToken;
+        $section = ($key=='noNewUsers') ? 'general' : $apiToken;
+
         if (trim($apiToken)) {
             write_log("Updating session value and saving $key as $value", "INFO");
             $master = $_SESSION['masterUser'] ?? false;
             if ($key === 'noNewUsers' && !$master) {
                 write_log("Error, someone's trying to change things they shouldn't be.","ERROR");
             } else {
-                writeSession($key, $sessionValue);
-                try {
-                    $config->set($apiToken, $key, $value);
-                } catch (Config_Lite_Exception $e) {
-                    write_log("Error saving key $key: $e", "ERROR");
-                }
-                saveConfig($config);
+                writeSession($key, $value);
+                saveConfig($section,$key,$value);
             }
         } else {
             write_log("No session username, can't save value.");
@@ -595,34 +518,8 @@ if (!function_exists('updateUserPreference')) {
 
 if (!function_exists('updateUserPreferenceArray')) {
     function updateUserPreferenceArray($array) {
-        $configFile = file_build_path(dirname(__FILE__), "..","rw","config.ini.php");
-        $config = new Config_Lite($configFile, LOCK_EX);
-        $apiToken = $_SESSION['apiToken'] ?? false;
-        $session = [];
-        if (trim($apiToken)) {
-            write_log("Updating session and saved values with array: " . json_encode($array));
-            try {
-                foreach ($array as $key => $value) {
-                    $value = toBool($value);
-                    $sessionValue = $value;
-                    if ($value == 'yes') $sessionValue = true;
-                    if ($value == 'no') $sessionValue = false;
-                    $session[$key] = $sessionValue;
-                    $apiToken = ($key === 'noNewUsers') ? 'general' : $apiToken;
-                    $master = $_SESSION['masterUser'] ?? false;
-                    if ($key === 'noNewUsers' && !$master) {
-                        write_log("Error, someone's trying to change things they shouldn't be.","ERROR");
-                        break;
-                    }
-                    $config->set($apiToken, $key, $value);
-                }
-            } catch (Config_Lite_Exception $e) {
-                write_log("Error saving key $key: $e","ERROR");
-            }
-            writeSessionArray($array);
-            saveConfig($config);
-        } else {
-            write_log("No session username, can't save value.");
+        foreach($array as $key=>$value) {
+            updateUserPreference($key,$value);
         }
     }
 }
@@ -632,30 +529,14 @@ if (!function_exists('verifyApiToken')) {
         $caller = getCaller("verifyApiToken");
         if (trim($apiToken)) {
             $configFile = file_build_path(dirname(__FILE__), "..","rw","config.ini.php");
-            $config = new Config_Lite($configFile);
-            foreach ($config as $token => $data) {
-                if (trim($token) == trim($apiToken)) {
-                    $userData = [
-                        'plexUserName' => $data['plexUserName'],
-                        'plexEmail' => $data['plexEmail'],
-                        'plexAvatar' => $data['plexAvatar'],
-                        'plexPassUser' => $data['plexPassUser'] ? 1 : 0,
-                        'appLanguage' => $data['appLanguage'],
-                        'apiToken' => $apiToken
-                    ];
-                    foreach ($userData as $key => $value) {
-                        $_SESSION[$key] = $value;
-                    }
-                    return $userData;
-                }
-            }
-            write_log("ERROR, api token $apiToken not recognized, called by $caller.", "ERROR");
-
+            $config = new JsonConfig($configFile);
+            $data = $config->getSection($apiToken,false);
         } else {
             write_log("Invalid token specified.", "ERROR");
+            $data = false;
         }
 
-        return false;
+        return $data;
     }
 }
 
@@ -682,9 +563,7 @@ if (!function_exists('verifyPlexToken')) {
             if (!$user) {
                 $webApp = $_SESSION['webApp'] ?? false;
                 if (!$webApp) {
-                    $configFile = file_build_path(dirname(__FILE__), "..", "rw", "config.ini.php");
-                    $config = new Config_Lite($configFile, LOCK_EX);
-                    $noNewUsers = $config->getBool("general", "noNewUsers", false);
+                    $noNewUsers = readConfig('general','noNewUsers',false);
                 } else $noNewUsers = false;
                 $user = $noNewUsers ? false : newUser($userData);
                 if (!$user) return "Not allowed.";
