@@ -24,6 +24,7 @@ https://forums.plex.tv/discussion/252910/phlex-google-home-plex-integration-with
 
 Can be found here: https://github.com/d8ahazard/Phlex/wiki
 
+
 ## SUPPORT
 
 If you like this product, feel free to  buy me a beer: https://paypal.me/digitalhigh
