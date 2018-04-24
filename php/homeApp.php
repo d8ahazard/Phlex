@@ -157,20 +157,14 @@ if (!function_exists("checkUpdates")) {
             try {
                 $repo = new GitRepository(dirname(__FILE__));
                 if ($repo) {
-                    $repo->fetch('origin');
-                    $result = $repo->readLog('origin', 'HEAD');
+                    $repo->fetch();
                     $revision = $repo->getRev();
+                    if ($revision !== readConfig('general','revision','foo')) saveConfig('general','revision',$revision);
+                    $branch = $repo->getCurrentBranchName();
+                    $result = $repo->readLog("",$branch);
+
                     $logHistory = readUpdate();
-                    if ($revision) {
-                        $configFile = file_build_path(dirname(__FILE__), "..","rw","config.ini.php");
-						$config = new Config_Lite($configFile, LOCK_EX);
-                        $old = $config->get('general', 'revision', false);
-                        if ($old !== $revision) {
-                            $config->set('general', 'revision', $revision);
-                            saveConfig($config);
-                        }
-                    }
-                    if (count($logHistory)) $installed = $logHistory[0]['installed'];
+                    if (count($logHistory)) $installed = $logHistory[0]['installed'] ?? false;
                     $header = '<div class="cardHeader">
                         Current revision: ' . substr($revision, 0, 7) . '<br>
                         ' . ($installed ? "Last Update: " . $installed : '') . '
@@ -204,7 +198,7 @@ if (!function_exists("checkUpdates")) {
                             $html = parseUpdateLog($logHistory[0]['commits']);
                             $installed = $logHistory[0]['installed'];
                         } else {
-                            $html = parseUpdateLog($repo->readLog("origin/master", 0));
+                            $html = parseUpdateLog($repo->readLog("", 0));
                         }
                         $html = $header . '<div class="cardHeader">
                             Status: Up-to-date<br><br>
