@@ -2376,7 +2376,7 @@ function scanDevices($force = false) {
 			$check = [];
 			foreach ($servers as $server) {
 				$cloud = preg_match("/plex.services/", $server['uri']);
-				if (($server['Owned']) && (!$cloud)) {
+				if (!$cloud) {
 					array_push($check, $server);
 				}
 			}
