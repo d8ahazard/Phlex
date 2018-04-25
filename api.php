@@ -2864,10 +2864,9 @@ function fetchAirings($params) {
 }
 
 function fetchApiAiData($command) {
-    $v2 = $_SESSION['v2'] ?? false;
     $context = $_SESSION['context'] ?? false;
     if ($context) write_log("We have a context!!", "INFO");
-    $d = $v2 ? fetchDirectory(6) : fetchDirectory(3);
+    $d = fetchDirectory(3);
     $sessionId = $_SESSION['sessionId'] ?? rand(10000, 100000);
     writeSession('sessionId', $sessionId);
     $dialogFlow = new dialogFlow($d, getDefaultLocale(), 1, "$sessionId");
