@@ -6,7 +6,7 @@ var apiToken, appName, bgs, bgWrap, cv, token, newToken, deviceID, resultDuratio
 var cleanLogs=true, couchEnabled=false, lidarrEnabled=false, ombiEnabled=false, sickEnabled=false, sonarrEnabled=false, radarrEnabled=false,
 	headphonesEnabled=false, watcherEnabled=false, dvrEnabled=false, hook=false, hookPlay=false, polling=false, pollcount=false,
 	hookPause=false, hookStop=false, hookCustom=false, hookFetch=false, hookSplit = false, autoUpdate = false, masterUser = false,
-	noDvrs=true,noNewUsers=false, waiting=false;
+	noDvrs=true,noNewUsers=false, notifyUpdate=false, waiting=false;
 
 var forceUpdate = true;
 
@@ -85,7 +85,7 @@ function buildUiDeferred() {
 		messageArray = [];
 	}
 
-	if (updateAvailable >= 1) {
+	if (updateAvailable >= 1 && notifyUpdate) {
 		showMessage("Updates available!", "You have " + updateAvailable + " update(s) available.", false);
 	}
 
@@ -307,6 +307,7 @@ function setUiVariables(data) {
 			case 'masterUser':
 			case 'cleanLogs':
 			case 'autoUpdate':
+			case 'notifyUpdate':
 				var value = JSON.parse(data[propertyName]);
 				if(window[propertyName] !== value) {
 					window[propertyName] = value;

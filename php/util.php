@@ -640,11 +640,13 @@ function getContent($file, $url, $hours = 56, $fn = '', $fn_args = '') {
 }
 
 function getDefaultLocale() {
-    $locale = false;
+    write_log("Function fired, called by ".getCaller(__FUNCTION__),"ALERT");
+    $locale = $set = false;
     $defaultLocale = setlocale(LC_ALL, 0);
     // If a session language is set
     if (isset($_SESSION['appLanguage'])) {
-        if (trim($_SESSION['appLanguage'])) $locale = $_SESSION['appLanguage'];
+        write_log("Session applanguage? ".$_SESSION['appLanguage']);
+        if (trim($_SESSION['appLanguage']) !== "") $locale = $_SESSION['appLanguage'];
     }
     if (!$locale) {
         write_log("No saved locale set, detecting from system. Default is $defaultLocale", "INFO");
@@ -652,14 +654,15 @@ function getDefaultLocale() {
             if (preg_match("/en_/", $defaultLocale)) $locale = 'en';
             if (preg_match("/fr_/", $defaultLocale)) $locale = 'fr';
             write_log("Locale set from default: $locale", "INFO");
-            if (trim($locale) == "") $locale = false;
+            if (trim($locale) == "") $locale = false; else $set = true;
         }
     }
     if (!$locale) {
         write_log("Couldn't detect a default or saved locale, defaulting to English.", "WARN");
         $locale = "en";
+        $set = true;
     }
-    updateUserPreference('appLanguage',$locale);
+    if ($set) updateUserPreference('appLanguage',$locale);
     return $locale;
 }
 

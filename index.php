@@ -279,17 +279,22 @@ if (isset($_GET['logout'])) {
 				return true;
 
 			} else {
+                if (url !== "") {
+                    message = "<a href='" + url + "'>"+message+"</a>";
+                } else {
+                    message = "<p>" + message + "</p>";
+                }
 				if (Notification.permission !== 'denied') {
 					Notification.requestPermission().then(function (result) {
 						if ((result === 'denied') || (result === 'default')) {
-							$('#alertTitle').text(title);
-							$('#alertBody').find('p').text(message);
+						    $('#alertTitle').text(title);
+							$('#alertBody').html(message);
 							$('#alertModal').modal('show');
 						}
 					});
 				} else {
 					$('#alertTitle').text(title);
-					$('#alertBody').find('p').text(message);
+					$('#alertBody').html(message);
 					$('#alertModal').modal('show');
 				}
 				return false;

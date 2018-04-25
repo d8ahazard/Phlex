@@ -356,6 +356,7 @@
 	"uiSettingAccountLinking": "Account Linking",
 	"uiSettingApiKey": "API Key:",
 	"uiSettingAutoUpdate": "Automatically Install Updates",
+	"uiSettingNotifyUpdate": "Notify when updates are available",
 	"uiSettingBtnReset": "RESET",
 	"uiSettingBtnTest": "TEST",
 	"uiSettingCopyIFTTT": "Click to copy IFTTT URL:",

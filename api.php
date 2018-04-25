@@ -69,7 +69,7 @@ function analyzeRequest() {
         // This is OK because it's called before setsessionvariables...
         $_SESSION['dologout'] = false;
 
-	//$_SESSION['v2'] = true;
+	$_SESSION['v2'] = true;
 
         foreach ($user as $key => $value) $_SESSION[$key] = $value;
         if (!(isset($_SESSION['counter']))) {
@@ -353,7 +353,8 @@ function getSessionData() {
         'hookFetch',
         'hookCustom',
         'hookSplit',
-        'hookStop'
+        'hookStop',
+        'notifyUpdate'
     ];
     foreach ($_SESSION as $key => $value) {
         if ($key !== "lang") {
@@ -372,10 +373,10 @@ function getSessionData() {
 function getUiData($force = false) {
 
 	$playerStatus = fetchPlayerStatus();
-	$updates = isWebApp() ? false : checkUpdates();
 	$devices = selectDevices(scanDevices(false));
 	$deviceText = json_encode($devices);
 	$userData = getSessionData();
+	$updates = [];
 	foreach($userData as $key=>$value) {
 		if (preg_match("/List/",$key)) $userData["$key"] = fetchList(str_replace("List","",$key));
 	}
@@ -385,7 +386,8 @@ function getUiData($force = false) {
 	}
 	if ($force) {
 	    write_log("outgoing UI Data: ".json_encode($userData),"INFO",false,true);
-		$result['devices'] = $devices;
+        $updates = isWebApp() ? false : checkUpdates();
+        $result['devices'] = $devices;
 		$result['userData'] = $userData;
 		$result['updates'] = $updates;
 		$result['commands'] = $commands;

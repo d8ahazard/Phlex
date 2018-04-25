@@ -25,7 +25,10 @@ class JsonConfig extends ArrayObject {
         $data = file_get_contents($this->fileName);
         $data = str_replace($this->header,"",$data);
         $data = json_decode($data,true);
-        if (!$data) throw new InvalidArgumentException("Unable to read specified file.");
+        if (!$data) {
+            write_log("Error reading data.");
+            throw new InvalidArgumentException("Unable to read specified file.");
+        }
         $this->sections = $data ? $data : [];
     }
 
@@ -69,11 +72,11 @@ class JsonConfig extends ArrayObject {
         foreach ($this->sections as $name => $data) {
             foreach ($data as $dataKey => $dataValue) {
                 if ($key == null) {
-                    if ($dataValue == $value) array_push($sections, $data);
+                    if ($dataValue == $value) $sections["$name"] = $data;
                 } else if ($value == null) {
-                    if ($dataKey == $key) array_push($sections, $data);
+                    if ($dataKey == $key) $sections["$name"] = $data;
                 } else {
-                    if ($dataValue == $value && $dataKey == $key) array_push($sections, $data);
+                    if ($dataValue == $value && $dataKey == $key) $sections["$name"] = $data;
                 }
             }
         }

@@ -399,46 +399,48 @@
 		/**
 		 * Read Log Messages to JSON
 		 *
-		 * @param  string $branch - The branch to read logs from
+		 * @param  string $end - The branch to read logs from
 		 * @param  string|int $limit - Number of commits to return, or the commit hash to return logs until
 		 * @throws Cz\Git\GitException
 		 * @return array $logs
 		 */
 
-		public function readLog($branch="origin/master",$limit=10)
+		public function readLog($branch="master", $limit=10, $fetch=false)
 		{
-			$output = "";
 			$this->begin();
-			$commits = [];
-			if (!is_numeric($limit)) {
-				$command = "git log $limit..$branch --oneline";
-				exec($command,$shorts);
-			}
-			if (count($shorts)) $limit = count($shorts)-1;
-			if (is_numeric($limit)) {
-				$i = 0;
-				do {
-					$command = "git log $branch -1 --pretty=format:";
-					if ($i) $command = "git log $branch --skip $i -1 --pretty=format:";
-					$head = exec($command.'"%H"');
-					$shortHead = exec($command.'"%h"');
-					$subject = exec($command.'"%s"');
-					exec($command.'"%b"',$body);
-					$body = implode('<br>',$body);
-					$author = exec($command.'"%aN"');
-					$date = exec($command.'"%aD"');
-					$commit = [
-						'head'=>$head,
-						'shortHead'=>$shortHead,
-						'subject'=>$subject,
-						'body'=>$body,
-						'author'=>$author,
-						'date'=>$date
-					];
-					array_push($commits,$commit);
-					$i++;
-				} while ($i <= $limit);
-			}
+			$commits = $shorts = [];
+
+			if (!$fetch) {
+                $command = "git log ..origin/$branch --oneline";
+                write_log("Git command: '$command'", "ALERT");
+                exec($command, $shorts);
+                write_log("Result: ".json_encode($shorts));
+                if (count($shorts)) $limit = count($shorts)-1;
+            }
+
+            $i = 0;
+            do {
+                $command = "git log origin/$branch -1 --pretty=format:";
+                if ($i) $command = "git log origin/$branch --skip $i -1 --pretty=format:";
+                write_log("Command: '$command'");
+                $head = exec($command.'"%H"');
+                $shortHead = exec($command.'"%h"');
+                $subject = exec($command.'"%s"');
+                exec($command.'"%b"',$body);
+                $body = implode('<br>',$body);
+                $author = exec($command.'"%aN"');
+                $date = exec($command.'"%aD"');
+                $commit = [
+                    'head'=>$head,
+                    'shortHead'=>$shortHead,
+                    'subject'=>$subject,
+                    'body'=>$body,
+                    'author'=>$author,
+                    'date'=>$date
+                ];
+                array_push($commits,$commit);
+                $i++;
+            } while ($i <= $limit);
 			$this->end();
 			return $commits;
 		}
@@ -496,7 +498,7 @@
 		 * @return self
 		 * @throws GitException
 		 */
-		public function fetch($remote = NULL, array $params = NULL)
+		public function fetch($remote = '', array $params = NULL)
 		{
 			if(!is_array($params))
 			{
@@ -504,8 +506,10 @@
 			}
 
 				$this->begin();
+			    $cmd = trim("git fetch $remote");
 				$result = $this->run("git fetch $remote", $params);
 				$this->end();
+				write_log("Result: ".json_encode($result));
 				return $result;
 		}
 
@@ -655,6 +659,7 @@
 			$args = func_get_args();
 			$cmd = self::processCommand($args);
 			exec($cmd . ' 2>&1', $output, $ret);
+
 			$result = implode (" ",$output);
 			if($ret !== 0)
 			{

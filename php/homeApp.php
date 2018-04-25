@@ -161,8 +161,8 @@ if (!function_exists("checkUpdates")) {
                     $revision = $repo->getRev();
                     if ($revision !== readConfig('general','revision','foo')) saveConfig('general','revision',$revision);
                     $branch = $repo->getCurrentBranchName();
-                    $result = $repo->readLog("",$branch);
-
+                    $result = $repo->readLog($branch);
+                    write_log("ReadLog result for branch $branch: ".json_encode($result));
                     $logHistory = readUpdate();
                     if (count($logHistory)) $installed = $logHistory[0]['installed'] ?? false;
                     $header = '<div class="cardHeader">
@@ -194,11 +194,12 @@ if (!function_exists("checkUpdates")) {
                         }
                     } else {
                         write_log("No changes detected.");
+                        writeSession('updateAvailable','',true);
                         if (count($logHistory)) {
                             $html = parseUpdateLog($logHistory[0]['commits']);
                             $installed = $logHistory[0]['installed'];
                         } else {
-                            $html = parseUpdateLog($repo->readLog("", 0));
+                            $html = parseUpdateLog($repo->readLog("", $branch, 0,true));
                         }
                         $html = $header . '<div class="cardHeader">
                             Status: Up-to-date<br><br>
@@ -273,6 +274,13 @@ if (!function_exists('fetchUser')) {
         $config = new JsonConfig($configFile);
         $email = $userData['plexEmail'];
         $userData = $config->findSection('plexEmail',$email);
+        if ($userData) {
+            foreach($userData as $token => $data) {
+                $data['apiToken'] = $token;
+                $userData = $data;
+                break;
+            }
+        }
         return $userData;
     }
 }
@@ -393,6 +401,7 @@ if (!function_exists('newUser')) {
             'searchAccuracy' => '70',
             'darkTheme' => true,
             'hasPlugin' => false,
+            'notifyUpdate' => false,
             'masterUser' =>firstUser()
         ];
 
@@ -507,6 +516,7 @@ if (!function_exists('updateUserPreference')) {
         } else {
             write_log("No session username, can't save value.");
         }
+
     }
 }
 
@@ -553,6 +563,7 @@ if (!function_exists('verifyPlexToken')) {
         }
         if ($userData) {
             write_log("Recieved valid user data.", "INFO");
+            //writeSessionArray($userData);
             $user = fetchUser($userData);
             if (!$user) {
                 $webApp = $_SESSION['webApp'] ?? false;

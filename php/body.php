@@ -106,6 +106,11 @@ function makeSettingsBody() {
 			                        <input id='autoUpdate' type='checkbox' class='appInput appToggle'/>
 			                    </label>
 			                </div>
+			                <div class='togglebutton'>
+			                    <label for='notifyUpdate' class='appLabel checkLabel'>" . $lang["uiSettingNotifyUpdate"] . "
+			                        <input id='notifyUpdate' type='checkbox' class='appInput'" . ($_SESSION['notifyUpdate'] ? 'checked' : '') . "/>
+			                    </label>
+			                </div>
 			                <div class='form-group'>
 			                    <div id='updateContainer'>
 			                    </div>
