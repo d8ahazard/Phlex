@@ -640,7 +640,6 @@ function getContent($file, $url, $hours = 56, $fn = '', $fn_args = '') {
 }
 
 function getDefaultLocale() {
-    write_log("Function fired, called by ".getCaller(__FUNCTION__),"ALERT");
     $locale = $set = false;
     $defaultLocale = setlocale(LC_ALL, 0);
     // If a session language is set
@@ -2393,7 +2392,6 @@ if (!function_exists('write_log')) {
 }
 
 function writeSession($key, $value, $unset = false) {
-	$token = $_SESSION['apiToken'];
 //	if (!session_started()) {
 //		session_start();
 //	} else {

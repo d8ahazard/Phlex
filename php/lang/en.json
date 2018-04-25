@@ -295,6 +295,11 @@
 		"Hmmm. Your server doesn't seem to have anything listed for <VAR>.",
 		"I didn't find anything right now. Do you have any <VAR>?"
 	],
+	"speechNoResultsArray": [
+		"Unfortunately, I wasn't able to find any results for that.",
+		"I'm sorry, but I couldn't find anything for that search.",
+		"I looked, but I wasn't able to help with that request."
+	],
 	"speechOndeckRecentTail": " If you'd like to watch something, just say the name, otherwise, you can say 'cancel'.",
 	"speechPlaybackAffirmatives": [
 		"Allrighty then, ",

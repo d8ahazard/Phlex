@@ -4497,6 +4497,8 @@ function mapApiRequest($request) {
     }
 }
 
+// Map data from Plex and online sources to items with the same-ish params
+
 function mapData($dataArray) {
 	$info = $media = $results = [];
 	foreach ($dataArray as $key => $data) {
@@ -5064,6 +5066,8 @@ function buildQueryMulti($params) {
     return $response;
 }
 
+// Build speech responses
+
 function buildSpeech($params, $results) {
 	$cards = [];
 	$playback = $meta = $media = $suggestions = $wait = false;
@@ -5128,6 +5132,8 @@ function buildSpeech($params, $results) {
                         }
                     }
                     $cards = buildCards($meta);
+                } else {
+			        $speech = buildSpeechNoResults($params);
                 }
             }
 		} else {
@@ -5307,7 +5313,6 @@ function buildSpeechFetch($media,$fetched,$existing) {
     return $string;
 }
 
-
 function buildSpeechInfoQuery($params,$cards) {
     write_log("THis is annoying: ".json_encode($params));
     $type1 = $params['type'] ?? false;
@@ -5347,11 +5352,12 @@ function buildSpeechNoInfoResults($request) {
 }
 
 function buildSpeechNoResults($request) {
-    $array = lang('speechNoInfoResultsArray');
+    $array = lang('speechNoResultsArray');
     do {
         $msg = $array[array_rand($array)];
     } while ($msg == $_SESSION['errorMsg'] ?? 'foo');
     writeSession('errorMsg',$msg);
+    return $msg;
 }
 
 function buildSpeechMultipleResults($media, $params) {
