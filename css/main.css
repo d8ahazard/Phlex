@@ -15,6 +15,9 @@
 	--theme-primary-shade3: rgba(71, 71, 71, 0.92);
 }
 
+html, body {
+	height: 100%;
+}
 body {
 	overflow: hidden;
 }

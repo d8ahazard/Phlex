@@ -3,12 +3,13 @@ require_once dirname(__FILE__) . '/vendor/autoload.php';
 require_once dirname(__FILE__) . '/../api.php';
 
 
-function makeBody($token) {
+function makeBody($defaults) {
 	if (!defined('LOGGED_IN')) {
 		write_log("Dying because not logged in?", "ERROR");
 		die();
 	}
 	$lang = checkSetLanguage();
+	$defaults['lang'] = $lang;
 
 	$bodyText = '<div id="body" class="row justify-content-center">
 
@@ -52,7 +53,7 @@ function makeBody($token) {
 			        <div id="results" class="queryWrap">
 			        	<div id="resultsInner"  class=""></div>
 			    	</div>
-			    	'.makeSettingsBody().'
+			    	'.makeSettingsBody($defaults).'
 	            </div>
 	            
 				<div id="metaTags">
@@ -67,19 +68,18 @@ function makeBody($token) {
 
 
 
-function makeMetaTags() {
+function makeMetaTags($defaults) {
 	$server = findDevice(false,false,"Server");
 	$client = findDevice(false,false,"Client");
-    webAddress();
     $tags = '';
     $uiData = json_encode(getUiData(true));
     $uiData = str_replace("'","`",$uiData);
     $dvr = ($_SESSION['plexDvrUri'] ? "true" : "");
     $tags .= '<meta id="usernameData" data="' . $_SESSION['plexUserName'] . '"/>' . PHP_EOL .
         '<meta id="updateAvailable" data="' . $_SESSION['updateAvailable'] . '"/>' . PHP_EOL .
-        '<meta id="publicAddress" data="' . $_SESSION['publicAddress'] . '"/>' . PHP_EOL .
         '<meta id="deviceID" data="' . $_SESSION['deviceID'] . '"/>' . PHP_EOL .
         '<meta id="serverURI" data="' . $server['Uri'] . '"/>' . PHP_EOL .
+        '<meta id="publicAddress" value="' . serverAddress() . '"/>' . PHP_EOL .
         '<meta id="clientURI" data="' . $client['Uri'] . '"/>' . PHP_EOL .
         '<meta id="clientName" data="' . $client['Name'] . '"/>' . PHP_EOL .
         '<meta id="plexDvr" data-enable="' . $dvr . '"/>' . PHP_EOL .
@@ -89,13 +89,13 @@ function makeMetaTags() {
     return $tags;
 }
 
-function makeSettingsBody() {
-	$hide = isWebApp();
+function makeSettingsBody($defaults) {
+	$hide = $defaults['isWebApp'];
 	$hidden = $hide ? " remove" : "";
 	$hiddenHome = $hide ? "" : " remove";
 	$useGit = $hide ? false : checkGit();
-	$webAddress = webAddress();
-	$lang = checkSetLanguage();
+	$webAddress = serverAddress();
+	$lang = $defaults['lang'];
 
 	$gitDiv = "<div class='appContainer card updateDiv$hidden'>
 			        <div class='card-body'>
@@ -220,8 +220,7 @@ function makeSettingsBody() {
 					                    	<div class='form-group text-center'>
 					                                <div class='form-group'>
 					                                    <button class='btn btn-raised linkBtn btn-primary testServer".$hidden."' id='testServer' data-action='test'>" . $lang["uiSettingTestServer"] . "</button>
-					                                    <button id='linkAccountv2' data-action='googlev2' class='btn btn-raised linkBtn btn-danger$hiddenHome'>" . $lang["uiSettingLinkGoogle"] . "V2</button>
-					                                    <button id='linkAccount' data-action='google' class='btn btn-raised linkBtn btn-danger$hidden'>" . $lang["uiSettingLinkGoogle"] . "</button>
+					                                    <button id='linkAccountv2' data-action='googlev2' class='btn btn-raised linkBtn btn-danger$hiddenHome'>" . $lang["uiSettingLinkGoogle"] . "</button>
 					                                    <button id='linkAmazonAccount' data-action='amazon' class='btn btn-raised linkBtn btn-info'>" . $lang["uiSettingLinkAmazon"] . "</button>
 					                                </div>
 					                            </div>
@@ -715,18 +714,9 @@ function makeSettingsBody() {
 						                        <option value='500'>500</option>
 						                        <option value='1000'>1000</option>
 					                        </select>
-				                        </label>
-				                        <label for='logLimit' class='logControl'>" . $lang["uiSettingLogLevel"] . "
-					                        <select id='logLevel' class='form-control logControl'>
-						                        <option value='DEBUG' selected>ALL</option>
-						                        <option value='INFO'>Info</option>
-						                        <option value='WARN'>Warn</option>
-						                        <option value='ERROR'>Error</option>
-					                        </select>
-				                        </label>
+				                        </label>				                       
 				                        <div id='log'>
 								             <div id='logInner'>
-								                  
 								                 <div>
 								                     <iframe class='card card-body' id='logFrame' src=''></iframe>															
 								                  </div>

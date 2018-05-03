@@ -15,4 +15,4 @@
 /rw/cacert.pem
 *.old
 *.log.php
-
+*.db.conf.php

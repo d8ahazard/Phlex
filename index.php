@@ -1,13 +1,12 @@
 <?php
 require_once dirname(__FILE__) . '/php/vendor/autoload.php';
 require_once dirname(__FILE__) . "/php/webApp.php";
-$homeApp = dirname(__FILE__) . '/php/homeApp.php';
-if (file_exists($homeApp)) require_once $homeApp;
 require_once dirname(__FILE__) . '/php/util.php';
+write_log("-------NEW REQUEST RECEIVED-------", "ALERT");
 
+$defaults = checkDefaults();
+$forceSSL = $defaults['forceSSL'];
 
-checkSetDeviceID();
-$forceSSL = checkSSL();
 if ((empty($_SERVER['HTTPS']) || $_SERVER['HTTPS'] == "off") && $forceSSL) {
 	$redirect = 'https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
 	if (isDomainAvailable($redirect)) {
@@ -19,9 +18,9 @@ if ((empty($_SERVER['HTTPS']) || $_SERVER['HTTPS'] == "off") && $forceSSL) {
 if (!session_started()) {
 	session_start();
 }
+writeSessionArray($defaults);
 $GLOBALS['time'] = microtime(true);
 if (substr_count($_SERVER["HTTP_ACCEPT_ENCODING"], "gzip") && hasGzip()) ob_start("ob_gzhandler"); else ob_start();
-setDefaults();
 
 $messages = checkFiles();
 if (isset($_GET['logout'])) {
@@ -56,7 +55,6 @@ if (isset($_GET['logout'])) {
 		.fade-in{
 			-webkit-animation: fade-in 2s ease;
 			-moz-animation: fade-in ease-in-out 2s both;
-			-ms-animation: fade-in ease-in-out 2s both;
 			-o-animation: fade-in ease-in-out 2s both;
 			animation: fade-in 2s ease;
 			visibility: visible;
@@ -122,7 +120,8 @@ if (isset($_GET['logout'])) {
 					define('LOGGED_IN', true);
 					require_once dirname(__FILE__) . '/php/body.php';
 					write_log("Making body!");
-					$bodyData = makeBody($token);
+					$defaults['token'] = $token;
+					$bodyData = makeBody($defaults);
 					$body = $bodyData[0];
 					$_SESSION['theme'] = $bodyData[1];
 					echo $body;

@@ -3,9 +3,6 @@
 require_once dirname(__FILE__) . '/vendor/autoload.php';
 require_once dirname(__FILE__) . '/JsonXmlElement.php';
 require_once dirname(__FILE__) . '/multiCurl.php';
-use digitalhigh\multiCurl;
-
-
 
 function array_diff_assoc_recursive($array1, $array2)
 {
@@ -185,7 +182,7 @@ function checkCache($cacheDir) {
 }
 
 function checkSetLanguage($locale = false) {
-    $locale = $locale ? $locale : getDefaultLocale();
+    $locale = $locale ? $locale : getLocale();
 
     if (file_exists(dirname(__FILE__) . "/lang/" . $locale . ".json")) {
         $langJSON = file_get_contents(dirname(__FILE__) . "/lang/" . $locale . ".json");
@@ -196,20 +193,19 @@ function checkSetLanguage($locale = false) {
     return json_decode($langJSON, true);
 }
 
-function cleanTitle($string, $remove=false) {
+function cleanCommandString($string) {
     $string = trim(strtolower($string));
     $string = preg_replace("/ask Flex TV/", "", $string);
     $string = preg_replace("/tell Flex TV/", "", $string);
     $string = preg_replace("/Flex TV/", "", $string);
     $stringArray = explode(" ", $string);
-    $stripIn = ["th", "nd", "rd", "by","the"];
+    $stripIn = ["th", "nd", "rd", "by"];
     $stringArray = array_diff($stringArray, array_intersect($stringArray, $stripIn));
     foreach ($stringArray as &$word) {
         $word = preg_replace("/[^\w\']+|\'(?!\w)|(?<!\w)\'/", "", $word);
-        if ($remove) $word = str_replace($remove,"",$word);
     }
     $result = implode(" ", $stringArray);
-    return trim($result);
+    return $result;
 }
 
 function clearSession() {
@@ -262,8 +258,8 @@ function cmp($a, $b) {
 }
 
 function compareTitles(string $search, string $check,$sendWeight = false) {
-    $search = cleanTitle($search);
-    $check = cleanTitle($check);
+    $search = cleanCommandString($search);
+    $check = cleanCommandString($check);
     $goal = $_SESSION['searchAccuracy'] ?? 70;
     $strength = similar_text($search,$check);
     $lev = levenshtein($search,$check);
@@ -363,14 +359,13 @@ function curlQuick($url)
 
 }
 
-function doRequest($parts, $timeout = 6, $looped=false) {
-    $server = findDevice(false,false,"Server");
-    $original = $parts;
+function doRequest($parts, $timeout = 6) {
     $type = isset($parts['type']) ? $parts['type'] : 'get';
     $response = false;
     $options = [];
+    //write_log("Function fired: ".json_encode($params));
     if (is_array($parts)) {
-        if (!isset($parts['uri'])) $parts['uri'] = $server['Uri'];
+        if (!isset($parts['uri'])) $parts['uri'] = $_SESSION['plexServerUri'];
         if (isset($parts['query'])) {
             if (!is_string($parts['query'])) {
                 $string = '?';
@@ -400,7 +395,7 @@ function doRequest($parts, $timeout = 6, $looped=false) {
     }
     $url = filter_var($url, FILTER_SANITIZE_URL);
     if (!filter_var($url, FILTER_VALIDATE_URL)) {
-        //write_log("URL $url is not valid.");
+        write_log("URL $url is not valid.","ERROR");
         return false;
     }
     write_log("URL is " . protectURL($url), "INFO", getCaller());
@@ -420,18 +415,8 @@ function doRequest($parts, $timeout = 6, $looped=false) {
             $response = $client->post($url, $options);
         }
     } catch (Throwable $e) {
-        write_log("An exception occurred: " . $e->getCode(), "ERROR");
+        write_log("An exception occurred: " . $e->getMessage(), "ERROR");
         if ($e->getCode() == 401) {
-            if(preg_match("/X-Plex-Token/",$url)) {
-                if (!$looped) {
-                    write_log("Plex authorization error, should do a thing here.", "WARN", false, true);
-                    //scanDevices(true);
-                    //write_log("Re-running fetch, fingers crossed.","WARN");
-                    //return doRequest($original, $timeout, true);
-                } else {
-                    write_log("Can't loop in a loop.","ERROR");
-                }
-            }
             return false;
         }
     }
@@ -521,14 +506,19 @@ function file_build_path(...$segments) {
  * @return array | bool - Device array, or false if none found.
  */
 function findDevice($key=false, $value=false, $type) {
-    if(!$key || !$value) {
+    if(!$key && !$value) {
         $key = "Id";
         $value = $_SESSION["plex". $type ."Id"];
     }
+
     $devices = $_SESSION['deviceList'];
     $section = $devices["$type"] ?? false;
     write_log("Looking for a $type with a $key of $value");
     if ($section) {
+        if ($key && !$value) {
+            write_log("No value, selecting first device.");
+            return $devices["$type"][0] ?? false;
+        }
         write_log("Full section: " . json_encode($section));
         foreach ($section as $device) {
             if (trim(strtolower($device["$key"])) === trim(strtolower($value))) {
@@ -639,30 +629,37 @@ function getContent($file, $url, $hours = 56, $fn = '', $fn_args = '') {
     }
 }
 
-function getDefaultLocale() {
-    $locale = $set = false;
-    $defaultLocale = setlocale(LC_ALL, 0);
-    // If a session language is set
-    if (isset($_SESSION['appLanguage'])) {
-        write_log("Session applanguage? ".$_SESSION['appLanguage']);
-        if (trim($_SESSION['appLanguage']) !== "") $locale = $_SESSION['appLanguage'];
-    }
+function getLocale() {
+    $locale = trim($_SESSION['appLanguage'] ?? "");
+    $store = false;
     if (!$locale) {
-        write_log("No saved locale set, detecting from system. Default is $defaultLocale", "INFO");
-        if (trim($defaultLocale) != "") {
-            if (preg_match("/en_/", $defaultLocale)) $locale = 'en';
-            if (preg_match("/fr_/", $defaultLocale)) $locale = 'fr';
-            write_log("Locale set from default: $locale", "INFO");
-            if (trim($locale) == "") $locale = false; else $set = true;
+        $store = true;
+        $langs = listLocales(false);
+        $preferred = explode(',', $_SERVER['HTTP_ACCEPT_LANGUAGE']);
+        foreach($preferred as $idx => $lang) {
+            $lang = substr($lang, 0, 2);
+            if (in_array($lang, $langs)) {
+                write_log("Found a language from the server, neato.","ALERT");
+                $locale = $lang;
+                break;
+            }
         }
     }
     if (!$locale) {
-        write_log("Couldn't detect a default or saved locale, defaulting to English.", "WARN");
+        write_log("Failed to select a langauge, setting to English here.","ERROR");
         $locale = "en";
-        $set = true;
     }
-    if ($set) updateUserPreference('appLanguage',$locale);
+
+    if ($store) {
+        if (isset($_SESSION['plexUserName'])) {
+            updateUserPreference('appLanguage',$locale);
+        } else {
+            writeSession('appLanguage', $locale);
+        }
+    }
+
     return $locale;
+
 }
 
 function getRelativePath($from, $to) {
@@ -695,6 +692,46 @@ function getRelativePath($from, $to) {
         }
     }
     return implode('/', $relPath);
+}
+
+
+function getSessionData()
+{
+    $data = [];
+    $boolKeys = [
+        'couchEnabled',
+        'sonarrEnabled',
+        'radarrEnabled',
+        'ombiEnabled',
+        'sickEnabled',
+        'headphonesEnabled',
+        'lidarrEnabled',
+        'darkTheme',
+        'hasPlugin',
+        'alertPlugin',
+        'plexPassUser',
+        'plexDvrReplaceLower',
+        'plexDvrNewAirings',
+        'hook',
+        'hookPaused',
+        'hookPlay',
+        'hookFetch',
+        'hookCustom',
+        'hookSplit',
+        'hookStop'
+    ];
+    foreach ($_SESSION as $key => $value) {
+        if ($key !== "lang") {
+            if (in_array($key, $boolKeys)) {
+                $value = boolval($value);
+            }
+            $data[$key] = $value;
+        }
+    }
+    $dvr = $_SESSION['plexDvrId'] ?? false;
+    $data['dvrEnabled'] = boolval($dvr) ? true : false;
+    write_log("Session data: " . json_encode($data), "INFO");
+    return $data;
 }
 
 function hasGzip() {
@@ -863,17 +900,15 @@ function joinStrings($items, $tail = "and") {
     return $string;
 }
 
-function joinTitles($items, $tail = "and", $params = false) {
+function joinTitles($items, $tail = "and") {
     write_log("Dammit: ".json_encode($items),"WARN",false,true);
-    write_log("Params: ".json_encode($params));
     $titles = [];
     $names = [];
     $sayType = false;
-    $requestType = $params['type'][0] ?? false;
     foreach ($items as $item) {
         write_log("Item: " . json_encode($item));
         $title = $item['Title'];
-        foreach($names as $check) if ($check['Title'] == $title && !$requestType) $sayType = true;
+        foreach($names as $check) if ($check['Title'] == $title) $sayType = true;
         array_push($names, $item);
 
     }
@@ -924,28 +959,36 @@ function lang($string) {
     return $strings["$string"] ?? "";
 }
 
-function listLocales() {
+function listLocales($html=true) {
     $dir = file_build_path(dirname(__FILE__), "lang");
     $list = "";
+    $langs = [];
+    $lang = $_SESSION["appLanguage"];
+    if (trim($lang) == "") $lang = "en";
+    write_log("Local language should be $lang","ALERT");
     if (is_dir($dir)) {
         if ($dh = opendir($dir)) {
             while (($file = readdir($dh)) !== false) {
                 $name = trim(str_replace(".", "", trim($file)));
                 if ($name) {
                     $locale = str_replace("json", "", $name);
-                    $localeName = localeName($locale);
-                    $json = file_get_contents(file_build_path($dir, $file));
-                    $json = json_decode($json, true);
-                    if ($json) {
-                        $selected = ($_SESSION["appLanguage"] == $locale ? 'selected' : '');
-                        $list .= "<option data-value='$locale' id='$locale' $selected>$localeName</option>" . PHP_EOL;
+                    if ($html) {
+                        $localeName = localeName($locale);
+                        $json = file_get_contents(file_build_path($dir, $file));
+                        $json = json_decode($json, true);
+                        if ($json) {
+                            $selected = ($lang == $locale ? 'selected' : '');
+                            $list .= "<option data-value='$locale' id='$locale' $selected>$localeName</option>" . PHP_EOL;
+                        }
+                    } else {
+                        array_push($langs,$locale);
                     }
                 }
             }
             closedir($dh);
         }
     }
-    return $list;
+    return $html ? $list : $langs;
 }
 
 function localeName($locale = "en") {
@@ -2337,17 +2380,12 @@ function toBool($var) {
     return $var;
 }
 
-function transcodeImage($path, $uri = "", $token = "",$full=false) {
-    $server = findDevice(false,false,"Server");
+function transcodeImage($path, $server, $full=false) {
     if (preg_match("/library/", $path)) {
-        $uri = $uri ? $uri : ($server['Uri'] ?? false);
-        $token = $token ? $token : $server['Token'];
+        $token = $server['Token'];
         $size = $full ? 'width=1920&height=1920' : 'width=600&height=600';
-        if ($server && $token) {
-            $path = urlencode($path);
-            $url = "$uri/photo/:/transcode?$size&minSize=1&url=$path&X-Plex-Token=$token";
-            return $url;
-        }
+        $url = $server['Uri'] . "/photo/:/transcode?$size&minSize=1&url=" . urlencode($path) . "&X-Plex-Token=" . $token;
+        return $url;
     }
     write_log("Invalid image path, returning generic image.", "WARN");
     $path = 'https://phlexchat.com/img/avatar.png';
@@ -2361,35 +2399,42 @@ function translateControl($string, $searchArray) {
     return $string;
 }
 
-if (!function_exists('write_log')) {
-    function write_log($text, $level = false, $caller = false, $force=false) {
-        $log = file_build_path(dirname(__FILE__), '..', 'logs', "Phlex.log.php");
-        if (!file_exists($log)) {
-            touch($log);
-            chmod($log, 0666);
-            $authString = "; <?php die('Access denied'); ?>".PHP_EOL;
-            file_put_contents($log,$authString);
-        }
-        if (!file_exists($log)) return;
-        if (!$level) $level = 'DEBUG';
-        if (((isset($_GET['pollPlayer']) || isset($_GET['passive'])) && !$force) || (trim($text) === "")) return;
-        $caller = $caller ? getCaller($caller) : getCaller();
-        $text = '[' . date(DATE_RFC2822) . '] [' . $level . '] [' . $caller . "] - " . trim($text) . PHP_EOL;
-        if (filesize($log) > 1048576) {
-            $oldLog = file_build_path(dirname(__FILE__),"..",'logs',"Phlex.log.php.old");
-            if (file_exists($oldLog)) unlink($oldLog);
-            rename($log, $oldLog);
-            touch($log);
-            chmod($log, 0666);
-            $authString = "; <?php die('Access denied'); ?>".PHP_EOL;
-            file_put_contents($log,$authString);
-        }
-        if (!is_writable($log)) return;
-        if (!$handle = fopen($log, 'a+')) return;
-        if (fwrite($handle, $text) === FALSE) return;
-        fclose($handle);
+
+function write_log($text, $level = false, $caller = false, $force=false) {
+    $log = file_build_path(dirname(__FILE__), '..', 'logs', "Phlex.log.php");
+    $pp = false;
+    if ($force && isset($_GET['pollPlayer'])) {
+        $pp = true;
+        unset($_GET['pollPlayer']);
     }
+    if (!file_exists($log)) {
+        touch($log);
+        chmod($log, 0666);
+        $authString = "; <?php die('Access denied'); ?>".PHP_EOL;
+        file_put_contents($log,$authString);
+    }
+    if (!file_exists($log)) return;
+    if (!$level) $level = 'DEBUG';
+    if ((isset($_GET['pollPlayer']) || isset($_GET['passive'])) || (trim($text) === "")) return;
+    $caller = $caller ? getCaller($caller) : getCaller();
+    $text = '[' . date(DATE_RFC2822) . '] [' . $level . '] [' . $caller . "] - " . trim($text) . PHP_EOL;
+    if (filesize($log) > 1048576) {
+        $oldLog = file_build_path(dirname(__FILE__),"..",'logs',"Phlex.log.php.old");
+        if (file_exists($oldLog)) unlink($oldLog);
+        rename($log, $oldLog);
+        touch($log);
+        chmod($log, 0666);
+        $authString = "; <?php die('Access denied'); ?>".PHP_EOL;
+        file_put_contents($log,$authString);
+    }
+    if ($pp) $_SESSION['pollPlayer'] = true;
+    if (!is_writable($log)) return;
+    if (!$handle = fopen($log, 'a+')) return;
+    if (fwrite($handle, $text) === FALSE) return;
+
+    fclose($handle);
 }
+
 
 function writeSession($key, $value, $unset = false) {
 //	if (!session_started()) {
@@ -2413,9 +2458,8 @@ function writeSessionArray($array, $unset = false) {
 	} else {
 		foreach($array as $key=>$value) {
 		    if ($key === 'updated' && empty($value)) {
-                write_log("Skipping $key");
+
             } else {
-		        if ($key !== 'updates') write_log("Setting session value for $key of $value");
                 $_SESSION["$key"] = $value;
             }
 		}

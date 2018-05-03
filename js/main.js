@@ -481,6 +481,7 @@ function updateCommands(data, prepend) {
 		}
 
 		$.each(data, function (i, value) {
+			console.log("Command data: ",value);
 			if (value === []) return true;
 			try {
 				var initialCommand = ucFirst(value.initialCommand);
@@ -989,14 +990,14 @@ function setListeners() {
 		}
 
 		if ($(this).hasClass("linkBtn")) {
-            serverAddress = $("#publicAddress").attr('value');
+            		serverAddress = $("#publicAddress").attr('value');
 			regUrl = false;
 			action = $(this).data('action');
-			if (action === 'googlev2') regUrl = 'https://phlexchat.com/apiv2.php?apiToken=' + apiToken + "&serverAddress=" + encodeURIComponent(serverAddress);
-			if (action === 'google') regUrl = 'https://phlexserver.cookiehigh.us/api.php?apiToken=' + apiToken + "&serverAddress=" + encodeURIComponent(serverAddress);
-			if (action === 'amazon') regUrl = 'https://phlexchat.com/alexaAuth.php?apiToken=' + apiToken + "&serverAddress=" + encodeURIComponent(serverAddress);
+			serverAddress = encodeURIComponent(serverAddress);
+			if (action === 'googlev2') regUrl = 'https://phlexchat.com/apiv2.php?apiToken=' + apiToken + "&serverAddress=" + serverAddress;
+			if (action === 'amazon') regUrl = 'https://phlexchat.com/alexaAuth.php?apiToken=' + apiToken + "&serverAddress=" + serverAddress;
 			if (regUrl) {
-				newwindow = window.open(regUrl, '');
+				var newwindow = window.open(regUrl, '');
 				if (window.focus) {
 					newwindow.focus();
 				}

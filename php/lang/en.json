@@ -210,6 +210,13 @@
 		"Engaging universal translator.",
 		"Subtitles have been enabled."
 	],
+	"speechControlArray": [
+		"As you command.",
+		"Done and done.",
+		"Allrighty then.",
+		"You got it!",
+		"There you go."
+	],
 	"speechControlGeneric1": "Sending a command to ",
 	"speechControlGeneric2": "Okay, I'll tell Plex to ",
 	"speechControlVolumeDown": "Okay, I'll turn it down a little.",

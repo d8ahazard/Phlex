@@ -215,6 +215,7 @@ function downloadLidarr(array $data) {
     }
 
     if ($success && $scanId) {
+        $success = false;
         write_log("Aight, we're going to trigger a search now...");
         $result = json_decode($lidarr->postCommand(ucfirst($type)."Search",[$type."Ids"=>[$scanId]]),true);
         write_log("Search result: ".json_encode($result));

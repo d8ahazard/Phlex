@@ -3,9 +3,6 @@ Git-PHP
 
 Library for work with Git repository in PHP.
 
-<a href="https://www.patreon.com/bePatron?u=9680759"><img src="https://c5.patreon.com/external/logo/become_a_patron_button.png" alt="Become a Patron!" height="35"></a>
-
-
 Usage
 -----
 
@@ -128,10 +125,6 @@ $repo->getTags();
 
 // creates new tag
 $repo->createTag('v1.0.0');
-$repo->createTag('v1.0.0', $options);
-$repo->createTag('v1.0.0', array(
-	'-m' => 'message',
-));
 
 // renames tag
 $repo->renameTag('old-tag-name', 'new-tag-name');
@@ -153,12 +146,10 @@ $repo->pull('origin');
 // pushs changes to remote
 $repo->push('remote-name', array('--options'));
 $repo->push('origin');
-$repo->push('origin', array('master', '-u'));
 
 // fetchs changes from remote
 $repo->fetch('remote-name', array('--options'));
 $repo->fetch('origin');
-$repo->fetch('origin', array('master'));
 
 // adds remote repository
 $repo->addRemote('remote-name', 'repository-url', array('--options'));

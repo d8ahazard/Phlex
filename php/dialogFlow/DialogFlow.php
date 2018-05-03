@@ -16,12 +16,14 @@ class DialogFlow {
 	public $sessionId;
 	public $lastUrl;
 
-	/**
-	 * dialogFlow constructor.
-	 * @param $token - Required for queries.
-	 * @param string $lang - Defaults to english
-	 * @param int $apiVersion - Currently only writing this for v1
-	 */
+    /**
+     * dialogFlow constructor.
+     * @param $authToken
+     * @param string $lang - Defaults to english
+     * @param int $apiVersion - Currently only writing this for v1
+     * @param bool $sessionId
+     * @throws \Exception
+     */
 
 	public function __construct($authToken, string $lang="EN", int $apiVersion=1,$sessionId=false)
 	{
@@ -41,7 +43,7 @@ class DialogFlow {
 			'lang'=>$this->lang,
 			'sessionId'=>$this->sessionId
 		];
-
+        write_log("Query params: ".json_encode($params));
 		if ($context) $params['contexts'] = [$context];
 
 		try {

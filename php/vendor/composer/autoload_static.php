@@ -26,15 +26,16 @@ class ComposerStaticInitf7f0b8b64790bd42b927eb029aa43b35
         array (
             'Psr\\Http\\Message\\' => 17,
         ),
+        'M' => 
+        array (
+            'MatthiasMullie\\PathConverter\\' => 29,
+            'MatthiasMullie\\Minify\\' => 22,
+        ),
         'K' => 
         array (
             'Kryptonit3\\Sonarr\\' => 18,
             'Kryptonit3\\SickRage\\' => 20,
             'Kryptonit3\\CouchPotato\\' => 23,
-        ),
-        'J' => 
-        array (
-            'JMathai\\PhpMultiCurl\\' => 21,
         ),
         'G' => 
         array (
@@ -57,6 +58,14 @@ class ComposerStaticInitf7f0b8b64790bd42b927eb029aa43b35
         array (
             0 => __DIR__ . '/..' . '/psr/http-message/src',
         ),
+        'MatthiasMullie\\PathConverter\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/matthiasmullie/path-converter/src',
+        ),
+        'MatthiasMullie\\Minify\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/matthiasmullie/minify/src',
+        ),
         'Kryptonit3\\Sonarr\\' => 
         array (
             0 => __DIR__ . '/..' . '/kryptonit3/sonarr/src',
@@ -68,10 +77,6 @@ class ComposerStaticInitf7f0b8b64790bd42b927eb029aa43b35
         'Kryptonit3\\CouchPotato\\' => 
         array (
             0 => __DIR__ . '/..' . '/kryptonit3/couchpotato/src',
-        ),
-        'JMathai\\PhpMultiCurl\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/jmathai/php-multi-curl/src',
         ),
         'GuzzleHttp\\Psr7\\' => 
         array (
@@ -88,11 +93,6 @@ class ComposerStaticInitf7f0b8b64790bd42b927eb029aa43b35
     );
 
     public static $classMap = array (
-        'Config_Lite' => __DIR__ . '/..' . '/pear-pear.php.net/Config_Lite/Config/Lite.php',
-        'Config_Lite_Exception' => __DIR__ . '/..' . '/pear-pear.php.net/Config_Lite/Config/Lite/Exception.php',
-        'Config_Lite_Exception_InvalidArgument' => __DIR__ . '/..' . '/pear-pear.php.net/Config_Lite/Config/Lite/Exception/InvalidArgument.php',
-        'Config_Lite_Exception_Runtime' => __DIR__ . '/..' . '/pear-pear.php.net/Config_Lite/Config/Lite/Exception/Runtime.php',
-        'Config_Lite_Exception_UnexpectedValue' => __DIR__ . '/..' . '/pear-pear.php.net/Config_Lite/Config/Lite/Exception/UnexpectedValue.php',
         'Cz\\Git\\GitException' => __DIR__ . '/..' . '/czproject/git-php/src/IGit.php',
         'Cz\\Git\\GitRepository' => __DIR__ . '/..' . '/czproject/git-php/src/GitRepository.php',
         'Cz\\Git\\IGit' => __DIR__ . '/..' . '/czproject/git-php/src/IGit.php',
