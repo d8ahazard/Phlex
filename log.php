@@ -1,10 +1,10 @@
 <?php
-/**
- * Require the library
- */
-
-require_once dirname(__FILE__) . '/util.php';
-require 'PHPTail.php';
+require_once dirname(__FILE__) . '/php/vendor/autoload.php';
+require_once dirname(__FILE__) . "/php/webApp.php";
+$homeApp = dirname(__FILE__) . '/php/homeApp.php';
+if (file_exists($homeApp)) require_once $homeApp;
+require_once dirname(__FILE__) . '/php/util.php';
+require_once dirname(__FILE__) . '/PHPTail.php';
 /**
  * Initilize a new instance of PHPTail
  * @var PHPTail
@@ -14,7 +14,7 @@ if (!isset($_GET['apiToken'])) {
 	die("Unauthorize access detected.");
 } else {
 	$apiToken = $_GET['apiToken'];
-	if (!validateToken($apiToken)) {
+	if (!verifyApiToken($apiToken)) {
 		write_log("Invalid API Token used for logfile access.");
 		die("Invalid API Token");
 	}
@@ -25,15 +25,15 @@ $logs = array(
 	"Error Log" => dirname(__FILE__)."/logs/Phlex_error.log.php",
 
 );
-
-$tail = new PHPTail($logs,1000,2097152,$apiToken);
+$noHeader = $_GET['noHeader'] ?? false;
+$tail = new PHPTail($logs,1000,2097152,$apiToken,$noHeader);
 
 /**
  * We're getting an AJAX call
  */
 if(isset($_GET['ajax']))  {
-    echo $tail->getNewLines($_GET['file'], $_GET['lastsize'], $_GET['grep'], $_GET['invert'], intval($_GET['count']));
-    die();
+	echo $tail->getNewLines($_GET['file'], $_GET['lastsize'], $_GET['grep'], $_GET['invert'], intval($_GET['count']));
+	die();
 }
 
 /**

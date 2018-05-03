@@ -1,8 +1,6 @@
 # **README**
 
-This version of Phlex is no longer under development, and only critical fixes and changes will be issued.
-
-Development has continued on the /beta branch, but mind you, this is in *active development*.
+This branch of Flex TV this is in *active development*.
 
 All code and features in the /beta branch are subject to change, so please refrain from submitting issues 
 regarding anything you find there. It's more of a reference or sneak peek, and not a finished product.
@@ -24,6 +22,7 @@ https://forums.plex.tv/discussion/252910/phlex-google-home-plex-integration-with
 
 Can be found here: https://github.com/d8ahazard/Phlex/wiki
 
+(But it's outdated already, and could use some LOVE!)
 
 ## SUPPORT
 

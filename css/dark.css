@@ -1,134 +1,19 @@
-.card, .dropdown-menu, .modal-title, .queryBg {
-	background: rgba(0, 0, 0, 0.88);
-	color: #fff;
+:root {
+	--theme-primary: rgba(15, 15, 15, 0.9);
+	--theme-primary-75: rgba(0, 0, 0, 0.75);
+	--theme-primary-50: rgba(0, 0, 0, 0.5);
+	--theme-primary-20: rgba(0, 0, 0, 0.2);
+	--theme-primary-inverse: rgba(255, 255, 255, 0.9);
+	--theme-primary-inverse-75: rgba(255, 255, 255, 0.75);
+	--theme-primary-inverse-50: rgba(255, 255, 255, 0.5);
+	--theme-primary-inverse-25: rgba(255, 255, 255, 0.25);
+	--theme-accent: #3476ff;
+	--theme-accent-dark: #1c3b7f;
+	--theme-accent-light: #a6c3ff;
+	--theme-primary-shade1: #404040;
+	--theme-primary-shade2: #8c8c8c;
+	--theme-primary-shade3: #eaeaea;
 }
 
-.close {
-	color: #fff;
-	text-shadow: 0 1px 0 #868686;
-	opacity: .7;
-}
 
-.close:hover {
-	color: #fff;
-	text-shadow: 0 1px 0 #868686;
-	opacity: .5;
-}
 
-.dropdown-item {
-	color: #aaa;
-}
-
-.btnAdd, .btn-default {
-	color: #FFFFFF !important;
-}
-
-.barBtn, .clientBtn, .sendBtn, #actionLabel, .dd-selected, a, .appLabel, label {
-	color: #3277d8 !important;
-}
-
-.ddLabel {
-	color: rgba(204, 204, 204, 0.87);
-}
-
-#commandTest {
-	color: #afafaf;
-}
-
-.modal-body, .modal-header, .modal-footer {
-	background: #000;
-}
-
-.card-img-overlay {
-	background: radial-gradient(rgba(0, 0, 0, 0.2), black);
-	overflow: hidden;
-}
-
-.cardHeader {
-	color: white;
-}
-
-.appContainer {
-	border: 1px solid #8e8e8e;
-}
-
-.userGroup * {
-	color: #8e8e8e;
-}
-
-.btn-primary:hover {
-	background-color: #4285f4;
-}
-
-.btn-info {
-	background-color: #416df4 !important;
-}
-
-.btn-info:hover {
-	background-color: #748dff !important;
-}
-
-.form-control {
-	color: #9ba0a5;
-}
-
-.card-inverse .card-subtitle, .card-inverse .card-text {
-	color: #fff;
-}
-
-.card-inverse .card-blockquote, .card-inverse .card-footer, .card-inverse .card-header, .card-inverse .card-title {
-	color: #fff;
-}
-
-.text-muted {
-	color: #818a91 !important;
-}
-
-.nowPlayingFooter {
-	background-color: rgba(214, 214, 214, 0.92);
-}
-
-.nowPlayingFooter * {
-	color: #000;
-}
-
-.snackbar {
-	background-color: rgba(214, 214, 214, 0.92);
-	color: #000;
-}
-
-.bootstrap-dialog-message {
-	color: #FFF;
-}
-
-.slider {
-	background: #000000;
-}
-
-.noUi-base {
-	color: #000;
-}
-
-#alertBody {
-	color: #c1c1c1;
-}
-
-.modal-backdrop {
-	background: rgb(255, 255, 255);
-}
-
-.panel {
-	box-shadow: 0 1px 6px 0 rgba(255, 255, 255, 0.12), 0 1px 6px 0 rgba(255, 255, 255, 0.12);
-}
-
-pre {
-	color: white !important;
-}
-
-.modal-header {
-	color: #dfdfdf;
-}
-
-.cardClose, #settingsClose {
-	color: #f0f0f0;
-}
