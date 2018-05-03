@@ -1868,7 +1868,7 @@ function localeName($locale = "en") {
 }
 
 function logUpdate(array $log) {
-    $config = file_build_path(dirname(__FILE__), "..","rw","config.ini.php");
+    $config = file_build_path(dirname(__FILE__), "..","rw","config.php");
     $filename = file_build_path(dirname(__FILE__), "..",'logs', "Phlex_update.log.php");
     $data['installed'] = date(DATE_RFC2822);
     $data['commits'] = $log;

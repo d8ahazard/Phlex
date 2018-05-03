@@ -25,14 +25,14 @@ function updateUserPreferenceArray($data) {
 
 function setPreference($section, $data, $selector=null, $search=null, $new=false) {
     $useDb = file_exists(dirname(__FILE__) . "/db.conf.php");
-    $configFile = file_build_path(dirname(__FILE__), "..","rw","config.ini.php");
+    $configFile = file_build_path(dirname(__FILE__), "..","rw","config.php");
     $config = $useDb ? new \digitalhigh\DbConfig() : new JsonConfig($configFile);
     $config->set($section, $data, $selector, $search, $new);
 }
 
 function getPreference($section, $keys=false, $default=false, $selector=null, $search=null,$single=true) {
     $useDb = file_exists(dirname(__FILE__) . "/db.conf.php");
-    $configFile = file_build_path(dirname(__FILE__), "..","rw","config.ini.php");
+    $configFile = file_build_path(dirname(__FILE__), "..","rw","config.php");
     $config = $useDb ? new \digitalhigh\DbConfig() : new JsonConfig($configFile);
     $data = $config->get($section, $keys, $selector, $search);
     write_log("Data here: ".json_encode($data));
@@ -56,7 +56,7 @@ function getPreference($section, $keys=false, $default=false, $selector=null, $s
 
 function deleteData($section, $selector=null, $value=null) {
     $useDb = file_exists(dirname(__FILE__) . "/db.conf.php");
-    $configFile = file_build_path(dirname(__FILE__), "..","rw","config.ini.php");
+    $configFile = file_build_path(dirname(__FILE__), "..","rw","config.php");
     $config = $useDb ? new \digitalhigh\DbConfig() : new JsonConfig($configFile);
     $config->delete($section, $selector, $value);
 }
@@ -451,15 +451,13 @@ function checkFiles() {
     $rwDir = file_build_path(dirname(__FILE__), "..", "rw");
     $errorLogPath = file_build_path($logDir, "Phlex_error.log.php");
     $updateLogPath = file_build_path($logDir, "Phlex_update.log.php");
-    $configFile = file_build_path($rwDir, "config.ini.php");
-    $cmdPath = file_build_path($rwDir, "commands.php");
+    $configFile = file_build_path($rwDir, "config.php");
 
     $files = [
         $logPath,
         $errorLogPath,
         $updateLogPath,
-        $configFile,
-        $cmdPath
+        $configFile
     ];
 
     $secureString = "'; <?php die('Access denied'); ?>";
