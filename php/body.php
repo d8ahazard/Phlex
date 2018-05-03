@@ -219,8 +219,8 @@ function makeSettingsBody($defaults) {
 					                    	<h4 class='cardHeader'>".$lang["uiSettingAccountLinking"]."</h4>
 					                    	<div class='form-group text-center'>
 					                                <div class='form-group'>
-					                                    <button class='btn btn-raised linkBtn btn-primary testServer".$hidden."' id='testServer' data-action='test'>" . $lang["uiSettingTestServer"] . "</button>
-					                                    <button id='linkAccountv2' data-action='googlev2' class='btn btn-raised linkBtn btn-danger$hiddenHome'>" . $lang["uiSettingLinkGoogle"] . "</button>
+					                                    <button class='btn btn-raised linkBtn btn-primary testServer".$hidden."' id='testServer' data-action='test'>" . $lang["uiSettingTestServer"] . "</button><br>
+					                                    <button id='linkAccountv2' data-action='googlev2' class='btn btn-raised linkBtn btn-danger'>" . $lang["uiSettingLinkGoogle"] . "</button>
 					                                    <button id='linkAmazonAccount' data-action='amazon' class='btn btn-raised linkBtn btn-info'>" . $lang["uiSettingLinkAmazon"] . "</button>
 					                                </div>
 					                            </div>

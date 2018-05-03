@@ -3,7 +3,7 @@ require_once dirname(__FILE__). '/util.php';
 require_once dirname(__FILE__) . '/vendor/autoload.php';
 $useDb = file_exists(dirname(__FILE__) . "/db.conf.php");
 require_once dirname(__FILE__) . ($useDb ? '/DbConfig.php' : '/JsonConfig.php');
-
+checkDefaults();
 use Cz\Git\GitRepository;
 $isWebapp = isWebApp();
 $_SESSION['webApp'] = $isWebapp;
@@ -100,10 +100,13 @@ function checkDefaultsDb() {
         if (!$mysqli->query("CREATE DATABASE $db")) {
             write_log("Error creating database!","ERROR");
             return;
+        } else {
+            $mysqli->select_db($db);
         }
     }
     $tables = ['general','userdata','commands'];
     foreach ($tables as $table) {
+        write_log("Checking to see if table $table exists.");
         $rows = [];
         $result = $mysqli->query("SHOW TABLES LIKE '$table'");
         while ($row = $result -> fetch_assoc()) {
@@ -210,9 +213,10 @@ function checkDefaultsDb() {
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1";
                     break;
             }
-            if (!$mysqli->query($query)) write_log("Error creating table $table!","ERROR");
+            if (!$mysqli->query($query)) {
+                write_log("Error creating table $table!","ERROR");
+            } else write_log("Table $table created successfully!");
         }
-        return $rows;
     }
 }
 
