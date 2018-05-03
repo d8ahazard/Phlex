@@ -1,0 +1,18 @@
+{
+	"repositories": [
+		{
+			"type": "pear",
+			"url": "pear.php.net"
+		}
+	],
+	"require": {
+		"pear-pear.php.net/config_lite": "*",
+		"kryptonit3/sickrage": "^1.0",
+		"kryptonit3/sonarr": "^1.0",
+		"jmathai/php-multi-curl": "dev-master",
+		"digitalhigh/radarr": "dev-master",
+		"guzzlehttp/guzzle": "^6.2",
+		"czproject/git-php": "^3.9",
+		"symfony/polyfill-mbstring": "^1.2"
+	}
+}
