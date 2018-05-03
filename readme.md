@@ -2,7 +2,7 @@
 
 This branch of Flex TV this is in *active development*.
 
-All code and features in the /beta branch are subject to change, so please refrain from submitting issues 
+All code and features in this branch are subject to change, so please refrain from submitting issues
 regarding anything you find there. It's more of a reference or sneak peek, and not a finished product.
 
 ## CHROMECAST PLUGIN
