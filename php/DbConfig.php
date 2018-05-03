@@ -47,10 +47,10 @@ class DbConfig {
         $addSelector = true;
 
         foreach ($data as $key => $value) {
+            if ($value === "true") $value = 1;
+            if ($value === "false") $value = 0;
             if ($key == $selector) $addSelector = false;
             if (is_array($value)) $value = json_encode($value);
-            //if ($value === true) $value = 1;
-            //if ($value === false) $value = 0;
             $quoted = $this->quote($value);
             array_push($keys, $key);
             array_push($values, $quoted);
@@ -170,8 +170,10 @@ class DbConfig {
 	*/
 	
 	public function quote($value) {
-	    $value = ltrim($value,"'");
-	    $value = rtrim($value,"'");
+	    if (is_string($value)) {
+            $value = ltrim($value, "'");
+            $value = rtrim($value, "'");
+        }
         $escaped = $this->connection->real_escape_string($value);
 	    if (is_string($value)) {
             $escaped = "'$escaped'";

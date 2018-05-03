@@ -15,10 +15,12 @@ $_SESSION['publicAddress'] = $publicAddress;
 
 function updateUserPreference($key, $value) {
     setPreference('userdata',[$key=>$value],'apiToken',$_SESSION['apiToken']);
+    writeSession($key,$value);
 }
 
 function updateUserPreferenceArray($data) {
     setPreference('userdata',$data,'apiToken',$_SESSION['apiToken']);
+    writeSessionArray($data);
 }
 
 function setPreference($section, $data, $selector=null, $search=null, $new=false) {
