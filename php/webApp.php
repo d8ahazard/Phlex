@@ -33,15 +33,18 @@ function getPreference($section, $keys=false, $default=false, $selector=null, $s
     $configFile = file_build_path(dirname(__FILE__), "..","rw","config.ini.php");
     $config = $useDb ? new \digitalhigh\DbConfig() : new JsonConfig($configFile);
     $data = $config->get($section, $keys, $selector, $search);
+    write_log("Data here: ".json_encode($data));
     $ignore = false;
     //if ($section == 'general') write_log("Raw data: ".json_encode($data));
     if ($keys) {
         if (is_string($keys)) {
+            write_log("String check");
             $data = $data[0][$keys] ?? $default;
             $ignore = true;
         }
     }
     if (empty($data) && !$ignore) {
+        write_log("Setting to default.","WARN");
         $data = $default;
     }
     if ($single && !is_string($data))  $data = (count($data) == 1) ? $data[0] : $data;
@@ -66,11 +69,27 @@ function checkDefaults() {
     date_default_timezone_set((date_default_timezone_get() ? date_default_timezone_get() : "America/Chicago"));
     $useDb = file_exists(dirname(__FILE__) . "/db.conf.php");
     if ($useDb) {
+        write_log("Using DB.");
         checkDefaultsDb();
     }
     // Loading from General
     $defaults = getPreference('general',false,false);
     write_log("Received from get: ".json_encode($defaults));
+    if ($defaults) {
+        $keys = $values = [];
+        foreach($defaults as $value){
+            foreach($value as $id => $data) {
+                if ($id == 'name') {
+                    array_push($keys,$data);
+                } else {
+                    array_push($values,$data);
+                }
+            }
+        }
+        $defaults = array_combine($keys,$values);
+        $id = $defaults['deviceId'] ?? 'foo';
+        if ($id == 'foo') $defaults = false;
+    }
     if (!$defaults) {
         write_log("Creating default values!","ALERT");
         $defaults = [
@@ -87,6 +106,7 @@ function checkDefaults() {
             setPreference('general',$data,"name",$key);
         }
     }
+    write_log("Returning: ".json_encode($defaults));
     return $defaults;
 }
 
@@ -101,6 +121,7 @@ function checkDefaultsDb() {
             write_log("Error creating database!","ERROR");
             return;
         } else {
+            write_log("Created db successfully.");
             $mysqli->select_db($db);
         }
     }
@@ -138,6 +159,7 @@ function checkDefaultsDb() {
  `plexEmail` tinytext NOT NULL,
  `plexAvatar` longtext NOT NULL,
  `plexToken` tinytext NOT NULL,
+ 'publicAddress' mediumtext NOT NULL,
  `lastScan` tinytext NOT NULL,
  `returnItems` int(2) NOT NULL DEFAULT '6',
  `rescanTime` int(2) NOT NULL DEFAULT '10',

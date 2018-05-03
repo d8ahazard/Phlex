@@ -68,7 +68,7 @@ function makeBody($defaults) {
 
 
 
-function makeMetaTags($defaults) {
+function makeMetaTags() {
 	$server = findDevice(false,false,"Server");
 	$client = findDevice(false,false,"Client");
     $tags = '';
