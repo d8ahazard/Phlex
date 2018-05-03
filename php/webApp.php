@@ -64,7 +64,10 @@ function checkDefaults() {
     $errorLogPath = file_build_path(dirname(__FILE__),'..', 'logs', 'Phlex_error.log.php');
     ini_set("error_log", $errorLogPath);
     date_default_timezone_set((date_default_timezone_get() ? date_default_timezone_get() : "America/Chicago"));
-
+    $useDb = file_exists(dirname(__FILE__) . "/db.conf.php");
+    if ($useDb) {
+        checkDefaultsDb();
+    }
     // Loading from General
     $defaults = getPreference('general',false,false);
     write_log("Received from get: ".json_encode($defaults));
@@ -85,6 +88,132 @@ function checkDefaults() {
         }
     }
     return $defaults;
+}
+
+function checkDefaultsDb() {
+    write_log("Here goes nothing!!!!");
+    $config = parse_ini_file('db.conf.php');
+    $db = $config['dbname'];
+    $mysqli = new mysqli('localhost',$config['username'],$config['password']);
+    if (! $mysqli->select_db($db)) {
+        write_log("No database exists, creating.","ALERT");
+        if (!$mysqli->query("CREATE DATABASE $db")) {
+            write_log("Error creating database!","ERROR");
+            return;
+        }
+    }
+    $tables = ['general','userdata','commands'];
+    foreach ($tables as $table) {
+        $rows = [];
+        $result = $mysqli->query("SHOW TABLES LIKE '$table'");
+        while ($row = $result -> fetch_assoc()) {
+            $rows[] = $row;
+        }
+        if (!count($rows)) {
+            write_log("Table $table doesn't exist, creating.","WARN");
+            $query = "";
+            switch($table) {
+                case 'general':
+                    $query = "CREATE TABLE `general` (
+ `name` varchar(250) NOT NULL,
+ `value` tinytext NOT NULL,
+ PRIMARY KEY (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1";
+                    break;
+                case 'commands':
+                    $query = "CREATE TABLE `commands` (
+ `stamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ `apiToken` mediumtext NOT NULL,
+ `data` mediumtext NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1";
+                    break;
+                case 'userdata':
+                    $query = "CREATE TABLE `userdata` (
+ `apiToken` varchar(42) NOT NULL,
+ `plexUserName` tinytext NOT NULL,
+ `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+ `plexEmail` tinytext NOT NULL,
+ `plexAvatar` longtext NOT NULL,
+ `plexToken` tinytext NOT NULL,
+ `lastScan` tinytext NOT NULL,
+ `returnItems` int(2) NOT NULL DEFAULT '6',
+ `rescanTime` int(2) NOT NULL DEFAULT '10',
+ `couchEnabled` tinyint(1) NOT NULL DEFAULT '0',
+ `couchUri` tinytext NOT NULL,
+ `couchToken` tinytext NOT NULL,
+ `couchProfile` tinytext NOT NULL,
+ `couchList` longtext NOT NULL,
+ `headphonesEnabled` tinyint(1) NOT NULL DEFAULT '0',
+ `headphonesUri` tinytext NOT NULL,
+ `headphonesToken` tinytext NOT NULL,
+ `ombiEnabled` tinyint(1) NOT NULL DEFAULT '0',
+ `ombiUri` tinytext NOT NULL,
+ `ombiToken` tinytext NOT NULL,
+ `radarrEnabled` tinyint(1) NOT NULL DEFAULT '0',
+ `radarrUri` tinytext NOT NULL,
+ `radarrToken` tinytext NOT NULL,
+ `radarrProfile` tinytext NOT NULL,
+ `radarrRoot` tinytext NOT NULL,
+ `radarrList` longtext NOT NULL,
+ `sickEnabled` tinyint(1) NOT NULL DEFAULT '0',
+ `sickToken` tinytext NOT NULL,
+ `sickProfile` tinytext NOT NULL,
+ `sickUri` tinytext NOT NULL,
+ `sickList` longtext NOT NULL,
+ `sonarrEnabled` tinyint(1) NOT NULL DEFAULT '0',
+ `sonarrUri` tinytext NOT NULL,
+ `sonarrToken` tinytext NOT NULL,
+ `sonarrProfile` tinytext NOT NULL,
+ `sonarrRoot` tinytext NOT NULL,
+ `sonarrList` longtext NOT NULL,
+ `lidarrEnabled` tinyint(1) NOT NULL DEFAULT '0',
+ `lidarrUri` tinytext NOT NULL,
+ `lidarrToken` tinytext NOT NULL,
+ `lidarrProfile` tinytext NOT NULL,
+ `lidarrRoot` tinytext NOT NULL,
+ `lidarrList` tinytext NOT NULL,
+ `watcherEnabled` tinyint(1) NOT NULL DEFAULT '0',
+ `watcherUri` tinytext NOT NULL,
+ `watcherToken` tinytext NOT NULL,
+ `watcherList` tinytext NOT NULL,
+ `watcherProfile` tinyint(4) NOT NULL,
+ `darkTheme` int(11) NOT NULL DEFAULT '0',
+ `appLanguage` char(2) NOT NULL DEFAULT 'en',
+ `searchAccuracy` int(3) NOT NULL DEFAULT '70',
+ `hasPlugin` tinyint(1) NOT NULL DEFAULT '0',
+ `alertPlugin` tinyint(1) NOT NULL,
+ `dlist` longtext NOT NULL,
+ `plexPassUser` tinyint(1) NOT NULL,
+ `plexServerId` tinytext NOT NULL,
+ `plexDvrId` tinytext NOT NULL,
+ `plexDvrReplaceLower` tinytext NOT NULL,
+ `plexDvrKey` tinytext NOT NULL,
+ `plexDvrEndOffsetMinutes` int(3) NOT NULL DEFAULT '2',
+ `plexDvrStartOffsetMinutes` int(3) NOT NULL DEFAULT '2',
+ `plexDvrResolution` text NOT NULL,
+ `plexDvrNewAirings` tinyint(1) NOT NULL DEFAULT '0',
+ `plexDvrComskipEnabled` tinyint(1) NOT NULL DEFAULT '0',
+ `plexClientId` text NOT NULL,
+ `hookEnabled` tinyint(1) NOT NULL DEFAULT '0',
+ `hookPausedEnabled` int(1) NOT NULL DEFAULT '0',
+ `hookPlayEnabled` int(1) NOT NULL DEFAULT '0',
+ `hookFetchEnabled` int(1) NOT NULL DEFAULT '0',
+ `hookCustomEnabled` int(1) NOT NULL DEFAULT '0',
+ `hookSplitEnabled` int(1) NOT NULL DEFAULT '0',
+ `hookStopEnabled` int(1) NOT NULL DEFAULT '0',
+ `hookUrl` longtext NOT NULL,
+ `hookPlayUrl` longtext NOT NULL,
+ `hookPausedUrl` longtext NOT NULL,
+ `hookFetchUrl` longtext NOT NULL,
+ `hookCustomUrl` longtext NOT NULL,
+ PRIMARY KEY (`apiToken`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1";
+                    break;
+            }
+            if (!$mysqli->query($query)) write_log("Error creating table $table!","ERROR");
+        }
+        return $rows;
+    }
 }
 
 function checkSetDeviceID() {
