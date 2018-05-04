@@ -74,7 +74,7 @@ function makeMetaTags() {
     $tags = '';
     $uiData = json_encode(getUiData(true));
     $uiData = str_replace("'","`",$uiData);
-    $dvr = ($_SESSION['plexDvrUri'] ? "true" : "");
+    $dvr = ($_SESSION['plexDvrId'] ? "true" : "");
     $tags .= '<meta id="usernameData" data="' . $_SESSION['plexUserName'] . '"/>' . PHP_EOL .
         '<meta id="updateAvailable" data="' . $_SESSION['updateAvailable'] . '"/>' . PHP_EOL .
         '<meta id="deviceID" data="' . $_SESSION['deviceID'] . '"/>' . PHP_EOL .
@@ -103,7 +103,7 @@ function makeSettingsBody($defaults) {
 			            <div class='form-group'>
 			                <div class='togglebutton'>
 			                    <label for='autoUpdate' class='appLabel checkLabel'>" . $lang["uiSettingAutoUpdate"] . "
-			                        <input id='autoUpdate' type='checkbox' class='appInput appToggle'/>
+			                        <input id='autoUpdate' type='checkbox' class='appInput appToggle' data-app='autoUpdate'/>
 			                    </label>
 			                </div>
 			                <div class='togglebutton'>

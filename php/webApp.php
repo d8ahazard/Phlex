@@ -79,6 +79,7 @@ function checkUpdate() {
 }
 
 function installUpdate() {
+    write_log("Function fired!!");
     $git = new GitUpdate\GitUpdate(dirname(__FILE__)."/..");
     $result = [];
     if ($git->hasGit) {
@@ -89,7 +90,7 @@ function installUpdate() {
             write_log("Updates installed, saving last refs...");
             writeSession('neededUpdates',[],true);
             $revision = $git->revision;
-            $result['last'] = $git->fetchCommits($revision);
+            $result['last'] = $git->fetchCommits([$revision]);
             $result['revision'] = $revision;
             $result['commits'] = [];
         }

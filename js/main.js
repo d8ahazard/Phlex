@@ -60,10 +60,7 @@ function checkUpdate() {
                 showMessage("Updates available!", "You have " + count + " update(s) available.", false);
             }
             if (autoUpdate && count >= 1) {
-            	console.log("Auto update is on.");
             	installUpdate();
-			} else {
-                console.log("Auto update is off.");
 			}
         }
         var formatted = parseUpdates(data);
@@ -431,7 +428,8 @@ function toggleGroups() {
 		"hookSplit": hookSplit,
 		"hook": hook,
 		"dvr": dvrEnabled,
-		"masterUser": masterUser
+		"masterUser": masterUser,
+		"autoUpdate": autoUpdate
 	};
 
 	for (var key in vars){
@@ -444,7 +442,7 @@ function toggleGroups() {
 			if (element.prop('checked') != value) {
 				element.prop('checked', value);
 			}
-
+            if (key === 'autoUpdate') value = !value;
 			if (value) {
 				group.show();
 			} else {
@@ -972,6 +970,9 @@ function setListeners() {
 	checkbox.change(function () {
 		var label = $("label[for='" + $(this).attr('id') + "']");
 		var checked = ($(this).is(':checked'));
+		if ($(this).data('app') === 'autoUpdate') {
+            checked = !checked;
+		}
 		if (checked) {
 			label.css("color", "#003792");
 		} else {
@@ -980,6 +981,7 @@ function setListeners() {
 		if ($(this).hasClass('appToggle')) {
 			var appName = $(this).data('app');
 			var group = $('#'+appName+'Group');
+			console.log("Toggling ",appName, group);
 			if (checked) {
 				group.show();
 			} else {
@@ -1273,7 +1275,7 @@ function setListeners() {
 			value = resetApiUrl($(this).val());
 		}
 
-		if ($(this).hasClass('appToggle')) {
+		if ($(this).hasClass('appToggle') && $(this).data('app') !== 'autoUpdate') {
 			id = id + "Enabled";
 		}
 
