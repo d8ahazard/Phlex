@@ -686,17 +686,9 @@ function webAddress() {
 
 
 function fetchBackground() {
-    $isWebApp = isWebApp();
-    if ($isWebApp) {
-        $dir = dirname(__FILE__) . "/../backgrounds/";
-        $images = glob($dir . '*.{jpg}', GLOB_BRACE);
-        $image = $images[array_rand($images)];
-        $path = pathinfo($image);
-        $path = "https://img.phlexchat.com/bg/" . $path['filename'] . "." . $path['extension'];
-    } else {
-        $path = "https://img.phlexchat.com";
-    }
-    $elem = $isWebApp ? 'elem.setAttribute("id","ov");'.PHP_EOL : '';
+
+    $path = "https://img.phlexchat.com";
+    $elem = '';
     $code = 'var elem = document.createElement("img");'.PHP_EOL.
         'elem.setAttribute("src", "'.$path.'");'.PHP_EOL.
         'elem.className += "fade-in bg bgLoaded";'.PHP_EOL.
