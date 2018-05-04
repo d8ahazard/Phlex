@@ -18,11 +18,13 @@ Stop by the Plex.TV forums...
 
 https://forums.plex.tv/discussion/252910/phlex-google-home-plex-integration-with-support-for-sonarr-couchpotato-etc-now-live
 
+
 ## WIKI
 
 Can be found here: https://github.com/d8ahazard/Phlex/wiki
 
 (But it's outdated already, and could use some LOVE!)
+
 
 ## SUPPORT
 
