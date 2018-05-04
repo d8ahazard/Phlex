@@ -185,6 +185,7 @@ function checkDefaultsDb() {
         }
     }
     $tables = ['general','userdata','commands'];
+    $created = false;
     foreach ($tables as $table) {
         write_log("Checking to see if table $table exists.");
         $rows = [];
@@ -193,6 +194,7 @@ function checkDefaultsDb() {
             $rows[] = $row;
         }
         if (!count($rows)) {
+            $created = true;
             if (!$noDb) echo $head;
             echo "<span>Table $table doesn't exist, creating.</span><br>".PHP_EOL;
             write_log("Creating table...");
@@ -308,12 +310,14 @@ function checkDefaultsDb() {
             }
         }
     }
-    echo "<span>All tables created successfully, page will reload in 10 seconds.<span><br>";
-    echo "<script type='text/javascript'>
+    if ($created) {
+        echo "<span>All tables created successfully, page will reload in 10 seconds.<span><br>";
+        echo "<script type='text/javascript'>
             setTimeout(function() {window.location.reload(true)},10000);
         </script>";
-    echo $tail;
-    die();
+        echo $tail;
+        die();
+    }
 }
 
 function checkSetDeviceID() {
