@@ -5,14 +5,12 @@ This branch of Flex TV this is in *active development*.
 All code and features in this branch are subject to change, so please refrain from submitting issues
 regarding anything you find there. It's more of a reference or sneak peek, and not a finished product.
 
-
 ## CHROMECAST PLUGIN
 
 Yes! There's now a plugin that works directly inside your Plex Media Server that helps Flex TV
 bridge the gap between PMS and your Cast Devices! And it works a LOT better than the old version.  You can find it here:
 
 https://github.com/d8ahazard/Cast.bundle
-
 
 ## QUESTIONS, COMMENTS, CONCERNS
 
