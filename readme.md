@@ -7,6 +7,7 @@ regarding anything you find there. It's more of a reference or sneak peek, and n
 
 ## CHROMECAST PLUGIN
 
+
 Yes! There's now a plugin that works directly inside your Plex Media Server that helps Flex TV
 bridge the gap between PMS and your Cast Devices! And it works a LOT better than the old version.  You can find it here:
 
