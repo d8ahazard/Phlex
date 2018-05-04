@@ -30,7 +30,7 @@ if (isset($_GET['logout'])) {
                     document.location.href='$url';
                     </script>";
 }
-
+checkUpdate();
 ?>
 <!doctype html>
 <html>

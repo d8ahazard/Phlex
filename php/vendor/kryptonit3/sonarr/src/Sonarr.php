@@ -447,14 +447,11 @@ class Sonarr
     /**
      * Returns all series in your collection
      *
-     * @param int $id (Optional) If specified, fetch the show matching $id.
-     *
      * @return array|object|string
      */
-    public function getSeries($id=null)
+    public function getSeries()
     {
-    	$uri = 'series';
-	    if ($id !== null) $uri.='/'.$id;
+        $uri = 'series';
 
         $response = [
             'uri' => $uri,
@@ -518,35 +515,6 @@ class Sonarr
         return $this->processRequest($response);
     }
 
-	/**
-	 * Update an existing series in your collection
-	 *
-	 * NOTE: if you do not add the required params, you will get an error.
-	 * It is recommended to use the result of getSeriesLookup, and then modify it to create the data array.
-	 *
-	 * See GET output for format
-	 *
-	 * @param array $data
-	 *
-	 * @return array|object|string
-	 */
-	public function putSeries(array $data)
-	{
-		if (! array_key_exists("id", $data)) return [
-			"error"=>[
-				"msg"=>"No episode ID found!"
-			]
-		];
-		$uri = 'series/'.$data['id'];
-		$uriData = [];
-		$response = [
-			'uri' => $uri,
-			'type' => 'put',
-			'data' => $data
-		];
-
-		return $this->processRequest($response);
-	}
     /**
      * Delete the series with the given ID
      *
@@ -677,12 +645,14 @@ class Sonarr
                 ]
             );
         } catch ( \Exception $e ) {
-            return json_encode(array(
+            echo json_encode(array(
                 'error' => array(
                     'msg' => $e->getMessage(),
                     'code' => $e->getCode(),
                 ),
             ));
+
+            exit();
         }
 
         return $response->getBody()->getContents();

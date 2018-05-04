@@ -132,11 +132,11 @@ function initialize()
         bye();
     }
     if (isset($_GET['checkUpdates'])) {
-        if (!isWebApp()) echo checkUpdates();
+        echo json_encode(checkUpdate());
         bye();
     }
     if (isset($_GET['installUpdates'])) {
-        echo checkUpdates(true);
+        echo json_encode(installUpdate());
         bye();
     }
     if (isset($_GET['device'])) {
@@ -328,7 +328,6 @@ function getUiData($force = false)
 {
     $result = [];
     $playerStatus = fetchPlayerStatus();
-    $updates = isWebApp() ? false : checkUpdates();
     $devices = selectDevices(scanDevices(false));
     $deviceText = json_encode($devices);
     $userData = getSessionData();
@@ -343,10 +342,8 @@ function getUiData($force = false)
         write_log("outgoing UI Data: " . json_encode($userData), "INFO", false, true);
         $result['devices'] = $devices;
         $result['userData'] = $userData;
-        $result['updates'] = $updates;
         $result['commands'] = $commands;
         writeSessionArray([
-            'updates' => $updates,
             'commands' => $commands,
             'devices' => $deviceText
         ]);
@@ -388,18 +385,6 @@ function getUiData($force = false)
         if (count($commandData)) {
             $result['commands'] = $commandData;
             writeSession('commands', $commands);
-        }
-        if (!isWebApp()) {
-            if ($_SESSION['updates'] !== json_encode($updates)) {
-                $result['updates'] = $updates;
-                # TODO: These need to be internationalized
-                if (!$_SESSION['autoUpdate']) $result['messages'][] = [
-                    'title' => "An update is available.",
-                    'message' => "An update is available for Phlex.  Click here to install it now.",
-                    'url' => 'api.php?apiToken=' . $_SESSION['apiToken'] . '&installUpdates=true'
-                ];
-                writeSession('updates', json_encode($updates));
-            }
         }
     }
     if ($_SESSION['dologout'] ?? false) $result['dologout'] = true;

@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInitf7f0b8b64790bd42b927eb029aa43b35
+class ComposerStaticInitad87ab659121ff46c779c52c74a60b6e
 {
     public static $files = array (
         'c964ee0ededf28c96ebd9db5099ef910' => __DIR__ . '/..' . '/guzzlehttp/promises/src/functions_include.php',
@@ -25,11 +25,6 @@ class ComposerStaticInitf7f0b8b64790bd42b927eb029aa43b35
         'P' => 
         array (
             'Psr\\Http\\Message\\' => 17,
-        ),
-        'M' => 
-        array (
-            'MatthiasMullie\\PathConverter\\' => 29,
-            'MatthiasMullie\\Minify\\' => 22,
         ),
         'K' => 
         array (
@@ -58,14 +53,6 @@ class ComposerStaticInitf7f0b8b64790bd42b927eb029aa43b35
         array (
             0 => __DIR__ . '/..' . '/psr/http-message/src',
         ),
-        'MatthiasMullie\\PathConverter\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/matthiasmullie/path-converter/src',
-        ),
-        'MatthiasMullie\\Minify\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/matthiasmullie/minify/src',
-        ),
         'Kryptonit3\\Sonarr\\' => 
         array (
             0 => __DIR__ . '/..' . '/kryptonit3/sonarr/src',
@@ -92,18 +79,11 @@ class ComposerStaticInitf7f0b8b64790bd42b927eb029aa43b35
         ),
     );
 
-    public static $classMap = array (
-        'Cz\\Git\\GitException' => __DIR__ . '/..' . '/czproject/git-php/src/IGit.php',
-        'Cz\\Git\\GitRepository' => __DIR__ . '/..' . '/czproject/git-php/src/GitRepository.php',
-        'Cz\\Git\\IGit' => __DIR__ . '/..' . '/czproject/git-php/src/IGit.php',
-    );
-
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInitf7f0b8b64790bd42b927eb029aa43b35::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInitf7f0b8b64790bd42b927eb029aa43b35::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInitf7f0b8b64790bd42b927eb029aa43b35::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInitad87ab659121ff46c779c52c74a60b6e::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInitad87ab659121ff46c779c52c74a60b6e::$prefixDirsPsr4;
 
         }, null, ClassLoader::class);
     }

@@ -1,10 +1,12 @@
 <?php
 require_once dirname(__FILE__). '/util.php';
 require_once dirname(__FILE__) . '/vendor/autoload.php';
+require_once dirname(__FILE__) . '/git/GitUpdate.php';
 $useDb = file_exists(dirname(__FILE__) . "/db.conf.php");
+
 require_once dirname(__FILE__) . ($useDb ? '/DbConfig.php' : '/JsonConfig.php');
 checkDefaults();
-use Cz\Git\GitRepository;
+use digitalhigh\GitUpdate;
 $isWebapp = isWebApp();
 $_SESSION['webApp'] = $isWebapp;
 $GLOBALS['webApp'] = $isWebapp;
@@ -58,6 +60,46 @@ function deleteData($section, $selector=null, $value=null) {
     $config->delete($section, $selector, $value);
 }
 
+function checkUpdate() {
+    if (isWebApp()) return false;
+    write_log("Function fired!");
+    $updates = [];
+    $git = new GitUpdate\GitUpdate(dirname(__FILE__)."/..");
+    if ($git->hasGit) {
+        write_log("We have git!");
+        $updates = $git->checkMissing();
+        write_log("Update data: ".json_encode($updates));
+        $refs = $updates['refs'];
+        writeSession('neededUpdates',$refs);
+    }
+    $old = getPreference('general','value',"[]",'name','updates',true);
+    $old = json_decode($old,true);
+    $updates['last'] = $old;
+    $updates['revision'] = $git->revision;
+    return $updates;
+}
+
+function installUpdate() {
+    $git = new GitUpdate\GitUpdate(dirname(__FILE__)."/..");
+    $result = [];
+    if ($git->hasGit) {
+        write_log("We have git!");
+        $installed = $git->update();
+        $updates = $_SESSION['neededUpdates'] ?? false;
+        if ($installed && $updates) {
+            write_log("Updates installed, saving last refs...");
+            writeSession('neededUpdates',[],true);
+            setPreference('general',[
+                'name'=>'updates',
+                'value'=>json_encode($updates)
+            ],'name','updates');
+            if (is_array($updates)) $result['last'] = $git->fetchCommits($updates);
+        }
+    }
+
+    return $result;
+}
+
 function checkDefaults() {
     // OG Stuff
     ini_set("log_errors", 1);
@@ -97,7 +139,8 @@ function checkDefaults() {
             'noNewUsers' => false,
             'deviceName' => "Flex TV (Home)",
             'publicAddress' => currentAddress(),
-            'revision' => '000'
+            'revision' => '000',
+            'updates' => "[]"
         ];
         foreach($defaults as $key=>$value) {
             $data = ['name'=>$key, 'value'=>$value];
@@ -160,7 +203,7 @@ function checkDefaultsDb() {
                 case 'general':
                     $query = "CREATE TABLE `general` (
  `name` varchar(250) NOT NULL,
- `value` tinytext NOT NULL,
+ `value` longtext NOT NULL,
  PRIMARY KEY (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1";
                     break;
@@ -559,82 +602,6 @@ function checkFiles() {
     //$testMessage = ['title'=>'Test message.','message'=>"This is a test of the emergency alert system. If this were a real emergency, you'd be screwed.",'url'=>'https://www.google.com'];
     //array_push($messages,$testMessage);
     return $messages;
-}
-
-function checkUpdates($install = false) {
-    if (isWebApp()) return false;
-    write_log("Function fired." . ($install ? " Install requested." : ""));
-    $installed = $pp = $result = false;
-    $html = '';
-    $autoUpdate = $_SESSION['autoUpdate'] ?? false;
-    write_log("Auto Update is " . ($autoUpdate ? " on " : "off"));
-    if (checkGit()) {
-        write_log("This is a repo and GIT is available, checking for updates.");
-        try {
-            $repo = new GitRepository(dirname(__FILE__));
-            if ($repo) {
-                $repo->fetch();
-                $revision = $repo->getRev();
-                $current = getPreference('general', 'value','foo','name','revision');
-                if ($revision !== $current) {
-                    setPreference('general',['name'=>'revision','value'=>$revision],'name','revision');
-                }
-                $branch = $repo->getCurrentBranchName();
-                $result = $repo->readLog($branch);
-                write_log("ReadLog result for branch $branch: ".json_encode($result));
-                $logHistory = readUpdate();
-                if (count($logHistory)) $installed = $logHistory[0]['installed'] ?? false;
-                $header = '<div class="cardHeader">
-                        Current revision: ' . substr($revision, 0, 7) . '<br>
-                        ' . ($installed ? "Last Update: " . $installed : '') . '
-                    </div>';
-                // This never works right when you're developing the app...
-                if (1 == 2) {
-                    $html = $header . '<div class="cardHeader">
-                            Status: ERROR: Local file conflicts exist.<br><br>
-                        </div><br>';
-                    write_log("LOCAL CHANGES DETECTED.", "ERROR");
-                    return $html;
-                }
-
-                if (count($result)) {
-                    $log = $result;
-                    writeSession('updateAvailable', count($log));
-                    $html = parseUpdateLog($log);
-                    $html = $header . '<div class="cardHeader">
-                            Status: ' . count($log) . ' commit(s) behind.<br><br>
-                            Missing Update(s):' . $html . '</div>';
-                    if (($install) || ($autoUpdate)) {
-                        write_log("Updating from repository - " . ($install ? 'Manually triggered.' : 'Automatically triggered.'), "INFO",false,true);
-                        $repo->pull('origin');
-                        //write_log("Pull result: ".$result);
-                        logUpdate($log);
-
-                    }
-                } else {
-                    write_log("No changes detected.");
-                    writeSession('updateAvailable','',true);
-                    if (count($logHistory)) {
-                        $html = parseUpdateLog($logHistory[0]['commits']);
-                        $installed = $logHistory[0]['installed'];
-                    } else {
-                        $html = parseUpdateLog($repo->readLog("", $branch, 0,true));
-                    }
-                    $html = $header . '<div class="cardHeader">
-                            Status: Up-to-date<br><br>
-                            ' . ($installed ? "Installed: " . $installed : '') . '
-                        Last Update:' . $html . '</div><br>';
-                }
-            } else {
-                write_log("Couldn't initialize git.", "ERROR");
-            }
-        } catch (\Cz\Git\GitException $e) {
-            write_log("An exception has occurred: " . $e, "ERROR");
-        }
-    } else {
-        write_log("Doesn't appear to be a cloned repository or git not available.", "INFO");
-    }
-    return $html;
 }
 
 function deviceName() {

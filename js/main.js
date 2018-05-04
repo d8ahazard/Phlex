@@ -50,6 +50,85 @@ $(window).resize(function () {
 	scaleElements();
 });
 
+function checkUpdate() {
+	console.log("Function fired!!");
+    apiToken = $('#apiTokenData').data('token');
+    $.get('api.php?apiToken=' + apiToken, {checkUpdates: true}, function (data) {
+    	if (data.hasOwnProperty('commits')) {
+    		var count = data['commits'].length;
+            if (notifyUpdate && !autoUpdate && count >= 1) {
+                showMessage("Updates available!", "You have " + count + " update(s) available.", false);
+            }
+            if (autoUpdate && count >= 1) {
+            	console.log("Auto update is on.");
+            	installUpdate();
+			} else {
+                console.log("Auto update is off.");
+			}
+        }
+        var formatted = parseUpdates(data);
+
+        $('#updateContainer').html(formatted);
+    },'json');
+}
+
+function installUpdate() {
+	console.log("Installing updates!");
+    apiToken = $('#apiTokenData').data('token');
+    $.get('api.php?apiToken=' + apiToken, {installUpdates: true}, function (data) {
+        var formatted = parseUpdates(data);
+        $('#updateContainer').html(formatted);
+    },'json');
+}
+
+function parseUpdates(data) {
+	var tmp = "";
+	console.log("Got some data: ",data);
+	var revision = data['revision'];
+    var html = '<div class="cardHeader">Current revision: ' + revision + '</div>';
+	if (data.hasOwnProperty('commits')) {
+		html += "<br><div class='cardHeader'>Missing updates:</div>";
+		console.log("We've got some commit messages");
+        for (var i = 0, l = data['commits'].length; i < l; i++) {
+        	var commit = data['commits'][i];
+        	console.log("Commit: ",commit);
+        	var short = commit['shortHead'];
+        	var date = commit['date'];
+        	var subject = commit['subject'];
+        	var body = commit['body'];
+			tmp = '<div class="panel panel-primary">\n' +
+	'                                <div class="panel-heading cardHeader">\n' +
+	'                                    <div class="panel-title">' + short + ' - ' + date + '</div>\n' +
+	'                                </div>\n' +
+	'                                <div class="panel-body cardHeader">\n' +
+	'                                    <b>' + subject + '</b><br>' + body + '\n' +
+	'                                </div>\n' +
+	'                            </div>';
+			html += tmp;
+		}
+	}
+	if (data.hasOwnProperty('old')) {
+        html += "<br><div class='cardHeader'>Last Installed:</div>";
+        for (var m = 0, n = data['old'].length; m < n; m++) {
+            var commit2 = data['commits'][m];
+            var short2 = commit2['short'];
+            var date2 = commit2['date'];
+            var subject2 = commit2['subject'];
+            var body2 = commit2['body'];
+            tmp = '<div class="panel panel-primary">\n' +
+                '                                <div class="panel-heading cardHeader">\n' +
+                '                                    <div class="panel-title">' + short2 + ' - ' + date2 + '</div>\n' +
+                '                                </div>\n' +
+                '                                <div class="panel-body cardHeader">\n' +
+                '                                    <b>' + subject2 + '</b><br>' + body2 + '\n' +
+                '                                </div>\n' +
+                '                            </div>';
+            html += tmp;
+        }
+	}
+	html += "</div>";
+	return html;
+}
 // Build the UI elements after document load
 function buildUiDeferred() {
 	$.material.init();
@@ -85,11 +164,8 @@ function buildUiDeferred() {
 		messageArray = [];
 	}
 
-	if (updateAvailable >= 1 && notifyUpdate) {
-		showMessage("Updates available!", "You have " + updateAvailable + " update(s) available.", false);
-	}
-
 	setListeners();
+	checkUpdate();
 
 	$(".remove").remove();
 
@@ -104,6 +180,7 @@ function buildUiDeferred() {
 
 	setInterval(function () {
 		setWeather();
+		checkUpdate();
 	}, 10 * 1000 * 60);
 
 }
@@ -1145,19 +1222,11 @@ function setListeners() {
 	});
 
 	$('#checkUpdates').click(function () {
-		apiToken = $('#apiTokenData').data('token');
-
-		$.get('api.php?apiToken=' + apiToken, {checkUpdates: true}, function (data) {
-			$('#updateContainer').html(data);
-		});
+		checkUpdate();
 	});
 
 	$('#installUpdates').click(function () {
-		apiToken = $('#apiTokenData').data('token');
-
-		$.get('api.php?apiToken=' + apiToken, {installUpdates: true}, function (data) {
-			$('#updateContainer').html(data);
-		});
+		installUpdate();
 	});
 
 	document.addEventListener('DOMContentLoaded', function () {
