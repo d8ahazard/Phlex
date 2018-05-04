@@ -35,18 +35,15 @@ function getPreference($section, $keys=false, $default=false, $selector=null, $s
     $configFile = file_build_path(dirname(__FILE__), "..","rw","config.php");
     $config = $useDb ? new \digitalhigh\DbConfig() : new JsonConfig($configFile);
     $data = $config->get($section, $keys, $selector, $search);
-    write_log("Data here: ".json_encode($data));
     $ignore = false;
     //if ($section == 'general') write_log("Raw data: ".json_encode($data));
     if ($keys) {
         if (is_string($keys)) {
-            write_log("String check");
             $data = $data[0][$keys] ?? $default;
             $ignore = true;
         }
     }
     if (empty($data) && !$ignore) {
-        write_log("Setting to default.","WARN");
         $data = $default;
     }
     if ($single && !is_string($data))  $data = (count($data) == 1) ? $data[0] : $data;
@@ -76,7 +73,6 @@ function checkDefaults() {
     }
     // Loading from General
     $defaults = getPreference('general',false,false);
-    write_log("Received from get: ".json_encode($defaults));
     if ($defaults) {
         $keys = $values = [];
         foreach($defaults as $value){
@@ -108,7 +104,6 @@ function checkDefaults() {
             setPreference('general',$data,"name",$key);
         }
     }
-    write_log("Returning: ".json_encode($defaults));
     return $defaults;
 }
 
@@ -116,13 +111,33 @@ function checkDefaultsDb() {
     write_log("Here goes nothing!!!!");
     $config = parse_ini_file('db.conf.php');
     $db = $config['dbname'];
+    $head = '<!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <title>Getting some things ready...</title>
+        </head>
+        <body>
+    <div style="text-align: center">';
+
+    $tail = '</div>
+                </body>
+                </html>';
+
     $mysqli = new mysqli('localhost',$config['username'],$config['password']);
+    $noDb = false;
     if (! $mysqli->select_db($db)) {
+        $noDb = true;
+        echo $head;
+        echo "<span>Creating database...</span><br>".PHP_EOL;
         write_log("No database exists, creating.","ALERT");
         if (!$mysqli->query("CREATE DATABASE $db")) {
             write_log("Error creating database!","ERROR");
-            return;
+            echo "<span>Error creating database, please check credentials!!</span><br>";
+            echo $tail;
+            die();
         } else {
+            echo "<span>Database created successfully!</span><br>".PHP_EOL;
             write_log("Created db successfully.");
             $mysqli->select_db($db);
         }
@@ -136,6 +151,9 @@ function checkDefaultsDb() {
             $rows[] = $row;
         }
         if (!count($rows)) {
+            if (!$noDb) echo $head;
+            echo "<span>Table $table doesn't exist, creating.</span><br>".PHP_EOL;
+            write_log("Creating table...");
             write_log("Table $table doesn't exist, creating.","WARN");
             $query = "";
             switch($table) {
@@ -239,9 +257,21 @@ function checkDefaultsDb() {
             }
             if (!$mysqli->query($query)) {
                 write_log("Error creating table $table!","ERROR");
-            } else write_log("Table $table created successfully!");
+                echo "<span>Unable to create table $table!</span><br>";
+                echo $tail;
+                die();
+            } else {
+                write_log("Table $table created successfully!");
+                echo "<span>Table $table created successfully!</span><br>".PHP_EOL;
+            }
         }
     }
+    echo "<span>All tables created successfully, page will reload in 10 seconds.<span><br>";
+    echo "<script type='text/javascript'>
+            setTimeout(function() {window.location.reload(true)},10000);
+        </script>";
+    echo $tail;
+    die();
 }
 
 function checkSetDeviceID() {
@@ -398,8 +428,7 @@ function newUser($user) {
         'notifyUpdate' => false,
         'masterUser' => firstUser(),
         'publicAddress' => currentAddress(),
-        'autoUpdate' => false,
-        'notifyUpdate' => true
+        'autoUpdate' => false
     ];
     $user = array_merge($user,$defaults);
     setPreference('userdata',$user,'apiToken',$apiToken);
@@ -537,7 +566,7 @@ function checkUpdates($install = false) {
     write_log("Function fired." . ($install ? " Install requested." : ""));
     $installed = $pp = $result = false;
     $html = '';
-    $autoUpdate = $_SESSION['autoUpdate'];
+    $autoUpdate = $_SESSION['autoUpdate'] ?? false;
     write_log("Auto Update is " . ($autoUpdate ? " on " : "off"));
     if (checkGit()) {
         write_log("This is a repo and GIT is available, checking for updates.");

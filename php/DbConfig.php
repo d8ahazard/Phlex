@@ -47,11 +47,14 @@ class DbConfig {
         $addSelector = true;
 
         foreach ($data as $key => $value) {
-            if ($value === "true") $value = 1;
-            if ($value === "false") $value = 0;
+            write_log("Value is $value");
+            if ($value === "true" || $value === true) $value = "1";
+            if ($value === "false" || $value === false) $value = "0";
             if ($key == $selector) $addSelector = false;
             if (is_array($value)) $value = json_encode($value);
+            write_log("Value2 is $value");
             $quoted = $this->quote($value);
+            write_log("Value is $quoted");
             array_push($keys, $key);
             array_push($values, $quoted);
             array_push($strings, "$key=$quoted");
@@ -170,6 +173,7 @@ class DbConfig {
 	*/
 	
 	public function quote($value) {
+	    if (is_string($value)) write_log("This moron thinks this is a string...");
 	    if (is_string($value)) {
             $value = ltrim($value, "'");
             $value = rtrim($value, "'");
