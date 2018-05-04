@@ -72,10 +72,9 @@ function checkUpdate() {
         $refs = $updates['refs'];
         writeSession('neededUpdates',$refs);
     }
-    $old = getPreference('general','value',"[]",'name','updates',true);
-    $old = json_decode($old,true);
-    $updates['last'] = $old;
-    $updates['revision'] = $git->revision;
+    $revision = $git->revision;
+    $updates['last'] = $git->fetchCommits([$revision]);
+    $updates['revision'] = $revision;
     return $updates;
 }
 
@@ -89,11 +88,10 @@ function installUpdate() {
         if ($installed && $updates) {
             write_log("Updates installed, saving last refs...");
             writeSession('neededUpdates',[],true);
-            setPreference('general',[
-                'name'=>'updates',
-                'value'=>json_encode($updates)
-            ],'name','updates');
-            if (is_array($updates)) $result['last'] = $git->fetchCommits($updates);
+            $revision = $git->revision;
+            $result['last'] = $git->fetchCommits($revision);
+            $result['revision'] = $revision;
+            $result['commits'] = [];
         }
     }
 

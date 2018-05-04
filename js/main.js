@@ -87,31 +87,33 @@ function parseUpdates(data) {
 	var revision = data['revision'];
     var html = '<div class="cardHeader">Current revision: ' + revision + '</div>';
 	if (data.hasOwnProperty('commits')) {
-		html += "<br><div class='cardHeader'>Missing updates:</div>";
-		console.log("We've got some commit messages");
-        for (var i = 0, l = data['commits'].length; i < l; i++) {
-        	var commit = data['commits'][i];
-        	console.log("Commit: ",commit);
-        	var short = commit['shortHead'];
-        	var date = commit['date'];
-        	var subject = commit['subject'];
-        	var body = commit['body'];
-			tmp = '<div class="panel panel-primary">\n' +
-	'                                <div class="panel-heading cardHeader">\n' +
-	'                                    <div class="panel-title">' + short + ' - ' + date + '</div>\n' +
-	'                                </div>\n' +
-	'                                <div class="panel-body cardHeader">\n' +
-	'                                    <b>' + subject + '</b><br>' + body + '\n' +
-	'                                </div>\n' +
-	'                            </div>';
-			html += tmp;
-		}
+		if(data['commits'].length > 0) {
+            html += "<br><div class='cardHeader'>Missing updates:</div>";
+            console.log("We've got some commit messages");
+            for (var i = 0, l = data['commits'].length; i < l; i++) {
+                var commit = data['commits'][i];
+                console.log("Commit: ", commit);
+                var short = commit['shortHead'];
+                var date = commit['date'];
+                var subject = commit['subject'];
+                var body = commit['body'];
+                tmp = '<div class="panel panel-primary">\n' +
+                    '                                <div class="panel-heading cardHeader">\n' +
+                    '                                    <div class="panel-title">' + short + ' - ' + date + '</div>\n' +
+                    '                                </div>\n' +
+                    '                                <div class="panel-body cardHeader">\n' +
+                    '                                    <b>' + subject + '</b><br>' + body + '\n' +
+                    '                                </div>\n' +
+                    '                            </div>';
+                html += tmp;
+            }
+        }
 	}
-	if (data.hasOwnProperty('old')) {
+	if (data.hasOwnProperty('last')) {
         html += "<br><div class='cardHeader'>Last Installed:</div>";
-        for (var m = 0, n = data['old'].length; m < n; m++) {
-            var commit2 = data['commits'][m];
-            var short2 = commit2['short'];
+        for (var m = 0, n = data['last'].length; m < n; m++) {
+            var commit2 = data['last'][m];
+            var short2 = commit2['shortHead'];
             var date2 = commit2['date'];
             var subject2 = commit2['subject'];
             var body2 = commit2['body'];
@@ -1226,6 +1228,7 @@ function setListeners() {
 	});
 
 	$('#installUpdates').click(function () {
+		console.log("Trying to install...");
 		installUpdate();
 	});
 

@@ -76,7 +76,7 @@ class GitUpdate
         write_log("Result: ".json_encode($lines));
         foreach($lines as $line) array_push($refs,explode(" ",$line)[0]);
         write_log("Refs: ".json_encode($refs));
-        $commits = $this->fetchCommits($refs,$limit);
+        $commits = count($refs) ? $this->fetchCommits($refs,$limit) : [];
         return ['refs'=>$refs,'commits'=>$commits];
     }
 
@@ -90,6 +90,7 @@ class GitUpdate
      */
     public function fetchCommits(array $refs,int $limit=10)
     {
+        write_log("Fetching commits for refs: ".json_encode($refs));
         $commits = [];
         foreach ($refs as $ref) {
             $commit = [];
@@ -110,9 +111,12 @@ class GitUpdate
 
     public function update()
     {
+        write_log("FUNCTION FIRED!!","ALERT");
         $result = $this->gitExec("git pull",true);
         write_log("Install result: ".json_encode($result));
-        $result = (preg_match("/fast-forward/",strtolower(join(" ",$result))));
+        $result = (preg_match("/updating/",strtolower(join(" ",$result))));
+        if ($result) write_log("Update was successful!");
+        $this->revision = $this->gitExec('git rev-parse HEAD');
         return $result;
     }
 
