@@ -589,7 +589,7 @@ function checkFiles() {
 
     foreach ($extensions as $extension) {
         if (!extension_loaded($extension)) {
-            $message = "The " . $extension . " PHP extension, which is required for Phlex to work correctly, is not loaded." . " Please enable it in php.ini, restart your webserver, and then reload this page to continue.";
+            $message = "The " . $extension . " PHP extension, which is required for Flex TV to work correctly, is not loaded." . " Please enable it in php.ini, restart your webserver, and then reload this page to continue.";
             write_log($message, "ERROR");
             $url = "http://php.net/manual/en/book.$extension.php";
             $error = [

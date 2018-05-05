@@ -35,11 +35,11 @@ checkUpdate();
 <!doctype html>
 <html>
 <head>
-	<title>Phlex Web</title>
+	<title>Flex TV</title>
 	<meta charset="UTF-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<meta name="description" content="Flex TV">
+	<meta name="description" content="Plex Voice Automation for Google Assistant">
 	<meta name="msapplication-config" content="./img/browserconfig.xml">
 	<meta name="theme-color" content="#ffffff">
 	<meta name="apple-mobile-web-app-capable" content="yes">
