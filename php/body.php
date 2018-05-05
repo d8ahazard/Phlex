@@ -155,6 +155,9 @@ function makeSettingsBody($defaults) {
 					        <li class='nav-item logNav".$hidden."'>
 						        <a href='#logTab' class='nav-link' data-toggle='tab' role='tab'>" . $lang["uiSettingHeaderLogs"] . "</a>
 					        </li>
+					        <li class='nav-item'>
+						        <a href='https://github.com/d8ahazard/Phlex/wiki' target='_blank' class='nav-link'>?</a>
+					        </li>
 				            <button type='button' id='settingsClose' data-dismiss='modal' aria-label='Close'>
 			                    <span class='material-icons' aria-hidden='true'>close</span>
 			                </button>
