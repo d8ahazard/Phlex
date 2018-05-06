@@ -384,7 +384,15 @@ function setUiVariables(data) {
 			case 'cleanLogs':
 			case 'autoUpdate':
 			case 'notifyUpdate':
-				var value = JSON.parse(data[propertyName]);
+				console.log("Trying to parse " + propertyName);
+				var value = data[propertyName];
+                try {
+                    value = JSON.parse(value);
+                } catch (SyntaxError) {
+                	console.log("Syntax error parsing value.",data[propertyName]);
+				}
+				if (value === 'yes') value = true;
+                if (value === 'no') value = false;
 				if(window[propertyName] !== value) {
 					window[propertyName] = value;
 				}

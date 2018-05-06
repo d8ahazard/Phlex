@@ -491,21 +491,31 @@ function fetchMediaInfo(Array $params)
     ];
     foreach ($data as $key => $value) if ($value === false) unset($data["$key"]);
     $musicData = $searches = [];
-    if (preg_match("/music/", $type)) {
+    if ($action == 'fetchMedia') {
+        $fetchMusic = (($_SESSION['headphonesEnabled'] ?? false) || ($_SESSION['lidarrEnabled'] ?? false));
+        $fetchMovies = (($_SESSION['couchEnabled'] ?? false) || ($_SESSION['radarrEnabled'] ?? false) && ($_SESSION['watcherEnabled'] ?? false));
+        $fetchShows = (($_SESSION['sonarrEnabled'] ?? false) || ($_SESSION['sickEnabled'] ?? false));
+    } else {
+        $fetchMovies = $fetchMusic = $fetchShows = true;
+    }
+    write_log("music - $fetchMusic, movies - $fetchMovies, shows - $fetchShows");
+    if (preg_match("/music/", $type) && $fetchMusic) {
         $musicData = fetchMusicInfo($request, $artist, $album);
         $searches = array_merge($searches, $musicData['urls']);
     }
-    if (preg_match("/show/", $type)) {
+    if (preg_match("/show/", $type) && $fetchShows) {
         $searches['show'] = fetchTvInfo($request);
     }
-    if (preg_match("/movie/", $type)) {
+    if (preg_match("/movie/", $type) && $fetchMovies) {
         $searches['movie'] = fetchMovieInfo($request, 'movie');
     }
     if (!$type) {
-        $musicData = fetchMusicInfo($request, $artist);
-        $searches = array_merge($searches, $musicData['urls']);
-        $searches['show'] = fetchTvInfo($request);
-        $searches['movie'] = fetchMovieInfo($request, 'movie');
+        if ($fetchMusic) {
+            $musicData = fetchMusicInfo($request, $artist);
+            $searches = array_merge($searches, $musicData['urls']);
+        }
+        if ($fetchShows) $searches['show'] = fetchTvInfo($request);
+        if ($fetchMovies) $searches['movie'] = fetchMovieInfo($request, 'movie');
     }
     foreach ($_SESSION['deviceList']['Server'] as $server) {
         $id = $server['Id'];
@@ -3505,6 +3515,8 @@ function buildSpeech($params, $results)
                         }
                     }
                     $cards = buildCards($meta);
+                } else {
+                    $speech = buildSpeechNoResults($params);
                 }
             }
         } else {
@@ -3665,7 +3677,7 @@ function buildSpeechInfoQuery($params, $cards)
     $count = count($cards);
     switch ($count) {
         case 0:
-            $speech = buildSpeechNoInfoResults($params);
+            $speech = buildSpeechNoResults($params);
             break;
         default:
             $array = lang("speechReturnInfoArray");
@@ -3681,26 +3693,17 @@ function buildSpeechInfoQuery($params, $cards)
     return $speech;
 }
 
-function buildSpeechNoInfoResults($request)
-{
-    $array = lang('speechNoInfoResultsArray');
-    do {
-        $msg = $array[array_rand($array)];
-    } while ($msg == $_SESSION['errorMsg'] ?? 'foo');
-    writeSession('errorMsg', $msg);
-    $string = $request['type'] ?? "that request";
-    $msg = str_replace("<VAR>", $string, $msg);
-    return $msg;
-}
-
 function buildSpeechNoResults($request)
 {
+    $title = is_string($request) ? $request : ($request['request'] ?? $request['type'] ?? 'that request');
     write_log("No results for request '$request'");
     $array = lang('speechNoInfoResultsArray');
     do {
         $msg = $array[array_rand($array)];
     } while ($msg == $_SESSION['errorMsg'] ?? 'foo');
     writeSession('errorMsg', $msg);
+    $msg = str_replace("<VAR>",$title,$msg);
+    return $msg;
 }
 
 function buildSpeechMultipleResults($media, $params)

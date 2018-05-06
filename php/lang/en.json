@@ -264,7 +264,23 @@
 		"resident evil": "T-minus 1 minute until infection. ",
 		"star wars": "These are not the droids you're looking for. ",
 		"they live": "I'm here to chew bubblegum and ",
-		"wall-e": "Thank you for shopping Buy and Large, and enjoy as we begin "
+		"wall-e": "Thank you for shopping Buy and Large, and enjoy as we begin ",
+		"monty python": "Your mother was a hamster, and your father smelled of elderberries. ",
+		"guide to the end of the universe": "Hey there, you hoopy frood. ",
+		"rocky horror": "It's just a jump to the left." ,
+		"citizen kane": "Rosebud... ",
+		"godfather": "I'm going to make you an offer you can't refuse. What if I try ",
+		"with the wind": "Frankly, my dear, I don't give an iPhone. ",
+		"dirty harry": "Go ahead, you've already made my day. ",
+		"taxi driver": "You talkin' to me? Just checking. ",
+		"apocalypse now": "I love the smell of napalm in the morning. ",
+		"e.t.": "Google phone home! ",
+		"silence of the lambs": "This movie would go great with some fava beans and a nice chianti. ",
+		"jerry maguire": "Show me the money! ",
+		"a few good men": "You can't handle the truth. ",
+		"jaws": "You're gonna need a bigger boat. ",
+		"a streetcar named": "STELLA!!!! ",
+		"super troopers": "Littering and... Littering and... Littering and "
 	},
 	"speechGreetingArray": [
 		"Greetings!",
@@ -297,10 +313,10 @@
 	],
 	"speechOndeckRecentError": "Unfortunately, I wasn't able to find any results for that. Please try again later.",
 	"speechNoInfoResultsArray": [
-		"Unfortunately, I couldn't find any <VAR> in your library right now.",
+		"Unfortunately, I couldn't find <VAR> in your library right now.",
 		"I'm sorry, I checked, but didn't get any results for <VAR>.",
 		"Hmmm. Your server doesn't seem to have anything listed for <VAR>.",
-		"I didn't find anything right now. Do you have any <VAR>?"
+		"I didn't find anything that matches <VAR>."
 	],
 	"speechNoResultsArray": [
 		"Unfortunately, I wasn't able to find any results for that.",
@@ -316,7 +332,10 @@
 		"Sure, ",
 		"Yes captain, ",
 		"Yes master, ",
-		"You got it, "
+		"You got it, ",
+		"Aye aye, ",
+		"Roger that, ",
+		"Affirmative. "
 	],
 	"speechPlayer": "player",
 	"speechPlayError3": "I couldn't find that in the library, do you want me to try downloading it?",
