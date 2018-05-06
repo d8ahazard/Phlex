@@ -5,8 +5,15 @@ This branch of Flex TV this is in *active development*.
 All code and features in this branch are subject to change, so please refrain from submitting issues
 regarding anything you find there. It's more of a reference or sneak peek, and not a finished product.
 
-## CHROMECAST PLUGIN
+## WEB-ONLY VERSION
 
+What's that? You wish someone would just host Flex TV for you? You don't feel like messing around with webservers and port forwarding and permissions? 
+
+You're in luck!
+
+In addition to being able to host Flex TV yourself, I've taken the liberty of setting up a version over at https://app.phlexchat.com for anybody who doesn't want to host it themselves. The version over there is the exact same code base you see here, so if you're wondering what's being done with your info - you can examine the code for yourself.
+
+## CHROMECAST PLUGIN
 
 Yes! There's now a plugin that works directly inside your Plex Media Server that helps Flex TV
 bridge the gap between PMS and your Cast Devices! And it works a LOT better than the old version.  You can find it here:
