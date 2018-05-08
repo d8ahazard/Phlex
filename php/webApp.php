@@ -367,7 +367,7 @@ function fetchCommands() {
             array_push($out,$data);
         }
     }
-    return $out;
+    return array_reverse($out);
 }
 
 #TODO: Should we be writing session here?
