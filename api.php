@@ -3609,7 +3609,7 @@ function buildSpeechAffirmative($media)
     write_log("Picked $affirmative out of: " . json_encode($affirmatives));
     writeSession("affirmative", $affirmative);
     $affirmative = str_replace("<TITLE>",$title,$affirmative);
-    return "$affirmative playing $title";
+    return "$affirmative";
 }
 
 function buildSpeechCommand($cmd = false, $params = false)
