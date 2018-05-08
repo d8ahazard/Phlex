@@ -150,6 +150,7 @@ function initialize()
             if ($name) $dev = findDevice("Name", $name, $type);
             if ($uri) $dev = findDevice("Uri", $name, $type);
             if ($dev) $id = $dev['id'] ?? false;
+            write_log("Device: ".json_encode($dev));
         }
         header('Content-Type: application/json');
         if ($id !== 'rescan' && $id !== false) {
@@ -3645,6 +3646,7 @@ function buildSpeechCommand($cmd = false, $params = false)
         $result = $params['result'] ?? false;
         $deviceType = $params['DeviceType'] ?? 'device';
         $device = $result['name'] ?? $params['device'] ?? false;
+        if ($device) $device = ucwords($device);
         #TODO: Localize this, you lazy bum...
         if ($result) {
             $msg = "Okay, I've set the $deviceType to $device.";
