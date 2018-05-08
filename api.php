@@ -2722,6 +2722,7 @@ function mapApiRequest($request)
     #TODO Add a parser here to determine if we can prompt for more info, or if we just play something
     $playResult = false;
     $result = false;
+    $params = checkDeviceChange($params);
     switch ($intent) {
         case 'Media.multipleResults':
         case 'fetchInfo-MediaSelect':
@@ -3384,35 +3385,6 @@ function buildQueryMedia($params)
 {
 
     write_log(" params: " . json_encode($params));
-    $request = $params['request'] ?? false;
-    $device = $params['Devices'] ?? false;
-    $delim = $player = false;
-    if (!$device) {
-        $loc = [
-            " on the ",
-            " in the ",
-            " in ",
-            " on "
-        ];
-        foreach ($loc as $delimiter) {
-            $device = explode($delimiter, $request)[1] ?? false;
-            $player = $device ? findDevice("Name", $device, "Client") : false;
-            if ($player) {
-                $delim = $delimiter;
-                break;
-            }
-
-        }
-    } else {
-        $player = $device ? findDevice("Name", $device, "Client") : false;
-    }
-    if ($player) {
-        write_log("Switching client...", "INFO");
-        setSelectedDevice("Client", $player['Id']);
-        $req = str_replace($device, "", $request);
-        $req = $delim ? str_replace($delim, "", $req) : $req;
-        $params['Request'] = $req;
-    }
     $results = fetchMediaInfo($params);
     return $results;
 }
@@ -3636,6 +3608,7 @@ function buildSpeechAffirmative($media)
     } while ($affirmative == $last);
     write_log("Picked $affirmative out of: " . json_encode($affirmatives));
     writeSession("affirmative", $affirmative);
+    $affirmative = str_replace("<TITLE>",$title,$affirmative);
     return "$affirmative playing $title";
 }
 
@@ -3699,7 +3672,6 @@ function buildSpeechFetch($media, $fetched, $existing)
     }
     return $string;
 }
-
 
 function buildSpeechInfoQuery($params, $cards)
 {
@@ -3787,5 +3759,37 @@ function buildSpeechHelp()
 }
 
 
+function checkDeviceChange($params) {
+    $request = $params['request'] ?? false;
+    $device = $params['Devices'] ?? false;
+    $delim = $player = false;
+    if (!$device) {
+        $loc = [
+            " on the ",
+            " in the ",
+            " in ",
+            " on "
+        ];
+        foreach ($loc as $delimiter) {
+            $device = explode($delimiter, $request)[1] ?? false;
+            $player = $device ? findDevice("Name", $device, "Client") : false;
+            if ($player) {
+                $delim = $delimiter;
+                break;
+            }
 
+        }
+    } else {
+        $player = $device ? findDevice("Name", $device, "Client") : false;
+    }
+    if ($player) {
+        write_log("Switching client...", "INFO");
+        setSelectedDevice("Client", $player['Id']);
+        $req = str_replace($device, "", $request);
+        $req = $delim ? str_replace($delim, "", $req) : $req;
+        $params['request'] = $req;
+    }
+
+    return $params;
+}
 
