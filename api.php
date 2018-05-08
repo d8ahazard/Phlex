@@ -149,7 +149,7 @@ function initialize()
             $uri = $_GET['uri'] ?? false;
             if ($name) $dev = findDevice("Name", $name, $type);
             if ($uri) $dev = findDevice("Uri", $name, $type);
-            if ($dev) $id = $dev['Id'] ?? false;
+            if ($dev) $id = $dev['id'] ?? false;
         }
         header('Content-Type: application/json');
         if ($id !== 'rescan' && $id !== false) {
@@ -162,9 +162,9 @@ function initialize()
         if ($data) {
             writeSession('deviceUpdated', true);
             write_log("Echoing new $type list: " . json_encode($data));
-            echo json_encode($data);
+            if (!isset($_GET['say'])) echo json_encode($data);
         }
-        bye();
+        if (!isset($_GET['say'])) bye();
     }
     if ((isset($_GET['id'])) && (!isset($_GET['device']))) {
         $valid = true;
@@ -214,6 +214,7 @@ function initialize()
             $var = explode("=", $json)[1];
             if (trim($var)) {
                 write_log("We have a hook message from couchpotato: $var");
+                #TODO: Fix this
                 //$var = urldecode($var);
                 //castAudio($var);
             }
@@ -3289,7 +3290,8 @@ function buildQueryControl($params)
         "seek" => "seek",
         "subtitles.off" => "subtitles",
         "subtitles.on" => "subtitles",
-        "subtitles.change" => "subtitles"
+        "subtitles.change" => "subtitles",
+        "device.change" => "device.change"
     ];
     $cmd = $commands["$command"] ?? false;
     write_log("Command and value are $command and $value");
@@ -3316,14 +3318,31 @@ function buildQueryControl($params)
             $value = $streamID;
         }
     }
-    if (!$cmd) {
-        write_log("No command set so far, making one.", "INFO");
-        $cmds = explode(" ", strtolower($command));
-        $newString = array_intersect($commands, $cmds);
-        $result = implode(" ", $newString);
-        $cmd = trim($result) ? $result : false;
+    if ($command == "device.change") {
+        write_log("Change device requested.");
+        $deviceType = $params['DeviceType'] ?? false;
+        $device = $params['device'] ?? false;
+        if ($device && $deviceType) {
+            write_log("We have the params necessary to change device.");
+            $device = findDevice("Name",$device,$deviceType);
+            if ($device) {
+                setSelectedDevice($deviceType,$device['Id']);
+            } else {
+                write_log("Unable to find specified device.","ERROR");
+            }
+            return $device;
+        } else write_log("Can't find device or type!!","ERROR");
+    } else {
+        if (!$cmd) {
+            write_log("No command set so far, making one.", "INFO");
+            $cmds = explode(" ", strtolower($command));
+            $newString = array_intersect($commands, $cmds);
+            $result = implode(" ", $newString);
+            $cmd = trim($result) ? $result : false;
+        }
+        return $cmd ? sendCommand($cmd, $value) : $cmd;
     }
-    return $cmd ? sendCommand($cmd, $value) : $cmd;
+    return false;
 }
 
 function buildQueryFetch($params)
@@ -3549,8 +3568,8 @@ function buildSpeech($params, $results)
     if ($params['intent'] == 'controlMedia') {
         write_log("Building a control query reply!");
         $cmd = $params['controls'];
-        #TODO: Make sure this uses random stuff
-        $speech = buildSpeechCommand($cmd);
+        $params['result'] = $results;
+        $speech = buildSpeechCommand($cmd, $params);
     }
     if ($params['intent'] == 'fetchInfo') {
         $media = $results['media'] ?? [];
@@ -3558,7 +3577,6 @@ function buildSpeech($params, $results)
         $speech = buildSpeechInfoQuery($params, $cards);
         writeSession('mediaArray', $media);
     }
-
     if ($params['intent'] == 'Media.multipleResults') {
         $media = $results['media'];
         $wait = false;
@@ -3620,14 +3638,26 @@ function buildSpeechAffirmative($media)
     return "$affirmative playing $title";
 }
 
-function buildSpeechCommand($cmd = false)
+function buildSpeechCommand($cmd = false, $params = false)
 {
     write_log("Building speech for $cmd");
-    $array = lang('speechControlArray');
-    do {
-        $msg = $array[array_rand($array)];
-    } while ($msg == $_SESSION['cmdMsg'] ?? 'foo');
-    writeSession('cmdMsg', $msg);
+    if ($cmd == "device.change") {
+        $result = $params['result'] ?? false;
+        $deviceType = $params['DeviceType'] ?? 'device';
+        $device = $result['name'] ?? $params['device'] ?? false;
+        #TODO: Localize this, you lazy bum...
+        if ($result) {
+            $msg = "Okay, I've set the $deviceType to $device.";
+        } else {
+            $msg = "I'm sorry, but I couldn't find a $deviceType ".($device ? $device : 'with that name')." to select.";
+        }
+    } else {
+        $array = lang('speechControlArray');
+        do {
+            $msg = $array[array_rand($array)];
+        } while ($msg == $_SESSION['cmdMsg'] ?? 'foo');
+        writeSession('cmdMsg', $msg);
+    }
     return $msg;
 }
 
