@@ -2583,6 +2583,7 @@ function sendSpeechAssistant($speech, $contextName, $cards, $waitForResponse, $s
         "lifespan" => 2,
         "parameters" => []
     ];
+    $output['v2'] = true;
     $output['source'] = "PhlexChat";
     ob_end_clean();
     echo json_encode($output);
@@ -2638,7 +2639,7 @@ function sendSpeechAlexa($speech, $contextName, $cards, $waitForResponse, $sugge
 function sendServerRegistration()
 {
     $address = $_SESSION['appAddress'] ?? $_SESSION['publicAddress'];
-    $registerUrl = "https://phlexserver.cookiehigh.us/api.php" . "?apiToken=" . $_SESSION['apiToken'] . "&serverAddress=" . htmlentities($address);
+    $registerUrl = "https://phlexchat.com/api.php" . "?apiToken=" . $_SESSION['apiToken'] . "&serverAddress=" . htmlentities($address);
     write_log("registerServer: URL is " . protectURL($registerUrl), 'INFO');
     $result = curlGet($registerUrl);
     if ($result == "OK") {

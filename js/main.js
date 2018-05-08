@@ -1083,7 +1083,7 @@ function setListeners() {
 			regUrl = false;
 			action = $(this).data('action');
 			serverAddress = encodeURIComponent(serverAddress);
-			if (action === 'googlev2') regUrl = 'https://phlexchat.com/apiv2.php?apiToken=' + apiToken + "&serverAddress=" + serverAddress;
+			if (action === 'googlev2') regUrl = 'https://phlexchat.com/api.php?apiToken=' + apiToken + "&serverAddress=" + serverAddress;
 			if (action === 'amazon') regUrl = 'https://phlexchat.com/alexaAuth.php?apiToken=' + apiToken + "&serverAddress=" + serverAddress;
 			if (regUrl) {
 				var newwindow = window.open(regUrl, '');
