@@ -31,7 +31,7 @@ function analyzeRequest()
     } else {
         write_log("Session with id of " . session_id() . " is already started.", "WARN");
     }
-    write_log("-------NEW REQUEST RECEIVED-------", "INFO");
+    write_log("-------NEW REQUEST RECEIVED-------", "ALERT");
     checkDefaults();
 
     if (isset($_GET['revision'])) {
