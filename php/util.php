@@ -2413,11 +2413,6 @@ function write_log($text, $level = false, $caller = false, $force=false) {
         $authString = "; <?php die('Access denied'); ?>".PHP_EOL;
         file_put_contents($log,$authString);
     }
-    if (!file_exists($log)) return;
-    if (!$level) $level = 'DEBUG';
-    if ((isset($_GET['pollPlayer']) || isset($_GET['passive'])) || (trim($text) === "")) return;
-    $caller = $caller ? getCaller($caller) : getCaller();
-    $text = '[' . date(DATE_RFC2822) . '] [' . $level . '] [' . $caller . "] - " . trim($text) . PHP_EOL;
     if (filesize($log) > 1048576) {
         $oldLog = file_build_path(dirname(__FILE__),"..",'logs',"Phlex.log.php.old");
         if (file_exists($oldLog)) unlink($oldLog);
@@ -2427,10 +2422,22 @@ function write_log($text, $level = false, $caller = false, $force=false) {
         $authString = "; <?php die('Access denied'); ?>".PHP_EOL;
         file_put_contents($log,$authString);
     }
+
+    $date = date(DATE_RFC2822);
+    $level = $level ? $level : "DEBUG";
+    $user = $_SESSION['plexUserName'] ?? false;
+    $user = $user ? "[$user] " : "";
+    $caller = $caller ? getCaller($caller) : getCaller();
+    $text = trim($text);
+
+    if ((isset($_GET['pollPlayer']) || isset($_GET['passive'])) || ($text === "") || !file_exists($log)) return;
+
+    $line = "[$date] [$level] ".$user."[$caller] - $text".PHP_EOL;
+
     if ($pp) $_SESSION['pollPlayer'] = true;
     if (!is_writable($log)) return;
     if (!$handle = fopen($log, 'a+')) return;
-    if (fwrite($handle, $text) === FALSE) return;
+    if (fwrite($handle, $line) === FALSE) return;
 
     fclose($handle);
 }
