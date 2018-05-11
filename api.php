@@ -2394,8 +2394,13 @@ function sendMediaLegacy($media)
     $token = $parent['Token'];
     $transientToken = fetchTransientToken($host);
     if ($queueID && $transientToken) {
+        $client = findDevice("Id",$_SESSION['plexClientId'],"Client");
+        if (!$client) {
+            write_log("Error fetching client, you should work on that.","ERROR");
+            return false;
+        }
         write_log("Media has a queue ID, we're good.");
-        if ($_SESSION['plexClientProduct'] === 'Cast') {
+        if ($client['Product'] === 'Cast') {
             $isAudio = ($media['type'] == 'album' || $media['type'] == 'artist' || $media['type'] == 'track');
             $userName = $_SESSION['plexUserName'];
             $version = explode("-", $parent['Version'])[0];
