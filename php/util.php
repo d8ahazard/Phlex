@@ -63,7 +63,6 @@ function bye($msg = false, $title = false, $url = false, $log = false, $clear = 
                 </script>";
         echo($display);
     }
-    $url = "";
     $actual_link = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
     $url = parse_url($actual_link);
     $url = $url['scheme']."://".$url['host'].$url['path'];
@@ -72,7 +71,6 @@ function bye($msg = false, $title = false, $url = false, $log = false, $clear = 
     $executionTime = microtime(true) - $_SERVER["REQUEST_TIME_FLOAT"];
     write_log("Total execution time was $executionTime","INFO");
     if ($rescan === null) {
-        write_log("PollPlayer is not set?","INFO",false,true);
         curlQuick($url);
     }
     if ($log) write_log("Ending session now with message '$msg'.", "INFO");
@@ -349,14 +347,11 @@ function curlPost($url, $content = false, $JSON = false, Array $headers = null) 
     return $response;
 }
 
-function curlQuick($url)
-{
-    write_log("Sending request to url: $url","INFO",false,true);
+function curlQuick($url) {
     $ch = curl_init($url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
     curl_exec($ch);
     curl_close($ch);
-
 }
 
 function doRequest($parts, $timeout = 6) {
