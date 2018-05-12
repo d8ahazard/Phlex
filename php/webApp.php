@@ -150,7 +150,6 @@ function checkDefaults() {
 }
 
 function checkDefaultsDb() {
-    write_log("Here goes nothing!!!!");
     $config = parse_ini_file('db.conf.php');
     $db = $config['dbname'];
     $head = '<!DOCTYPE html>
@@ -187,7 +186,6 @@ function checkDefaultsDb() {
     $tables = ['general','userdata','commands'];
     $created = false;
     foreach ($tables as $table) {
-        write_log("Checking to see if table $table exists.");
         $rows = [];
         $result = $mysqli->query("SHOW TABLES LIKE '$table'");
         while ($row = $result -> fetch_assoc()) {
