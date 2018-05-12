@@ -9,7 +9,7 @@ class DbConfig {
 	{
 		$this->connection = $this->connect();
 		if ($this->connection === false) {
-			write_log("Error connecting to db.");
+			write_log("Error connecting to db.","ERROR");
 		}
 		return ($this->connection !== false);
 	}
@@ -22,7 +22,6 @@ class DbConfig {
 		if ($mysqli->connect_errno) {
 			return false;
 		}
-
 
 		/* check if server is alive */
 		if ($mysqli->ping()) {
@@ -41,20 +40,15 @@ class DbConfig {
 	}
 
 	public function set($section, $data, $selector=null, $search=null, $new=false) {
-        write_log("Called by ".getCaller("set"));
         $keys = $strings = $values = [];
-        $result = false;
         $addSelector = true;
 
         foreach ($data as $key => $value) {
-            write_log("Value is $value");
             if ($value === "true" || $value === true) $value = "1";
             if ($value === "false" || $value === false) $value = "0";
             if ($key == $selector) $addSelector = false;
             if (is_array($value)) $value = json_encode($value);
-            write_log("Value2 is $value");
             $quoted = $this->quote($value);
-            write_log("Value is $quoted");
             array_push($keys, $key);
             array_push($values, $quoted);
             array_push($strings, "$key=$quoted");
@@ -72,32 +66,24 @@ class DbConfig {
         $values = join(", ",$values);
         $update = $new ? "" : " ON DUPLICATE KEY UPDATE $strings";
         $query = "INSERT INTO $section ($keys) VALUES ($values)".$update;
-        write_log("Constructed query: ".$query);
         $result = $this->query($query);
         if ($result) {
-            write_log("Record saved successfully.","INFO");
         } else{
             write_log("Error saving record: ".$this->error(),"ERROR");
-
         }
     }
 
     public function get($section, $keys=false, $selector=null, $search=null) {
-        write_log("Called by ".getCaller("get"));
         if (is_string($keys)) $keys = [$keys];
         $keys = $keys ? join(", ",$keys) : "*";
         $query = "SELECT $keys FROM $section";
         if ($selector && $search) $query .= " WHERE $selector LIKE ".$this->quote($search);
-        write_log("Constructed query is '$query'");
         $data = $this->select($query);
-        write_log("Retrieved data: ".json_encode($data));
         return $data;
     }
 
     public function delete($section, $selector=null, $value=null) {
-	    $result = false;
-        write_log("Called by ".getCaller("delete"));
-        $query = "DELETE from $section";
+	    $query = "DELETE from $section";
         if ($selector && $value) {
             if (is_string($selector)) {
                 $query .= " WHERE $selector LIKE " . $this->quote($value);
@@ -111,8 +97,7 @@ class DbConfig {
                 $query .= " WHERE " . join(" AND ",$strings);
             }
         }
-        write_log("Constructed query is '$query'");
-        //$result = $this->query($query);
+        $result = $this->query($query);
         return $result;
     }
 	
@@ -173,7 +158,6 @@ class DbConfig {
 	*/
 	
 	public function quote($value) {
-	    if (is_string($value)) write_log("This moron thinks this is a string...");
 	    if (is_string($value)) {
             $value = ltrim($value, "'");
             $value = rtrim($value, "'");
