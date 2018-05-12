@@ -46,7 +46,10 @@ function analyzeRequest()
         $token = $_SERVER['HTTP_APITOKEN'];
     }
 
-    if (isset($_GET['apiToken'])) $token = $_GET['apiToken'];
+    if (isset($_GET['apiToken'])) {
+        write_log("Using token from GET","INFO");
+        $token = $_GET['apiToken'];
+    }
 
     if (isset($_SERVER['HTTP_METHOD'])) {
         $method = $_SERVER['HTTP_METHOD'];
@@ -77,13 +80,10 @@ function analyzeRequest()
         $apiTokenMatch = ($apiToken === $_SESSION['apiToken']);
         $loaded = $_SESSION['loaded'] ?? false;
         // DO NOT SET ANY SESSION VARIABLES MANUALLY AFTER THIS IS CALLED
-        if ($apiTokenMatch && $loaded) {
-            write_log("Looks like we have session vars set already?");
-        } else {
-            write_log("We should call setsessionvars now...");
+        if (!$apiTokenMatch && $loaded) {
+            write_log("Loading session variables.","INFO");
             setSessionData(false);
         }
-
         initialize();
     } else {
         if (isset($_GET['testclient'])) {
@@ -99,7 +99,6 @@ function analyzeRequest()
  */
 function initialize()
 {
-
     if (isset($_GET['pollPlayer'])) {
         if (substr_count($_SERVER["HTTP_ACCEPT_ENCODING"], "gzip")) ob_start("ob_gzhandler"); else ob_start();
         $force = ($_GET['force'] === 'true');
@@ -109,7 +108,7 @@ function initialize()
         bye();
     }
     if (isset($_GET['testclient'])) {
-        write_log("API Link Test successful!!", "INFO");
+        write_log("API Link Test successful!", "INFO");
         echo 'success';
         bye();
     }
@@ -144,13 +143,12 @@ function initialize()
         $id = $_GET['id'] ?? false;
         $data = $dev = false;
         if (!$id) {
-            write_log("No id specified, let's see if there's a name or URI");
+            write_log("No device id specified, let's see if there's a name or URI");
             $name = $_GET['name'] ?? false;
             $uri = $_GET['uri'] ?? false;
             if ($name) $dev = findDevice("Name", $name, $type);
             if ($uri) $dev = findDevice("Uri", $name, $type);
             if ($dev) $id = $dev['id'] ?? false;
-            write_log("Device: ".json_encode($dev));
         }
         header('Content-Type: application/json');
         if ($id !== 'rescan' && $id !== false) {
@@ -162,7 +160,6 @@ function initialize()
         }
         if ($data) {
             writeSession('deviceUpdated', true);
-            write_log("Echoing new $type list: " . json_encode($data));
             if (!isset($_GET['say'])) echo json_encode($data);
         }
         if (!isset($_GET['say'])) bye();
@@ -174,12 +171,10 @@ function initialize()
         write_log("Setting Value changed: $id = $value", "INFO");
         $value = str_replace("?logout", "", $value);
         if ((preg_match("/IP/", $id) || preg_match("/Uri/", $id)) && !preg_match("/device/", $id)) {
-            write_log("Sanitizing URL.");
             $value = cleanUri($value);
             if (!$value) $valid = false;
         }
         if (preg_match("Uri", $id)) {
-            write_log("Sanitizing URI.");
             $value = cleanUri($value);
             if (!$value) $valid = false;
         }
@@ -195,14 +190,14 @@ function initialize()
     }
     if (isset($_GET['msg'])) {
         if ($_GET['msg'] === 'FAIL') {
-            write_log("Received response failure from server, firing fallback command.");
+            write_log("Received response failure from server, firing fallback command.","INFO");
             sendFallback();
         }
     }
     if (isset($_GET['fetchList'])) {
         $fetch = $_GET['fetchList'];
         $list = fetchList($fetch);
-        write_log("API: Returning profile list for " . $fetch . ": " . json_encode($list), "INFO");
+        write_log("Returning profile list for " . $fetch . ": " . json_encode($list), "INFO");
         echo $list;
         bye();
     }
@@ -250,38 +245,37 @@ function initialize()
         $json = file_get_contents('php://input');
         $request = json_decode($json, true);
         $response = false;
-        //$amazonRequest = false;
+        $amazonRequest = $_SERVER['HTTP_AMAZONREQUEST'] ?? false;
+        if ($amazonRequest) {
+            writeSession('amazonRequest', true);
+            write_log("No, really, we have an amazonrequest: ".json_encode($request),"ALERT");
+            writeSession('lastRequest',$request['result']['resolvedQuery']);
+        }
+
         if ($request) {
             if (isset($request['result']['resolvedQuery']) || isset($request['type'])) {
-                write_log("JSON: " . $json);
-                if (isset($request['type'])) {
-                    if ($request['reason'] == 'ERROR') {
-                        write_log("Alexa Error message: " . $request['error']['type'] . '::' . $request['error']['message'], "ERROR");
-                        bye();
-                    }
-                    writeSession('amazonRequest', true);
-                }
+                write_log("Request JSON: " . $json);
                 try {
                     $df = new DialogFlow(fetchDirectory(3), $_SESSION['appLanguage']);
                     $response = $df->process($request);
                 } catch (Exception $e) {
                     write_log("There was an exception! '$e'", "ERROR");
                 }
-                write_log("WE HAVE THE MEATS!");
                 mapApiRequest($response);
-                bye("V2 session, seeyalater.");
+                bye("Ending session.");
             }
         }
+
     }
+
     $command = $_GET['command'] ?? $_SERVER['HTTP_COMMAND'] ?? false;
     if ((isset($_GET['say'])) && $command) {
         write_log("Incoming API request detected.", "INFO");
         try {
             $request = fetchApiAiData($command);
             if ($request) {
-                write_log("WE HAVE THE MEATS!");
                 mapApiRequest($request);
-                bye("V2 session, seeyalater.");
+                bye("Ending session.");
             }
         } catch (\Exception $error) {
             write_log(json_encode($error->getMessage()), "ERROR");
@@ -313,7 +307,6 @@ function setSessionData($rescan = true)
         foreach ($check as $section => $value) {
             $sectionArray = $devices["$section"] ?? [];
             if (!$value && count($sectionArray)) {
-                write_log("Selecting a $section.");
                 setSelectedDevice($section, $sectionArray[0]);
             }
         }
@@ -341,7 +334,6 @@ function getUiData($force = false)
         $result['playerStatus'] = $playerStatus;
     }
     if ($force) {
-        write_log("outgoing UI Data: " . json_encode($userData), "INFO", false, true);
         $result['devices'] = $devices;
         $result['userData'] = $userData;
         $result['commands'] = $commands;
@@ -350,20 +342,16 @@ function getUiData($force = false)
             'devices' => $deviceText
         ]);
     } else {
-
         $updated = $_SESSION['updated'] ?? false;
         unset($_SESSION['updated']);
         if (is_array($updated)) {
-            write_log("Data: " . json_encode($updated));
             foreach ($updated as $key => $value) {
-                write_log("Key is $key");
                 if (preg_match("/List/", $key)) {
                     $target = str_replace("List", "", $key);
                     write_log("Fetching a profile list for $target", "INFO", false, true);
                     $updated["$key"] = fetchList($target);
                 }
             }
-            write_log("Echoing new userdata: " . json_encode($updated), "INFO", false, true);
             $result['userData'] = $updated;
         }
         $deviceUpdated = $_SESSION['devices'] !== $deviceText;
@@ -397,7 +385,6 @@ function getUiData($force = false)
 
     $messages = $_SESSION['messages'] ?? false;
     if ($messages) {
-        write_log("Messages!");
         $result['messages'] = $_SESSION['messages'];
         writeSession('messages', false);
     }
@@ -2608,7 +2595,8 @@ function sendSpeechAlexa($speech, $contextName, $cards, $waitForResponse, $sugge
             "outputSpeech" => [
                 "type" => "PlainText",
                 "text" => $speech
-            ]
+            ],
+            "shouldEndSession" =>$endSession
         ],
         "reprompt" => [
             "outputSpeech" => [
@@ -2634,7 +2622,6 @@ function sendSpeechAlexa($speech, $contextName, $cards, $waitForResponse, $sugge
         }
     }
     $response['originalRequest'] = $_SESSION['lastRequest'];
-    $response['shouldEndSession'] = $endSession;
     ob_end_clean();
     header('Content-Type: application/json');
     echo json_encode($response);
@@ -3062,7 +3049,6 @@ function mapDataMusic($data)
 
 function mapDataShow($data)
 {
-    write_log("IN: " . json_encode($data));
     $return = [
         'title' => $data['name'],
         'type' => $data['type'],
