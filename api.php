@@ -282,7 +282,7 @@ function setSessionData($rescan = true)
     $data = fetchUserData();
     if ($data) {
         $userName = $data['plexUserName'];
-        write_log("Found session data for $userName, setting: " . json_encode($data), "ALERT");
+        write_log("Found session data for $userName, setting: " . json_encode($data), "INFO");
         $dlist = $data['dlist'] ?? false;
         $devices = json_decode(base64_decode($dlist), true);
         if ($rescan || !$devices) $devices = scanDevices(true);
@@ -2683,7 +2683,6 @@ function sendWebHook($param = false, $type = false)
 
 function mapApiRequest($request)
 {
-    write_log("Got me a marlin: " . json_encode($request));
     //First, figure out what intent we've fired:
     $intent = $request['metadata']['intentName'];
     $params = $request['parameters'] ?? [];
@@ -2701,7 +2700,7 @@ function mapApiRequest($request)
     $params['resolved'] = $resolvedQuery;
     $params['intent'] = $intent;
     $params['contexts'] = $contexts;
-    write_log("Resolved query is '$resolvedQuery'", "INFO");
+    write_log("Speech query resolved as '$resolvedQuery'. Data: ".json_encode($request), "ALERT");
     // #TODO: Make sure this fires AFTER we output elsewhere...
 //	if ($_SESSION['hookEnabled']) {
 //		$custom = cleanCommandString($_SESSION['hookCustomPhrase']);
@@ -3765,8 +3764,10 @@ function checkDeviceChange($params) {
         $loc = [
             " on the ",
             " in the ",
+            " to the ",
             " in ",
-            " on "
+            " on ",
+            " to "
         ];
         foreach ($loc as $delimiter) {
             $device = explode($delimiter, $request)[1] ?? false;

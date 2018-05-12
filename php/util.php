@@ -633,7 +633,7 @@ function getLocale() {
         foreach($preferred as $idx => $lang) {
             $lang = substr($lang, 0, 2);
             if (in_array($lang, $langs)) {
-                write_log("Found a language from the server, neato.","ALERT");
+                write_log("Found a language from the server, neato.","INFO");
                 $locale = $lang;
                 break;
             }
@@ -959,7 +959,7 @@ function listLocales($html=true) {
     $langs = [];
     $lang = $_SESSION["appLanguage"];
     if (trim($lang) == "") $lang = "en";
-    write_log("Local language should be $lang","ALERT");
+    write_log("Local language should be $lang","INFO");
     if (is_dir($dir)) {
         if ($dh = opendir($dir)) {
             while (($file = readdir($dh)) !== false) {

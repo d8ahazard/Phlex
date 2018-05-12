@@ -71,7 +71,7 @@ class GitUpdate
         $refs = [];
         $branch = $this->branch;
         $command = "git log ..origin/$branch --oneline";
-        write_log("Git command: '$command'", "ALERT");
+        write_log("Git command: '$command'", "INFO");
         exec($command, $lines);
         write_log("Result: ".json_encode($lines));
         foreach($lines as $line) array_push($refs,explode(" ",$line)[0]);
@@ -111,7 +111,7 @@ class GitUpdate
 
     public function update()
     {
-        write_log("FUNCTION FIRED!!","ALERT");
+        write_log("FUNCTION FIRED!!","INFO");
         $result = $this->gitExec("git pull",true);
         write_log("Install result: ".json_encode($result));
         $result = (preg_match("/updating/",strtolower(join(" ",$result))));

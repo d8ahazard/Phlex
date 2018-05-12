@@ -5,6 +5,7 @@ class JsonConfig extends ArrayObject {
     protected $fileName;
     protected $header;
     protected $secure;
+    protected $cache;
 
     public $data;
 
@@ -53,20 +54,16 @@ class JsonConfig extends ArrayObject {
 
     public function get($section, $keys=false, $selector=null, $search=null) {
         $data = $this->data[$section] ?? [];
-        if ($section == 'commands') write_log("Section data: ".json_encode($data),"ALERT");
         if ($data) {
-            if ($section == 'commands') write_log("Got data: ".json_encode($data),"ALERT");
             if ($selector && $search) {
                 $results = [];
                 foreach($data as $record) {
                     if (isset($record[$selector]) && $record[$selector] == $search) {
-                        if ($section == 'commands') write_log("Matching data: ".json_encode($record),"ALERT");
                         array_push($results,$record);
                     }
                 }
                 $data = $results;
             }
-            if ($section == 'commands') write_log("Prekey data: ".json_encode($data),"ALERT");
             if ($keys) {
                 if (is_string($keys)) $keys = [$keys];
                 $temp = [];
@@ -74,21 +71,16 @@ class JsonConfig extends ArrayObject {
                     $item = [];
                     foreach($keys as $key) {
                         if (isset($record[$key])) {
-                            if ($section == 'commands') write_log("Key match for $key, pushing.","ALERT");
                             $item[$key] = $record[$key];
                         }
                     }
                     if (count($item)) {
-                        if ($section == 'commands') write_log("Pushing item: ".json_encode($item),"ALERT");
                         array_push($temp,$item);
                     }
                 }
                 $data = $temp;
             }
-        } else {
-            if ($section == 'commands') write_log("NO DATA!!","ALERT");
         }
-        if ($section == 'commands') write_log("Section data: ".json_encode($data),"ALERT");
         return $data;
     }
 
@@ -120,7 +112,7 @@ class JsonConfig extends ArrayObject {
                 }
                 $this->data[$section] = $sectionData;
             } else {
-                write_log("Unsetting a whole section because you told me to.","WARN");
+                write_log("Unsetting a whole section because you told me to.","ALERT");
                 unset($this->data[$section]);
             }
             $this->save();
@@ -141,12 +133,10 @@ class JsonConfig extends ArrayObject {
     }
 
     protected function save() {
-        write_log("Trying to save here...");
         $data = json_encode($this->data,JSON_PRETTY_PRINT);
-        write_log("Data to write: ".json_encode($this->data));
         $output = $this->header . PHP_EOL . $data;
         $success = file_put_contents($this->fileName,$output,LOCK_EX);
-        write_log("Save " . ($success ? 'was' : 'was not') . ' successful.');
+        if (!$success) write_log("Save " . ($success ? 'was' : 'was not') . ' successful.',($success ? "INFO": "ALERT"));
         return $success;
     }
 

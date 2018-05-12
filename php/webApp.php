@@ -194,8 +194,7 @@ function checkDefaultsDb() {
             $created = true;
             if (!$noDb) echo $head;
             echo "<span>Table $table doesn't exist, creating.</span><br>".PHP_EOL;
-            write_log("Creating table...");
-            write_log("Table $table doesn't exist, creating.","WARN");
+            write_log("Table $table doesn't exist, creating...","ALERT");
             $query = "";
             switch($table) {
                 case 'general':
@@ -407,6 +406,9 @@ function logCommand($resultObject) {
     }
     $resultObject = (!is_array($resultObject)) ? json_decode($resultObject,true) : $resultObject;
     $resultObject['timecode'] = date_timestamp_get(new DateTime($resultObject['timestamp']));
+    $speech = ucwords($resultObject['speech'] ?? "");
+    $initial = ucwords($resultObject['initialCommand'] ?? "");
+    write_log("Final response for request of '$initial' is '$speech'","ALERT");
     $commands = $_SESSION['newCommand'] ?? [];
     array_push($commands,$resultObject);
     writeSession('newCommand', $commands);
@@ -447,10 +449,8 @@ function firstUser() {
 }
 
 function newUser($user) {
-    write_log("Function fired.");
     $userName = $user['plexUserName'];
     $apiToken = randomToken(21);
-    write_log("Creating and saving $userName as a new user.","INFO");
     $user['apiToken'] = $apiToken;
     $_SESSION['apiToken'] = $apiToken;
     $defaults = [
@@ -474,6 +474,7 @@ function newUser($user) {
         'autoUpdate' => false
     ];
     $user = array_merge($user,$defaults);
+    write_log("Creating and saving $userName as a new user: ".json_encode($defaults),"ALERT");
     setPreference('userdata',$user,'apiToken',$apiToken);
     return $user;
 }
