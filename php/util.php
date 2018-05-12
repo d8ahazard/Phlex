@@ -516,10 +516,9 @@ function findDevice($key=false, $value=false, $type) {
     write_log("Looking for a $type with a $key of $value");
     if ($section) {
         if ($key && !$value) {
-            write_log("No value, selecting first device.");
+            write_log("No value, selecting first device.","INFO");
             return $devices["$type"][0] ?? false;
         }
-        write_log("Full section: " . json_encode($section));
         foreach ($section as $device) {
             if (trim(strtolower($device["$key"])) === trim(strtolower($value))) {
                 write_log("Returning matching device: " . json_encode($device));
@@ -527,6 +526,7 @@ function findDevice($key=false, $value=false, $type) {
             }
         }
     }
+    write_log("Unable to find a device.","ERROR");
     return false;
 }
 
@@ -590,7 +590,6 @@ function getCaller($custom = "foo") {
     $trace = debug_backtrace();
     $useNext = false;
     $caller = false;
-    //write_log("TRACE: ".print_r($trace,true),null,true);
     foreach ($trace as $event) {
         if ($useNext) {
             if (($event['function'] != 'require') && ($event['function'] != 'include')) {
@@ -600,7 +599,6 @@ function getCaller($custom = "foo") {
         }
         if (($event['function'] == 'write_log') || ($event['function'] == 'doRequest') || ($event['function'] == $custom)) {
             $useNext = true;
-            // Set our caller as the calling file until we get a function
             $file = pathinfo($event['file']);
             $caller = $file['filename'] . "." . $file['extension'];
         }
@@ -1867,86 +1865,7 @@ function localeName($locale = "en") {
     return $locale;
 }
 
-function logUpdate(array $log) {
-    $config = file_build_path(dirname(__FILE__), "..","rw","config.php");
-    $filename = file_build_path(dirname(__FILE__), "..",'logs', "Phlex_update.log.php");
-    $data['installed'] = date(DATE_RFC2822);
-    $data['commits'] = $log;
-    $config->set("general", "lastUpdate", $data['installed']);
-    saveConfig($config);
-    unset($_SESSION['updateAvailable']);
-    if (!file_exists($filename)) {
-        touch($filename);
-        chmod($filename, 0666);
-    }
-    if (filesize($filename) > 2 * 1024 * 1024) {
-        $filename2 = "$filename.old";
-        if (file_exists($filename2)) unlink($filename2);
-        rename($filename, $filename2);
-        touch($filename);
-        chmod($filename, 0666);
-    }
-    if (!is_writable($filename)) die;
-    $json = json_decode(file_get_contents($filename), true) ?? [];
-    array_unshift($json, $data);
-    file_put_contents($filename, json_encode($json));
-}
-
-function multiCurl2($urls, $timeout=20) {
-    $handlers = $data = [];
-    $mh = curl_multi_init();
-    // Handle all of our URL's
-    write_log("Function fired, max execution time is ".ini_get("max_execution_time"));
-    foreach ($urls as $key => $item) {
-        if (is_array($item)) {
-            $url = $item[0];
-            $header = $item[1];
-        } else {
-            $url = $item;
-            $header = false;
-        }
-        write_log("URL: " . $url);
-        $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch,CURLOPT_CONNECTTIMEOUT,$timeout);
-        curl_setopt($ch,CURLOPT_TIMEOUT,$timeout);
-        if ($header) {
-            write_log("We have headers: ".json_encode($header));
-            curl_setopt($ch,CURLOPT_HTTPHEADER,$header);
-        }
-        curl_multi_add_handle($mh, $ch);
-        $handlers["$key"] = $ch;
-    }
-    $running = null;
-    $started = microtime(true);
-    $rounded = 0;
-    do {
-        $now = microtime(true);
-        $time = $now - $started;
-        if (round($time,0) !== $rounded) write_log("Time is $time");
-        $rounded = round($time,0);
-        curl_multi_exec($mh, $running);
-    } while ($running);
-    if ($time >= $timeout) write_log("Hit our timeout.","WARN",false,true);
-    write_log("Multicurl completed in $time seconds...","INFO",false,true);
-    foreach ($handlers as $key => $h) {
-        write_log("Handler");
-        $response = curl_multi_getcontent($h);
-
-        $data["$key"] = $response;
-
-
-        curl_multi_remove_handle($mh, $h);
-
-    }
-
-    curl_multi_close($mh);
-    write_log("Data: ".json_encode($data));
-    return $data;
-}
-
 function multiCurl($urls, $timeout=10) {
-    write_log("Function fired!!");
     $mh = curl_multi_init();
     $ch = $res = [];
     foreach($urls as $i => $item) {
@@ -1957,24 +1876,21 @@ function multiCurl($urls, $timeout=10) {
             $url = $item;
             $header = false;
         }
-        write_log("URL: $url");
+        write_log("Fetching URL: $url");
         $ch[$i] = curl_init($url);
         curl_setopt($ch[$i], CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch[$i],CURLOPT_CONNECTTIMEOUT,$timeout);
         curl_setopt($ch[$i],CURLOPT_TIMEOUT,$timeout);
         if ($header) {
-            write_log("We have headers: ".json_encode($header));
             curl_setopt($ch[$i],CURLOPT_HTTPHEADER,$header);
         }
         curl_multi_add_handle($mh, $ch[$i]);
     }
 
-    // Start performing the request
     do {
         $execReturnValue = curl_multi_exec($mh, $runningHandles);
     } while ($execReturnValue == CURLM_CALL_MULTI_PERFORM);
 
-    // Loop and continue processing the request
     while ($runningHandles && $execReturnValue == CURLM_OK) {
         if (curl_multi_select($mh) != -1) {
             usleep(100);
@@ -1996,16 +1912,13 @@ function multiCurl($urls, $timeout=10) {
         // Check for errors
         $curlError = curl_error($ch[$i]);
         if($curlError == "") {
-            write_log("No error!");
             $res[$i] = curl_multi_getcontent($ch[$i]);
         } else {
             write_log("Error handling curl for url: $url","ERROR");
         }
-        // Remove and close the handle
         curl_multi_remove_handle($mh, $ch[$i]);
         curl_close($ch[$i]);
     }
-    // Clean up the curl_multi handle
     curl_multi_close($mh);
     write_log("Res: ".json_encode($res));
     $results = [];
@@ -2025,7 +1938,6 @@ function multiCurl($urls, $timeout=10) {
     }
     unset($mh);
     unset($ch);
-    write_log("Parsed results: ".json_encode($results));
     return $results;
 }
 
@@ -2060,11 +1972,9 @@ function plexSignIn($token) {
 	}
 
 	if ($token) {
-		write_log("Received valid token lookup: ".json_encode($data),"INFO");
 		$user = verifyPlexToken($token);
 	}
-
-	return $user;
+    return $user;
 }
 
 function protectURL($string) {
@@ -2097,7 +2007,6 @@ function protectURL($string) {
                 }
                 if (preg_match("/address/", $key)) {
                     $parts = explode(".", $value);
-                    write_log("Parts: " . json_encode($parts));
                     if (count($parts) >= 2) {
                         $i = 0;
                         foreach ($parts as &$part) {
@@ -2399,7 +2308,6 @@ function translateControl($string, $searchArray) {
     return $string;
 }
 
-
 function write_log($text, $level = false, $caller = false, $force=false) {
     $log = file_build_path(dirname(__FILE__), '..', 'logs', "Phlex.log.php");
     $pp = false;
@@ -2442,19 +2350,12 @@ function write_log($text, $level = false, $caller = false, $force=false) {
     fclose($handle);
 }
 
-
 function writeSession($key, $value, $unset = false) {
-//	if (!session_started()) {
-//		session_start();
-//	} else {
-//		write_log("Session is already started?","WARN");
-//	}
 	if ($unset) {
 		unset($_SESSION[$key]);
 	} else {
 		$_SESSION["$key"] = $value;
 	}
-//	session_write_close();
 }
 
 function writeSessionArray($array, $unset = false) {
@@ -2464,14 +2365,11 @@ function writeSessionArray($array, $unset = false) {
 		}
 	} else {
 		foreach($array as $key=>$value) {
-		    if ($key === 'updated' && empty($value)) {
-
-            } else {
+		    if ($key !== 'updated' && !empty($value)) {
                 $_SESSION["$key"] = $value;
             }
 		}
 	}
-	//session_write_close();
 }
 
 function xmlToJson($data) {
