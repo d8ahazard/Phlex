@@ -358,9 +358,10 @@ function doRequest($parts, $timeout = 6) {
     $type = isset($parts['type']) ? $parts['type'] : 'get';
     $response = false;
     $options = [];
+    $server = findDevice(false, false, 'Server');
     //write_log("Function fired: ".json_encode($params));
     if (is_array($parts)) {
-        if (!isset($parts['uri'])) $parts['uri'] = $_SESSION['plexServerUri'];
+        if (!isset($parts['uri'])) $parts['uri'] = $server['Uri'];
         if (isset($parts['query'])) {
             if (!is_string($parts['query'])) {
                 $string = '?';
@@ -503,7 +504,7 @@ function file_build_path(...$segments) {
 function findDevice($key=false, $value=false, $type) {
     if(!$key && !$value) {
         $key = "Id";
-        $value = $_SESSION["plex". $type ."Id"];
+        $value = $_SESSION["plex". $type ."Id"] ?? false;
     }
 
     $devices = $_SESSION['deviceList'];

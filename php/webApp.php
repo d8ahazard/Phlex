@@ -109,7 +109,6 @@ function checkDefaults() {
     date_default_timezone_set((date_default_timezone_get() ? date_default_timezone_get() : "America/Chicago"));
     $useDb = file_exists(dirname(__FILE__) . "/db.conf.php");
     if ($useDb) {
-        write_log("Using DB.");
         checkDefaultsDb();
     }
     // Loading from General
