@@ -25,6 +25,19 @@ function downloadMedia(array $data, array $fetchers) {
     return $results;
 }
 
+function matchVideoMedia($itemA, $itemB) {
+    $keys = ['tmdbId','imdbId','tvdbId'];
+    foreach($keys as $key) {
+        if (isset($itemA[$key]) && isset($itemB[$key])) {
+            if ($itemA[$key] === $itemB['$key']) {
+                write_log("Found a match for $key");
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 function downloadCouch(array $data) {
     write_log("Function fired: ".json_encode($data));
     $success = false;
@@ -282,7 +295,7 @@ function downloadSick($data) {
         $show['title'] = $show['show_name'];
         $show['tvdbId'] = $show['tvdbid'];
 
-		if (matchMedia($show,$data)) {
+		if (matchVideoMedia($show,$data)) {
 			$title = $show['title'];
 			write_log("Found $title in the library: " . json_encode($show));
 			$exists = true;
@@ -399,7 +412,7 @@ function downloadSonarr($data) {
 
     // See if it's already in the library
     foreach ($seriesArray as $series) {
-        if (matchMedia($series,$data, true)) {
+        if (matchVideoMedia($series,$data)) {
             write_log("This show is already in the library.");
             write_log("SERIES: " . json_encode($series));
             $show = $series;

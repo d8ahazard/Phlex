@@ -3063,8 +3063,8 @@ function mapDataShow($data)
         'summary' => trim($data['summary']),
         'source' => $data['source']
     ];
-    $tvdbId = $data['tvdbId'] ?? false;
-    $imdbId = $data['imdbId'] ?? false;
+    $tvdbId = $data['tvdbId'] ?? $data['externals']['thetvdb'] ?? false;
+    $imdbId = $data['imdbId'] ?? $data['externals']['imdb'] ?? false;
 
     if ($tvdbId) $return['tvdbId'] = $tvdbId;
     if ($imdbId) $return['imdbId'] = $imdbId;
