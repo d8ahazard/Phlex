@@ -2365,7 +2365,9 @@ function writeSessionArray($array, $unset = false) {
 		}
 	} else {
 		foreach($array as $key=>$value) {
-		    if ($key !== 'updated' && !empty($value)) {
+		    if ($key === 'updated' && empty($value)) {
+
+            } else {
                 $_SESSION["$key"] = $value;
             }
 		}
