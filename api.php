@@ -80,7 +80,7 @@ function analyzeRequest()
         $apiTokenMatch = ($apiToken === $_SESSION['apiToken']);
         $loaded = $_SESSION['loaded'] ?? false;
         // DO NOT SET ANY SESSION VARIABLES MANUALLY AFTER THIS IS CALLED
-        if (!$apiTokenMatch && $loaded) {
+        if (!$apiTokenMatch ||!$loaded) {
             write_log("Loading session variables.","INFO");
             setSessionData(false);
         }
