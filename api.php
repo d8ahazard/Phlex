@@ -2883,7 +2883,6 @@ function mapApiRequest($request)
             break;
         case 'help':
         case 'welcome.help':
-        case 'helpRequest':
             write_log("Help request!!", "INFO");
             break;
         default:
@@ -3360,8 +3359,6 @@ function buildQueryInfo($params)
         case 'recent':
             $mediaType = $params['type'] ?? false;
             write_log("Media type is $mediaType");
-            $result['media'] = fetchHubList($type, $mediaType);
-            $results['type'] = $mediaType;
             break;
         case 'ondeck':
             $mediaType = 'show';
@@ -3569,18 +3566,10 @@ function buildSpeech($params, $results)
         $speech = buildSpeechWelcome();
         $wait = true;
     }
-    if ($params['intent'] == 'helpRequest') {
+    if ($params['intent'] == 'help' || $params['intent'] == 'welcome.help') {
         $help = buildSpeechHelp();
         $speech = $help[0];
-        if ($_SESSION['amazonRequest'] ?? false) {
-            $sugs = [];
-            foreach($help[1] as $sug) array_push($sugs, "'$sug'");
-            $strings = join(", ",$sugs);
-            $speech .= $strings;
-        } else {
-            $suggestions = $help[1];
-        }
-
+        $suggestions = $help[1];
         $wait = true;
     }
     write_log("Cards?: " . json_encode($cards));
@@ -3707,20 +3696,7 @@ function buildSpeechInfoQuery($params, $cards)
 
 function buildSpeechNoResults($request)
 {
-    write_log("Request: ".json_encode($request));
     $title = is_string($request) ? $request : ($request['request'] ?? $request['type'] ?? 'that request');
-    if (isset($request['infoRequests'])) {
-        $type = $request['infoRequests'];
-        if ($type == 'recent') {
-            if ($request['type'] == 'movie') {
-                $title = "recent movies";
-            } else {
-                $title = "recent shows";
-            }
-        }
-        if ($type == 'on deck') $title = "on deck items";
-        if ($type == 'airings') $title = "upcoming shows";
-    }
     write_log("No results for request '$request'");
     $array = lang('speechNoInfoResultsArray');
     do {
@@ -3767,14 +3743,10 @@ function buildSpeechHelp()
     $show = ($_SESSION['sickEnabled'] ?? false) || ($_SESSION['sonarrEnabled'] ?? false);
     $music = ($_SESSION['headphonesEnabled'] ?? false) || ($_SESSION['lidarrEnabled'] ?? false);
     $dvr = $_SESSION['plexDvrId'] ?? false;
-    $movieSuggestions = $appSuggestions['movie'];
-    $showSuggestions = $appSuggestions['show'];
-    $musicSuggestions = $appSuggestions['music'];
-    $dvrSuggestions = $appSuggestions['dvr'];
-    if ($movie) array_push($helpSuggestions, $movieSuggestions[array_rand($movieSuggestions)]);
-    if ($show) array_push($helpSuggestions, $showSuggestions[array_rand($showSuggestions)]);
-    if ($music) array_push($helpSuggestions, $musicSuggestions[array_rand($musicSuggestions)]);
-    if ($dvr) array_push($helpSuggestions, $dvrSuggestions['array_rand($dvrSuggestions']);
+    if ($movie) $helpSuggestions = array_merge($helpSuggestions, $appSuggestions['movie']);
+    if ($show) $helpSuggestions = array_merge($helpSuggestions, $appSuggestions['show']);
+    if ($music) $helpSuggestions = array_merge($helpSuggestions, $appSuggestions['music']);
+    if ($dvr) $helpSuggestions = array_merge($helpSuggestions, $appSuggestions['dvr']);
     $helpSuggestions[] = "Cancel";
     $suggestions = $helpSuggestions;
     return [
