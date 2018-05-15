@@ -1,9 +1,9 @@
 <?php
 require_once dirname(__FILE__) . '/vendor/autoload.php';
 require_once dirname(__FILE__) . '/webApp.php';
-require_once dirname(__FILE__) . '/fetchers/digitalhigh/watcher/src/Watcher.php';
-require_once dirname(__FILE__) . '/fetchers/digitalhigh/lidarr/src/Lidarr.php';
-require_once dirname(__FILE__) . '/fetchers/digitalhigh/headphones/src/Headphones.php';
+require_once dirname(__FILE__) . '/helpers/fetchers/digitalhigh/watcher/src/Watcher.php';
+require_once dirname(__FILE__) . '/helpers/fetchers/digitalhigh/lidarr/src/Lidarr.php';
+require_once dirname(__FILE__) . '/helpers/fetchers/digitalhigh/headphones/src/Headphones.php';
 require_once dirname(__FILE__) . '/util.php';
 require_once dirname(__FILE__) . '/multiCurl.php';
 use Kryptonit3\CouchPotato\CouchPotato;

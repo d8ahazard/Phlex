@@ -1,18 +1,29 @@
 <?php
 namespace digitalhigh;
+require_once dirname(__FILE__) . "/ConfigException.php";
 use mysqli;
-require_once(dirname(__FILE__)."/util.php");
+require_once(dirname(__FILE__) . "/util.php");
 class DbConfig {
 
 
-	public function __construct()
+    /**
+     * DbConfig constructor.
+     * @throws ConfigException
+     */
+    public function __construct()
 	{
 		$this->connection = $this->connect();
 		if ($this->connection === false) {
-			write_log("Error connecting to db.","ERROR");
+			throw new ConfigException("Error connecting to database!!");
 		}
 		return ($this->connection !== false);
 	}
+
+
+	public function isValid()
+    {
+        return ($this->connection ? true : false);
+    }
 
 	protected $connection;
 
