@@ -1,8 +1,6 @@
 <?php
 require_once dirname(__FILE__) . '/php/vendor/autoload.php';
 require_once dirname(__FILE__) . "/php/webApp.php";
-$homeApp = dirname(__FILE__) . '/php/homeApp.php';
-if (file_exists($homeApp)) require_once $homeApp;
 require_once dirname(__FILE__) . '/php/util.php';
 require_once dirname(__FILE__) . '/PHPTail.php';
 /**
