@@ -2350,8 +2350,12 @@ function writeSession($key, $value, $unset = false) {
 	if ($unset) {
 		unset($_SESSION[$key]);
 	} else {
-		$_SESSION["$key"] = $value;
-	}
+	    $_SESSION[$key] = $value;
+        if ($value === false) $value = "{false}";
+        if ($value === true) $value = "{true}";
+            write_log("Setting session key $key to value of ". $value,"ALERT");
+
+    }
 }
 
 function writeSessionArray($array, $unset = false) {

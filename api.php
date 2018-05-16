@@ -285,8 +285,7 @@ function setSessionData($rescan = true)
         $_SESSION['deviceList'] = $devices;
         if (isset($data['dlist'])) unset($data['dlist']);
         foreach ($data as $key => $value) {
-            $value = toBool($value);
-            $_SESSION[$key] = $value;
+            writeSession($key,$value);
         }
         $clientId = trim($data['plexClientId'] ?? "");
         $serverId = trim($data['plexServerId'] ?? "");
@@ -472,7 +471,7 @@ function fetchMediaInfo(Array $params)
     $musicData = $searches = [];
     if ($action == 'fetchMedia') {
         $fetchMusic = (($_SESSION['headphonesEnabled'] ?? false) || ($_SESSION['lidarrEnabled'] ?? false));
-        $fetchMovies = (($_SESSION['couchEnabled'] ?? false) || ($_SESSION['radarrEnabled'] ?? false) && ($_SESSION['watcherEnabled'] ?? false));
+        $fetchMovies = (($_SESSION['couchEnabled'] ?? false) || ($_SESSION['radarrEnabled'] ?? false) || ($_SESSION['watcherEnabled'] ?? false));
         $fetchShows = (($_SESSION['sonarrEnabled'] ?? false) || ($_SESSION['sickEnabled'] ?? false));
     } else {
         $fetchMovies = $fetchMusic = $fetchShows = true;

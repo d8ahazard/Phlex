@@ -6,18 +6,18 @@
         "source": {
             "type": "git",
             "url": "https://github.com/d8ahazard/Radarr.git",
-            "reference": "b95006178c9f568ca56f863adb35227ec325f96a"
+            "reference": "9cb3350e53ee207efa013bab3bdef9a24133c5ca"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/d8ahazard/Radarr/zipball/b95006178c9f568ca56f863adb35227ec325f96a",
-            "reference": "b95006178c9f568ca56f863adb35227ec325f96a",
+            "url": "https://api.github.com/repos/d8ahazard/Radarr/zipball/9cb3350e53ee207efa013bab3bdef9a24133c5ca",
+            "reference": "9cb3350e53ee207efa013bab3bdef9a24133c5ca",
             "shasum": ""
         },
         "require": {
             "guzzlehttp/guzzle": "^6.1"
         },
-        "time": "2017-07-26T22:23:48+00:00",
+        "time": "2018-05-16T20:12:58+00:00",
         "type": "library",
         "installation-source": "source",
         "autoload": {
