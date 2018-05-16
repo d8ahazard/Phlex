@@ -32,7 +32,6 @@ function initConfig() {
     $configFile = file_exists($dbFile) ? $dbFile : $jsonFile;
     if (file_exists($dbFile)) checkDefaultsDb($dbFile);
     try {
-        write_log("Constructing from File '$configFile");
         $config = new digitalhigh\Config($configFile);
     } catch (\digitalhigh\ConfigException $e) {
         write_log("An exception occurred creating the configuration. '$e'","ERROR");
@@ -127,7 +126,6 @@ function checkDefaults() {
     // Loading from General
     $defaults = getPreference('general',false,false);
     if ($defaults) {
-        write_log("Got defaults: ".json_encode($defaults));
         $keys = $values = [];
         foreach($defaults as $value){
             foreach($value as $id => $data) {
@@ -345,9 +343,6 @@ function checkSSL() {
 
 function isWebApp() {
     $isWebApp = file_exists(dirname(__FILE__) . "/../rw/db.conf.php");
-    $string = $isWebApp ? "This is a webapp" : "This is NOT a webapp.";
-    $level = $isWebApp ? "INFO" : "ALERT";
-    write_log("$string",$level);
     return $isWebApp;
 }
 
