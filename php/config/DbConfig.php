@@ -4,6 +4,7 @@ require_once dirname(__FILE__) . "/ConfigException.php";
 use mysqli;
 class DbConfig {
 
+    protected $connection;
 
     /**
      * DbConfig constructor.
@@ -14,9 +15,9 @@ class DbConfig {
 	{
 		$this->connection = $this->connect($configFile);
 		if ($this->connection === false) {
+		    write_log("Connection failed.","ERROR");
 			throw new ConfigException("Error connecting to database!!");
 		}
-		return ($this->connection !== false);
 	}
 
 
@@ -28,7 +29,6 @@ class DbConfig {
         return ($this->connection ? true : false);
     }
 
-	protected $connection;
 
     /**
      * @param $configFile
@@ -37,16 +37,20 @@ class DbConfig {
      */
     protected function connect($configFile) {
 		$config = parse_ini_file($configFile);
+		write_log("Parsed config: ".json_encode($config));
 		$host = $config['dburi'] ?? 'localhost';
 		$mysqli = new mysqli($host,$config['username'],$config['password'],$config['dbname']);
 		if ($mysqli->connect_errno) {
+		    write_log("Connection error!!","ERROR");
 		    throw new ConfigException("ERROR CONNECTING: ".$mysqli->connect_errno);
 		}
 
 		/* check if server is alive */
 		if ($mysqli->ping()) {
+		    write_log("Ping is good.");
 			return $mysqli;
 		} else {
+		    write_log("Ping failed, fucker.");
 			return false;
 		}
 	}
@@ -152,12 +156,12 @@ class DbConfig {
 	*/
 	
 	public function query($query) {
-
+        write_log("Query is '$query'","ALERT");
 		// Query the database
 		$result = $this->connection -> query($query);
         if (!$result) {
             $error = mysqli_error($this->connection);
-            trigger_error("Query error: ".$error,E_USER_ERROR);
+            write_log("Query error: ".$error,"ERROR");
             return false;
         }
 		return $result;
@@ -171,10 +175,13 @@ class DbConfig {
 	*/
 	
 	public function select($query) {
+        write_log("Query is '$query'","ALERT");
 		$rows = array();
 		$result = $this-> connection -> query($query);
 		if(($result === false) || (! is_object($result))) {
-		    trigger_error("Possible select error: ".$error = mysqli_error($this->connection),E_USER_WARNING);
+            $error = mysqli_error($this->connection);
+            write_log("Query error: ".$error,"ERROR");
+		    trigger_error("Possible select error: $error",E_USER_WARNING);
 			return $result;
 		}
 		while ($row = $result -> fetch_assoc()) {

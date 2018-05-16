@@ -26,28 +26,22 @@ function updateUserPreferenceArray($data) {
 
 function initConfig() {
     $configObject = false;
-    if (isset($_SESSION['config'])) {
-        $configObject = $_SESSION['config'];
-        $configObject = $configObject->isValid();
+    $error = false;
+    $dbFile = dirname(__FILE__) . "/../rw/db.conf.php";
+    $jsonFile = dirname(__FILE__). "/../rw/config.php";
+    $configFile = file_exists($dbFile) ? $dbFile : $jsonFile;
+    if (file_exists($dbFile)) checkDefaultsDb($dbFile);
+    try {
+        write_log("Constructing from File '$configFile");
+        $config = new digitalhigh\Config($configFile);
+    } catch (\digitalhigh\ConfigException $e) {
+        write_log("An exception occurred creating the configuration. '$e'","ERROR");
+        $error = true;
+    }
+    if (!$error) {
+        $configObject = $config->ConfigObject;
     }
 
-    if (!$configObject) {
-        $error = false;
-        $dbFile = dirname(__FILE__) . "/../rw/db.conf.php";
-        $jsonFile = dirname(__FILE__). "/../rw/config.php";
-        $configFile = file_exists($dbFile) ? $dbFile : $jsonFile;
-
-        try {
-            $config = new digitalhigh\Config($configFile);
-        } catch (\digitalhigh\ConfigException $e) {
-            write_log("An exception occurred creating the configuration. '$e'","ERROR");
-            $error = true;
-        }
-        if (!$error) {
-            $configObject = $config->ConfigObject;
-            if ($configObject->isValid()) writeSession('config',$config);
-        }
-    }
     return $configObject;
 }
 
@@ -125,13 +119,15 @@ function checkDefaults() {
     $errorLogPath = file_build_path(dirname(__FILE__),'..', 'logs', 'Phlex_error.log.php');
     ini_set("error_log", $errorLogPath);
     date_default_timezone_set((date_default_timezone_get() ? date_default_timezone_get() : "America/Chicago"));
-    $useDb = file_exists(dirname(__FILE__) . "/db.conf.php");
+    $config = dirname(__FILE__) . "/../rw/db.conf.php";
+    $useDb = file_exists($config);
     if ($useDb) {
-        checkDefaultsDb();
+        checkDefaultsDb($config);
     }
     // Loading from General
     $defaults = getPreference('general',false,false);
     if ($defaults) {
+        write_log("Got defaults: ".json_encode($defaults));
         $keys = $values = [];
         foreach($defaults as $value){
             foreach($value as $id => $data) {
@@ -166,8 +162,8 @@ function checkDefaults() {
     return $defaults;
 }
 
-function checkDefaultsDb() {
-    $config = parse_ini_file('db.conf.php');
+function checkDefaultsDb($config) {
+    $config = parse_ini_file($config);
     $db = $config['dbname'];
     $head = '<!DOCTYPE html>
         <html lang="en">
@@ -237,7 +233,7 @@ function checkDefaultsDb() {
  `plexEmail` tinytext NOT NULL,
  `plexAvatar` longtext NOT NULL,
  `plexToken` tinytext NOT NULL,
- 'publicAddress' mediumtext NOT NULL,
+ `publicAddress` mediumtext NOT NULL,
  `lastScan` tinytext NOT NULL,
  `returnItems` int(2) NOT NULL DEFAULT '6',
  `rescanTime` int(2) NOT NULL DEFAULT '10',
@@ -285,6 +281,9 @@ function checkDefaultsDb() {
  `searchAccuracy` int(3) NOT NULL DEFAULT '70',
  `hasPlugin` tinyint(1) NOT NULL DEFAULT '0',
  `alertPlugin` tinyint(1) NOT NULL,
+ `notifyUpdate` tinyint(1) NOT NULL DEFAULT '0',
+ `masterUser` tinyint(1) NOT NULL DEFAULT '0',
+ `autoUpdate` tinyint(1) NOT NULL DEFAULT '0',
  `dlist` longtext NOT NULL,
  `plexPassUser` tinyint(1) NOT NULL,
  `plexServerId` tinytext NOT NULL,
@@ -345,7 +344,10 @@ function checkSSL() {
 }
 
 function isWebApp() {
-    $isWebApp = getPreference('general','value',false,'name','isWebApp');
+    $isWebApp = file_exists(dirname(__FILE__) . "/../rw/db.conf.php");
+    $string = $isWebApp ? "This is a webapp" : "This is NOT a webapp.";
+    $level = $isWebApp ? "INFO" : "ALERT";
+    write_log("$string",$level);
     return $isWebApp;
 }
 
