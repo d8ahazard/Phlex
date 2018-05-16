@@ -4,7 +4,7 @@ require_once dirname(__FILE__) . "/php/webApp.php";
 require_once dirname(__FILE__) . '/php/util.php';
 require_once dirname(__FILE__) . '/PHPTail.php';
 
-if (!isset($_GET['apiToken'])) {
+if (!isset($_GET['apiToken']) || isWebApp()) {
 	die("Unauthorize access detected.");
 } else {
 	$apiToken = $_GET['apiToken'];
