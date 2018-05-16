@@ -14,6 +14,10 @@ class ComposerStaticInit9bfc661db41fbe72b8290df9d750d1b2
     );
 
     public static $prefixLengthsPsr4 = array (
+        'd' => 
+        array (
+            'digitalhigh\\Radarr\\' => 19,
+        ),
         'S' => 
         array (
             'Symfony\\Polyfill\\Mbstring\\' => 26,
@@ -37,6 +41,10 @@ class ComposerStaticInit9bfc661db41fbe72b8290df9d750d1b2
     );
 
     public static $prefixDirsPsr4 = array (
+        'digitalhigh\\Radarr\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/digitalhigh/radarr/src',
+        ),
         'Symfony\\Polyfill\\Mbstring\\' => 
         array (
             0 => __DIR__ . '/..' . '/symfony/polyfill-mbstring',

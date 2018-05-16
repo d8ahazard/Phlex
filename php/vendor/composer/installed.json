@@ -412,5 +412,47 @@
             "portable",
             "shim"
         ]
+    },
+    {
+        "name": "digitalhigh/radarr",
+        "version": "dev-master",
+        "version_normalized": "9999999-dev",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/d8ahazard/Radarr.git",
+            "reference": "9cb3350e53ee207efa013bab3bdef9a24133c5ca"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/d8ahazard/Radarr/zipball/9cb3350e53ee207efa013bab3bdef9a24133c5ca",
+            "reference": "9cb3350e53ee207efa013bab3bdef9a24133c5ca",
+            "shasum": ""
+        },
+        "require": {
+            "guzzlehttp/guzzle": "^6.1"
+        },
+        "time": "2018-05-16T20:12:58+00:00",
+        "type": "library",
+        "installation-source": "source",
+        "autoload": {
+            "psr-4": {
+                "digitalhigh\\Radarr\\": "src/"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "Jesse Szypulski",
+                "email": "jesse.szypulski@gmail.com"
+            },
+            {
+                "name": "Digitalhigh",
+                "email": "donate.to.digitalhigh@gmail.com"
+            }
+        ],
+        "description": "PHP Radarr API Wrapper"
     }
 ]
