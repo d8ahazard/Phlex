@@ -1,26 +1,45 @@
 <?php
 namespace digitalhigh;
+require_once dirname(__FILE__) . "/ConfigException.php";
 use mysqli;
-require_once(dirname(__FILE__)."/util.php");
 class DbConfig {
 
 
-	public function __construct()
+    /**
+     * DbConfig constructor.
+     * @param string $configFile
+     * @throws ConfigException
+     */
+    public function __construct($configFile)
 	{
-		$this->connection = $this->connect();
+		$this->connection = $this->connect($configFile);
 		if ($this->connection === false) {
-			write_log("Error connecting to db.","ERROR");
+			throw new ConfigException("Error connecting to database!!");
 		}
 		return ($this->connection !== false);
 	}
 
+
+    /**
+     * @return bool
+     */
+    public function isValid()
+    {
+        return ($this->connection ? true : false);
+    }
+
 	protected $connection;
 
-	protected function connect() {
-		$config = parse_ini_file('db.conf.php');
+    /**
+     * @param $configFile
+     * @return bool|mysqli
+     * @throws ConfigException
+     */
+    protected function connect($configFile) {
+		$config = parse_ini_file($configFile);
 		$mysqli = new mysqli('localhost',$config['username'],$config['password'],$config['dbname']);
 		if ($mysqli->connect_errno) {
-			return false;
+		    throw new ConfigException("ERROR CONNECTING: ".$mysqli->connect_errno);
 		}
 
 		/* check if server is alive */
@@ -30,8 +49,11 @@ class DbConfig {
 			return false;
 		}
 	}
-	
-	public function disconnect() {
+
+    /**
+     *
+     */
+    public function disconnect() {
 		
 		// Try and connect to the database
 		if($this->connection) {
@@ -39,7 +61,14 @@ class DbConfig {
 		}
 	}
 
-	public function set($section, $data, $selector=null, $search=null, $new=false) {
+    /**
+     * @param $section
+     * @param $data
+     * @param null $selector
+     * @param null $search
+     * @param bool $new
+     */
+    public function set($section, $data, $selector=null, $search=null, $new=false) {
         $keys = $strings = $values = [];
         $addSelector = true;
 
@@ -69,10 +98,17 @@ class DbConfig {
         $result = $this->query($query);
         if ($result) {
         } else{
-            write_log("Error saving record: ".$this->error(),"ERROR");
+            trigger_error("Error saving record: ".$this->error(),E_USER_ERROR);
         }
     }
 
+    /**
+     * @param $section
+     * @param bool $keys
+     * @param null $selector
+     * @param null $search
+     * @return array|bool
+     */
     public function get($section, $keys=false, $selector=null, $search=null) {
         if (is_string($keys)) $keys = [$keys];
         $keys = $keys ? join(", ",$keys) : "*";
@@ -82,6 +118,12 @@ class DbConfig {
         return $data;
     }
 
+    /**
+     * @param $section
+     * @param null $selector
+     * @param null $value
+     * @return mixed
+     */
     public function delete($section, $selector=null, $value=null) {
 	    $query = "DELETE from $section";
         if ($selector && $value) {
@@ -114,7 +156,7 @@ class DbConfig {
 		$result = $this->connection -> query($query);
         if (!$result) {
             $error = mysqli_error($this->connection);
-            write_log("Query error: ".$error,"ERROR");
+            trigger_error("Query error: ".$error,E_USER_ERROR);
             return false;
         }
 		return $result;
@@ -131,7 +173,7 @@ class DbConfig {
 		$rows = array();
 		$result = $this-> connection -> query($query);
 		if(($result === false) || (! is_object($result))) {
-		    write_log("Possible select error: ".$error = mysqli_error($this->connection),"WARN");
+		    trigger_error("Possible select error: ".$error = mysqli_error($this->connection),E_USER_WARNING);
 			return $result;
 		}
 		while ($row = $result -> fetch_assoc()) {
@@ -168,8 +210,12 @@ class DbConfig {
         } else $escaped = $value;
 		return $escaped;
 	}
-	
-	public function escape($value) {
+
+    /**
+     * @param $value
+     * @return string
+     */
+    public function escape($value) {
         if (is_string($value)) {
             $escaped = $this->connection->real_escape_string($value);
         } else $escaped = $value;

@@ -2,9 +2,8 @@
 require_once dirname(__FILE__). '/util.php';
 require_once dirname(__FILE__) . '/vendor/autoload.php';
 require_once dirname(__FILE__) . '/git/GitUpdate.php';
-$useDb = file_exists(dirname(__FILE__) . "/db.conf.php");
+require_once dirname(__FILE__) . '/config/Config.php';
 
-require_once dirname(__FILE__) . ($useDb ? '/DbConfig.php' : '/JsonConfig.php');
 checkDefaults();
 use digitalhigh\GitUpdate;
 $isWebapp = isWebApp();
@@ -25,20 +24,42 @@ function updateUserPreferenceArray($data) {
     writeSessionArray($data);
 }
 
+function initConfig() {
+    $configObject = false;
+    if (isset($_SESSION['config'])) {
+        $configObject = $_SESSION['config'];
+        $configObject = $configObject->isValid();
+    }
+
+    if (!$configObject) {
+        $error = false;
+        $dbFile = dirname(__FILE__) . "/../rw/db.conf.php";
+        $jsonFile = dirname(__FILE__). "/../rw/config.php";
+        $configFile = file_exists($dbFile) ? $dbFile : $jsonFile;
+
+        try {
+            $config = new digitalhigh\Config($configFile);
+        } catch (\digitalhigh\ConfigException $e) {
+            write_log("An exception occurred creating the configuration. '$e'","ERROR");
+            $error = true;
+        }
+        if (!$error) {
+            $configObject = $config->ConfigObject;
+            if ($configObject->isValid()) writeSession('config',$config);
+        }
+    }
+    return $configObject;
+}
+
 function setPreference($section, $data, $selector=null, $search=null, $new=false) {
-    $useDb = file_exists(dirname(__FILE__) . "/db.conf.php");
-    $configFile = file_build_path(dirname(__FILE__), "..","rw","config.php");
-    $config = $useDb ? new \digitalhigh\DbConfig() : new JsonConfig($configFile);
+    $config = initConfig();
     $config->set($section, $data, $selector, $search, $new);
 }
 
 function getPreference($section, $keys=false, $default=false, $selector=null, $search=null,$single=true) {
-    $useDb = file_exists(dirname(__FILE__) . "/db.conf.php");
-    $configFile = file_build_path(dirname(__FILE__), "..","rw","config.php");
-    $config = $useDb ? new \digitalhigh\DbConfig() : new JsonConfig($configFile);
+    $config = initConfig();
     $data = $config->get($section, $keys, $selector, $search);
     $ignore = false;
-    //if ($section == 'general') write_log("Raw data: ".json_encode($data));
     if ($keys) {
         if (is_string($keys)) {
             $data = $data[0][$keys] ?? $default;
@@ -49,14 +70,11 @@ function getPreference($section, $keys=false, $default=false, $selector=null, $s
         $data = $default;
     }
     if ($single && !is_string($data))  $data = (count($data) == 1) ? $data[0] : $data;
-    //if ($section == 'commands') write_log("Outgoing data: ".json_encode($data));
     return $data;
 }
 
 function deleteData($section, $selector=null, $value=null) {
-    $useDb = file_exists(dirname(__FILE__) . "/db.conf.php");
-    $configFile = file_build_path(dirname(__FILE__), "..","rw","config.php");
-    $config = $useDb ? new \digitalhigh\DbConfig() : new JsonConfig($configFile);
+    $config = initConfig();
     $config->delete($section, $selector, $value);
 }
 
