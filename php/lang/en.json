@@ -337,6 +337,11 @@
 		"Roger that, turning on <TITLE>.",
 		"Affirmative. Starting <TITLE>."
 	],
+	"speechFetchAffirmatives": [
+		"Allright,",
+		"Okay,",
+		"Success!"
+	],
 	"speechPlayer": "player",
 	"speechPlayError3": "I couldn't find that in the library, do you want me to try downloading it?",
 	"speechPlayErrorEnd1": " in your library. Should I try to add it to the watch lists?",

@@ -3648,7 +3648,7 @@ function buildSpeechFetch($media, $fetched, $existing)
         foreach ($fetched as $name => $status) {
             if ($status) array_push($good, $name); else array_push($bad, $name);
         }
-        $affirmatives = lang("speechPlaybackAffirmatives");
+        $affirmatives = lang("speechFetchAffirmatives");
         $last = $_SESSION['affirmative'] ?? 'foo';
         if (count($good)) {
             do {
@@ -3660,6 +3660,7 @@ function buildSpeechFetch($media, $fetched, $existing)
         if (count($bad)) {
             $string .= "I wasn't able to add it to " . joinStrings($bad);
         }
+        return $string;
     }
 
     if (count($existing)) {
