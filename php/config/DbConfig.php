@@ -37,7 +37,8 @@ class DbConfig {
      */
     protected function connect($configFile) {
 		$config = parse_ini_file($configFile);
-		$mysqli = new mysqli('localhost',$config['username'],$config['password'],$config['dbname']);
+		$host = $config['dburi'] ?? 'localhost';
+		$mysqli = new mysqli($host,$config['username'],$config['password'],$config['dbname']);
 		if ($mysqli->connect_errno) {
 		    throw new ConfigException("ERROR CONNECTING: ".$mysqli->connect_errno);
 		}
