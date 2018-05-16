@@ -3655,7 +3655,7 @@ function buildSpeechFetch($media, $fetched, $existing)
                 $affirmative = $affirmatives[array_rand($affirmatives)];
 
             } while ($affirmative == $last);
-            $string .= $affirmative . "I've added $title to " . joinStrings($good);
+            $string .= $affirmative . " I've added $title to " . joinStrings($good);
         }
         if (count($bad)) {
             $string .= "I wasn't able to add it to " . joinStrings($bad);
