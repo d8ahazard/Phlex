@@ -1,17 +1,10 @@
 {
 	"minimium-stability": "dev",
-	"repositories": [
-		{
-			"type": "pear",
-			"url": "https://pear.php.net"
-		}
-	],
 	"require": {
 		"kryptonit3/sickrage": "^1.0",
 		"kryptonit3/sonarr": "^1.0",
 		"guzzlehttp/guzzle": "^6.2",
 		"symfony/polyfill-mbstring": "^1.2",
-		"kryptonit3/couchpotato": "1.0.0",
-		"digitalhigh/radarr": "dev-master"
+		"kryptonit3/couchpotato": "1.0.0"
 	}
 }
