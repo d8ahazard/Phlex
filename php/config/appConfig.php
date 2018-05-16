@@ -6,7 +6,7 @@ require_once dirname(__FILE__) . "/DbConfig.php";
 require_once dirname(__FILE__) . "/JsonConfig.php";
 require_once dirname(__FILE__) . "/ConfigException.php";
 
-class Config
+class appConfig
 {
     public $ConfigObject;
 

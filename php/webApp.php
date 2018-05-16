@@ -2,7 +2,7 @@
 require_once dirname(__FILE__). '/util.php';
 require_once dirname(__FILE__) . '/vendor/autoload.php';
 require_once dirname(__FILE__) . '/git/GitUpdate.php';
-require_once dirname(__FILE__) . '/config/Config.php';
+require_once dirname(__FILE__) . '/config/appConfig.php';
 
 checkDefaults();
 use digitalhigh\GitUpdate;
@@ -81,7 +81,7 @@ function initConfig() {
     $configFile = file_exists($dbFile) ? $dbFile : $jsonFile;
     if (file_exists($dbFile)) checkDefaultsDb($dbFile);
     try {
-        $config = new digitalhigh\Config($configFile);
+        $config = new digitalhigh\appConfig($configFile);
     } catch (\digitalhigh\ConfigException $e) {
         write_log("An exception occurred creating the configuration. '$e'","ERROR");
         $error = true;
