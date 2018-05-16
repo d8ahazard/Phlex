@@ -2346,17 +2346,17 @@ function sendFallback()
     write_log("Function fired!!", "WARN");
     if (isset($_SESSION['fallback'])) {
         $fb = $_SESSION['fallback'];
-        if (isset($fb['media'])) sendMediaLegacy($fb['media']);
+        if (isset($fb['media'])) sendMedia($fb['media']);
         writeSession('fallback', null, true);
     }
 }
 
-function sendMediaLegacy($media)
+function sendMedia($media)
 {
     write_log("Incoming media: " . json_encode($media));
     $playUrl = false;
     $client = findDevice(false, false, 'Client');
-    $id = $Client['Parent'] ?? $_SESSION['plexServerId'];
+    $id = $client['Parent'] ?? $_SESSION['plexServerId'];
     write_log("Parent id? $id");
     $parent = findDevice("Id", $id, "Server");
     $hostId = $media['source'] ?? $_SESSION['plexServerId'];
@@ -2444,7 +2444,7 @@ function sendMediaLegacy($media)
     return $return;
 }
 
-function sendMedia($media)
+function fetchPlayItem($media)
 {
     write_log("Function fired: " . json_encode($media));
     $item = false;
@@ -2461,7 +2461,7 @@ function sendMedia($media)
                 break;
             case 'show':
                 write_log("Play the latest on-deck item, or first unwatched episode.");
-                $item = $media['onDeck'][0] ?? fetchFirstUnwatchedEpisode($media['key'], $parent);
+                $item = $media['ondeck'][0] ?? fetchFirstUnwatchedEpisode($media['key'], $parent);
                 $item['source'] = $media['source'];
                 write_log("Show item: " . json_encode($item));
                 break;
@@ -2485,7 +2485,6 @@ function sendMedia($media)
         }
     }
     write_log("Item before sending: " . json_encode($item));
-    if ($item) sendMediaLegacy($item);
     return $item;
 }
 
@@ -2729,7 +2728,8 @@ function mapApiRequest($request)
                 if ($_SESSION['intent'] == 'playMedia' || $_SESSION['intent'] == 'fetchInfo') {
                     write_log("Session intent is good.");
                     $params['resolved'] = $resolvedQuery = "Play " . $media[0]['title'] . ".";
-                    $actionResult = sendMedia($media[0]);
+                    $actionResult = fetchPlayItem($media[0]);
+                    if ($actionResult) $actionResult = sendMedia($actionResult);
                 } else {
                     //$actionResult = fecthMedia($result[0]);
                     $actionResult = "foo";
@@ -2860,7 +2860,9 @@ function mapApiRequest($request)
                     ];
                     $result = array_merge($data, $result);
                 }
-                if ($result['playback']) $playResult = sendMedia($result['playback']);
+                if ($result['playback']) {
+                    $playResult = sendMedia($playResult);
+                }
                 write_log("PlayResult: " . json_encode($playResult));
             }
             break;
@@ -3521,7 +3523,8 @@ function buildSpeech($params, $results)
                     break;
                 case 1:
                     write_log("just the right amount.");
-                    $speech = buildSpeechAffirmative($cards[0]);
+                    $media = fetchPlayItem($media[0]);
+                    $speech = buildSpeechAffirmative($media);
                     $playback = $media[0];
                     break;
                 default:
@@ -3594,6 +3597,7 @@ function buildSpeech($params, $results)
 
 function buildSpeechAffirmative($media)
 {
+    write_log("Incoming media: ".json_encode($media));
     $affirmatives = lang("speechPlaybackAffirmatives");
     $title = $media['title'];
     $eggs = lang("speechEggArray");
