@@ -69,6 +69,8 @@ class JsonConfig extends ArrayObject {
                 if ($update) {
                     $pushed = true;
                     foreach ($data as $key => $value) {
+                        if ($value === "false") $value = false;
+                        if ($value === "true") $value = true;
                         $record[$key] = $value;
                     }
                 }

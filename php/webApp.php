@@ -15,13 +15,62 @@ $_SESSION['appAddress'] = $publicAddress;
 $_SESSION['publicAddress'] = $publicAddress;
 
 function updateUserPreference($key, $value) {
+    $value = scrubBools($value, $key);
     setPreference('userdata',[$key=>$value],'apiToken',$_SESSION['apiToken']);
     writeSession($key,$value);
 }
 
 function updateUserPreferenceArray($data) {
+    $data = scrubBools($data);
     setPreference('userdata',$data,'apiToken',$_SESSION['apiToken']);
     writeSessionArray($data);
+}
+
+function scrubBools($scrub, $key=false) {
+    $booleans = [
+        'couchEnabled',
+        'headphonesEnabled',
+        'ombiEnabled',
+        'radarrEnabled',
+        'sickEnabled',
+        'sonarrEnabled',
+        'lidarrEnabled',
+        'watcherEnabled',
+        'darkTheme',
+        'hasPlugin',
+        'alertPlugin',
+        'masterUser',
+        'notifyUpdate',
+        'autoUpdate',
+        'plexDvrReplaceLower',
+        'plexDverNewAirings',
+        'plexDvrComskipEnabled',
+        'hookPausedEnabled',
+        'hookPlayEnabled',
+        'hookFetchEnabled',
+        'hookCustomEnabled',
+        'hookSplitEnabled',
+        'hookStopEnabled'
+    ];
+
+    if (is_array($scrub) && !$key) {
+        $return = [];
+        foreach ($scrub as $key=>$value) {
+            if (in_array($key, $booleans)) {
+                if ($value === 'true') $value = true;
+                if ($value === 'false') $value = false;
+            }
+            $return[$key] = $value;
+        }
+    } else {
+        $return = "";
+        if (in_array($key, $booleans)) {
+            if ($scrub === 'true') $scrub = true;
+            if ($scrub === 'false') $scrub = false;
+        }
+        $return = $scrub;
+    }
+    return $return;
 }
 
 function initConfig() {
@@ -407,12 +456,14 @@ function fetchUserData() {
     $data = [];
     foreach($temp as $key => $value) {
         if (isJSON($value)) $value = json_decode($value,true);
+        $value = scrubBools($value,$key);
         $data[$key] = $value;
     }
     write_log("Fetched, data: ".json_encode($data),"ALERT");
     return $data;
 
 }
+
 
 function logCommand($resultObject) {
     if (isset($_GET['noLog'])) {

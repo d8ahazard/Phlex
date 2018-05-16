@@ -168,10 +168,6 @@ function initialize()
             $value = cleanUri($value);
             if (!$value) $valid = false;
         }
-        if (preg_match("Uri", $id)) {
-            $value = cleanUri($value);
-            if (!$value) $valid = false;
-        }
         if (preg_match("/Path/", $id)) if ((substr($value, 0, 1) != "/") && (trim($value) !== "")) $value = "/" . $value;
 
         if ($valid) {

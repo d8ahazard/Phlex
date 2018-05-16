@@ -73,11 +73,12 @@ class DbConfig {
         $addSelector = true;
 
         foreach ($data as $key => $value) {
-            if ($value === "true" || $value === true) $value = "1";
-            if ($value === "false" || $value === false) $value = "0";
+            if ($value === true) $value = "true";
+            if ($value === false) $value = "false";
             if ($key == $selector) $addSelector = false;
             if (is_array($value)) $value = json_encode($value);
             $quoted = $this->quote($value);
+            if ($value === "true" || $value === "false") $quoted = $value;
             array_push($keys, $key);
             array_push($values, $quoted);
             array_push($strings, "$key=$quoted");
