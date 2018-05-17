@@ -3,8 +3,7 @@ require_once dirname(__FILE__). '/util.php';
 require_once dirname(__FILE__) . '/vendor/autoload.php';
 require_once dirname(__FILE__) . '/git/GitUpdate.php';
 require_once dirname(__FILE__) . '/config/appConfig.php';
-
-checkDefaults();
+checkFiles();
 use digitalhigh\GitUpdate;
 $isWebapp = isWebApp();
 $_SESSION['webApp'] = $isWebapp;
@@ -642,6 +641,7 @@ function checkFiles() {
                 $url = 'https://stackoverflow.com/questions/32017161/xampp-on-windows-8-1-cant-edit-files-in-htdocs';
             }
             write_log($message, "ERROR");
+
             $error = [
                 'title' => 'File error.',
                 'message' => $message,

@@ -8,7 +8,6 @@ class JsonConfig extends ArrayObject {
     protected $fileName;
     protected $header;
     protected $secure;
-    protected $cache;
 
     public $data;
 
@@ -25,24 +24,10 @@ class JsonConfig extends ArrayObject {
         $this->secure = $secure;
 
         $this->data = [];
-        $this->cache = [];
 
-        if (!$this->validate()) throw new ConfigException("Error accessing specified config file.");
-
-        $data = $this->read();
-        if (is_array($data)) {
-            $this->data = $data;
-            $this->cache = $data;
-        } else {
-            throw new ConfigException("Error reading data from file.");
+        if (file_exists($filename)) {
+            $this->read();
         }
-    }
-
-    /**
-     * @return bool
-     */
-    public function isValid() {
-        return ($this->read ? true : false);
     }
 
     /**
@@ -68,9 +53,8 @@ class JsonConfig extends ArrayObject {
                 }
                 if ($update) {
                     $pushed = true;
+                    write_log("Setting data here: ".json_encode($data));
                     foreach ($data as $key => $value) {
-                        if ($value === "false") $value = false;
-                        if ($value === "true") $value = true;
                         $record[$key] = $value;
                     }
                 }
@@ -78,8 +62,10 @@ class JsonConfig extends ArrayObject {
         }
 
         if (!$pushed || $new) {
+            write_log("Pushing data: ".json_encode($data));
             array_push($temp,$data);
         }
+        write_log("Section $section set to: ".json_encode($temp));
         $this->data[$section] = $temp;
         $this->save();
     }
@@ -92,7 +78,7 @@ class JsonConfig extends ArrayObject {
      * @return array|mixed
      */
     public function get($section, $keys=false, $selector=null, $search=null) {
-        $data = $this->cache[$section] ?? [];
+        $data = $this->data[$section] ?? [];
         if ($data) {
             if ($selector && $search) {
                 $results = [];
@@ -164,24 +150,6 @@ class JsonConfig extends ArrayObject {
         }
     }
 
-    /**
-     * @return bool
-     */
-    protected function validate() {
-        if (!file_exists($this->fileName)) {
-            if (touch($this->fileName)) {
-                if (chmod($this->fileName,0666)) {
-                    $data = $this->header . PHP_EOL .json_encode([],JSON_PRETTY_PRINT);
-                    if (file_put_contents($this->fileName,$data)) {
-                        return true;
-                    }
-                }
-            }
-        } else {
-            return is_writable($this->fileName);
-        }
-        return false;
-    }
 
     /**
      * @return bool|mixed|string
@@ -196,12 +164,15 @@ class JsonConfig extends ArrayObject {
         $data = fread($file,filesize($path));
         fclose($file);
 
-        if ($data !== false) {
+        if ($data) {
             $data = str_replace($this->header, "", $data);
-            $data = json_decode($data,true);
+            $data = trim($data) ? json_decode($data, true) : [];
         }
-
-        return $data;
+        if (!$data) {
+            write_log("Error reading data.","WARN");
+            $data = [];
+        }
+        $this->data = $data;
     }
 
     /**
@@ -218,9 +189,10 @@ class JsonConfig extends ArrayObject {
         } while (!$result && $i >=5);
 
         if (!$result) {
+            write_log("Can't save file!","ERROR");
             throw New ConfigException("Error saving file, this is bad!!");
         } else {
-            $this->cache = $this->data;
+            write_log("Data array: ".json_encode($this->data));
         }
         return $result;
     }
@@ -235,6 +207,7 @@ class JsonConfig extends ArrayObject {
         $result = fwrite($fp, $contents);
         flock($fp, LOCK_UN);
         fclose($fp);
+        if ($result) write_log("Saved successfully to $this->fileName");
         return $result !== false;
     }
 
