@@ -1038,7 +1038,9 @@ function setListeners() {
 	});
 
 	$(".btn").on('click', function () {
-		var serverAddress = $("#publicAddress").attr('value');
+        apiToken = $('#apiTokenData').data('token');
+
+        var serverAddress = $("#publicAddress").attr('value');
 		var value, regUrl;
 		if ($(this).hasClass("copyInput")) {
 			value = $(this).val();
@@ -1048,7 +1050,6 @@ function setListeners() {
 
 		if ($(this).hasClass("testInput")) {
 			value = $(this).attr('value');
-			apiToken = $('#apiTokenData').data('token');
 
 			$.get('api.php?test=' + value + '&apiToken=' + apiToken, function (data) {
 				var dataArray = [data];
@@ -1068,9 +1069,15 @@ function setListeners() {
 			clipboard.copy(string);
 		}
 
+        if ($(this).hasClass("logBtn")) {
+			console.log("Cast logs should be fetching...");
+            location.href = 'api.php?castLogs&apiToken=' + apiToken;
+
+
+        }
+
 		if ($(this).hasClass("setupInput")) {
 			appName = $(this).data('value');
-			apiToken = $('#apiTokenData').data('token');
 
 			$.get('api.php?setup&apiToken=' + apiToken, function (data) {
 				$.snackbar({content: JSON.stringify(data).replace(/"/g, "")});

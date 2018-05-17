@@ -31,8 +31,7 @@ class GitUpdate
         if($repository === FALSE || $hasGit === FALSE)
         {
             $msg = $hasGit ? "No git Binary Found." : "Directory specified is not a repository.";
-            write_log("$msg");
-            //throw new GitException($msg);
+            write_log("$msg","ERROR");
             $this->hasGit = false;
             return false;
         }
@@ -71,11 +70,8 @@ class GitUpdate
         $refs = [];
         $branch = $this->branch;
         $command = "git log ..origin/$branch --oneline";
-        write_log("Git command: '$command'", "INFO");
         exec($command, $lines);
-        write_log("Result: ".json_encode($lines));
         foreach($lines as $line) array_push($refs,explode(" ",$line)[0]);
-        write_log("Refs: ".json_encode($refs));
         $commits = count($refs) ? $this->fetchCommits($refs,$limit) : [];
         return ['refs'=>$refs,'commits'=>$commits];
     }
@@ -90,7 +86,6 @@ class GitUpdate
      */
     public function fetchCommits(array $refs,int $limit=10)
     {
-        write_log("Fetching commits for refs: ".json_encode($refs));
         $commits = [];
         foreach ($refs as $ref) {
             $commit = [];
@@ -115,7 +110,7 @@ class GitUpdate
         $result = $this->gitExec("git pull",true);
         write_log("Install result: ".json_encode($result));
         $result = (preg_match("/updating/",strtolower(join(" ",$result))));
-        if ($result) write_log("Update was successful!");
+        if ($result) write_log("Update was successful!","ALERT"); else write_log("UPDATE FAILED.","ERROR");
         $this->revision = $this->gitExec('git rev-parse HEAD');
         return $result;
     }

@@ -486,7 +486,6 @@ function logCommand($resultObject) {
     if (trim($apiToken) && trim($data)) {
         #TODO: Verify that the commands are in the right order here
         $rows = getPreference('commands','stamp',[],'apiToken',$apiToken,false);
-        write_log("Retrieved rows and stuff: ".json_encode($rows),"ALERT");
         if (is_array($rows)) $rows = array_reverse($rows);
         $i = 1;
         $stamps = [];

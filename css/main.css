@@ -18,10 +18,6 @@
 html, body {
 	height: 100%;
 }
-body {
-	overflow: hidden;
-}
-
 
 .card, .dropdown-menu, .queryBg {
 	background: var(--theme-primary);

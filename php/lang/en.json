@@ -395,6 +395,7 @@
 	"uiSettingNotifyUpdate": "Notify when updates are available",
 	"uiSettingBtnReset": "RESET",
 	"uiSettingBtnTest": "TEST",
+	"uiSettingCastLogs": "Download Cast Logs",
 	"uiSettingCopyIFTTT": "Click to copy IFTTT URL:",
 	"uiSettingDevices": "Static Devices",
 	"uiSettingDevicesAddNew": "Add New Device",

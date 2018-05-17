@@ -132,7 +132,7 @@ checkUpdate();
 	}
 	$execution_time = (microtime(true) - $GLOBALS['time']);
 
-	write_log("Execution time till body echo was $execution_time seconds.");
+
 	function showLogin() {
 		$GLOBALS['login'] = true;
 		echo '

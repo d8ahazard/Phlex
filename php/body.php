@@ -362,16 +362,17 @@ function makeSettingsBody($defaults) {
 					                            <h4 class='cardHeader'>" . $lang["uiSettingGeneral"] . "</h4>
 				                                <div class='form-group'>
 				                                    <label class='appLabel' for='serverList'>" . $lang["uiSettingPlaybackServer"] . "</label>
-				                                    <select class='form-control custom-select serverList' id='serverList' title='".$lang['uiSettingPlaybackServerHint']."'>
-				                                    
+				                                    <select class='form-control custom-select serverList' id='serverList' title='".$lang['uiSettingPlaybackServerHint']."'>				                                    
 				                                    </select>
-				                                    
 			                                    </div>
 			                                    <div class='form-group'>
 					                                <div class='form-group'>
 					                                    <label for='returnItems' class='appLabel'>" . $lang["uiSettingOndeckRecent"] . "
 					                                        <input id='returnItems' class='appInput form-control' type='number' min='1' max='20' value='" . $_SESSION['returnItems'] . "' />
 					                                    </label>
+					                                </div>
+					                                <div class='form-group text-center'>
+					                                    <button class='btn btn-raised logBtn btn-primary' id='castLogs' data-action='castLogs'>" . $lang["uiSettingCastLogs"] . "</button><br>
 					                                </div>
 					                            </div>
 					                        </div>

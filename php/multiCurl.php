@@ -7,14 +7,24 @@ class multiCurl
 {
     private $urls;
     private $timeout;
-    function __construct($urls, $timeout=10) {
+    private $files;
+
+    /**
+     * multiCurl constructor.
+     * @param $urls
+     * @param int $timeout
+     * @param string | bool $filePath - If specified, try to save data to a file.
+     */
+    function __construct($urls, $timeout=10, $filePath=false) {
         $this->urls = $urls;
         $this->timeout = $timeout;
+        $this->files = $filePath;
     }
+
     function process() {
-        write_log("Function fired!!");
         $urls = $this->urls;
         $timeout = $this->timeout;
+        $files = $this->files;
         $mh = curl_multi_init();
         $ch = $res = [];
         foreach($urls as $i => $item) {
@@ -29,10 +39,14 @@ class multiCurl
             $ch[$i] = curl_init($url);
             curl_setopt($ch[$i], CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch[$i],CURLOPT_CONNECTTIMEOUT,$timeout);
-            //curl_setopt($ch[$i],CURLOPT_TIMEOUT,$timeout);
+
             if ($header) {
                 //write_log("We have headers: ".json_encode($header));
                 curl_setopt($ch[$i],CURLOPT_HTTPHEADER,$header);
+            }
+            if ($files) {
+                curl_setopt($ch[$i], CURLOPT_BINARYTRANSFER, true);
+                curl_setopt($ch[$i], CURLOPT_FOLLOWLOCATION, 0);
             }
             curl_multi_add_handle($mh, $ch[$i]);
         }
@@ -76,18 +90,25 @@ class multiCurl
         //write_log("Res: ".json_encode($res));
         $results = [];
         foreach ($res as $url => $response) {
-            $json = $xml = false;
-            try {
-                $json = json_decode($response,true);
-                if (!is_array($json)) {
-                    $json = new JsonXmlElement($response);
-                    $json = $json->asArray();
+            if ($files) {
+                $filePath = $files . "/" . rand(1000,10000);
+                write_log("Trying to save data from url '$url' to $filePath");
+                file_put_contents($filePath, $response);
+                $results["$url"] = $filePath;
+            } else {
+                $json = $xml = false;
+                try {
+                    $json = json_decode($response, true);
+                    if (!is_array($json)) {
+                        $json = new JsonXmlElement($response);
+                        $json = $json->asArray();
+                    }
+                } catch (\Exception $e) {
+                    //write_log("Exception: $e");
                 }
-            } catch (\Exception $e) {
-                //write_log("Exception: $e");
+                if (is_array($json)) $response = $json;
+                $results["$url"] = $response;
             }
-            if (is_array($json)) $response = $json;
-            $results["$url"] = $response;
         }
         unset($mh);
         unset($ch);

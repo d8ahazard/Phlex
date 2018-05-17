@@ -68,15 +68,16 @@ function bye($msg = false, $title = false, $url = false, $log = false, $clear = 
     $url = $url['scheme']."://".$url['host'].$url['path'];
     $url = "$url?device=Client&id=rescan&passive=true&apiToken=".$_SESSION['apiToken'];
     $rescan = $_GET['pollPlayer'] ?? $_GET['passive'] ?? null;
-    $executionTime = microtime(true) - $_SERVER["REQUEST_TIME_FLOAT"];
-    write_log("Total execution time was $executionTime","INFO");
+    $executionTime = round(microtime(true) - $_SERVER["REQUEST_TIME_FLOAT"],2)."s";
+
     if ($rescan === null) {
         curlQuick($url);
     }
     if ($log) write_log("Ending session now with message '$msg'.", "INFO");
     if ($clear) clearSession();
     // TODO: Make sure this is only done when webflag is set
-    if (isset($_SESSION['db'])) $_SESSION['db']->disconnect();
+
+    write_log("-------TOTAL RUN TIME: $executionTime-------","ALERT");
     die();
 }
 
@@ -145,7 +146,6 @@ function cacheImage($url, $image = false) {
 }
 
 function check_url($url, $post=false, $device=false) {
-    if (!$device) write_log("Checking URL: " . $url); else write_log("Checking URL for device $device");
     $certPath = file_build_path(dirname(__FILE__),"..", "cert", "cacert.pem");
     $ch = curl_init($url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
@@ -244,9 +244,10 @@ function cleanUri($url) {
     return $parsed;
 }
 
-function clientHeaders($device=false) {
-    return array_merge(plexHeaders($device),[
-        'X-Plex-Target-Client-Identifier' => $_SESSION['plexClientId']
+function clientHeaders($server=false, $client=false) {
+    $client = $client ? $client : findDevice(false, false, 'Client');
+    return array_merge(plexHeaders($server),[
+        'X-Plex-Target-Client-Identifier' => $client['Id']
     ]);
 }
 
@@ -290,6 +291,7 @@ function curlGet($url, $headers = null, $timeout = 4) {
     curl_setopt($ch, CURLOPT_CAINFO, $cert);
     if ($headers !== null) curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
     $result = curl_exec($ch);
+    write_log("Curl result?? ".$result);
     if (!curl_errno($ch)) {
         switch ($http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE)) {
             case 200:
@@ -300,6 +302,7 @@ function curlGet($url, $headers = null, $timeout = 4) {
         }
     }
     curl_close($ch);
+    write_log("Curl result?? ".$result);
     return $result;
 }
 
@@ -506,23 +509,21 @@ function findDevice($key=false, $value=false, $type) {
         $key = "Id";
         $value = $_SESSION["plex". $type ."Id"] ?? false;
     }
-
+    $string = "$type with a $key of $value";
     $devices = $_SESSION['deviceList'];
     $section = $devices["$type"] ?? false;
-    write_log("Looking for a $type with a $key of $value");
     if ($section) {
         if ($key && !$value) {
-            write_log("No value, selecting first device.","INFO");
             return $devices["$type"][0] ?? false;
         }
         foreach ($section as $device) {
             if (trim(strtolower($device["$key"])) === trim(strtolower($value))) {
-                write_log("Returning matching device: " . json_encode($device));
+                //write_log("Returning $string: " . json_encode($device));
                 return $device;
             }
         }
     }
-    write_log("Unable to find a device.","ERROR");
+    write_log("Unable to find $string.","ERROR");
     return false;
 }
 
@@ -746,6 +747,7 @@ function headerQuery($headers) {
     foreach($headers as $key => $val) {
         $string.="&".urlencode($key)."=".urlencode($val);
     }
+    return $string;
     return $string;
 }
 
@@ -1937,9 +1939,9 @@ function multiCurl($urls, $timeout=10) {
     return $results;
 }
 
-function plexHeaders($device=false) {
-    $server = findDevice(false,false,"Server");
-    $token = $device['Token'] ?? $server['Token'];
+function plexHeaders($server=false) {
+    $server = $server ? $server : findDevice(false,false,"Server");
+    $token = $server['Token'];
     $name = deviceName();
     $headers = [
         "X-Plex-Product"=>$name,
@@ -2351,10 +2353,6 @@ function writeSession($key, $value, $unset = false) {
 		unset($_SESSION[$key]);
 	} else {
 	    $_SESSION[$key] = $value;
-        if ($value === false) $value = "{false}";
-        if ($value === true) $value = "{true}";
-            write_log("Setting session key $key to value of ". $value,"ALERT");
-
     }
 }
 

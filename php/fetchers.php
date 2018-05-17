@@ -965,8 +965,7 @@ function testConnection($serviceName) {
 			$string2 = $svc . "Token";
             $root = $_SESSION["$string1"] ?? false;
             $token = $_SESSION["$string2"] ?? false;
-            write_log("Fucking session data: ".json_encode(getSessionData()));
-			write_log("DARRRRR search $serviceName, uri and token are $root and $token");
+            write_log("DARRRRR search $serviceName, uri and token are $root and $token");
 			if (($token) && ($root)) {
 				if ($serviceName == "Lidarr") {
 					$url = "$root/api/v1/qualityprofile?apikey=$token";

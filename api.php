@@ -27,9 +27,6 @@ function analyzeRequest()
     if (!session_started()) {
         if ($sessionId) session_id($sessionId);
         session_start();
-        write_log("Session started with id of " . session_id() . ".", "INFO");
-    } else {
-        write_log("Session with id of " . session_id() . " is already started.", "WARN");
     }
     write_log("-------NEW REQUEST RECEIVED-------", "ALERT");
     checkDefaults();
@@ -184,6 +181,12 @@ function initialize()
             sendFallback();
         }
     }
+
+    if (isset($_GET['castLogs'])) {
+        write_log("Trying to grab cast logs.","INFO");
+        downloadCastLogs();
+    }
+
     if (isset($_GET['fetchList'])) {
         $fetch = $_GET['fetchList'];
         $list = fetchList($fetch);
@@ -807,7 +810,6 @@ function scanDevices($force = false)
 function scrapeServers($serverArray)
 {
     $clients = $dvrs = $responses = $urls = [];
-    write_log("Scraping " . count($serverArray) . " servers.");
     foreach ($serverArray as $device) {
         $serverUri = $device['uri'];
         $token = $device['Token'];
@@ -828,7 +830,6 @@ function scrapeServers($serverArray)
         // Handle all of our URL's
         foreach ($urls as $item) {
             $url = $item['url'];
-            write_log("URL: " . $url);
             $device = $item['device'];
             $ch = curl_init($url);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -866,7 +867,6 @@ function scrapeServers($serverArray)
         if ($data) {
             $castDevices = $data['MediaContainer']['Device'] ?? false;
             $dvrResponse = $data['MediaContainer']['Dvr'] ?? false;
-            write_log("Data Response: " . json_encode($data));
             $key = $dvrResponse[0]['key'] ?? false;
             if ($key) {
                 $device['key'] = $key;
@@ -882,9 +882,7 @@ function scrapeServers($serverArray)
                             $device["$name"] = intval($setting['value']);
                     }
                 }
-                write_log("Zip code is $lineup");
                 $device['zip'] = $lineup;
-
                 array_push($dvrs, $device);
             }
             if ($castDevices) {
@@ -915,7 +913,12 @@ function scrapeServers($serverArray)
             'Dvr' => $dvrs
         ];
     } else $returns = false;
-    write_log("Final returns: " . json_encode($returns));
+    $log = (count($urls) == count($responses)) ? array_combine($urls,$responses): $urls;
+    $clientCount = count($clients);
+    $dvrCount = count($dvrs);
+    $serverCount = count($serverArray);
+    write_log("Found $clientCount clients and $dvrCount dvrs from $serverCount servers: ".json_encode($log));
+
     return $returns;
 }
 
@@ -998,8 +1001,6 @@ function sortDevices($input)
     write_log("Input list: " . json_encode($input));
     $results = [];
     foreach ($input as $class => $devices) {
-        $ogCount = count($devices);
-        write_log("Sorting $ogCount $class devices.", "INFO");
         $names = $output = [];
         foreach ($devices as $device) {
             $push = true;
@@ -1016,7 +1017,6 @@ function sortDevices($input)
                 $skipGroup = (($type === 'group') || ($exType === 'group'));
                 if (($hostMatch || $idMatch) && (!$skipGroup)) {
                     write_log("Skipping $type device named $name because " . ($hostMatch ? 'uris' : 'ids') . " match.", "INFO");
-                    write_log("Type $type extype $exType uri $uri exuri $exUri");
                     $push = false;
                 }
             }
@@ -1054,8 +1054,6 @@ function sortDevices($input)
                 array_push($output, $new);
             }
         }
-        $ogCount = $ogCount - count($output);
-        write_log("Removed $ogCount duplicate devices: " . json_encode(array_diff($devices, $output)));
         $results[$class] = $output;
     }
     return $results;
@@ -1086,7 +1084,6 @@ function updateDeviceCache($data)
             if (!$merged) {
                 $last = $out['last_seen'];
                 $diff = ($now - $last) / 60 / 60;
-                write_log("Now $now last $last diff is $diff");
                 if ($diff >= 24) {
                     write_log("Device hasn't been seen in 24 hours, dropping from cache.", "WARN");
                     $push = false;
@@ -1101,8 +1098,6 @@ function updateDeviceCache($data)
         $updated["$section"] = $sectionOut;
     }
     $devices = $updated;
-    write_log("Original device cache: " . json_encode($list));
-    write_log("Updated device cache: " . json_encode($devices));
     write_log("Diff: " . json_encode(array_diff_assoc_recursive($list, $devices)));
     writeSession('deviceList', $devices);
     writeSession('deviceUpdated', true);
@@ -1265,21 +1260,18 @@ function fetchAirings($params)
 function fetchApiAiData($command)
 {
     $context = $_SESSION['context'] ?? false;
-    if ($context) write_log("We have a context!!", "INFO");
     $d = fetchDirectory(3);
     $sessionId = $_SESSION['sessionId'] ?? rand(10000, 100000);
     writeSession('sessionId', $sessionId);
     try {
         $dialogFlow = new dialogFlow($d, getLocale(), 1, "$sessionId");
         $response = $dialogFlow->query($command, null, $context);
-        $url = $dialogFlow->lastUrl();
         $json = json_decode($response, true);
         if (is_null($json)) {
             write_log("Error parsing API.ai response.", "ERROR");
             return false;
         }
         $request = $dialogFlow->process($json);
-        write_log("Last URL: $url");
     } catch (Exception $e) {
         write_log("There was an exception - '$e'", 'ERROR');
         $request = false;
@@ -1317,9 +1309,9 @@ function fetchAvailableGenres()
 
 function fetchFirstUnwatchedEpisode($key, $parent = false)
 {
-    $server = findDevice(false, false, "Server");
-    $uri = $parent['Uri'] ?? $server['Uri'];
-    $token = $parent['Token'] ?? $server['Token'];
+    $server = $parent ? $parent : findDevice(false, false, "Server");
+    $uri = $server['Uri'];
+    $token = $server['Token'];
     $mediaDir = preg_replace('/children$/', 'allLeaves', $key);
     $result = doRequest([
         'uri' => $uri,
@@ -1735,7 +1727,7 @@ function fetchPlayerState($wait = false)
     $serverUri = $server['Uri'] ?? false;
     if ($serverUri) {
         $count = $_SESSION['counter'] ?? 1;
-        $headers = array_merge(plexHeaders(), clientHeaders());
+        $headers = clientHeaders($server,$client);
         $headers = array_unique($headers);
         $params = headerQuery($headers);
         if ($client['Product'] == 'Cast') {
@@ -2251,7 +2243,7 @@ function sendCommand($cmd, $value = false)
         $result = sendCommandCast($cmd, $value);
     } else {
         //TODO: Volume command for non-cast devices
-        $url = $server['Uri'] . '/player/playback/' . $cmd . '?type=video&commandID=' . $_SESSION['counter'] . headerQuery(array_merge(plexHeaders($server), clientHeaders()));
+        $url = $server['Uri'] . '/player/playback/' . $cmd . '?type=video&commandID=' . $_SESSION['counter'] . headerQuery(clientHeaders($server,$client));
         $result = doRequest($url);
         writeSession('counter', $_SESSION['counter'] + 1);
     }
@@ -2317,30 +2309,6 @@ function sendCommandCast($cmd, $value = false)
     return $return;
 }
 
-function sendCommandPlayer($url)
-{
-    write_log("Function fired for url: $url");
-    $player = findDevice(false, false, 'Client');
-    if (!(preg_match('/http/', $url))) {
-        write_log("No player specified, appending " . $player['Uri']);
-        $url = $player['Uri'] . $url;
-    }
-    $status = 'success';
-    writeSession('counter', $_SESSION['counter'] + 1);
-    $url .= '&commandID=' . $_SESSION['counter'];
-    $headers = clientHeaders();
-    $container = curlPost($url, false, false, $headers);
-    if (preg_match("/error/", $container)) {
-        write_log('Request failed, HTTP status code: ' . $status, "ERROR");
-        $status = 'error';
-    } else {
-        $status = 'success';
-    }
-    $return['url'] = $url;
-    $return['status'] = $status;
-    return $return;
-}
-
 function sendFallback()
 {
     write_log("Function fired!!", "WARN");
@@ -2389,27 +2357,28 @@ function sendMedia($media)
             write_log("Error fetching client, you should work on that.","ERROR");
             return false;
         }
-        write_log("Media has a queue ID, we're good.");
+
         if ($client['Product'] === 'Cast') {
             $isAudio = ($media['type'] == 'album' || $media['type'] == 'artist' || $media['type'] == 'track');
             $userName = $_SESSION['plexUserName'];
             $version = explode("-", $parent['Version'])[0];
             $headers = [
-                'Clienturi' => $_SESSION['plexClientId'],
-                'Contentid' => $media['key'],
-                'Contenttype' => $isAudio ? 'audio' : 'video',
-                'Offset' => $media['viewOffset'] ?? 0,
-                'Serverid' => $parent['Id'],
-                'Serveruri' => $parent['Uri'],
-                'Serverversion' => $version,
-                'Username' => $userName,
-                'Queueid' => $queueID,
-                'Transienttoken' => $transientToken
+                'X-Plex-Clienturi' => $_SESSION['plexClientId'],
+                'X-Plex-Contentid' => $media['key'],
+                'X-Plex-Contenttype' => $isAudio ? 'audio' : 'video',
+                'X-Plex-Offset' => $media['viewOffset'] ?? 0,
+                'X-Plex-Serverid' => $parent['Id'],
+                'X-Plex-Serveruri' => $parent['Uri'],
+                'X-Plex-Serverversion' => $version,
+                'X-Plex-Username' => $userName,
+                'X-Plex-Queueid' => $queueID,
+                'X-Plex-Transienttoken' => $transientToken
             ];
+            $headers = headerQuery($headers);
             $url = $parent['Uri'] . "/chromecast/play?X-Plex-Token=" . $token;
-            $headers = headerRequestArray($headers);
-            write_log("Header array: " . json_encode($headers));
-            $result = curlGet($url, $headers);
+            //$headers = headerRequestArray($headers);
+            //write_log("Header array: " . json_encode($headers));
+            $result = curlGet($url . $headers);
             write_log("Result: " . $result);
             $status = "FOO";
         } else {
@@ -2428,7 +2397,7 @@ function sendMedia($media)
                 "&commandID=$commandId";
             //$headers = convertHeaders(clientHeaders());
             //write_log("Headers: " . json_encode($headers));
-            $headers = clientHeaders($parent);
+            $headers = clientHeaders($parent,$client);
             $playUrl .= headerQuery($headers);
             write_log('Playback URL is ' . protectURL($playUrl));
             $result = curlGet($playUrl);
@@ -2694,7 +2663,7 @@ function mapApiRequest($request)
     $params['resolved'] = $resolvedQuery;
     $params['intent'] = $intent;
     $params['contexts'] = $contexts;
-    write_log("Speech query resolved as '$resolvedQuery'. Data: ".json_encode($request), "ALERT");
+    write_log("Request is '$resolvedQuery'. Data: ".json_encode($request), "ALERT");
     // #TODO: Make sure this fires AFTER we output elsewhere...
 //	if ($_SESSION['hookEnabled']) {
 //		$custom = cleanCommandString($_SESSION['hookCustomPhrase']);
@@ -2717,6 +2686,7 @@ function mapApiRequest($request)
     $playResult = false;
     $result = false;
     $params = checkDeviceChange($params);
+    write_log("Intent is $intent","INFO");
     switch ($intent) {
         case 'Media.multipleResults':
         case 'fetchInfo-MediaSelect':
@@ -2724,26 +2694,20 @@ function mapApiRequest($request)
             write_log("Sorted multi query: " . json_encode($result));
             $media = $result['media'];
             if (count($media) == 1) {
-                write_log("Count is good!", "INFO");
                 if ($_SESSION['intent'] == 'playMedia' || $_SESSION['intent'] == 'fetchInfo') {
-                    write_log("Session intent is good.");
                     $params['resolved'] = $resolvedQuery = "Play " . $media[0]['title'] . ".";
-                    $actionResult = fetchPlayItem($media[0]);
-                    if ($actionResult) $actionResult = sendMedia($actionResult);
-                } else {
-                    //$actionResult = fecthMedia($result[0]);
-                    $actionResult = "foo";
+                    $playItem = fetchPlayItem($media[0]);
+                    if ($playItem) $actionResult = sendMedia($playItem);
                 }
                 $result['actionResult'] = $actionResult;
                 $params['control'] = $_SESSION['intent'];
             }
             break;
         case 'playMedia':
-            write_log("Play/fetch request.", "INFO");
             $result = buildQueryMedia($params);
+            write_log("Media Query result: " . json_encode($result));
             $media = $result['media'];
             $meta = $result['meta'];
-            write_log("Here's what we've got: " . json_encode($result));
             $lastCheck = [];
             if (count($media) >= 2) {
                 write_log("We have " . count($media) . " items, checking for duplicates.");
@@ -2850,7 +2814,8 @@ function mapApiRequest($request)
 
             }
             if ($action == 'play' || $action == 'playMedia') {
-                if (count($result['media']) == 1 || $noPrompts) $result['playback'] = $result['media'][0];
+                $playItem = false;
+                if (count($result['media']) == 1 || $noPrompts) $playItem = $result['media'][0];
                 if (count($result['media']) >= 2 && !$noPrompts) {
                     $_SESSION['mediaArray'] = $result['media'];
                     $oontext = "playMedia-followup";
@@ -2860,9 +2825,13 @@ function mapApiRequest($request)
                     ];
                     $result = array_merge($data, $result);
                 }
-                if ($result['playback']) {
-                    $playResult = sendMedia($playResult);
+                if ($playItem) {
+                    $playItem = fetchPlayItem($playItem);
+                    $playResult = sendMedia($playItem);
+                } else {
+                    write_log("NO PLAYBACK ITEM.","ALERT");
                 }
+                $result['playback'] = $playResult;
                 write_log("PlayResult: " . json_encode($playResult));
             }
             break;
@@ -3129,7 +3098,7 @@ function mapDataPlex($data)
 
 function mapDataResults($search, $media, $meta)
 {
-    write_log("Hello, yes, I'm here: " . json_encode([$search, $media, $meta]));
+    write_log("Incoming: " . json_encode([$search, $media, $meta]));
     $results = [];
     $artist = $search['artist'] ?? false;
     $album = $search['album'] ?? false;
@@ -3161,7 +3130,6 @@ function mapDataResults($search, $media, $meta)
                         if (isset($item['art']) && isset($check['art'])) unset($item['art']);
                         if (isset($item['thumb']) && isset($check['thumb'])) unset($item['thumb']);
                         $item = array_merge($check, $item);
-                        write_log("Creating merged media item from $itemTitle: " . json_encode($item), "INFO");
                         break(1);
                     }
                 }
@@ -3705,11 +3673,15 @@ function buildSpeechInfoQuery($params, $cards)
     return $speech;
 }
 
+/**
+ * @param String | array $request
+ * @return mixed
+ */
 function buildSpeechNoResults($request)
 {
     write_log("Request: ".json_encode($request));
     $title = is_string($request) ? $request : ($request['request'] ?? $request['type'] ?? 'that request');
-    if (isset($request['infoRequests'])) {
+    if (is_array($request) && isset($request['infoRequests'])) {
         $type = $request['infoRequests'];
         if ($type == 'recent') {
             if ($request['type'] == 'movie') {
@@ -3818,5 +3790,54 @@ function checkDeviceChange($params) {
     }
 
     return $params;
+}
+
+function downloadCastLogs() {
+    $hasPlugin = getPreference('userdata',['hasPlugin'],false,'apiToken',$_SESSION['apiToken'],true);
+    $urls = [];
+    $servers = $_SESSION['deviceList']['Server'];
+
+    if ($hasPlugin) {
+        write_log("Hey, this user has a cast plugin.");
+        foreach($servers as $server) {
+            $serverUri = $server['Uri'];
+            $token = $server['Token'];
+            $serverName = $server['Name'];
+            $url = "$serverUri/chromecast/logs?X-Plex-Token=$token";
+            write_log("URL is '$url'");
+            $urls[$serverName] = $url;
+        }
+    }
+    if (count($urls)) {
+        $savePath = dirname(__FILE__) . "/rw";
+        $mc = new multiCurl($urls,45,$savePath);
+        $data = $mc->process();
+        write_log("Got some files? ".json_encode($data));
+        foreach($data as $name => $path) {
+            write_log("Got the path too.");
+            $fileName = "$name.zip";
+            $newName = "$savePath/$fileName";
+            if (filesize($path) >= 1024) {
+                write_log("File is big enough.");
+                rename($path, $newName);
+                $mm_type = "application/x-compressed"; // modify accordingly to the file type of $path, but in most cases no need to do so
+                $len = filesize($newName);
+                header("Pragma: public");
+                header("Expires: 0");
+                header("Cache-Control: must-revalidate, post-check=0, pre-check=0");
+                header("Cache-Control: public");
+                header("Content-Description: File Transfer");
+                header("Content-Type: $mm_type");
+                header("Content-Length: $len");
+                header("Content-Disposition: attachment; filename='$fileName'");
+                header("Content-Transfer-Encoding: binary\n");
+                readfile($newName); // outputs the content of the file
+                unlink($newName);
+            } else {
+                write_log("This isn't a logfile.");
+                unlink($path);
+            }
+        }
+    }
 }
 
