@@ -1115,9 +1115,21 @@ function setListeners() {
 					apiToken = $('#apiTokenData').data('token');
 
 					regUrl = 'https://phlexchat.com/api.php?apiToken=' + apiToken + "&serverAddress=" + encodeURIComponent(serverAddress) + "&test=true";
-					$.get(regUrl, function (data) {
-						$.snackbar({content: data});
-					});
+					$.get(regUrl, function (dataReg) {
+						var msg = "";
+						if (dataReg.hasOwnProperty('success')) {
+							if (dataReg['success'] === true) {
+								msg = "Connection successful!";
+							} else {
+								if (dataReg.hasOwnProperty['msg']) {
+									msg = dataReg['msg'];
+								} else {
+									msg = "Connection failed.";
+								}
+							}
+						}
+						$.snackbar({content: msg});
+					},'json');
 				}
 			}
 		}
