@@ -3581,6 +3581,7 @@ function buildSpeechAffirmative($media)
         $affirmative = $affirmatives[array_rand($affirmatives)];
 
     } while ($affirmative == $last);
+    if ($_SESSION['shortAnswers'] ?? false) $affirmative = lang('speechPlaybackAffirmativeShort');
     write_log("Picked $affirmative out of: " . json_encode($affirmatives));
     writeSession("affirmative", $affirmative);
     $affirmative = str_replace("<TITLE>",$title,$affirmative);
@@ -3606,6 +3607,7 @@ function buildSpeechCommand($cmd = false, $params = false)
         do {
             $msg = $array[array_rand($array)];
         } while ($msg == $_SESSION['cmdMsg'] ?? 'foo');
+        if ($_SESSION['shortAnswers'] ?? false) $msg = lang('speechControlShort');
         writeSession('cmdMsg', $msg);
     }
     return $msg;
@@ -3627,7 +3629,8 @@ function buildSpeechFetch($media, $fetched, $existing)
                 $affirmative = $affirmatives[array_rand($affirmatives)];
 
             } while ($affirmative == $last);
-            $string .= $affirmative . " I've added $title to " . joinStrings($good);
+            if ($_SESSION['shortAnswers'] ?? false) $affirmative = "";
+            $string .= $affirmative . "I've added $title to " . joinStrings($good);
         }
         if (count($bad)) {
             $string .= "I wasn't able to add it to " . joinStrings($bad);

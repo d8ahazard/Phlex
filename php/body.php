@@ -199,6 +199,11 @@ function makeSettingsBody($defaults) {
 					                                    <input id='noNewUsers' title='".$lang["uiSettingNoNewUsersHint"]."' class='appInput' type='checkbox' " . ($_SESSION['noNewUsers'] ? 'checked' : '') . "/>
 					                                </label>
 					                            </div>
+					                            <div class='togglebutton'>
+					                                <label for='shortAnswers' class='appLabel checkLabel'>" . $lang["uiSettingShortAnswers"] . "
+					                                    <input id='shortAnswers' class='appInput' type='checkbox' " . ($_SESSION['shortAnswers'] ? 'checked' : '') . "/>
+					                                </label>
+					                            </div>
 					                            <div class='togglebutton".$hidden."'>
 					                                <label for='cleanLogs' class='appLabel checkLabel'>" . $lang["uiSettingObscureLogs"] . "
 					                                    <input id='cleanLogs' type='checkbox' class='appInput appToggle' " . ($_SESSION['cleanLogs'] ? 'checked' : '') . "/>
@@ -215,6 +220,7 @@ function makeSettingsBody($defaults) {
 					                                </label>
 					                                <span class='bmd-help'>" . $lang["uiSettingForceSSLHint"] . "</span>
 					                            </div>
+					                            
 					                        </div>
 					                    </div>
 					                    <div class='appContainer card'>

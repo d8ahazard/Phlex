@@ -23,8 +23,14 @@ $logs = array(
 $testPaths = [
     "Apache" => ["/var/log/apache2/error.log","/var/log/httpd/apache24-error_log","/var/log/httpd/apache23-error_log"],
     "NGINX" => ["/var/log/nginx/nginx_error.log", "/usr/local/var/log/nginx/error.log"],
-    "IIS" => "['C:\\Windows\\Temp\\PHP70_errors.log','C:\\Windows\\Temp\\PHP71_errors.log','C:\\Windows\\Temp\\PHP72_errors.log']",
-    "Synology (PHP)" => ["/var/log/httpd/php_error.log"]
+    "IIS" => "['C:\Windows\Temp\PHP70_errors.log','C:\Windows\Temp\PHP71_errors.log','C:\Windows\Temp\PHP72_errors.log']",
+    "Synology (PHP)" => ["/var/log/httpd/php_error.log"],
+    "Cast Plugin" => [
+        '%LOCALAPPDATA%\Plex Media Server\Logs\PMS Plugin Logs/com.plexapp.plugins.Cast.log',
+        "~/Library/Logs/Plex Media Server/PMS Plugin Logs/com.plexapp.plugins.Cast.log",
+        "/sdcard/Plex Media Server/Logs/PMS Plugin Logs/com.plexapp.plugins.Cast.log",
+        '$PLEX_HOME/Library/Application Support/Plex Media Server/Logs/PMS Plugin Logs/com.plexapp.plugins.Cast.log'
+    ]
 ];
 
 $logPath = ini_get("error_log");
@@ -33,14 +39,14 @@ foreach ($testPaths as $name=>$testPath) {
     foreach($testPath as $path) {
         if (file_exists($path)) {
             if ($path == $logPath) {
-                $logs[$name] = $testPath;
                 $pushDefault = false;
             }
-            break;
+            $logs[$name] = $path;
         }
     }
 }
-if ($pushDefault) $logs['PHP'] = $logPath;
+
+if ($pushDefault && trim($logPath)) $logs['PHP'] = $logPath;
 
 
 $noHeader = $_GET['noHeader'] ?? false;

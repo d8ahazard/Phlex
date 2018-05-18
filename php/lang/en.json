@@ -337,10 +337,12 @@
 		"Roger that, turning on <TITLE>.",
 		"Affirmative. Starting <TITLE>."
 	],
+	"speechPlaybackAffirmativeShort": "Playing <TITLE>.",
+	"speechControlShort": "Okay.",
 	"speechFetchAffirmatives": [
-		"Allright,",
-		"Okay,",
-		"Success!"
+		"Allright, ",
+		"Okay, ",
+		"Success! "
 	],
 	"speechPlayer": "player",
 	"speechPlayError3": "I couldn't find that in the library, do you want me to try downloading it?",
@@ -461,6 +463,7 @@
 	"uiSettingRescanInterval": "Device Rescan Interval (Minutes):",
 	"uiSettingSearchAccuracy": "Search Accuracy (%):",
 	"uiSettingSeparateHookUrl": "Separate URLs",
+	"uiSettingShortAnswers": "Use Shorter Replies",
 	"uiSettingTestButton": "TEST",
 	"uiSettingTestServer": "Test Connectivity",
 	"uiSettingThemeColor": "Use Dark Theme",

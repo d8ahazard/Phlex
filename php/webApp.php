@@ -322,7 +322,8 @@ function checkDefaultsDb($config) {
  `watcherToken` tinytext NOT NULL,
  `watcherList` tinytext NOT NULL,
  `watcherProfile` tinyint(4) NOT NULL,
- `darkTheme` int(11) NOT NULL DEFAULT '0',
+ `darkTheme` tinyint(1) NOT NULL DEFAULT '0',
+ `shortAnswers` tinyint(1) NOT NULL DEFAULT '0',
  `appLanguage` char(2) NOT NULL DEFAULT 'en',
  `searchAccuracy` int(3) NOT NULL DEFAULT '70',
  `hasPlugin` tinyint(1) NOT NULL DEFAULT '0',
@@ -535,6 +536,7 @@ function newUser($user) {
         'notifyUpdate' => false,
         'masterUser' => firstUser(),
         'publicAddress' => currentAddress(),
+        'shortAnswers' => false,
         'autoUpdate' => false
     ];
     $user = array_merge($user,$defaults);
