@@ -107,7 +107,8 @@ function initialize()
         $result = [];
         $status = testConnection($_GET['test']);
         header('Content-Type: application/json');
-        $result['status'] = $status;
+        $result['status'] = $status[0];
+        $result['list'] = $status[1] ?? false;
         echo json_encode($result);
         bye();
     }
@@ -319,7 +320,9 @@ function getUiData($force = false)
     $deviceText = json_encode($devices);
     $userData = getSessionData();
     foreach ($userData as $key => $value) {
-        if (preg_match("/List/", $key)) $userData["$key"] = fetchList(str_replace("List", "", $key));
+        if (preg_match("/List/", $key) && $key !== 'deviceList') {
+            $userData["$key"] = fetchList(str_replace("List", "", $key));
+        }
     }
     $commands = fetchCommands();
     if ($playerStatus) {
@@ -692,7 +695,7 @@ function scanDevices($force = false)
                 }
             }
         } else {
-            write_log("Plex.TV is down, breaking to save device list.", "WARN");
+            write_log("Plex.TV connection issue, breaking to save device list.", "WARN");
             writeSession('scanning', false);
             die();
         }
@@ -721,7 +724,7 @@ function scanDevices($force = false)
                                      $uri,
                                      $backup
                                  ] as $url) {
-                            if (check_url($url) && !isset($server['uri'])) {
+                            if (checkUrl($url) && !isset($server['uri'])) {
                                 $server['uri'] = $connection['uri'];
                             }
                         }

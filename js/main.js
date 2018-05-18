@@ -1052,9 +1052,22 @@ function setListeners() {
 			value = $(this).attr('value');
 
 			$.get('api.php?test=' + value + '&apiToken=' + apiToken, function (data) {
-				var dataArray = [data];
-				$.snackbar({content: JSON.stringify(dataArray[0].status).replace(/"/g, "")});
-			});
+				if (data.hasOwnProperty('status')) {
+					console.log("We have a msg.",data['status']);
+					var msg = data['status'].replace(/"/g,"");
+					console.log("Cleaned: ",msg);
+					$.snackbar({content: msg});
+				}
+				if (data.hasOwnProperty('list')) {
+					var list = data['list'];
+					if (list !== false) {
+						var appName = "#" + value.toLowerCase() + "List";
+                        console.log("We have a list!",list);
+                        $(appName).html(list);
+					}
+				}
+
+			},"json");
 		}
 		if ($(this).hasClass("resetInput")) {
 			appName = $(this).data('value');
@@ -1295,18 +1308,20 @@ function setListeners() {
 		}
 
 		apiToken = $('#apiTokenData').data('token');
-
 		$.get('api.php?apiToken=' + apiToken, {id: id, value: value}, function (data) {
+			console.log("No, really...");
 			if (data === "valid") {
 				if (window.hasOwnProperty(id)) {
 					console.log("Hey, this has a global variable, changing it from " + window[id]);
 					window[id] = value;
 				}
+				console.log("SUCCESS!");
 				$.snackbar({content: "Value saved successfully."});
 			} else {
 				$.snackbar({content: "Invalid entry specified for " + id + "."});
 				$(this).val("");
 			}
+
 			if (id === 'darkTheme') {
 				setTimeout(function () {
 					location.reload();
@@ -1314,14 +1329,7 @@ function setListeners() {
 				$.snackbar({content: "Theme changed, reloading page."});
 			}
 		});
-		if ($(this).hasClass("appParam")) {
-			id = $(this).parent().parent().parent().attr('id').replace("Group", "");
-			apiToken = $('#apiTokenData').data('token');
 
-			$.get('api.php?apiToken=' + apiToken + '&fetchList=' + id, function (data) {
-				$('#' + id + 'Profile').html(data);
-			})
-		}
 	});
 }
 

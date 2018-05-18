@@ -548,10 +548,16 @@ function downloadWatcher($data) {
 
 function fetchList($serviceName) {
     $list = $selected = false;
+    $token = $_SESSION[$serviceName . "Token"] ?? "";
+    $uri = $_SESSION[$serviceName . "Uri"] ?? "";
+    if (trim($token) == "" || trim($uri) == "") {
+        updateUserPreferenceArray([$serviceName."List" => json_encode([]),$serviceName."Profile"=>""]);
+        return "";
+    }
     if (!$_SESSION[$serviceName . "Enabled"]) return "";
     switch ($serviceName) {
         case "sick":
-            if ($_SESSION['sickList']) {
+            if ($_SESSION['sickList'] ?? false) {
                 $list = $_SESSION['sickList'];
             } else {
                 testConnection("Sick");
@@ -560,14 +566,14 @@ function fetchList($serviceName) {
             $selected = $_SESSION['sickProfile'];
             break;
         case "ombi":
-            if ($_SESSION['ombiList']) {
+            if ($_SESSION['ombiList'] ?? false) {
                 $list = $_SESSION['ombi'];
             }
             break;
         case "sonarr":
         case "radarr":
         case "lidarr":
-            if ($_SESSION[$serviceName . 'List']) {
+            if ($_SESSION[$serviceName . 'List'] ?? false) {
                 $list = $_SESSION[$serviceName . 'List'];
             } else {
                 testConnection(ucfirst($serviceName));
@@ -576,7 +582,7 @@ function fetchList($serviceName) {
             $selected = $_SESSION[$serviceName . 'Profile'];
             break;
         case "couch":
-            if ($_SESSION['couchList']) {
+            if ($_SESSION['couchList'] ?? false) {
                 $list = $_SESSION['couchList'];
             } else {
                 testConnection("Couch");
@@ -585,7 +591,7 @@ function fetchList($serviceName) {
             $selected = $_SESSION['couchProfile'];
             break;
         case "headphones":
-            if ($_SESSION['headphonesList']) {
+            if ($_SESSION['headphonesList'] ?? false) {
                 $list = $_SESSION['headphonesList'];
             } else {
                 testConnection("Headphones");
@@ -594,7 +600,7 @@ function fetchList($serviceName) {
             $selected = $_SESSION['headphonesProfile'];
             break;
         case "watcher":
-            if ($_SESSION['watcherList']) {
+            if ($_SESSION['watcherList'] ?? false) {
                 $list = $_SESSION['watcherList'];
             } else {
                 testConnection("Watcher");
@@ -603,15 +609,20 @@ function fetchList($serviceName) {
             $selected = $_SESSION['watcherProfile'];
             break;
     }
-    $html = PHP_EOL;
-    if ($list) {
-        foreach ($list as $id => $name) {
-            $html .= "<option data-index='" . $id . "' id='" . $name . "' " . (($selected == $id) ? 'selected' : '') . ">" . $name . "</option>" . PHP_EOL;
-        }
-    }
+    $html = buildList($list,$selected);
     return $html;
 }
 
+function buildList($list,$selected = false) {
+    $html = PHP_EOL;
+    $i = 0;
+    foreach ($list as $id => $name) {
+        $selString = ((!$selected && $i==0) || ($selected && $selected == $id)) ? ' selected' : "";
+        $html .= "<option data-index='$id' id='$name'"."$selString>$name</option>".PHP_EOL;
+        $i++;
+    }
+    return $html;
+}
 
 function listFetchers() {
     $fetchers = ['couch','sonarr','radarr','lidarr','headphones','sick','watcher'];
@@ -899,9 +910,11 @@ function scanWatcher() {
 }
 
 // Test the specified service for connectivity
-function testConnection($serviceName) {
-	write_log("Function fired, testing connection for " . $serviceName);
-
+function testConnection($serviceName,$returnList=false) {
+	write_log("Testing connection for " . $serviceName,"INFO");
+    $msg = "ERROR: Connection to $serviceName failed.";
+    $data = $profileList = [];
+    $selected = false;
 	switch ($serviceName) {
 
 		case "Ombi":
@@ -910,11 +923,12 @@ function testConnection($serviceName) {
 			$authString = 'apikey:' . $ombiAuth;
 			if (($ombiUri) && ($ombiAuth)) {
 				$url = $ombiUri;
-				write_log("Test URL is " . protectURL($url));
 				$headers = [$authString];
 				$result = curlPost($url, false, false, $headers);
-				$result = ((strpos($result, '"success": true') ? 'Connection to CouchPotato Successful!' : 'ERROR: Server not available.'));
-			} else $result = "ERROR: Missing server parameters.";
+				$msg = ((strpos($result, '"success": true') ? 'Connection to CouchPotato Successful!' : 'ERROR: Server not available.'));
+			} else {
+			    $msg = "ERROR: Missing server parameters.";
+            }
 			break;
 
 		case "Couch":
@@ -922,23 +936,29 @@ function testConnection($serviceName) {
 			$couchToken = $_SESSION['couchToken'];
 			if (($couchURL) && ($couchToken)) {
 				$url = "$couchURL/api/$couchToken/profile.list";
-				$result = curlGet($url);
-				if ($result) {
-					$resultJSON = json_decode($result, true);
-					write_log("Hey, we've got some profiles: " . json_encode($resultJSON));
-					$array = [];
-					$first = false;
-					foreach ($resultJSON['list'] as $profile) {
-						$id = $profile['_id'];
-						$name = $profile['label'];
-						$array["$id"] = $name;
-						if (!$first) $first = $id;
-					}
-					write_log("CouchList: ".json_encode($array));
-					updateUserPreferenceArray(['couchProfile'=>$first,'couchList'=>$array]);
-				}
-				$result = ((strpos($result, '"success": true') ? 'Connection to CouchPotato Successful!' : 'ERROR: Server not available.'));
-			} else $result = "ERROR: Missing server parameters.";
+				$result = checkUrl($url,true);
+				if ($result[0]) {
+					$resultJSON = json_decode($result[1], true);
+					$list = $resultJSON['list'] ?? false;
+					if ($list) {
+                        write_log("Hey, we've got some profiles: " . json_encode($resultJSON));
+                        $array = [];
+                        foreach ($resultJSON['list'] as $profile) {
+                            $id = $profile['_id'];
+                            $name = $profile['label'];
+                            $profileList["$id"] = $name;
+                            if (!$selected) $selected = $id;
+                        }
+                        $data = ['couchProfile' => $selected, 'couchList' => $array];
+                        $msg = "Connection to $serviceName successful!";
+                    }
+				} else {
+				    $msg = "ERROR: " . $result[1];
+                }
+
+			} else {
+			    $msg = "ERROR: Missing ". ($couchURL ? "Token." : "URL.");
+            }
 			break;
 
 		case "Headphones":
@@ -946,14 +966,16 @@ function testConnection($serviceName) {
 			$headphonesToken = $_SESSION['headphonesToken'];
 			if (($headphonesURL) && ($headphonesToken)) {
 				$url = "$headphonesURL/api/?apikey=$headphonesToken&cmd=getVersion";
-				$result = curlGet($url);
-				if ($result) {
-					$data = json_decode($result,true);
-					write_log("We've got a successful result: ".$result);
-					if (isset($data['current_version'])) $result = true;
-				}
-				$result = ($result ? 'Connection to Headphones Successful!' : 'ERROR: Server not available.');
-			} else $result = "ERROR: Missing server parameters.";
+				$result = checkUrl($url,true);
+				if ($result[0]) {
+					$data = (json_decode($result[1],true)['current_version'] ?? false);
+					$msg = ($data ? "Connection Successful!" : "ERROR: Unknown Error");
+				} else {
+				    $msg = "ERROR: ". $result[1];
+                }
+			} else {
+                $msg = "ERROR: Missing ". ($headphonesURL ? "Token." : "URL.");
+            }
 			break;
 
 		case "Sonarr":
@@ -976,26 +998,30 @@ function testConnection($serviceName) {
 				}
 
 				write_log("Request URL: " . $url);
-				$result = curlGet($url,null,10);
-				$result2 = curlGet($url2,null,10);
-				if ($result && $result2) {
+				$result = checkUrl($url,true);
+				$result2 = checkUrl($url2,true);
+				if ($result[0] && $result2[0]) {
 					write_log("Results retrieved.");
-					$resultJSON = json_decode($result, true);
-                    $resultJSON2 = json_decode($result2, true);
-					$array = [];
-					$first = false;
+					$resultJSON = json_decode($result[1], true);
+                    $resultJSON2 = json_decode($result2[1], true);
 					foreach ($resultJSON as $profile) {
 						if ($profile === "Unauthorized") {
 							return "ERROR: Incorrect API Token specified.";
 						}
-						$first = ($first ? $first : $profile['id']);
-						$array[$profile['id']] = $profile['name'];
+						$selected = ($selected ? $selected : $profile['id']);
+						$profileList[$profile['id']] = $profile['name'];
 					}
-					write_log("Final array is " . json_encode($array));
-					updateUserPreferenceArray([$svc . 'Profile'=>$first,$svc . 'List'=>$array, $svc . 'Root'=>$resultJSON2[0]['path']]);
-				}
-				$result = (($result !== false) ? "Connection to $serviceName successful!" : 'ERROR: Server not available.');
-			} else $result = "ERROR: Missing server parameters.";
+					
+					$data = [$svc . 'Profile'=>$selected,$svc . 'List'=>$profileList, $svc . 'Root'=>$resultJSON2[0]['path']];
+					updateUserPreferenceArray($data);
+					$msg = "Connection to $serviceName successful!";
+				} else {
+				    $msg = "ERROR:" . ($result[0] ? ($result2[0] ? "Unknown Error" : $result2[1]) : $result[1]);
+				    write_log("ERROR Connecting - '$msg'","INFO");
+                }
+			} else {
+			    $msg = "ERROR: Missing server parameters.";
+            }
 			break;
 
 		case "Sick":
@@ -1007,60 +1033,64 @@ function testConnection($serviceName) {
 					$result = $sick->sbGetDefaults();
 				} catch (\Kryptonit3\SickRage\Exceptions\InvalidException $e) {
 					write_log("Error Curling sickrage: " . $e);
-					$result = "ERROR: " . $e;
+					$msg = "ERROR: " . $e;
 					break;
 				}
 				$result = json_decode($result, true);
 				write_log("Got some kind of result " . json_encode($result));
 				$list = $result['data']['initial'];
-				$array = [];
 				$count = 0;
-				$first = false;
 				foreach ($list as $profile) {
-					$first = ($first ? $first : $count);
-					$array[$count] = $profile;
+				    $selected = 0;
+					$profileList[$count] = $profile;
 					$count++;
 				}
-				updateUserPreference('sickList', $array);
-				write_log("List: " . print_r($_SESSION['sickList'], true));
-				$result = (($result) ? 'Connection to Sick successful!' : 'ERROR: Server not available.');
-			} else $result = "ERROR: Missing server parameters.";
+				$data = ['sickList'=>$profileList, 'sickProfile'=>$selected];
+				$msg = "Connection to Sick successful!";
+			} else {
+                $msg = "ERROR: Missing ". ($sickURL ? "Token." : "URL.");
+            }
 			break;
         case "Watcher":
             $url = $_SESSION['watcherUri'] ?? false;
             $token = $_SESSION['watcherToken'] ?? false;
-            $config = false;
             if ($url && $token) {
                 $watcher = new Watcher($url, $token);
                 $config = $watcher->getConfig('Quality');
-            }
-            if ($config) {
-                write_log("Got me a config: ".json_encode($config));
-                $list = $config['Profiles'];
-                $array = [];
-                $count = 0;
-                $selected = null;
-                foreach ($list as $name => $profile) {
-                    $selected = $profile['default'] ? $count : null;
-                    $array[$count] = $name;
-                    $count++;
+                if ($config) {
+                    write_log("Got me a config: ".json_encode($config));
+                    $list = $config['Profiles'];
+                    $count = 0;
+                    foreach ($list as $name => $profile) {
+                        $selected = $profile['default'] ? $count : null;
+                        $profileList[$count] = $name;
+                        $count++;
+                    }
+                    $selected = ($selected  ? $selected : "0");
+                    $data = ['watcherList'=>$profileList,'watcherProfile'=>$selected];
                 }
-                $data = ['watcherList'=>$array,'watcherProfile'=>($selected == null ? "0": $selected)];
-                write_log("Saving some watcher data: ".json_encode($data),"INFO");
-                updateUserPreferenceArray($data);
+                $msg = (($config) ? 'Connection to Watcher successful!' : 'ERROR: Connection failed.');
+            } else {
+                $msg = "ERROR: Missing " . ($url ? "token." : "URL.");
             }
-            $result = (($config) ? 'Connection to Watcher successful!' : 'ERROR: Connection failed.');
             break;
-		case "Plex":
-			$url = $_SESSION['plexServerUri'] . '?X-Plex-Token=' . $_SESSION['plexServerToken'];
-			write_log('URL is: ' . protectURL($url));
-			$result = curlGet($url);
-			$result = (($result) ? 'Connection to ' . $_SESSION['plexServerName'] . ' successful!' : 'ERROR: ' . $_SESSION['plexServerName'] . ' not available.');
-			break;
 
 		default:
-			$result = "ERROR: Service name not recognized";
+			$msg = "ERROR: Service name not recognized.";
 			break;
 	}
-	return $result;
+
+	if (count($profileList) && $selected) {
+        write_log("$serviceName Profile List Found!: " . json_encode($profileList),"INFO");
+        $profileList = buildList($profileList,$selected);
+    } else {
+	    write_log("Unable to fetch profile list...","WARN");
+    }
+
+    if (count($data)) {
+	    write_log("Updating app data: ".json_encode($data),"INFO");
+        updateUserPreferenceArray($data);
+    }
+
+	return ($returnList ? $msg : [$msg,$profileList]);
 }

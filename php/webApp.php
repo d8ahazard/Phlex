@@ -125,7 +125,6 @@ function checkUpdate() {
     $updates = [];
     $git = new GitUpdate\GitUpdate(dirname(__FILE__)."/..");
     if ($git->hasGit) {
-        write_log("We have git!");
         $updates = $git->checkMissing();
         write_log("Update data: ".json_encode($updates));
         $refs = $updates['refs'];
