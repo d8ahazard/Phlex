@@ -21,7 +21,8 @@ class appConfig
        if (!file_exists($configFile) || !is_readable($configFile)) {
            throw new ConfigException("Invalid config file specified.");
        }
-       $config = parse_ini_file($configFile);
+       $configFile = realpath($configFile);
+           $config = @parse_ini_file($configFile);
        if ($config) {
            $user = $config['username'] ?? false;
            $pass = $config['password'] ?? false;

@@ -29,6 +29,7 @@ function analyzeRequest()
         session_start();
     }
     write_log("-------NEW REQUEST RECEIVED-------", "ALERT");
+    scriptDefaults();
     checkDefaults();
 
     if (isset($_GET['revision'])) {

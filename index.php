@@ -3,7 +3,7 @@ require_once dirname(__FILE__) . '/php/vendor/autoload.php';
 require_once dirname(__FILE__) . "/php/webApp.php";
 require_once dirname(__FILE__) . '/php/util.php';
 write_log("-------NEW REQUEST RECEIVED-------", "ALERT");
-
+scriptDefaults();
 $defaults = checkDefaults();
 $forceSSL = $defaults['forceSSL'];
 
