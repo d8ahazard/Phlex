@@ -667,13 +667,15 @@ function scanDevices($force = false)
         writeSession('scanning', true);
         $https = !$_SESSION['noLoop'];
         $query = "?includeHttps=$https&includeRelay=0&X-Plex-Token=" . $_SESSION['plexToken'];
-        $container = simplexml_load_string(doRequest([
+        $data = doRequest([
             'uri' => 'https://plex.tv/api/resources',
             'query' => $query
-        ], 3));
-        if ($container) {
-            $devices = flattenXML($container);
-            foreach ($devices['Device'] as $device) {
+        ], 3);
+        $json = new JsonXmlElement($data);
+        $container2 = $json->asArray();
+        $devices = $container2['MediaContainer']['Device'] ?? false;
+        if ($devices) {
+            foreach ($devices as $device) {
                 if (($device['presence'] == "1" || $device['product'] == "Plex for Vizio") && count($device['Connection'])) {
                     $out = [
                         'Product' => $device['product'],
@@ -708,41 +710,27 @@ function scanDevices($force = false)
                 $name = $server['Name'];
                 write_log("Checking $name: " . json_encode($server), "INFO");
                 $connections = $server['Connection'];
+                $test = [];
                 if (isset($connections['protocol'])) $connections = [$connections];
+                $i = 0;
                 foreach ($connections as $connection) {
                     $query = '?X-Plex-Token=' . $server['Token'];
-                    $uri = $connection['uri'] . $query;
-                    $proto = $server['httpsRequired'] ? "https://" : "http://";
-                    $localAddress = $proto . $connection['address'] . ":" . $connection['port'];
-                    $backup = $localAddress . $query;
-                    $local = (boolval($connection['local'] == boolval($server['publicAddressMatches'])));
-                    $web = filter_var($connection['address'], FILTER_VALIDATE_IP, FILTER_FLAG_NO_RES_RANGE);
+                    $uri = $connection['uri'];
+                    $backup = ($server['httpsRequired'] ? "https://" : "http://") . $connection['address'] . ":" . $connection['port'];
                     $secure = (($server['httpsRequired'] && $connection['protocol'] === 'https') || (!$server['httpsRequired']));
                     $cloud = preg_match("/plex.services/", $connection['address']);
-                    if ($connection['local'] && !isset($connection['relay']) && !$cloud) $server['localUri'] = $localAddress;
-                    if (($local && $web && $secure) || $cloud) {
-                        foreach ([
-                                     $uri,
-                                     $backup
-                                 ] as $url) {
-                            if (checkUrl($url) && !isset($server['uri'])) {
-                                $server['uri'] = $connection['uri'];
-                            }
-                        }
-                    } else {
-                        $reasons = [];
-                        if (!($local && $web && $secure)) {
-                            if (!$local) array_push($reasons, "connecton match");
-                            if (!$web) array_push($reasons, "url filter");
-                            if (!$secure) array_push($reasons, "no secure connection");
-                        } else {
-                            if (!$cloud) array_push($reasons, "not cloud");
-                        }
-                        $string = "";
-                        foreach ($reasons as $reason) $string .= " '$reason' ";
+                    if ($secure || $cloud) {
+                        $test[$uri] = $uri.$query;
+                        $test[$backup] = $backup.$query;
                     }
+                    $i++;
                 }
-                if (isset($server['uri'])) {
+                $data = new multiCurl($test,3);
+                $data = array_keys($data->process());
+                write_log("Server data: ".json_encode($data));
+                $uri = $data[0] ?? false;
+                if ($uri) {
+                    $server['uri'] = $uri;
                     write_log("Adding $name to server list.", "INFO");
                     array_push($result, $server);
                 }
