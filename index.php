@@ -5,7 +5,7 @@ require_once dirname(__FILE__) . '/php/util.php';
 write_log("-------NEW REQUEST RECEIVED-------", "ALERT");
 scriptDefaults();
 $defaults = checkDefaults();
-$forceSSL = $defaults['forceSSL'];
+$forceSSL = $defaults['forceSSL'] ?? false;
 
 if ((empty($_SERVER['HTTPS']) || $_SERVER['HTTPS'] == "off") && $forceSSL) {
 	$redirect = 'https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
