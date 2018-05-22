@@ -3204,6 +3204,9 @@ function buildCards($cards)
             case 'album':
                 $title = ($card['parentTitle'] ?? $card['artist']) . " - $title";
                 break;
+            case 'movie':
+                $year = $card['year'] ?? false;
+                if ($year) $title .= " ($year)";
         }
         $subTitle = $subTitle ?? $card['tagline'] ?? $card['description'] ?? '';
         $formattedText = $card['summary'] ?? $card['description'] ?? '';
@@ -3428,7 +3431,7 @@ function buildSpeech($params, $results)
                     $server = $server ? findDevice('Id', $server, 'Server') : $server;
                     write_log("Server for media: " . json_encode($server));
                     if ($server['Owned'] === "1") {
-                        write_log("Media already exists on a server woned by the user.");
+                        write_log("Media already exists on a server owned by the user.");
                         $prompt = true;
                         break;
                     }
