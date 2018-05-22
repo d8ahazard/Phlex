@@ -192,8 +192,8 @@ function checkDefaults() {
             }
         }
         $defaults = array_combine($keys,$values);
-        $id = $defaults['deviceId'] ?? 'foo';
-        if ($id == 'foo') $defaults = false;
+        //$id = $defaults['deviceId'] ?? 'foo';
+        //if ($id == 'foo') $defaults = false;
     }
     if (!$defaults) {
         write_log("Creating default values!","ALERT");
