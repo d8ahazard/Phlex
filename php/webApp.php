@@ -73,7 +73,7 @@ function scrubBools($scrub, $key=false) {
 }
 
 function initConfig() {
-    $config = $_SESSION['configObject'] ?? false;
+    $config = isWebApp() ? false : ($_SESSION['configObject'] ?? false);
     $configObject = false;
     $error = false;
     $dbFile = dirname(__FILE__) . "/../rw/db.conf.php";
