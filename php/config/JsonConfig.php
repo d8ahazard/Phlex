@@ -20,14 +20,16 @@ class JsonConfig extends ArrayObject {
     public function __construct($filename, $secure=true)
     {
         $this->fileName = $filename;
-        $this->header = ";<?php die('Access denied');?>";
+        $this->header = "'; <?php die('Access denied'); ?>";
         $this->secure = $secure;
-
-        $this->data = [];
-
-        if (file_exists($filename)) {
-            $this->read();
+        $data = $this->read();
+        if (!is_array($data)) {
+            write_log("Error, dying to protect config.");
+            die();
+        } else {
+            $this->data = $data;
         }
+
     }
 
     /**
@@ -53,7 +55,6 @@ class JsonConfig extends ArrayObject {
                 }
                 if ($update) {
                     $pushed = true;
-                    write_log("Setting data here: ".json_encode($data));
                     foreach ($data as $key => $value) {
                         $record[$key] = $value;
                     }
@@ -62,10 +63,8 @@ class JsonConfig extends ArrayObject {
         }
 
         if (!$pushed || $new) {
-            write_log("Pushing data: ".json_encode($data));
             array_push($temp,$data);
         }
-        write_log("Section $section set to: ".json_encode($temp));
         $this->data[$section] = $temp;
         $this->save();
     }
@@ -157,22 +156,47 @@ class JsonConfig extends ArrayObject {
      */
     protected function read() {
         $path = $this->fileName;
-        if (!file_exists($path)) {
+        if (!file_exists($path) || !is_readable($path)) {
             throw new ConfigException("Error accessing file, it should exist already...");
         }
-        $file = fopen($path,'r');
-        $data = fread($file,filesize($path));
-        fclose($file);
 
+        $file = fopen($path, 'r');
+        $locked = flock($file,LOCK_SH);
+        if (!$locked) {
+            $i = 0;
+            while(!$locked && $i < 10) {
+                $locked = flock($file,LOCK_SH);
+                write_log("Unable to get file lock, looping.","WARN");
+                usleep(100);
+                $i++;
+            }
+        }
+
+        if ($locked) {
+            $data = fread($file, filesize($path));
+        } else {
+            write_log("Unable to get file lock!!","ALERT");
+            $data = false;
+        }
+        flock($file,LOCK_UN);
+        fclose($file);
         if ($data) {
             $data = str_replace($this->header, "", $data);
-            $data = trim($data) ? json_decode($data, true) : [];
+            if (trim($data) === "") {
+                write_log("Blank file, creating array.","WARN");
+                $data = [];
+            } else {
+                $data = json_decode($data,true);
+                if (!$data) {
+                    write_log("JSON Decode failed!!","ALERT");
+                    rename($path,$path.".bk");
+                    $data = [];
+                }
+            }
+        } else {
+            write_log("Unable to read from specified file.","ERROR");
         }
-        if (!$data) {
-            write_log("Error reading data.","WARN");
-            $data = [];
-        }
-        $this->data = $data;
+        return $data;
     }
 
     /**
@@ -191,23 +215,14 @@ class JsonConfig extends ArrayObject {
         if (!$result) {
             write_log("Can't save file!","ERROR");
             throw New ConfigException("Error saving file, this is bad!!");
-        } else {
-            write_log("Data array: ".json_encode($this->data));
         }
         return $result;
     }
 
     protected function write($contents) {
+        $result = false;
         $path = $this->fileName;
-        $fp = fopen($path, 'w+');
-        if(!flock($fp, LOCK_EX))
-        {
-            return false;
-        }
-        $result = fwrite($fp, $contents);
-        flock($fp, LOCK_UN);
-        fclose($fp);
-        if ($result) write_log("Saved successfully to $this->fileName");
+        $result = file_put_contents($path,$contents,LOCK_EX);
         return $result !== false;
     }
 

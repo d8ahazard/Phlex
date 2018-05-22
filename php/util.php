@@ -310,7 +310,6 @@ function curlGet($url, $headers = null, $timeout = 4) {
         }
     }
     curl_close($ch);
-    write_log("Curl result?? ".$result);
     return $result;
 }
 
@@ -531,7 +530,7 @@ function findDevice($key=false, $value=false, $type) {
             }
         }
     }
-    write_log("Unable to find $string.","ERROR");
+    if(session_started()) write_log("Unable to find $string.","ERROR");
     return false;
 }
 

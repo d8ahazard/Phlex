@@ -73,17 +73,22 @@ function scrubBools($scrub, $key=false) {
 }
 
 function initConfig() {
+    $config = $_SESSION['configObject'] ?? false;
     $configObject = false;
     $error = false;
     $dbFile = dirname(__FILE__) . "/../rw/db.conf.php";
     $jsonFile = dirname(__FILE__). "/../rw/config.php";
     $configFile = file_exists($dbFile) ? $dbFile : $jsonFile;
-    if (file_exists($dbFile)) checkDefaultsDb($dbFile);
-    try {
-        $config = new digitalhigh\appConfig($configFile);
-    } catch (\digitalhigh\ConfigException $e) {
-        write_log("An exception occurred creating the configuration. '$e'","ERROR");
-        $error = true;
+    if (!$config) {
+        //write_log("Creating session config object.");
+        if (file_exists($dbFile)) checkDefaultsDb($dbFile);
+        try {
+            $config = new digitalhigh\appConfig($configFile);
+        } catch (\digitalhigh\ConfigException $e) {
+            write_log("An exception occurred creating the configuration. '$e'", "ERROR");
+            $error = true;
+        }
+        $_SESSION['configObject'] = $config;
     }
     if (!$error) {
         $configObject = $config->ConfigObject;
@@ -626,7 +631,7 @@ function checkFiles() {
     }
     foreach ($files as $file) {
         if (!file_exists($file)) {
-            mkdir(dirname($file), 0777, true);
+            write_log("Creating file $file");
             touch($file);
             chmod($file, 0777);
             file_put_contents($file, $secureString);
