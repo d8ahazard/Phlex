@@ -1007,9 +1007,9 @@ function sortDevices($input)
                 $idMatch = ($exId === $id);
                 $hostMatch = ($exUri === $uri);
                 $isCast = (($device['Product'] === 'Cast') && (($device['type'] ?? "foo") !== 'group'));
-                if (($hostMatch || $idMatch) && ($isCast)) {
+                $sameProduct = ($device['Product'] === $existing['Product']);
+                if (($hostMatch || $idMatch) && ($isCast || $sameProduct)) {
                     write_log("Skipping $type device named $name because " . ($hostMatch ? 'uris' : 'ids') . " match.", "INFO");
-                    write_log("Existing device matched against is an $exType named ". $existing['Name']);
                     $push = false;
                 }
             }
