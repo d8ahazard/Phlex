@@ -264,10 +264,42 @@ function cmp($a, $b) {
     return $b['ratingCount'] > $a['ratingCount'] ? 1 : -1;
 }
 
-function compareTitles(string $search, string $check,$sendWeight = false) {
+function compareTitles(string $search, string $check, $sendWeight = false, $exact=false) {
     $search = cleanCommandString($search);
     $check = cleanCommandString($check);
-    $goal = $_SESSION['searchAccuracy'] ?? 70;
+    // Check for a 100% match.
+    if ($search === $check) return $sendWeight ? 100 : true;
+    // Now check for a roman numeral match. Don't question me, I'm a scientist.
+    $searchRoman = explode(" ", $search);
+    $new = [];
+    foreach($searchRoman as $string) {
+        $temp = strtolower(numberToRoman($string));
+        if (trim($temp) && $temp !== $string) {
+            $string = $temp;
+        }
+        array_push($new,$string);
+    }
+    $searchRoman = implode(" ", $new);
+
+    $checkRoman = explode(" ", $check);
+    $new = [];
+    foreach($checkRoman as $string) {
+        $temp = strtolower(numberToRoman($string));
+        if (trim($temp) && $temp !== $string) {
+            $string = $temp;
+        }
+        array_push($new,$string);
+    }
+    $checkRoman = implode(" ", $new);
+    if ($searchRoman !== $search || $checkRoman !== $check) {
+        if ($searchRoman === $check || $checkRoman === $search) {
+            write_log("Returning because of a Roman numeral match!!", "ALERT");
+            $str = ($searchRoman === $check) ? $searchRoman : $checkRoman;
+            return $sendWeight ? 100 : $str;
+        }
+    }
+    // Okay, now do some more nerdy comparisons...
+    $goal = $exact ? 100 : ($_SESSION['searchAccuracy'] ?? 70);
     $strength = similar_text($search,$check);
     $lev = levenshtein($search,$check);
     $len = strlen($search) > strlen($check) ? strlen($search) : strlen($check);
@@ -275,11 +307,44 @@ function compareTitles(string $search, string $check,$sendWeight = false) {
     $heavy = ($strength >= $goal || $similarity >= $goal);
     $substring = (stripos($search,$check) !== false || stripos($check,$search) !== false);
     if ($heavy || $substring) {
+        write_log("Returning because of ". ($heavy ? "heavy." : "substring."));
         $str = (strlen($search) == $len) ? $search : $check;
         $weight = ($strength > $similarity) ? $strength : $similarity;
         return $sendWeight ? $weight : $str;
     }
+
+
     return false;
+}
+
+function numberToRoman($number) {
+    $map = [
+        'M' => 1000,
+        'CM' => 900,
+        'D' => 500,
+        'CD' => 400,
+        'C' => 100,
+        'XC' => 90,
+        'L' => 50,
+        'XL' => 40,
+        'X' => 10,
+        'IX' => 9,
+        'V' => 5,
+        'IV' => 4,
+        'I' => 1
+    ];
+
+    $returnValue = '';
+    while ($number > 0) {
+        foreach ($map as $roman => $int) {
+            if($number >= $int) {
+                $number -= $int;
+                $returnValue .= $roman;
+                break;
+            }
+        }
+    }
+    return $returnValue;
 }
 
 function curlGet($url, $headers = null, $timeout = 4) {

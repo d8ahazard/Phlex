@@ -400,30 +400,6 @@ function fetchMediaInfo(Array $params)
     }
     $request = $params['request'] ?? $params['music-artist'] ?? false;
     $year = $params['year']['amount'] ?? false;
-    if ($year) {
-        if (strlen($year) !== 4) {
-            $yearWord = strOrdinalSwap($year);
-            $resolved = $params['resolved'];
-            write_log("Dammit, this is NOT a year");
-            $words = explode(" ",$request);
-            $rawWords = explode($request,$params['resolved']);
-            $pos = strpos($resolved, $request);
-            $i = 0;
-            $pre = $useWord = false;
-            foreach($rawWords as $group) {
-                if ((preg_match("/$year/",$group)) || (preg_match("/$yearWord/",$group))) {
-                    if (preg_match("/$yearWord/",$group)) $useWord = true;
-                    $pre = ($i === 0);
-                }
-                $i++;
-            }
-            $add = $useWord ? $yearWord : $year;
-            $request = ($pre ? "$add $request": "$request $add");
-            write_log("Request has been modified to '$request'");
-            $year = false;
-            $params['year'] = $year;
-        }
-    }
     $artist = $params['music-artist'] ?? false;
     if (!$artist) {
         $data = explode(" by ", $params['resolved']);
@@ -2680,6 +2656,34 @@ function mapApiRequest($request)
     $params['resolved'] = $resolvedQuery;
     $params['intent'] = $intent;
     $params['contexts'] = $contexts;
+    $year = $params['year']['amount'] ?? false;
+    if ($year) {
+        $req = $params['request'];
+        // I'm going to take a risk here, and guess that if you're requesting music made before 1900,
+        // you probably don't need to specify the year. We'll see.
+        if (!($year >= 1900 && $year <= 2020)) {
+            write_log("Dammit, this is NOT a year");
+            $yearWord = strOrdinalSwap($year);
+            $resolved = $params['resolved'];
+            $words = explode(" ",$req);
+            $rawWords = explode($req,$params['resolved']);
+            $pos = strpos($resolved, $req);
+            $i = 0;
+            $pre = $useWord = false;
+            foreach($rawWords as $group) {
+                if ((preg_match("/$year/",$group)) || (preg_match("/$yearWord/",$group))) {
+                    if (preg_match("/$yearWord/",$group)) $useWord = true;
+                    $pre = ($i === 0);
+                }
+                $i++;
+            }
+            $add = $useWord ? $yearWord : $year;
+            $req = ($pre ? "$add $req": "$req $add");
+            write_log("Request has been modified to '$req'");
+            $params['request'] = $req;
+            unset($params['year']);
+        }
+    }
     write_log("Request is '$resolvedQuery'. Data: ".json_encode($request), "ALERT");
     // #TODO: Make sure this fires AFTER we output elsewhere...
 //	if ($_SESSION['hookEnabled']) {
@@ -3127,11 +3131,11 @@ function mapDataResults($search, $media, $meta)
     if ($media && $meta) {
         foreach ($media as $item) {
             foreach ($meta as $check) {
-                $itemTitle = strtolower($item['title']);
-                $checkTitle = strtolower($check['title']);
+                $itemTitle = $item['title'] ?? "fooa";
+                $checkTitle = $check['title'] ?? "foob";
                 $itemType = $item['type'];
                 $checkType = explode(".", $check['type'])[1] ?? $check['type'];
-                if ($itemTitle == $checkTitle && $itemType == $checkType) {
+                if (compareTitles($itemTitle, $checkTitle,false,true) && $itemType == $checkType) {
                     $merge = true;
                     if (isset($item['artist']) && isset($check['artist'])) {
                         if ($item['artist'] !== $check['artist']) {
@@ -3153,8 +3157,9 @@ function mapDataResults($search, $media, $meta)
             }
             array_push($newMedia, $item);
         }
+        $media = $newMedia;
     }
-    $media = $newMedia;
+
     $vars['media'] = $media;
     $vars['meta'] = $meta;
     if ($artist && $album && count($meta)) {
@@ -3195,14 +3200,15 @@ function mapDataResults($search, $media, $meta)
                 $artistMatch = ($search['artist'] !== $artist);
             } else $artistMatch = true;
             if ($yearMatch && $typeMatch && $artistMatch) {
-                $exact = $exact ? $exact : [];
                 if (isset($search['offset'])) $item['viewOffset'] = $search['offset'];
-                if (strtolower($itemTitle) == strtolower($searchTitle)) {
+                if (compareTitles($itemTitle, $searchTitle,false, true)) {
+                    $exact = $exact ? $exact : [];
                     $exact[] = $item;
-                } else if (compareTitles(strtolower($searchTitle), strtolower($itemTitle)) && !is_array($exact)) {
+                } else if (compareTitles($itemTitle, $searchTitle) && !is_array($exact)) {
                     $fuzzy = $fuzzy ? $fuzzy : [];
                     $fuzzy[] = $item;
                 }
+            } else {
             }
         }
         $results["$section"] = ($exact ? $exact : ($fuzzy ? $fuzzy : []));
