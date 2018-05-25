@@ -400,6 +400,30 @@ function fetchMediaInfo(Array $params)
     }
     $request = $params['request'] ?? $params['music-artist'] ?? false;
     $year = $params['year']['amount'] ?? false;
+    if ($year) {
+        if (strlen($year) !== 4) {
+            $yearWord = strOrdinalSwap($year);
+            $resolved = $params['resolved'];
+            write_log("Dammit, this is NOT a year");
+            $words = explode(" ",$request);
+            $rawWords = explode($request,$params['resolved']);
+            $pos = strpos($resolved, $request);
+            $i = 0;
+            $pre = $useWord = false;
+            foreach($rawWords as $group) {
+                if ((preg_match("/$year/",$group)) || (preg_match("/$yearWord/",$group))) {
+                    if (preg_match("/$yearWord/",$group)) $useWord = true;
+                    $pre = ($i === 0);
+                }
+                $i++;
+            }
+            $add = $useWord ? $yearWord : $year;
+            $request = ($pre ? "$add $request": "$request $add");
+            write_log("Request has been modified to '$request'");
+            $year = false;
+            $params['year'] = $year;
+        }
+    }
     $artist = $params['music-artist'] ?? false;
     if (!$artist) {
         $data = explode(" by ", $params['resolved']);
