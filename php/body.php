@@ -79,7 +79,7 @@ function makeMetaTags() {
         '<meta id="updateAvailable" data="' . $_SESSION['updateAvailable'] . '"/>' . PHP_EOL .
         '<meta id="deviceID" data="' . $_SESSION['deviceID'] . '"/>' . PHP_EOL .
         '<meta id="serverURI" data="' . $server['Uri'] . '"/>' . PHP_EOL .
-        '<meta id="publicAddress" value="' . serverAddress() . '"/>' . PHP_EOL .
+        '<meta id="publicMeta" value="' . serverAddress() . '"/>' . PHP_EOL .
         '<meta id="clientURI" data="' . $client['Uri'] . '"/>' . PHP_EOL .
         '<meta id="clientName" data="' . $client['Name'] . '"/>' . PHP_EOL .
         '<meta id="plexDvr" data-enable="' . $dvr . '"/>' . PHP_EOL .

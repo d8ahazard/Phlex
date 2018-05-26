@@ -1034,7 +1034,7 @@ function setListeners() {
 		}
 
 		if ($(this).hasClass("testInput")) {
-			value = $(this).attr('value');
+			value = encodeURIComponent(serverAddress);
 
 			$.get('api.php?test=' + value + '&apiToken=' + apiToken, function (data) {
 				if (data.hasOwnProperty('status')) {
@@ -1084,7 +1084,7 @@ function setListeners() {
 		}
 
 		if ($(this).hasClass("linkBtn")) {
-            		serverAddress = $("#publicAddress").attr('value');
+			serverAddress = $("#publicAddress").val();
 			regUrl = false;
 			action = $(this).data('action');
 			serverAddress = encodeURIComponent(serverAddress);
