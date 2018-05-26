@@ -6,7 +6,7 @@ var apiToken, appName, bgs, bgWrap, cv, token, newToken, deviceID, resultDuratio
 var cleanLogs=true, couchEnabled=false, lidarrEnabled=false, ombiEnabled=false, sickEnabled=false, sonarrEnabled=false, radarrEnabled=false,
 	headphonesEnabled=false, watcherEnabled=false, dvrEnabled=false, hook=false, hookPlay=false, polling=false, pollcount=false,
 	hookPause=false, hookStop=false, hookCustom=false, hookFetch=false, hookSplit = false, autoUpdate = false, masterUser = false,
-	noDvrs=true,noNewUsers=false, notifyUpdate=false, waiting=false;
+	noNewUsers=false, notifyUpdate=false, waiting=false;
 
 var forceUpdate = true;
 
@@ -182,6 +182,10 @@ function buildUiDeferred() {
 		checkUpdate();
 	}, 10 * 1000 * 60);
 
+	setInterval(function() {
+		setTime();
+	}, 1000)
+
 }
 
 function deviceHtml(type, deviceData) {
@@ -230,13 +234,13 @@ function updateDevice(type, id, token) {
 			updateDevices(data);
 		});
 	} else {
-		var data = {
-			action: 'device',
-			data: {
-				type: type,
-				id: id
-			}
-		};
+		// var data = {
+		// 	action: 'device',
+		// 	data: {
+		// 		type: type,
+		// 		id: id
+		// 	}
+		// };
 		//doSend(data);
 	}
 }
@@ -281,7 +285,6 @@ function resetApiUrl(newUrl) {
 function updateStatus() {
 	apiToken = $('#apiTokenData').data('token');
 	var logLimit = $('#logLimit').find(":selected").val();
-	var dataCommands = false;
 	if (!polling) {
 		polling = true;
 		pollcount = 1;
@@ -481,7 +484,6 @@ function updatePlayerStatus(data) {
 		if (hasContent(mr)) {
 			var resultTitle = mr.title;
 			var resultType = mr.type;
-			var resultYear = mr.year;
 			var thumbPath = mr.thumb;
 			var artPath = mr.art;
 			var resultSummary = mr.summary;
@@ -569,11 +571,9 @@ function updateCommands(data, prepend) {
 			console.log("Command data: ",value);
 			if (value === []) return true;
 			try {
-				var initialCommand = ucFirst(value.initialCommand);
 				var timeStamp = (value.hasOwnProperty('timeStamp') ? $.trim(value.timeStamp) : '');
 				speech = (value.speech ? value.speech : "");
 				if ($(window).width() < 700) speech = speech.substring(0, 100);
-				var status = (value.mediaStatus ? value.mediaStatus : "");
 				itemJSON = value;
 				var mediaDiv;
 				// Build our card
@@ -641,20 +641,6 @@ function updateCommands(data, prepend) {
 	}
 }
 
-
-function msToTime(duration) {
-	var milliseconds = parseInt((duration % 1000) / 100)
-		, seconds = parseInt((duration / 1000) % 60)
-		, minutes = parseInt((duration / (1000 * 60)) % 60)
-		, hours = parseInt((duration / (1000 * 60 * 60)) % 24);
-	hours = (hours < 10) ? "0" + hours : hours;
-	minutes = (minutes < 10) ? "0" + minutes : minutes;
-	seconds = (seconds < 10) ? "0" + seconds : seconds;
-
-	return hours + ":" + minutes + ":" + seconds;
-}
-
-
 // Scale the dang diddly-ang slider to the correct width, as it doesn't like to be responsive by itself
 $(window).on('resize', function () {
 	// TODO: Make sure this isn't needed anymore
@@ -714,10 +700,7 @@ function buildCards(value, i) {
 	var description = '';
 	var initialCommand = ucFirst(value.initialCommand);
 	var speech = (value.speech ? value.speech : "");
-	var status = (value.mediaStatus ? value.mediaStatus : "");
-	var itemJSON = value;
 	var JSONdiv = '<a href="javascript:void(0)" id="JSON' + i + '" class="JSONPop" data="' + encodeURIComponent(JSON.stringify(value, null, 2)) + '" title="Result JSON">{JSON}</a>';
-
 	if ($(window).width() < 700) speech = speech.substring(0, 100);
 
 	if (value.hasOwnProperty('cards')) {
@@ -824,16 +807,6 @@ function notify() {
 }
 
 
-function formatAMPM() {
-	date = new Date();
-	var hours = date.getHours();
-	var minutes = date.getMinutes();
-	var ampm = hours >= 12 ? 'PM' : 'AM';
-	hours = hours % 12;
-	hours = hours ? hours : 12; // the hour '0' should be '12'
-	minutes = minutes < 10 ? '0' + minutes : minutes;
-	return hours + ':' + minutes + ' ' + ampm;
-}
 
 function fetchWeather() {
 	$.get("https://freegeoip.net/json/", function (data) {
@@ -945,8 +918,20 @@ function setWeather() {
 
 	}
 	$('.weatherIcon').html('<span class="weather ' + weatherClass + '"> </span>');
-	$(".timeDiv").text(formatAMPM());
 	$(".tempDiv").text(weatherHtml);
+}
+
+function setTime() {
+    date = new Date();
+    var hours = date.getHours();
+    var minutes = date.getMinutes();
+    var ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12;
+    hours = hours ? hours : 12; // the hour '0' should be '12'
+    minutes = minutes < 10 ? '0' + minutes : minutes;
+    var time = hours + ':' + minutes + ' ' + ampm;
+    var timeDiv = $(".timeDiv");
+    if (time !== timeDiv.text()) timeDiv.text(time);
 }
 
 function imgError(image) {
