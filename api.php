@@ -2515,11 +2515,13 @@ function sendSpeechAssistant($speech, $contextName, $cards, $waitForResponse, $s
                         write_log("Not displaying card for $cardTitle because image is not https.", "INFO");
                     }
                 }
-                $data['google']['systemIntent']['intent'] = 'actions.intent.OPTION';
-                $data['google']['systemIntent']['data']['@type'] = 'type.googleapis.com/google.actions.v2.OptionValueSpec';
-                $data['google']['systemIntent']['data']['listSelect']['items'] = $carousel;
-                $data['google']['expectedInputs'][0]['possibleIntents'][0]['inputValueData']['@type'] = "type.googleapis.com/google.actions.v2.OptionValueSpec";
-                $data['google']['expectedInputs'][0]['possibleIntents'][0]['intent'] = "actions.intent.OPTION";
+                if (count($carousel)) {
+                    $data['google']['systemIntent']['intent'] = 'actions.intent.OPTION';
+                    $data['google']['systemIntent']['data']['@type'] = 'type.googleapis.com/google.actions.v2.OptionValueSpec';
+                    $data['google']['systemIntent']['data']['listSelect']['items'] = $carousel;
+                    $data['google']['expectedInputs'][0]['possibleIntents'][0]['inputValueData']['@type'] = "type.googleapis.com/google.actions.v2.OptionValueSpec";
+                    $data['google']['expectedInputs'][0]['possibleIntents'][0]['intent'] = "actions.intent.OPTION";
+                }
             }
         }
     }
