@@ -180,7 +180,7 @@ function makeSettingsBody($defaults) {
 					                                        <input id='apiToken' class='appInput form-control' type='text' value='" . $_SESSION['apiToken'] . "' readonly='readonly'/>
 					                                    </label>
 					                                </div>
-					                                <div class='form-group".$hidden."'>
+					                                <div class='form-group".($hide ? " hidden" : "")."'>
 					                                    <label for='publicAddress' class='appLabel'>" . $lang["uiSettingPublicAddress"] . "
 					                                        <input id='publicAddress' class='appInput form-control formpop' type='text' value='" . $webAddress . "' />
 					                                    </label>
