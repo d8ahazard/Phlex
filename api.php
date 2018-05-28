@@ -665,14 +665,14 @@ function scanDevices($force = false)
         }
         write_log("$msg", "INFO");
         writeSession('scanning', true);
-        $https = !$_SESSION['noLoop'];
-        $query = "?includeHttps=$https&includeRelay=0&X-Plex-Token=" . $_SESSION['plexToken'];
-        $data = doRequest([
-            'uri' => 'https://plex.tv/api/resources',
-            'query' => $query
-        ], 3);
-        $json = new JsonXmlElement($data);
-        $container2 = $json->asArray();
+        $https = $_SESSION['noLoop'] ?? true;
+        $https = !$https;
+        $url = "https://plex.tv/api/resources?includeHttps=$https&includeRelay=0&X-Plex-Token=" . $_SESSION['plexToken'];
+        $data = curlGet($url);
+        if (trim($data)) {
+            $json = new JsonXmlElement($data);
+            $container2 = $json->asArray();
+        }
         $devices = $container2['MediaContainer']['Device'] ?? false;
         if ($devices) {
             foreach ($devices as $device) {
