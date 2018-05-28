@@ -1090,7 +1090,7 @@ function setListeners() {
 			serverAddress = encodeURIComponent(serverAddress);
 			if (action === 'googlev2') regUrl = 'https://phlexchat.com/api.php?apiToken=' + apiToken + "&serverAddress=" + serverAddress;
 			if (action === 'amazon') regUrl = 'https://phlexchat.com/alexaAuth.php?apiToken=' + apiToken + "&serverAddress=" + serverAddress;
-			if (regUrl) {
+			if (regUrl !== false) {
 				var newwindow = window.open(regUrl, '');
 				if (window.focus) {
 					newwindow.focus();
@@ -1101,15 +1101,17 @@ function setListeners() {
 
 					regUrl = 'https://phlexchat.com/api.php?apiToken=' + apiToken + "&serverAddress=" + serverAddress + "&test=true";
 					$.get(regUrl, function (dataReg) {
-						var msg = "";
-						if (dataReg.hasOwnProperty('success')) {
+						var msg = false;
+						console.log("Message: ", dataReg);
+                        if (dataReg.hasOwnProperty('success')) {
 							if (dataReg['success'] === true) {
 								msg = "Connection successful!";
 							} else {
-								if (dataReg.hasOwnProperty['msg']) {
-									msg = dataReg['msg'];
-								} else {
-									msg = "Connection failed.";
+                                if (dataReg.hasOwnProperty['msg']) {
+                                    msg = dataReg['msg'];
+                                    console.log("Message received: " + msg);
+                                } else {
+                                	msg = "Connection failed."
 								}
 							}
 						}
