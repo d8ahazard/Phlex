@@ -1107,12 +1107,8 @@ function setListeners() {
 							if (dataReg['success'] === true) {
 								msg = "Connection successful!";
 							} else {
-                                if (dataReg.hasOwnProperty['msg']) {
-                                    msg = dataReg['msg'];
-                                    console.log("Message received: " + msg);
-                                } else {
-                                	msg = "Connection failed."
-								}
+								msg = dataReg['msg'];
+								console.log("Message received: " + msg);
 							}
 						}
 						$.snackbar({content: msg});
