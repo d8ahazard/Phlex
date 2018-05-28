@@ -264,7 +264,8 @@ function cmp($a, $b) {
     return $b['ratingCount'] > $a['ratingCount'] ? 1 : -1;
 }
 
-function compareTitles(string $search, string $check, $sendWeight = false, $exact=false) {
+function compareTitles($search, $check, $sendWeight = false, $exact=false) {
+    if (!is_string($search) || !is_string($check)) return false;
     $search = cleanCommandString($search);
     $check = cleanCommandString($check);
     // Check for a 100% match.

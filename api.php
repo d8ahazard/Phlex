@@ -22,7 +22,7 @@ function analyzeRequest()
 {
 
     $json = file_get_contents('php://input');
-    $sessionId = json_decode($json, true)['originalRequest']['data']['conversation']['conversationId'] ?? false;
+    $sessionId = json_decode($json, true)['originalRequest']['data']['conversation']['conversationId'] ?? $_GET['sessionId'] ?? false;
 
     if (!session_started()) {
         if ($sessionId) session_id($sessionId);
@@ -77,7 +77,7 @@ function analyzeRequest()
         }
         initialize();
     } else {
-        write_log("User is not valid!","ERROR");
+        write_log("APIToken $token is not valid!","ERROR");
         if (isset($_GET['testclient'])) {
             write_log("API Link Test failed.", "ERROR");
             http_response_code(401);
@@ -177,12 +177,7 @@ function initialize()
         echo($valid ? "valid" : "invalid");
         bye();
     }
-    if (isset($_GET['msg'])) {
-        if ($_GET['msg'] === 'FAIL') {
-            write_log("Received response failure from server, firing fallback command.","INFO");
-            sendFallback();
-        }
-    }
+
 
     if (isset($_GET['castLogs'])) {
         write_log("Trying to grab cast logs.","INFO");
@@ -246,7 +241,6 @@ function initialize()
             write_log("No, really, we have an amazonrequest: ".json_encode($request),"ALERT");
             writeSession('lastRequest',$request['result']['resolvedQuery']);
         }
-
         if ($request) {
             if (isset($request['result']['resolvedQuery']) || isset($request['type'])) {
                 write_log("Request JSON: " . $json);
@@ -275,6 +269,12 @@ function initialize()
         } catch (\Exception $error) {
             write_log(json_encode($error->getMessage()), "ERROR");
         }
+    }
+
+    if (isset($_GET['fireFallback'])) {
+        sendFallback();
+        echo "SUCCESS";
+        bye();
     }
 }
 
@@ -2302,14 +2302,23 @@ function sendCommandCast($cmd, $value = false)
     return $return;
 }
 
-function sendFallback()
-{
+function sendFallback() {
     write_log("Function fired!!", "WARN");
-    if (isset($_SESSION['fallback'])) {
-        $fb = $_SESSION['fallback'];
-        if (isset($fb['media'])) sendMedia($fb['media']);
-        writeSession('fallback', null, true);
+    write_log("Session vars: ".getSessionData());
+    $fallBackMedia = $_SESSION['fallBackMedia'] ?? false;
+    $fallBackAction = $_SESSION['fallBackAction'] ?? false;
+    if ($fallBackAction && is_array($fallBackMedia)) {
+        write_log("We have an action of $fallBackAction and media: ".json_encode($fallBackMedia));
+        if ($fallBackAction == 'play') {
+            write_log("Sending media.");
+            sendMedia($fallBackMedia);
+        } else {
+            downloadMedia($fallBackMedia,scanFetchers($fallBackMedia['type']));
+        }
+    } else {
+        write_log("Missing ". ($fallBackMedia ? " action." : " media."));
     }
+    writeSessionArray(['fallBackMedia'=>false,'fallBackAction'=>false],true);
 }
 
 function sendMedia($media)
@@ -2708,6 +2717,8 @@ function mapApiRequest($request)
     #TODO Add a parser here to determine if we can prompt for more info, or if we just play something
     $playResult = false;
     $result = false;
+    $fallBackMedia = false;
+    $fallBackAction = false;
     $params = checkDeviceChange($params);
     write_log("Intent is $intent","INFO");
     switch ($intent) {
@@ -2831,15 +2842,19 @@ function mapApiRequest($request)
                             // Ask which one to download
                             write_log("Multiple search results found, need moar info.", "INFO");
                             $result['fetch'] = "MULTI";
+                            $fallBackAction = 'fetch';
+                            $fallBackMedia = $dataArray[0];
                         }
                     }
                 }
 
             }
             if ($action == 'play' || $action == 'playMedia') {
+                $fallBackAction = 'play';
                 $playItem = false;
                 if (count($result['media']) == 1 || $noPrompts) $playItem = $result['media'][0];
                 if (count($result['media']) >= 2 && !$noPrompts) {
+                    $fallBackMedia = fetchPlayItem($media[0]);
                     $_SESSION['mediaArray'] = $result['media'];
                     $oontext = "playMedia-followup";
                     $data = [
@@ -2887,6 +2902,11 @@ function mapApiRequest($request)
         'sessionId' => $_SESSION['sessionId'] ?? [],
         'intent' => $intent
     ];
+
+    if ($fallBackMedia && $fallBackAction) {
+        $data['fallBackMedia'] = $fallBackMedia;
+        $data['fallBackAction'] = $fallBackAction;
+    }
     $clearSet = $result['wait'] ?? true;
     $clearSet = $clearSet ? false : true;
     writeSessionArray($data, $clearSet);
