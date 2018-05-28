@@ -2,8 +2,9 @@
 
 This branch of Flex TV this is in *active development*.
 
-All code and features in this branch are subject to change, so please refrain from submitting issues
-regarding anything you find there. It's more of a reference or sneak peek, and not a finished product.
+All code and features in this branch are subject to change, but please feel free to submit issues if you've had no luck asking for help in the Plex.TV forums:
+
+https://forums.plex.tv/discussion/252910/phlex-google-home-plex-integration-with-support-for-sonarr-couchpotato-etc-now-live
 
 ## WEB-ONLY VERSION
 
