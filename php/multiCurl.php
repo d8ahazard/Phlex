@@ -96,17 +96,21 @@ class multiCurl
                 file_put_contents($filePath, $response);
                 $results["$url"] = $filePath;
             } else {
-                $json = $xml = false;
+                $data = $json = $xml = false;
                 try {
-                    $json = json_decode($response, true);
-                    if (!is_array($json)) {
-                        $json = new JsonXmlElement($response);
-                        $json = $json->asArray();
+                    $data = json_decode($response, true);
+                    if (json_last_error()!==JSON_ERROR_NONE) {
+                        write_log("This is not JSON");
+                    }
+                    $xml = simplexml_load_string($response);
+                    if ($xml !== false) {
+                        $xml = new JsonXmlElement($response);
+                        $data = $xml->asArray();
                     }
                 } catch (\Exception $e) {
                     //write_log("Exception: $e");
                 }
-                if (is_array($json)) $response = $json;
+                $response = $data ? $data : $response;
                 $results["$url"] = $response;
             }
         }

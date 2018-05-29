@@ -520,7 +520,6 @@ function fetchMediaInfo(Array $params)
     write_log("Search array: " . json_encode($searches));
     $dataCurl = new multiCurl($searches);
     $dataArray = $dataCurl->process();
-    //$dataArray = multiCurl($searches);
     $md = $musicData['music.artist'];
     array_push($dataArray, $md);
     $result = mapData($dataArray);
@@ -2940,66 +2939,70 @@ function mapData($dataArray)
 {
     $info = $media = $results = [];
     foreach ($dataArray as $key => $data) {
-        $keys = explode(".", $key);
-        $type = $keys[0];
-        $sub = $keys[1] ?? null;
-        switch ($type) {
-            case 'movie':
-                $data = $data['results'];
-                foreach ($data as $item) {
-                    $item['source'] = $type;
-                    $return = mapDataMovie($item);
-                    $info[] = $return;
-                }
-                break;
-            case 'music':
-                $data = $data['artist'] ?? $data['album'] ?? $data['track'] ?? $data['artists'] ?? $data['albums'] ?? $data['data'] ?? null;
-                if ($data !== null) foreach ($data as $item) {
-                    $item['source'] = $type;
-                    $type = $sub ?? $type;
-                    $type = str_replace("albums", "album", $type);
-                    $item['type'] = $item['type'] ?? $type;
-                    $return = mapDataMusic($item);
-                    $info[] = $return;
-                }
-                break;
-            case 'show':
-                $episodes = $data['_embedded']['episodes'] ?? false;
-                if (is_array($episodes)) {
-                    write_log("Mapping episodes");
-                    $tvdbId = $data['externals']['thetvdb'] ?? false;
-                    $imdbId = $data['externals']['imdb'] ?? false;
-                    foreach ($episodes as $episode) {
-                        if ($tvdbId) $episode['tvdbId'] = $tvdbId;
-                        if ($imdbId) $episode['imdbId'] = $imdbId;
-                        $episode['source'] = $data['source'];
-                        $episode['type'] = "show.episode";
-                        $episode['seriesTitle'] = $data['name'];
-                        $info[] = mapDataShow($episode);
+        if (is_array($data)) {
+            $keys = explode(".", $key);
+            $type = $keys[0];
+            $sub = $keys[1] ?? null;
+            switch ($type) {
+                case 'movie':
+                    $movieData = $data['results'] ?? false;
+                    if (is_array($movieData)) foreach ($data as $item) {
+                        $item['source'] = $type;
+                        $return = mapDataMovie($item);
+                        $info[] = $return;
                     }
-                    unset($data['_embedded']);
-                }
-                write_log("mapping parent?");
-                $data['type'] = "show";
-                $info[] = mapDataShow($data);
-                break;
-            case 'plex':
-                $hubs = $data['MediaContainer']['Hub'] ?? false;
-                if (is_array($hubs)) {
-                    foreach ($hubs as $hub) {
-                        if ($hub['size'] >= 1) {
-                            $items = $hub['Directory'] ?? $hub['Track'] ?? $hub['Video'] ?? $hub['Season'] ?? $hub['Actor'] ?? false;
-                            if (is_array($items)) {
-                                foreach ($items as $item) {
-                                    $item['source'] = $sub;
-                                    $return = mapDataPlex($item);
-                                    if ($return) $media[] = $return;
+                    break;
+                case 'music':
+                    $musicData = $data['artist'] ?? $data['album'] ?? $data['track'] ?? $data['artists'] ?? $data['albums'] ?? $data['data'] ?? false;
+                    if (is_array($musicData)) foreach ($data as $item) {
+                        $item['source'] = $type;
+                        $type = $sub ?? $type;
+                        $type = str_replace("albums", "album", $type);
+                        $item['type'] = $item['type'] ?? $type;
+                        $return = mapDataMusic($item);
+                        $info[] = $return;
+                    }
+                    break;
+                case 'show':
+                    $episodes = $data['_embedded']['episodes'] ?? false;
+                    if (is_array($episodes)) {
+                        write_log("Mapping episodes");
+                        $tvdbId = $data['externals']['thetvdb'] ?? false;
+                        $imdbId = $data['externals']['imdb'] ?? false;
+                        foreach ($episodes as $episode) {
+                            if ($tvdbId) $episode['tvdbId'] = $tvdbId;
+                            if ($imdbId) $episode['imdbId'] = $imdbId;
+                            $episode['source'] = $data['source'];
+                            $episode['type'] = "show.episode";
+                            $episode['seriesTitle'] = $data['name'];
+                            $info[] = mapDataShow($episode);
+                        }
+                        unset($data['_embedded']);
+                    }
+                    write_log("mapping parent?");
+                    $data['type'] = "show";
+                    $info[] = mapDataShow($data);
+                    break;
+                case 'plex':
+                    $hubs = $data['MediaContainer']['Hub'] ?? false;
+                    if (is_array($hubs)) {
+                        foreach ($hubs as $hub) {
+                            if ($hub['size'] >= 1) {
+                                $items = $hub['Directory'] ?? $hub['Track'] ?? $hub['Video'] ?? $hub['Season'] ?? $hub['Actor'] ?? false;
+                                if (is_array($items)) {
+                                    foreach ($items as $item) {
+                                        $item['source'] = $sub;
+                                        $return = mapDataPlex($item);
+                                        if ($return) $media[] = $return;
+                                    }
                                 }
                             }
                         }
                     }
-                }
-                break;
+                    break;
+            }
+        } else {
+            write_log("Data for $key is not an array, skipping.","INFO");
         }
     }
     $results = [
@@ -3113,7 +3116,6 @@ function mapDataShow($data)
 
 function mapDataPlex($data)
 {
-
     $result = (trim($data['title']) !== "") ? [
         'title' => $data['title'],
         'year' => $data['year'],
