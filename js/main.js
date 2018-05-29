@@ -1034,7 +1034,7 @@ function setListeners() {
 		}
 
 		if ($(this).hasClass("testInput")) {
-			value = encodeURIComponent(serverAddress);
+			value = encodeURIComponent($(this).val());
 
 			$.get('api.php?test=' + value + '&apiToken=' + apiToken, function (data) {
 				if (data.hasOwnProperty('status')) {

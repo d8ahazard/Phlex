@@ -3224,9 +3224,11 @@ function mapDataResults($search, $media, $meta)
             if ($yearMatch && $typeMatch && $artistMatch) {
                 if (isset($search['offset'])) $item['viewOffset'] = $search['offset'];
                 if (compareTitles($itemTitle, $searchTitle,false, true)) {
+                    write_log("Pushing an exact match: $itemTitle");
                     $exact = $exact ? $exact : [];
                     $exact[] = $item;
-                } else if (compareTitles($itemTitle, $searchTitle) && !is_array($exact)) {
+                } else if (!is_array($exact) && compareTitles($itemTitle, $searchTitle)) {
+                    write_log("Pushing a fuzzy match: $itemTitle");
                     $fuzzy = $fuzzy ? $fuzzy : [];
                     $fuzzy[] = $item;
                 }

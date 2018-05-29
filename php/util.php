@@ -270,6 +270,7 @@ function compareTitles($search, $check, $sendWeight = false, $exact=false) {
     $check = cleanCommandString($check);
     // Check for a 100% match.
     if ($search === $check) return $sendWeight ? 100 : true;
+    if ($exact) return false;
     // Now check for a roman numeral match. Don't question me, I'm a scientist.
     $searchRoman = explode(" ", $search);
     $new = [];
