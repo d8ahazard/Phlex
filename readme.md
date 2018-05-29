@@ -2,8 +2,9 @@
 
 This branch of Flex TV this is in *active development*.
 
-All code and features in this branch are subject to change, so please refrain from submitting issues
-regarding anything you find there. It's more of a reference or sneak peek, and not a finished product.
+All code and features in this branch are subject to change, but please feel free to submit issues if you've had no luck asking for help in the Plex.TV forums:
+
+https://forums.plex.tv/discussion/252910/phlex-google-home-plex-integration-with-support-for-sonarr-couchpotato-etc-now-live
 
 ## WEB-ONLY VERSION
 
@@ -11,7 +12,7 @@ What's that? You wish someone would just host Flex TV for you? You don't feel li
 
 You're in luck!
 
-In addition to being able to host Flex TV yourself, I've taken the liberty of setting up a version over at https://app.phlexchat.com for anybody who doesn't want to host it themselves. The version over there is the exact same code base you see here, so if you're wondering what's being done with your info - you can examine the code for yourself.
+In addition to being able to host Flex TV yourself, I've taken the liberty of setting up a version over at https://app.phlexchat.com for anybody who doesn't feel like becoming a webserver admin in order to live in the FUTURE. The version over there is the exact same code base you see here, so if you're wondering what's being done with your info - feel free to examine the code for yourself.
 
 ## CHROMECAST PLUGIN
 
