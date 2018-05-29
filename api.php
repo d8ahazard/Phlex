@@ -312,6 +312,17 @@ function setSessionData($rescan = true)
     if (!$data) write_log("Error, could not find userdata!!", "ERROR");
 }
 
+function triggerRescan() {
+    write_log("Rescan triggered");
+    $servers = $_SESSION['deviceList']['Server'] ?? [];
+    $urls = [];
+    foreach($servers as $server) {
+        $urls[$server['Name']] = $server['Uri']."/library/sections/all/refresh?X-Plex-Token=".$server['Token'];
+    }
+    $mc = new multiCurl($urls);
+    $mc->process();
+    return true;
+}
 
 function getUiData($force = false)
 {
@@ -3232,7 +3243,6 @@ function mapDataResults($search, $media, $meta)
                     $fuzzy = $fuzzy ? $fuzzy : [];
                     $fuzzy[] = $item;
                 }
-            } else {
             }
         }
         $results["$section"] = ($exact ? $exact : ($fuzzy ? $fuzzy : []));
@@ -3306,10 +3316,15 @@ function buildQueryControl($params)
         "subtitles.off" => "subtitles",
         "subtitles.on" => "subtitles",
         "subtitles.change" => "subtitles",
-        "device.change" => "device.change"
+        "device.change" => "device.change",
+        'rescan' => "rescan"
     ];
     $cmd = $commands["$command"] ?? false;
     write_log("Command and value are $command and $value");
+    if ($command === "rescan") {
+        write_log("Triggering a device rescan.");
+        return triggerRescan();
+    }
     if ($command == "subtitles.on" || ($command == 'subtitles.change' && $value)) {
         $streamID = 0;
         $status = fetchPlayerStatus();
@@ -3634,8 +3649,15 @@ function buildSpeechAffirmative($media)
     if ($_SESSION['shortAnswers'] ?? false) $affirmative = lang('speechPlaybackAffirmativeShort');
     write_log("Picked $affirmative out of: " . json_encode($affirmatives));
     writeSession("affirmative", $affirmative);
-    $affirmative = str_replace("<TITLE>",$title,$affirmative);
-    return "$affirmative";
+    $player = findDevice(false,false,"Client");
+    $clientCount = count($_SESSION['deviceList']['Client'] ?? []);
+    $name = $player['Name'] ?? false;
+    if ($name && $clientCount > 1) {
+        $title .= " on $name";
+    }
+    $str = str_replace("<TITLE>",$title,$affirmative);
+
+    return $str;
 }
 
 function buildSpeechCommand($cmd = false, $params = false)
