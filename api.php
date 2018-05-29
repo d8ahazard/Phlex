@@ -3533,7 +3533,8 @@ function buildSpeech($params, $results)
                         if ($data == "MULTI") {
                             write_log("Multi speech...");
                             $speech = "Which one did you want?  ";
-                            $speech .= joinTitles($meta, "or");
+                            $noType = isset($params['type']);
+                            $speech .= joinTitles($meta, "or",$noType);
                         }
                     }
                     $cards = buildCards($meta);
@@ -3562,7 +3563,8 @@ function buildSpeech($params, $results)
                     break;
                 default:
                     $speech = "Which one did you want?  ";
-                    $speech .= joinTitles($media, "or");
+                    $noType = isset($params['type']);
+                    $speech .= joinTitles($media, "or",$noType);
                     write_log("We found a bunch! " . count($media));
                     $wait = true;
                     $context = "playMedia-followup";

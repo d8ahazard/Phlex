@@ -970,8 +970,7 @@ function joinStrings($items, $tail = "and") {
     return $string;
 }
 
-function joinTitles($items, $tail = "and") {
-    write_log("Dammit: ".json_encode($items),"WARN",false,true);
+function joinTitles($items, $tail = "and", $noType=false) {
     $titles = [];
     $names = [];
     $sayType = false;
@@ -1000,7 +999,7 @@ function joinTitles($items, $tail = "and") {
             default:
                 $string = $item['title'];
         }
-        if ($sayType) $string = $string . " (the $type)";
+        if ($sayType && !$noType) $string = $string . " (the $type)";
         $string = trim($string);
         write_log("String is $string");
         if (!in_array($string, $titles)) array_push($titles, $string);
