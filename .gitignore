@@ -6,9 +6,6 @@
 /composer.lock
 /.idea/*
 /cacert.pem
-!/img/cache/
-/img/cache/*
-!/img/cache/._placeholder
 /manifest.json
 /logs/*.log.php
 /logs/*.log.old.php
@@ -19,3 +16,5 @@
 *.old
 *.log.php
 *.db.conf.php
+/img/cache/*
+!/img/cache/_.placeholder
