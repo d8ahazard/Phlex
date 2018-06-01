@@ -677,7 +677,7 @@ function scanDevices($force = false)
         writeSession('scanning', true);
         $https = $_SESSION['noLoop'] ?? true;
         $https = !$https;
-        $url = "https://plex.tv/api/resources?includeHttps=$https&includeRelay=0&X-Plex-Token=" . $_SESSION['plexToken'];
+        $url = "https://plex.tv/api/resources?includeHttps=1&includeRelay=1&X-Plex-Token=" . $_SESSION['plexToken'];
         $data = curlGet($url);
         if (trim($data)) {
             $json = new JsonXmlElement($data);
@@ -720,27 +720,34 @@ function scanDevices($force = false)
                 $name = $server['Name'];
                 write_log("Checking $name: " . json_encode($server), "INFO");
                 $connections = $server['Connection'];
-                $test = [];
+                $mainTest = [];
+                $backupTest = [];
                 if (isset($connections['protocol'])) $connections = [$connections];
                 $i = 0;
+                $secure = ($server['httpsRequired']);
+                $proto = $secure ? "https://" : "http://";
+                write_log("Backup proto is $proto");
+                write_log("This server ". ($secure ? 'does' : 'does not'). ' require https.');
                 foreach ($connections as $connection) {
                     $query = '?X-Plex-Token=' . $server['Token'];
                     $uri = $connection['uri'];
-                    $backup = ($server['httpsRequired'] ? "https://" : "http://") . $connection['address'] . ":" . $connection['port'];
+                    $backup = $proto . $connection['address'] . ":" . $connection['port'];
                     $secure = (($server['httpsRequired'] && $connection['protocol'] === 'https') || (!$server['httpsRequired']));
                     $cloud = preg_match("/plex.services/", $connection['address']);
                     if ($secure || $cloud) {
-                        $test[$uri] = $uri.$query;
-                        $test[$backup] = $backup.$query;
+                        $mainTest[$uri] = $uri.$query;
                     }
+                    $backupTest[$backup] = $backup.$query;
                     $i++;
                 }
+                $test = $mainTest + $backupTest;
                 $data = new multiCurl($test,3);
-                $data = array_keys($data->process());
-                write_log("Server data: ".json_encode($data));
-                $uri = $data[0] ?? false;
+                $uri = $data->test();
+                write_log("Server uri: $uri");
                 if ($uri) {
-                    $server['uri'] = $uri;
+                    $parts = parse_url($uri);
+                    unset($parts['query']);
+                    $server['uri'] = rtrim(http_build_url($parts),"/");
                     write_log("Adding $name to server list.", "INFO");
                     array_push($result, $server);
                 }

@@ -118,4 +118,54 @@ class multiCurl
         unset($ch);
         return $results;
     }
+
+
+    /**
+     * Take an array of URL's, and return the first that returns 200, or false if none
+     * @return bool | array
+     */
+    function test() {
+        $urls = array_values($this->urls);
+
+        $timeout = $this->timeout;
+
+        $master = curl_multi_init();
+
+        // add additional curl options here
+        $options = [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_MAXREDIRS => 5,
+            CURLOPT_TIMEOUT => $timeout
+        ];
+
+        // start the first batch of requests
+        foreach ($urls as $url) {
+                write_log("Checking $url");
+                $ch = curl_init();
+                $options[CURLOPT_URL] = $url;
+                curl_setopt_array($ch,$options);
+                curl_multi_add_handle($master, $ch);
+            }
+
+        do {
+            while(($execrun = curl_multi_exec($master, $running)) == CURLM_CALL_MULTI_PERFORM);
+            if($execrun != CURLM_OK)
+                break;
+            // a request was just completed -- find out which one
+            while($done = curl_multi_info_read($master)) {
+                $info = curl_getinfo($done['handle']);
+                if ($info['http_code'] == 200)  {
+                    curl_multi_close($master);
+                    // request successful.  process output using the callback function.
+                    $url = $info['url'];
+                    write_log("SUCCESS: $url","INFO");
+                    return $url;
+                }
+            }
+        } while ($running);
+
+        curl_multi_close($master);
+        return false;
+    }
 }

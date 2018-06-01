@@ -2364,7 +2364,76 @@ function transcodeImage($path, $server, $full=false) {
     if (preg_match("/library/", $path)) {
         $token = $server['Token'];
         $size = $full ? 'width=1920&height=1920' : 'width=600&height=600';
+        $serverAddress = $server['Uri'];
+        $serverBlock = parse_url($serverAddress);
+        $host = $serverBlock['host'] ?? $serverBlock['ip'];
+        $is_ip = filter_var($host, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_IPV6);
+
+        $filtered = $is_ip ? filter_var(
+            $host,
+            FILTER_VALIDATE_IP,
+            FILTER_FLAG_IPV4 | FILTER_FLAG_NO_PRIV_RANGE |  FILTER_FLAG_NO_RES_RANGE
+        ) : true;
+        $good = $is_ip ? ($filtered && !preg_match("/localhost/",$serverAddress)) : true;
         $url = $server['Uri'] . "/photo/:/transcode?$size&minSize=1&url=" . urlencode($path) . "&X-Plex-Token=" . $token;
+        if (!$good) {
+            write_log("This address is not public, we need to fix that.");
+            $hostAddress = $_SESSION['publicAddress'] ?? false;
+            if (!$hostAddress) {
+                $proto = ((strpos($_SERVER['SERVER_PROTOCOL'],"HTTPS") !== false) ? "https://" : "http://");
+                $hostAddress =  $proto . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+                $hostParts = parse_url($hostAddress);
+                unset($hostParts['query']);
+                $hostParts['path'] = preg_replace("/\/index.php/", "", $hostParts['path']);
+                $hostParts['path'] = preg_replace("/\/api.php/", "", $hostParts['path']);
+                if (!trim($hostParts['path'])) unset($hostParts['path']);
+                write_log("HostParts: " . json_encode($hostParts));
+                $hostAddress = http_build_url($hostParts);
+            }
+            $typeInt = exif_imagetype($url);
+            switch($typeInt) {
+                case IMG_GIF:
+                    $typeString = 'gif';
+                    break;
+                case IMG_JPG:
+                    $typeString = 'jpg';
+                    break;
+                case IMG_JPEG:
+                    $typeString = 'jpeg';
+                    break;
+                case IMG_PNG:
+                    $typeString = 'png';
+                    break;
+                case IMG_WBMP:
+                    $typeString = 'wbmp';
+                    break;
+                case IMG_XPM:
+                    $typeString = 'xpm';
+                    break;
+                default:
+                    $typeString = false;
+            }
+            if ($typeInt) {
+                write_log("We have a type, good to save.");
+
+                $imgName = md5_file($url);
+                $imgPath = file_build_path(dirname(__FILE__),"..","img","cache","$imgName.$typeString");
+                if (!file_exists($imgPath)) {
+                    write_log("Saving new file to $imgPath");
+                    file_put_contents($imgPath, file_get_contents($url));
+                } else {
+                    write_log("File exists.");
+                }
+                $url = "$hostAddress/img/cache/$imgName.$typeString";
+            }
+
+        } else {
+            write_log("This address should work.");
+        }
+
+
+        if (!preg_match("/https/",$url)) $url = "https://phlexchat.com/imageProxy.php?url=".urlencode($url);
+        write_log("Final URL is $url");
         return $url;
     }
     write_log("Invalid image path, returning generic image.", "WARN");
