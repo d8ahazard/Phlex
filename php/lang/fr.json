@@ -3,14 +3,57 @@
 	"cardGreetingText": "Bienvenue sur Flex TV!",
 	"cardReadmeButton": "Voir le readme",
 	"cardReadmeTitle": "Bienvenue!",
+	"commandSynonymsArray": {
+		"play": [
+			"resume"
+		],
+		"skip": [
+			"jump",
+			"go"
+		],
+		"step": [
+			"seek"
+		],
+		"forward": [
+			"ahead"
+		],
+		"back": [
+			"backward"
+		],
+		"seekBack": [
+			"rewind"
+		],
+		"seek": [
+			"fast"
+		],
+		"skipNext": [
+			"skip forward"
+		],
+		"skipPrevious": [
+			"skip back"
+		],
+		"stepForward": [
+			"fast forward",
+			"seek forward"
+		],
+		"stepBack": [
+			"seek back"
+		],
+		"volume up": [
+			"volume up"
+		],
+		"volume down": [
+			"volume down"
+		]
+	},
 	"errorHelpSuggestionsArray": [
-		"Bien sûr, pourquoi n'en essayez-vous pas un ?",
+		"Voici quelques suggestions que vous pouvez essayer.",
 		"Voici quelques commandes possibles.",
-		"Voici quelques suggestions que vous pouvez essayer."
+		"Bien sûr, pourquoi n'en essayez-vous pas un ?"
 	],
 	"errorHelpCommandsArray": [
 		"Qu'est-ce qu'il y a en cours ?",
-		"Quels nouveaux films ai-je ?",
+		"Quels nouveaux films ais-je ?",
 		"Suspendre la lecture",
 		"Lire Batman Begins."
 	],
@@ -110,7 +153,7 @@
 	"speechAiringsMids": [
 		"j'ai trouvé",
 		"je vois",
-		"tu as"
+		"vous avez"
 	],
 	"speechAiringsOn": "Sur",
 	"speechAiringsReturn": "Voici la liste des enregistrements programmés :",
@@ -119,12 +162,12 @@
 	"speechAiringsTonight": "Ce soir,",
 	"speechAiringsWeekend": "Cette fin de semaine,",
 	"speechAiringTails": [
+		"à venir.",
 		"mis à enregistrer.",
-		"sur l'horaire.",
-		"à venir."
+		"sur l'horaire."
 	],
 	"speechBy": "par",
-	"speechChangDeviceFailureStart": "Je suis désolé, mais je ne peut pas le trouver",
+	"speechChangDeviceFailureStart": "Je suis désolé, mais je ne peux pas le trouver",
 	"speechChange": "Changement",
 	"speechChangeDeviceFailEnd": "dans la liste des appareils.",
 	"speechChangeDevicePrompt": ", bien sûr. Quel appareil aimeriez-vous utiliser?",
@@ -134,13 +177,13 @@
 	"speechChangeDeviceWarnStart1": "foo",
 	"speechChangeDeviceWarnStart2": "foo",
 	"speechChangeDeviceWarnStart3": "foo",
-	"speechChangeMind": "D'accord, laissez-moi savoir si vous changez d'avis.",
+	"speechChangeMind": "D'accord, faites-moi savoir si vous changez d'avis.",
 	"speechControlConfirm1": "Envoyer une commande à",
 	"speechControlConfirmGenericArray": [
-		"Bien sûr.",
-		"Et une bonne chose de faite !",
+		"C'est fait !",
 		"D'accord.",
-		"C'est fait !"
+		"Bien sûr.",
+		"Et une bonne chose de faite !"
 	],
 	"speechControlConfirmPauseArray": [
 		"Ok, j'ai mis en pause le téléviseur.",
@@ -167,6 +210,13 @@
 		"Engager un traducteur universel.",
 		"Les sous-titres ont été activés."
 	],
+	"speechControlArray": [
+		"A vos ordres.",
+		"C'est Fait.",
+		"Très bien.",
+		"C'est bon.",
+		"Voilà."
+	],
 	"speechControlGeneric1": "Envoyer une commande à",
 	"speechControlGeneric2": "D'accord, je vais dire à Plex",
 	"speechControlVolumeDown": "D'accord, je vais baisser un peu.",
@@ -187,34 +237,61 @@
 		"Désolé, mais je n'ai pas trouvé cela dans vos recherches.",
 		"Malheureusement, je n'ai pas pu trouver quoi que ce soit avec ce titre à télécharger."
 	],
+	"speechDownloadExistsArray": [
+		"On dirait que <TITLE> est déjà prévu pour téléchargement sur ",
+		"<TITLE> est déjà sur la liste d'attente pour ",
+		"Je regarde déjà après <TITLE> sur "
+	],
 	"speechDownloadExists1": "On dirait que",
 	"speechDownloadExists2": "est déjà dans la file de téléchargements.",
 	"speechDvrFailStart": "Je n'ai pas trouvé de résultats dans le guide des épisodes correspondant",
 	"speechDvrNoDevice": "Je suis désolé, mais je n'ai trouvé aucune instance de Plex DVR à utiliser.",
 	"speechDvrSuccessEnd": "à l'horaire d'enregistrement.",
 	"speechDvrSuccessStart": "Hey, regarde ça. J'ai ajouté le",
-	"speechEggAttackTheBlock": "Es-tu le docteur?",
-	"speechEggAvengers": "Famille assembler!",
-	"speechEggBatman": "Saint médias piratés!",
-	"speechEggBigHero": "Bonjour, je suis Baymax, je vais être",
-	"speechEggEvilDead": "Salut au roi, bébé!",
-	"speechEggFifthElement": "Leeloo Dallas Mul-ti-Pass!",
-	"speechEggFrozen": "Laisser aller!",
-	"speechEggGameThrones": "Préparez vous...",
-	"speechEggGhostbusters": "Qui vas-tu appeler?",
-	"speechEggHeathers": "Eh bien, charge-moi doucement avec une tronçonneuse.",
-	"speechEggIronMan": "Oui M. Stark,",
-	"speechEggOdyssey": "J'ai peur de ne pas pouvoir faire ça Dave. Ok, bien,",
-	"speechEggResidentEvil": "T-moins 1 minute jusqu'à l'infection.",
-	"speechEggStarWars": "Ce ne sont pas les droïdes que vous cherchez.",
-	"speechEggTheyLive": "Je suis ici pour mâcher bubblegum et",
-	"speechEggWallE": "Nous vous remercions de magasiner et acheter grand et profiter comme nous commençons",
+	"speechEggArray": {
+		"attack the block": "Are you the Doctor? Playing <TITLE>.",
+		"avengers": "Family assemble! It's time to watch <TITLE>.",
+		"batman": "Holy pirated media, Batman! It's <TITLE>.",
+		"big hero": "Hello, I am Baymax, for treatment, I recommend watching <TITLE>.",
+		"evil dead": "Hail to the king, baby! Let's watch <TITLE>.",
+		"fifth element": "Leeloo Dallas Mul-ti-Pass! Mul-ti-pass. Enjoy <TITLE>.",
+		"frozen": "Let it go, let it go! Let's sit down and watch <TITLE>.",
+		"game of thrones": "Brace yourself... <TITLE> is playing.",
+		"ghostbusters": "Who you gonna call? <TITLE>",
+		"heathers": "Well, charge me gently with a chainsaw. Or watch <TITLE>.",
+		"iron man": "Yes Mr. Stark, turning on <TITLE>.",
+		"space odyssey": "I'm sorry, Dave. I'm afraid I can't do that.",
+		"resident evil": "T-minus 1 minute until infection. Administering <TITLE>.",
+		"star wars": "Help me, Obi-Wan-Kenobi. <TITLE> is my only hope.",
+		"they live": "I'm here to chew bubblegum and play <TITLE>, and I'm all out of bubblegum.",
+		"wall-e": "Thank you for shopping Buy and Large, and enjoy as we begin <TITLE>.",
+		"monty python": "Your mother was a hamster, and your father smelled of elderberries. Playing <TITLE>",
+		"guide to the end of the universe": "Hey there, you hoopy frood. I'm going to play <TITLE> for you.",
+		"rocky horror": "Oh Rocky!!" ,
+		"citizen kane": "Rosebud...",
+		"godfather": "I'm going to make you an offer you can't refuse. I'm going to play <TITLE>.",
+		"with the wind": "Frankly, my dear, I don't give an iPhone.",
+		"dirty harry": "Go ahead, you've already made my day.",
+		"taxi driver": "You talkin' to me? Just checking. Playing <TITLE> now.",
+		"apocalypse now": "I love the smell of ozone in the morning.",
+		"e.t.": "Google phone home! Playing <TITLE>.",
+		"silence of the lambs": "This movie would go great with some fava beans and a nice chianti.",
+		"jerry maguire": "Show me the money! And I'll show you <TITLE>.",
+		"a few good men": "You can't handle the truth. But maybe you can handle <TITLE>.",
+		"jaws": "You're gonna need a bigger boat.",
+		"a streetcar named": "STELLA!!!!",
+		"super troopers": "Littering and... Littering and... Littering and watching <TITLE>."
+	},
 	"speechGreetingArray": [
 		"Bonjour. Essayez de me demander de lire quelque chose.",
 		"Salut, je suis Flex TV. Que puis-je faire pour vous aujourd'hui ?",
 		"Salutations, humain ! Comment puis-je vous aider?"
 	],
-	"speechGreetingHelpPrompt": "Si vous souhaitez une liste de commandes, vous pouvez dire 'Aide' ou 'Quelles sont les commandes?'",
+	"speechGreetingHelpPrompt": [
+		"Si vous souhaitez une liste de commandes, vous pouvez dire 'Aide' ou 'Quelles sont les commandes?'",
+		"Vous pouvez dire 'Aide' ou 'Que sais-tu faire' pour en savoir à mon propos.",
+		"Essayez de me demande de jouer quelque chose, ou dites 'Adire' pour plus de commandes."
+	],
 	"speechHookCustomDefault": "Félicitations, vous avez déclenché la commande webhook personnalisée !",
 	"speechMoreInfoArray": [
 		"Voici ce que j'ai trouvé pour cet article.",
@@ -231,16 +308,34 @@
 		"Malheureusement, je ne peux pas comprendre quand vous avez dit '"
 	],
 	"speechOndeckRecentError": "Malheureusement, je n'ai pas pu trouver de résultats pour cela. Veuillez réessayer plus tard.",
+	"speechNoInfoResultsArray": [
+		"Malheureusement, je ne peux pas pu trouver <VAR> dans votre libraire pour le moment.",
+		"Je suis désolé, j'ai chercher, mias n'ai rien trouvé pour <VAR>.",
+		"Hmmm. Votre serveur ne semble rien avoir pour <VAR>.",
+		"Je n'ai rien trouvé qui corresponse à <VAR>."
+	],
+	"speechNoResultsArray": [
+		"Malheureusement, je n'ai trouvé aucun résultat pour ça.",
+		"Je suis désolé, mais n'ai rien trouvé pour cette recherche.",
+		"J'ai regardé, mais je ne peux rien faire pour vous aider avec cette demande."
+	],
 	"speechOndeckRecentTail": "Si vous voulez regarder quelque chose, dites simplement le nom, sinon, vous pouvez dire 'annuler'.",
 	"speechPlaybackAffirmatives": [
-		"Comme vous voulez,",
-		"D'accord,",
-		"Oui Maître,",
-		"Oui capitaine,",
-		"Pas de problème,",
-		"Bien sûr,",
-		"C'est parti,",
-		"Allons-y,"
+		"Comme vous voulez, je joue <TITLE>.",
+		"D'accord, c'est parti pour <TITLE>.",
+		"Oui Maître, je lance <TITLE>.",
+		"Oui capitaine, allons-y pour <TITLE>.",
+		"Pas de problème, je joue <TITLE>.",
+		"Bien sûr, c'est parti pour <TITLE>.",
+		"C'est parti, je lance <TITLE>.",
+		"Allons-y, voici <TITLE>."
+	],
+	"speechPlaybackAffirmativeShort": "Je joue <TITLE>.",
+	"speechControlShort": "D'accord.",
+	"speechFetchAffirmatives": [
+		"Bien, ",
+		"D'accord, ",
+		"Sûr! "
 	],
 	"speechPlayer": "lecteur",
 	"speechPlayError3": "Je ne l'ai pas trouvé dans la bibliothèque, voulez-vous que j'essaie de le télécharger?",
@@ -260,6 +355,11 @@
 	"speechPlaying": "Lecture",
 	"speechReturnOndeck": "Voici une liste d'éléments en cours :",
 	"speechReturnRecent": "Voici une liste des récents",
+	"speechReturnInfoArray": [
+		"Voici une liste de <TYPE>:",
+		"Pour <TYPE>, vous avez:",
+		"J'ai trouvé ces <TYPE> dans votre librairie:"
+	],
 	"speechServer": "serveur",
 	"speechShuffleResponse": "Ok, mélanger tous les épisodes de",
 	"speechStatusNothingPlaying": "Il ne semble pas qu'il y ait quoi que ce soit qui soit en lecture en ce moment.",
@@ -269,7 +369,13 @@
 	"suggestionCancel": "Annuler.",
 	"suggestionCouch": "Téléchargez le film Tron.",
 	"suggestionDvr": "DVR Jeopardy.",
-	"suggestionSick": "Allez chercher le spectacle Mauvaises herbes.",
+	"suggestionSick": ["Allez chercher le spectacle Mauvaises herbes."],
+	"suggestionsApps": {
+		"show":["Télécharge le dernier épisode de Jeopardy","Trouve le show Young Sheldon"],
+		"movie":["Télécharge Ghost Rider","Trouve Ghostbusters 1989"],
+		"music":["Télécharge le dernier album de Metallica","Ramène la nouvelle chanson de Glitch Mob"],
+		"dvr":["Enregistre la Roue de la Fortune"]
+	},
 	"suggestionYesNo": [
 		"Non",
 		"Oui"
@@ -281,8 +387,10 @@
 	"uiSettingAccountLinking": "Compte lié:",
 	"uiSettingApiKey": "Clé d'API:",
 	"uiSettingAutoUpdate": "Installer automatiquement les mises à jour",
+	"uiSettingNotifyUpdate": "Dis moi quand des mises à jour sont disponibles",
 	"uiSettingBtnReset": "RÉINITIALISER",
 	"uiSettingBtnTest": "TESTER",
+	"uiSettingCastLogs": "Télécharger le journal",
 	"uiSettingCopyIFTTT": "Cliquez pour copier l'URL IFTTT:",
 	"uiSettingDevices": "Appareils statiques",
 	"uiSettingDevicesAddNew": "Ajouter un nouveau périphérique",
@@ -291,6 +399,7 @@
 	"uiSettingDvrNewAirings": "Enregistrer de nouvelles diffusions seulement",
 	"uiSettingDvrRecordPartials": "Enregistrer les épisodes partiels",
 	"uiSettingDvrReplaceLower": "Remplacer les enregistrements de qualité inférieure",
+	"uiSettingDvrComskipEnabled": "Passer les publicités",
 	"uiSettingDvrResolution": "Résolution",
 	"uiSettingDvrResolutionAny": "Tout",
 	"uiSettingDvrResolutionHD": "Haute définition",
@@ -305,7 +414,9 @@
 	"uiSettingForceSSLHint": "Forcer SSL si disponible. Requis pour les applications Web progressives.",
 	"uiSettingGeneral": "Général",
 	"uiSettingHeaderDevices": "Appareils",
-	"uiSettingHeaderFetchers": "Fetchers",
+	"uiSettingHeaderMovies": "Films",
+	"uiSettingHeaderShows": "Shows",
+	"uiSettingHeaderMusic": "Musiques",
 	"uiSettingHeaderLogs": "Journaux",
 	"uiSettingHeaderPhlex": "Phlex",
 	"uiSettingHeaderPlex": "Plex",
@@ -328,6 +439,10 @@
 	"uiSettingLogCount": "Nombre",
 	"uiSettingLogLevel": "Niveau :",
 	"uiSettingLogUpdate": "Mettre à jour",
+	"uiSettingMasterUser": "Utiliseur principal",
+	"uiSettingMasterUserHint": "Il ne peut y en avoir qu'un!\r\n...Et c'est vous.",
+	"uiSettingNoNewUsers": "Empêcher de nouveaux utilisateur",
+	"uiSettingNoNewUsersHint": "Empêcher tout nouvel utilisateur d'accéder à Flex TV.",
 	"uiSettingNoPlexDirect": "Pas de Plex.Direct",
 	"uiSettingNoPlexDirectHint": "{EXPERIMENTAL) Activez cette option si vous ne pouvez pas vous connecter à votre serveur.",
 	"uiSettingObscureLogs": "Données sensibles obscures dans les journaux",
@@ -342,7 +457,9 @@
 	"uiSettingSearchAccuracy": "Précision de recherche (%):",
 	"uiSettingDebugging": "Activer le débogage",
 	"uiSettingSeparateHookUrl": "Séparez les URL",
+	"uiSettingShortAnswers": "Utiliser des réponses plus courtes",
 	"uiSettingTestButton": "TESTER",
+	"uiSettingTestServer": "Tester la connexion",
 	"uiSettingThemeColor": "Utilisez le thème sombre",
 	"uiSettingUpdates": "Mises à jour",
 	"uiSettingUseCast": "Utiliser des appareils Cast"
