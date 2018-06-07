@@ -1,0 +1,487 @@
+{
+    "btnReadmePrompt": "Leesmij bekijken",
+    "cardGreetingText": "Welkom bij Flex TV!",
+    "cardReadmeButton": "Leesmij bekijken",
+    "cardReadmeTitle": "Welkom!",
+    "commandSynonymsArray": {
+        "play": [
+            "hervat"
+        ],
+        "skip": [
+            "springen",
+            "Gaan"
+        ],
+        "step": [
+            "zoeken"
+        ],
+        "forward": [
+            "verder"
+        ],
+        "back": [
+            "achterwaarts"
+        ],
+        "seekBack": [
+            "rewind"
+        ],
+        "seek": [
+            "snel"
+        ],
+        "skipNext": [
+            "Spring vooruit"
+        ],
+        "skipPrevious": [
+            "sla terug"
+        ],
+        "stepForward": [
+            "snel vooruit",
+            "vooruit zoeken"
+        ],
+        "stepBack": [
+            "zoek terug"
+        ],
+        "volume up": [
+            "volume omhoog"
+        ],
+        "volume down": [
+            "volume verminderen"
+        ]
+    },
+    "errorHelpSuggestionsArray": [
+        "Hieronder staan ​​enkele suggesties die u kunt proberen.",
+        "Hier zijn enkele mogelijke commando&#39;s.",
+        "Natuurlijk, waarom probeer je niet een van deze?"
+    ],
+    "errorHelpCommandsArray": [
+        "Wat staat er aan dek?",
+        "Welke nieuwe films heb ik?",
+        "Pauzeer het afspelen.",
+        "Speel Batman Begins."
+    ],
+    "fetchSynonymsArray": {
+        "season": [
+            "seizoen"
+        ],
+        "episode": [
+            "aflevering"
+        ],
+        "movie": [
+            "speelfilm"
+        ],
+        "show": [
+            "laten zien",
+            "serie"
+        ],
+        "latest": [
+            "laatste",
+            "nieuwe",
+            "nieuwste",
+            "meest recente",
+            "de laatste",
+            "de nieuwste"
+        ]
+    },
+    "javaStrings": [
+        "Hoe kan ik helpen?",
+        "Wat kan ik voor je doen?",
+        "Jij zei:",
+        "Mijn antwoord:",
+        "apparaten opnieuw scannen"
+    ],
+    "parseStripArray": [
+        "van",
+        "de",
+        "een",
+        "een",
+        "op",
+        "th",
+        "nd",
+        "in",
+        "van",
+        "&#39;",
+        "s",
+        "en"
+    ],
+    "parseMediaArray": [
+        "seizoen",
+        "serie",
+        "laten zien",
+        "aflevering",
+        "film",
+        "film",
+        "begin",
+        "rust uit",
+        "einde",
+        "notulen",
+        "minuut",
+        "uur",
+        "uur",
+        "seconden",
+        "tweede"
+    ],
+    "parseFilterArray": [
+        "genre",
+        "jaar",
+        "acteur",
+        "regisseur",
+        "gerichte",
+        "met in de hoofdrol",
+        "featuring",
+        "met",
+        "gemaakt",
+        "aangemaakt",
+        "vrijgelaten",
+        "gefilmd"
+    ],
+    "parseNumberArray": [
+        "eerste",
+        "piloot",
+        "tweede",
+        "derde",
+        "laatste",
+        "laatste",
+        "laatste",
+        "willekeurig"
+    ],
+    "parsedDvrFailStart": "Voeg de media met de naam toe",
+    "parsedDvrSuccessNamed": "genaamd",
+    "parsedDvrSuccessStart": "Voeg de toe",
+    "speechAiringsAfternoon": "Deze middag,",
+    "speechAiringsErrors": [
+        "Ik heb niets op de lijst voor",
+        "Er staat niets gepland voor u"
+    ],
+    "speechAiringsMids": [
+        "ik vond",
+        "ik snap het",
+        "jij hebt"
+    ],
+    "speechAiringsOn": "Op",
+    "speechAiringsReturn": "Hier is een lijst met geplande opnames:",
+    "speechAiringsToday": "Vandaag",
+    "speechAiringsTomorrow": "Morgen,",
+    "speechAiringsTonight": "Vanavond,",
+    "speechAiringsWeekend": "Dit weekend,",
+    "speechAiringTails": [
+        "Binnenkort.",
+        "op het schema.",
+        "ingesteld om op te nemen."
+    ],
+    "speechBy": "door",
+    "speechChangDeviceFailureStart": "Het spijt me, maar ik kon het niet vinden",
+    "speechChange": "Verandering",
+    "speechChangeDeviceFailEnd": "in de apparatenlijst.",
+    "speechChangeDevicePrompt": ", zeker. Welk apparaat zou u willen gebruiken?",
+    "speechChangeDeviceSuccessStart": "Oké, ik ben overgestapt op",
+    "speechChangeDeviceWarnEnd1": "foo",
+    "speechChangeDeviceWarnEnd2": "foo",
+    "speechChangeDeviceWarnStart1": "foo",
+    "speechChangeDeviceWarnStart2": "foo",
+    "speechChangeDeviceWarnStart3": "foo",
+    "speechChangeMind": "Oké, laat me weten als je van gedachten verandert.",
+    "speechControlConfirm1": "Een opdracht verzenden naar",
+    "speechControlConfirmGenericArray": [
+        "Beschouw het gedaan.",
+        "Oke.",
+        "Natuurlijk.",
+        "Jij hebt het."
+    ],
+    "speechControlConfirmPauseArray": [
+        "Oké, ik heb de tv voor je gepauzeerd.",
+        "Afspelen pauzeren.",
+        "Plex zou nu moeten worden onderbroken."
+    ],
+    "speechControlConfirmPlayArray": [
+        "Spelen.",
+        "Plex zou moeten spelen.",
+        "Het afspelen hervatten."
+    ],
+    "speechControlConfirmStopArray": [
+        "Plex is gestopt.",
+        "Plex moet nu worden gestopt.",
+        "Stoppen."
+    ],
+    "speechControlConfirmSubsOffArray": [
+        "Ondertiteling uitschakelen.",
+        "Babelvis verwijderen.",
+        "Ondertitels zijn uitgeschakeld."
+    ],
+    "speechControlConfirmSubsOnArray": [
+        "Ondertiteling inschakelen.",
+        "Bezig met een universele vertaler.",
+        "Ondertitels zijn ingeschakeld."
+    ],
+    "speechControlArray": [
+        "Zoals u beveelt.",
+        "Klaar en klaar.",
+        "Oke dan.",
+        "Jij hebt het!",
+        "Daar ga je."
+    ],
+    "speechControlGeneric1": "Een opdracht verzenden naar",
+    "speechControlGeneric2": "Oké, ik zal het Plex vertellen",
+    "speechControlVolumeDown": "Oké, ik zal het een beetje afwijzen.",
+    "speechControlVolumeSet": "Oké, het volume instellen op",
+    "speechControlVolumeUp": "Oké, ik zal het een beetje hoger zetten.",
+    "speechDeviceListError": "Er is een fout opgetreden bij het ophalen van de lijst met apparaten. Probeer het later opnieuw.",
+    "speechDeviceListErrorArray": [
+        "Ik wil je graag helpen, maar ik zie slechts één apparaat waarmee ik momenteel kan praten.",
+        "Het spijt me, ik heb maar één apparaat om te selecteren.",
+        "Helaas, je hebt nu maar één apparaat en het is al geselecteerd."
+    ],
+    "speechDontUnderstand1": "Het spijt me maar &#39;",
+    "speechDontUnderstand2": "lijkt niet overeen te komen met alles wat ik net heb gezegd.",
+    "speechDownloadAdded1": "Oké, ik heb toegevoegd",
+    "speechDownloadAdded2": "naar de ophaallijst.",
+    "speechDownloadErrorArray": [
+        "Sorry, maar ik kon dat bij geen van uw zoekers vinden.",
+        "Dit is beschamend. Ik kan dat nergens vinden.",
+        "Helaas kon ik niets met die titel vinden om te downloaden."
+    ],
+    "speechDownloadExistsArray": [
+        "<html> Het lijkt op <TITLE> is al ingesteld om te downloaden op &lt;\/ html&gt;",
+        "<html><TITLE> staat al op de controlelijst voor &lt;\/ html&gt;",
+        "<html> Ik ben al op zoek naar <TITLE> op &lt;\/ html&gt;"
+    ],
+    "speechDownloadExists1": "Het lijkt op",
+    "speechDownloadExists2": "is al ingesteld om te downloaden.",
+    "speechDvrFailStart": "Ik kon geen resultaten vinden in de afleveringsgids die overeenkomen met &#39;",
+    "speechDvrNoDevice": "Het spijt me, maar ik heb geen exemplaren van Plex DVR gevonden om te gebruiken.",
+    "speechDvrSuccessEnd": "naar het opnameschema.",
+    "speechDvrSuccessStart": "Hé, kijk daar eens naar. Ik heb de",
+    "speechEggArray": {
+        "attack the block": "<html> Ben jij de dokter? Spelen <TITLE> . &lt;\/ Html&gt;",
+        "avengers": "<html> Familie verzamelen! Het is tijd om te kijken <TITLE> . &lt;\/ Html&gt;",
+        "batman": "<html> Heilige gepirateerde media, Batman! Haar <TITLE> . &lt;\/ Html&gt;",
+        "big hero": "<html> Hallo, ik ben Baymax, voor behandeling, raad ik aan om te kijken <TITLE> . &lt;\/ Html&gt;",
+        "evil dead": "<html> Heil aan de koningszoon! Laten we kijken <TITLE> . &lt;\/ Html&gt;",
+        "fifth element": "<html> Leeloo Dallas Mul-ti-Pass! Mul-ti-pass. Genieten <TITLE> . &lt;\/ Html&gt;",
+        "frozen": "<html> Laat het gaan laat het gaan! Laten we gaan zitten en kijken <TITLE> . &lt;\/ Html&gt;",
+        "game of thrones": "<html> Zet je schrap... <TITLE> speelt. &lt;\/ html&gt;",
+        "ghostbusters": "<html> Wie ga je bellen? <TITLE> &lt;\/ Html&gt;",
+        "heathers": "<html> Nou, laad me zachtjes op met een kettingzaag. Of kijk <TITLE> . &lt;\/ Html&gt;",
+        "iron man": "<html> Ja meneer Stark, aanzetten <TITLE> . &lt;\/ Html&gt;",
+        "space odyssey": "Het spijt me, Dave. Ik ben bang dat ik dat niet kan doen.",
+        "resident evil": "<html> T-minus 1 minuut tot infectie. toedienen <TITLE> . &lt;\/ Html&gt;",
+        "star wars": "<html> Help me, Obi-Wan-Kenobi. <TITLE> is mijn enige hoop. &lt;\/ html&gt;",
+        "they live": "<html> Ik ben hier om bubblegum te kauwen en te spelen <TITLE> en ik heb geen bubblegum meer. &lt;\/ html&gt;",
+        "wall-e": "<html> Bedankt voor het kopen en kopen van Groot en geniet ervan wanneer we beginnen <TITLE> . &lt;\/ Html&gt;",
+        "monty python": "<html> Je moeder was een hamster en je vader rook naar vlierbessen. Spelen <TITLE> &lt;\/ Html&gt;",
+        "guide to the end of the universe": "<html> Hé daar, jij hoopy frood. ik ga spelen <TITLE> voor jou. &lt;\/ html&gt;",
+        "rocky horror": "Oh Rocky !!",
+        "citizen kane": "Rosebud ...",
+        "godfather": "<html> Ik ga een aanbod doen dat je niet kunt weigeren. ik ga spelen <TITLE> . &lt;\/ Html&gt;",
+        "with the wind": "Eerlijk gezegd, mijn lief, geef ik geen iPhone.",
+        "dirty harry": "Ga je gang, je hebt mijn dag al gemaakt.",
+        "taxi driver": "<html> Heb je het tegen mij? Enkel maar even nakijken. Spelen <TITLE> nu. &lt;\/ html&gt;",
+        "apocalypse now": "Ik hou van de geur van ozon in de ochtend.",
+        "e.t.": "<html> Google-telefoon naar huis! Spelen <TITLE> . &lt;\/ Html&gt;",
+        "silence of the lambs": "Deze film zou geweldig zijn met enkele tuinbonen en een mooie chianti.",
+        "jerry maguire": "<html> Toon me het geld! En ik zal het je laten zien <TITLE> . &lt;\/ Html&gt;",
+        "a few good men": "<html> Je kunt de waarheid niet aan. Maar misschien kan je het aan <TITLE> . &lt;\/ Html&gt;",
+        "jaws": "Je hebt een grotere boot nodig.",
+        "a streetcar named": "STELLA !!!!",
+        "super troopers": "<html> Een rommel maken en ... Een rommel maken en ... Een rommel maken en kijken <TITLE> . &lt;\/ Html&gt;"
+    },
+    "speechGreetingArray": [
+        "Groeten!",
+        "Hallo daar!",
+        "Hallo, ik ben Flex TV.",
+        "Welkom op het feest!",
+        "Dilly Dilly!"
+    ],
+    "speechGreetingHelpPrompt": [
+        "Als u een lijst met opdrachten wilt, kunt u &#39;Help&#39; of &#39;Wat zijn uw opdrachten?&#39;",
+        "U kunt &#39;Help&#39; of &#39;Wat kunt u doen&#39; zeggen om meer over mij te weten te komen.",
+        "Vraag me om iets te spelen of zeg &#39;help&#39; voor meer opdrachten."
+    ],
+    "speechHookCustomDefault": "Gefeliciteerd, je hebt het aangepaste webhook-commando geactiveerd!",
+    "speechMoreInfoArray": [
+        "Hier is wat meer informatie over.",
+        "Dit is wat ik heb gevonden voor dat item.",
+        "Ik heb dit voor je opgezocht."
+    ],
+    "speechMultiResultArray": [
+        "Ik vond daarvoor verschillende mogelijke resultaten, was dit een van wat je wilde?",
+        "Er waren een paar dingen waarvan ik denk dat je zou kunnen vragen, is dit een van deze?",
+        "Welke bedoel je?",
+        "U hebt een paar dingen die die zoekopdracht kunnen evenaren, zijn dit een van deze?"
+    ],
+    "speechNotUnderstoodArray": [
+        "Gevaar Zal Robinson! Ik begrijp het commando niet &#39;",
+        "Ik vrees dat ik niet begrijp wat je bedoelt",
+        "Helaas kon ik er niet achter komen wat je zei toen je zei:"
+    ],
+    "speechOndeckRecentError": "Helaas kon ik daar geen resultaten voor vinden. Probeer het later opnieuw.",
+    "speechNoInfoResultsArray": [
+        "Helaas kon ik nu niet vinden <VAR>in uw bibliotheek.<\/var>",
+        "Het spijt me, ik heb het gecontroleerd, maar ik heb geen resultaten voor gekregen <VAR>.<\/var>",
+        "Hmmm. Er lijkt niets op je server te staan <VAR>.<\/var>",
+        "Ik heb niets gevonden dat overeenkomt <VAR>.<\/var>"
+    ],
+    "speechNoResultsArray": [
+        "Helaas kon ik daar geen resultaten voor vinden.",
+        "Het spijt me, maar ik kon niets vinden voor die zoekopdracht.",
+        "Ik keek, maar ik kon niet helpen met dat verzoek."
+    ],
+    "speechOndeckRecentTail": "Als u iets wilt bekijken, zegt u gewoon de naam, anders kunt u &#39;annuleren&#39; zeggen.",
+    "speechPlaybackAffirmatives": [
+        "<html> Allemachtig dan, spelen <TITLE> . &lt;\/ Html&gt;",
+        "<html> Zoals je commandeert, beginnend <TITLE> . &lt;\/ Html&gt;",
+        "<html> Geen probleem, schieten <TITLE> . &lt;\/ Html&gt;",
+        "<html> Oké, spelen <TITLE> . &lt;\/ Html&gt;",
+        "<html> Natuurlijk, spelen <TITLE> . &lt;\/ Html&gt;",
+        "<html> Ja kapitein, aanzetten <TITLE> . &lt;\/ Html&gt;",
+        "<html> Ja meester, ik zal spelen <TITLE> voor jou. &lt;\/ html&gt;",
+        "<html> Je hebt het, te beginnen <TITLE> . &lt;\/ Html&gt;",
+        "<html> Aye aye, <TITLE> het is. &lt;\/ html&gt;",
+        "<html> Roger dat, aanzetten <TITLE> . &lt;\/ Html&gt;",
+        "<html> Bevestigend. Beginnend <TITLE> . &lt;\/ Html&gt;"
+    ],
+    "speechPlaybackAffirmativeShort": "<html> Spelen <TITLE> . &lt;\/ Html&gt;",
+    "speechControlShort": "Oke.",
+    "speechFetchAffirmatives": [
+        "allright,",
+        "Oke,",
+        "Succes!"
+    ],
+    "speechPlayer": "speler",
+    "speechPlayError3": "Ik kon dat niet vinden in de bibliotheek, wil je dat ik het probeer te downloaden?",
+    "speechPlayErrorEnd1": "in je bibliotheek. Moet ik proberen het aan de controlelijsten toe te voegen?",
+    "speechPlayErrorEnd2": "&#39; spelen. Moet ik het voor je proberen te halen? &#39;",
+    "speechPlayErrorStart1": "Ik kon het niet vinden",
+    "speechPlayErrorStart2": "Ik heb niets gevonden genaamd &#39;",
+    "speechPlayerStatus1": "Momenteel is de",
+    "speechPlayerStatus2": "speelt op",
+    "speechPlayerStatus3": "Momenteel, seizoen",
+    "speechPlayerStatus4": "speelt. Deze aflevering is genoemd",
+    "speechPlayerStatus5": "Het lijkt erop dat je aan het luisteren bent",
+    "speechPlayerStatus6": "van het album",
+    "speechPlayerStatusBy": "door",
+    "speechPlayerStatusEpisode": "aflevering",
+    "speechPlayerStatusOf": "van",
+    "speechPlaying": "Spelen",
+    "speechReturnOndeck": "Hier is een lijst met on-deck items:",
+    "speechReturnRecent": "Hier is een lijst met recent",
+    "speechReturnInfoArray": [
+        "Hier is een lijst van <TYPE> :",
+        "Voor <TYPE> , jij hebt:",
+        "Ik heb deze gevonden <TYPE> in je bibliotheek:"
+    ],
+    "speechServer": "server",
+    "speechShuffleResponse": "Oké, schuifelen",
+    "speechStatusNothingPlaying": "Het ziet er niet naar uit dat er nu iets speelt.",
+    "speechWordAnd": "en",
+    "speechWordOkay": "oke",
+    "speechWordTo": "naar",
+    "suggestionCancel": "Annuleer.",
+    "suggestionCouch": "Download de film Tron.",
+    "suggestionDvr": "DVR Jeopardy.",
+    "suggestionSick": [
+        "Haal de show Weeds.",
+        "Download de nieuwste aflevering van Corporate."
+    ],
+    "suggestionsApps": {
+        "show": [
+            "Download de nieuwste aflevering van Jeopardy",
+            "Haal de show Young Sheldon"
+        ],
+        "movie": [
+            "Ghost Rider downloaden",
+            "Fetch Ghostbusters 1989"
+        ],
+        "music": [
+            "Download het nieuwste Metallica-album",
+            "Grijp het nieuwe Glitch Mob nummer"
+        ],
+        "dvr": [
+            "Record Wheel of Fortune",
+            "DVR Dr. Phil"
+        ]
+    },
+    "suggestionYesNo": [
+        "Nee",
+        "Ja"
+    ],
+    "uiGreetingDefault": "Hoe kan ik helpen?",
+    "uiPageTitle": "Flex TV (internet)",
+    "uiPlayerSelectPrompt": "Selecteer een speler om te bedienen.",
+    "uiRescanDevices": "Scan apparaten opnieuw",
+    "uiSettingAccountLinking": "Accountkoppeling",
+    "uiSettingApiKey": "API sleutel:",
+    "uiSettingAutoUpdate": "Updates automatisch installeren",
+    "uiSettingNotifyUpdate": "Melden wanneer updates beschikbaar zijn",
+    "uiSettingBtnReset": "RESET",
+    "uiSettingBtnTest": "TEST",
+    "uiSettingCastLogs": "Cast-logs downloaden",
+    "uiSettingCopyIFTTT": "Klik om de IFTTT-URL te kopiëren:",
+    "uiSettingDevices": "Statische apparaten",
+    "uiSettingDevicesAddNew": "Nieuw apparaat toevoegen",
+    "uiSettingDevicesNameLabel": "Toestelnaam",
+    "uiSettingDvrEndOffset": "Eindoffset (minuten):",
+    "uiSettingDvrNewAirings": "Noteer alleen nieuwe luchtingen",
+    "uiSettingDvrRecordPartials": "Gedeeltelijke afleveringen opnemen",
+    "uiSettingDvrReplaceLower": "Vervang lagere kwaliteitsopnames",
+    "uiSettingDvrComskipEnabled": "Reclame overslaan",
+    "uiSettingDvrResolution": "Resolutie",
+    "uiSettingDvrResolutionAny": "Ieder",
+    "uiSettingDvrResolutionHD": "Hoge kwaliteit",
+    "uiSettingDvrServer": "DVR-server",
+    "uiSettingDvrStartOffset": "Start Offset (minuten):",
+    "uiSettingEnable": "in staat stellen",
+    "uiSettingFetcherPath": "Pad (optioneel)",
+    "uiSettingFetcherPort": "Haven",
+    "uiSettingFetcherQualityProfile": "Kwaliteitsprofiel",
+    "uiSettingFetcherToken": "blijk",
+    "uiSettingForceSSL": "Forceer SSL",
+    "uiSettingForceSSLHint": "Forceer SSL indien beschikbaar. Vereist voor Progressive Web Apps.",
+    "uiSettingGeneral": "Algemeen",
+    "uiSettingHeaderDevices": "apparaten",
+    "uiSettingHeaderMovies": "Films",
+    "uiSettingHeaderShows": "Shows",
+    "uiSettingHeaderMusic": "Muziek",
+    "uiSettingHeaderLogs": "logs",
+    "uiSettingHeaderPhlex": "Algemeen",
+    "uiSettingHeaderPlex": "Plex",
+    "uiSettingHookCustom": "gewoonte",
+    "uiSettingHookCustomPhrase": "Aangepaste reactie",
+    "uiSettingHookFetch": "halen",
+    "uiSettingHookGeneric": "URL:",
+    "uiSettingHookLabel": "webhooks",
+    "uiSettingHookPause": "Pauze",
+    "uiSettingHookPlayback": "afspelen",
+    "uiSettingHookPlayHint": "? Param = {{mediamaam}} wordt toegevoegd",
+    "uiSettingHookStop": "Hou op",
+    "uiSettingHookUrlGeneral": "Webhook-URL:",
+    "uiSettingInstallUpdates": "INSTALLEREN",
+    "uiSettingLangEnglish": "Engels",
+    "uiSettingLangFrench": "Frans",
+    "uiSettingLanguage": "Taal:",
+    "uiSettingLinkAmazon": "LINK AMAZON",
+    "uiSettingLinkGoogle": "LINK GOOGLE",
+    "uiSettingLogCount": "Count:",
+    "uiSettingLogLevel": "Niveau:",
+    "uiSettingLogUpdate": "Bijwerken",
+    "uiSettingMasterUser": "Hoofdgebruiker",
+    "uiSettingMasterUserHint": "Er kan er maar een zijn! ... en jij bent het.",
+    "uiSettingNoNewUsers": "Voorkom nieuwe gebruikers",
+    "uiSettingNoNewUsersHint": "Laat nieuwe gebruikers geen autorisatie toe aan Flex TV.",
+    "uiSettingNoPlexDirect": "Geen HTTPS \/ relay",
+    "uiSettingNoPlexDirectHint": "{EXPERIMENTEEL) Schakel HTTPS- en relay-URL&#39;s uit, noodzakelijk voor sommige netwerken.",
+    "uiSettingObscureLogs": "Duidelijke gevoelige gegevens in logs",
+    "uiSettingOndeckRecent": "Aantal te retourneren on-deck \/ recente items:",
+    "uiSettingPlaybackServer": "Preferred Server:",
+    "uiSettingPlaybackServerHint": "Als resultaten op meerdere servers worden gevonden, geeft u de voorkeur aan de resultaten op deze.",
+    "uiSettingPlexDVR": "Plex DVR",
+    "uiSettingPublicAddress": "Publiekelijk adres:",
+    "uiSettingRefreshUpdates": "REFRESH",
+    "uiSettingRescanHint": "Hoe vaak apparaten opnieuw moeten worden gecached.",
+    "uiSettingRescanInterval": "Device Rescan Interval (minuten):",
+    "uiSettingSearchAccuracy": "Zoeknauwkeurigheid (%):",
+    "uiSettingSeparateHookUrl": "Afzonderlijke URL&#39;s",
+    "uiSettingShortAnswers": "Gebruik kortere antwoorden",
+    "uiSettingTestButton": "TEST",
+    "uiSettingTestServer": "Test connectiviteit",
+    "uiSettingThemeColor": "Gebruik Dark Theme",
+    "uiSettingUpdates": "updates",
+    "uiSettingUseCast": "Gebruik Cast-apparaten"
+}

@@ -1,0 +1,487 @@
+{
+    "btnReadmePrompt": "Посмотреть Readme",
+    "cardGreetingText": "Добро пожаловать в Flex TV!",
+    "cardReadmeButton": "Посмотреть Readme",
+    "cardReadmeTitle": "Добро пожаловать!",
+    "commandSynonymsArray": {
+        "play": [
+            "продолжить"
+        ],
+        "skip": [
+            "Прыгать",
+            "идти"
+        ],
+        "step": [
+            "искать"
+        ],
+        "forward": [
+            "впереди"
+        ],
+        "back": [
+            "назад"
+        ],
+        "seekBack": [
+            "перемотка"
+        ],
+        "seek": [
+            "быстро"
+        ],
+        "skipNext": [
+            "пропустить вперед"
+        ],
+        "skipPrevious": [
+            "пропустить назад"
+        ],
+        "stepForward": [
+            "перемотка вперед",
+            "искать вперед"
+        ],
+        "stepBack": [
+            "искать назад"
+        ],
+        "volume up": [
+            "увеличить громкость"
+        ],
+        "volume down": [
+            "убавить звук"
+        ]
+    },
+    "errorHelpSuggestionsArray": [
+        "Ниже приведены некоторые советы, которые вы можете попробовать.",
+        "Вот несколько возможных команд.",
+        "Конечно, почему бы вам не попробовать один из них?"
+    ],
+    "errorHelpCommandsArray": [
+        "Что на палубе?",
+        "Какие новые фильмы у меня есть?",
+        "Приостановить воспроизведение.",
+        "Играйте в Batman Begins."
+    ],
+    "fetchSynonymsArray": {
+        "season": [
+            "время года"
+        ],
+        "episode": [
+            "эпизод"
+        ],
+        "movie": [
+            "кинофильм"
+        ],
+        "show": [
+            "показать",
+            "серии"
+        ],
+        "latest": [
+            "последний",
+            "новый",
+            "новейший",
+            "последний",
+            "последний",
+            "новейший"
+        ]
+    },
+    "javaStrings": [
+        "Чем могу помочь?",
+        "Что я могу сделать для вас?",
+        "Ты сказал:",
+        "Мой ответ:",
+        "повторное сканирование устройств"
+    ],
+    "parseStripArray": [
+        "из",
+        "",
+        "",
+        "",
+        "в",
+        "го",
+        "й",
+        "в",
+        "из",
+        "&#39;",
+        "s",
+        "а также"
+    ],
+    "parseMediaArray": [
+        "время года",
+        "серии",
+        "показать",
+        "эпизод",
+        "кино",
+        "фильм",
+        "начало",
+        "отдых",
+        "конец",
+        "минут",
+        "минут",
+        "часов",
+        "час",
+        "секунд",
+        "второй"
+    ],
+    "parseFilterArray": [
+        "жанр",
+        "год",
+        "актер",
+        "директор",
+        "направленный",
+        "в главной роли",
+        "с участием",
+        "с",
+        "сделал",
+        "созданный",
+        "выпущенный",
+        "снят"
+    ],
+    "parseNumberArray": [
+        "первый",
+        "пилот",
+        "второй",
+        "в третьих",
+        "последний",
+        "окончательный",
+        "последний",
+        "случайный"
+    ],
+    "parsedDvrFailStart": "Добавьте носитель с именем",
+    "parsedDvrSuccessNamed": "названный",
+    "parsedDvrSuccessStart": "Добавить",
+    "speechAiringsAfternoon": "Сегодня днем,",
+    "speechAiringsErrors": [
+        "У меня нет ничего в списке для",
+        "У вас нет ничего запланированного для"
+    ],
+    "speechAiringsMids": [
+        "я нашел",
+        "я вижу",
+        "у тебя есть"
+    ],
+    "speechAiringsOn": "На",
+    "speechAiringsReturn": "Вот список запланированных записей:",
+    "speechAiringsToday": "Cегодня",
+    "speechAiringsTomorrow": "Завтра,",
+    "speechAiringsTonight": "Сегодня ночью,",
+    "speechAiringsWeekend": "Эти выходные,",
+    "speechAiringTails": [
+        "подходящий.",
+        "по графику.",
+        "установленный для записи."
+    ],
+    "speechBy": "от",
+    "speechChangDeviceFailureStart": "Извините, но я не мог найти",
+    "speechChange": "+ Изменить",
+    "speechChangeDeviceFailEnd": "в списке устройств.",
+    "speechChangeDevicePrompt": ", конечно. Какое устройство вы хотели бы использовать?",
+    "speechChangeDeviceSuccessStart": "Хорошо, я переключил",
+    "speechChangeDeviceWarnEnd1": "Foo",
+    "speechChangeDeviceWarnEnd2": "Foo",
+    "speechChangeDeviceWarnStart1": "Foo",
+    "speechChangeDeviceWarnStart2": "Foo",
+    "speechChangeDeviceWarnStart3": "Foo",
+    "speechChangeMind": "Хорошо, дайте мне знать, если вы передумаете.",
+    "speechControlConfirm1": "Отправка команды",
+    "speechControlConfirmGenericArray": [
+        "Подумайте об этом.",
+        "Хорошо.",
+        "Конечно.",
+        "Ты понял."
+    ],
+    "speechControlConfirmPauseArray": [
+        "Хорошо, я остановил телевизор для вас.",
+        "Приостановка воспроизведения.",
+        "Теперь Plex должен быть приостановлен."
+    ],
+    "speechControlConfirmPlayArray": [
+        "Воспроизведение.",
+        "Плекс должен играть.",
+        "Возобновление воспроизведения."
+    ],
+    "speechControlConfirmStopArray": [
+        "Plex останавливается.",
+        "Теперь Plex должен быть остановлен.",
+        "Остановка."
+    ],
+    "speechControlConfirmSubsOffArray": [
+        "Отключение субтитров.",
+        "Удаление Вавилонской рыбы.",
+        "Субтитры отключены."
+    ],
+    "speechControlConfirmSubsOnArray": [
+        "Включение субтитров.",
+        "Привлечение универсального переводчика.",
+        "Субтитры были включены."
+    ],
+    "speechControlArray": [
+        "Как вы приказываете.",
+        "Сделано и сделано.",
+        "Тогда хорошо.",
+        "Ты понял!",
+        "Вот так."
+    ],
+    "speechControlGeneric1": "Отправка команды",
+    "speechControlGeneric2": "Хорошо, я скажу Plex",
+    "speechControlVolumeDown": "Хорошо, я немного поверну.",
+    "speechControlVolumeSet": "Хорошо, установив громкость",
+    "speechControlVolumeUp": "Хорошо, я немного подниму его.",
+    "speechDeviceListError": "Ошибка в получении списка устройств. Повторите попытку позже.",
+    "speechDeviceListErrorArray": [
+        "Я хотел бы помочь вам в этом, но я вижу только одно устройство, с которым я могу сейчас разговаривать.",
+        "Извините, у меня есть только одно устройство для выбора.",
+        "К сожалению, у вас есть только одно устройство прямо сейчас, и оно уже выбрано."
+    ],
+    "speechDontUnderstand1": "Мне жаль, но &#39;",
+    "speechDontUnderstand2": "«Кажется, не соответствует тому, что я только что сказал.",
+    "speechDownloadAdded1": "Хорошо, я добавил",
+    "speechDownloadAdded2": "в список выборки.",
+    "speechDownloadErrorArray": [
+        "Извините, но я не мог найти это ни в одном из ваших поисковиков.",
+        "Это раздражительно. Кажется, я ничего не могу найти.",
+        "К сожалению, я не смог найти что-либо с этим заголовком для загрузки."
+    ],
+    "speechDownloadExistsArray": [
+        "<html> Это выглядит как <TITLE> уже настроен для загрузки на &lt;\/ html&gt;",
+        "<html><TITLE> уже находится в списке просмотра &lt;\/ html&gt;",
+        "<html> Я уже ищу <TITLE> на &lt;\/ html&gt;"
+    ],
+    "speechDownloadExists1": "Это выглядит как",
+    "speechDownloadExists2": "уже установлен для загрузки.",
+    "speechDvrFailStart": "Я не смог найти никаких результатов в руководстве по эпизодам,",
+    "speechDvrNoDevice": "Извините, но я не нашел примеров использования Plex DVR.",
+    "speechDvrSuccessEnd": "к графику записи.",
+    "speechDvrSuccessStart": "Эй, посмотри на это. Я добавил",
+    "speechEggArray": {
+        "attack the block": "<html> Вы доктор? Воспроизведение <TITLE> . &lt;\/ Html&gt;",
+        "avengers": "<html> Семья собирается! Пришло время смотреть <TITLE> . &lt;\/ Html&gt;",
+        "batman": "<html> Священные пиратские СМИ, Бэтмен! Это <TITLE> . &lt;\/ Html&gt;",
+        "big hero": "<html> Привет, я Baymax, для лечения, я рекомендую смотреть <TITLE> . &lt;\/ Html&gt;",
+        "evil dead": "<html> Приветствуй короля, детка! Давай посмотрим <TITLE> . &lt;\/ Html&gt;",
+        "fifth element": "<html> Leeloo Dallas Mul-ti-Pass! Mul-ти частот. наслаждаться <TITLE> . &lt;\/ Html&gt;",
+        "frozen": "<html> Позвольте этому идти, пусть это идет! Давайте сядем и посмотрим <TITLE> . &lt;\/ Html&gt;",
+        "game of thrones": "<html> Подцепите себя ... <TITLE> играет. &lt;\/ html&gt;",
+        "ghostbusters": "<html> Кого вы позовете? <TITLE> &lt;\/ Html&gt;",
+        "heathers": "<html> Хорошо, заряжайте меня осторожно бензопилой. Или смотреть <TITLE> . &lt;\/ Html&gt;",
+        "iron man": "<html> Да, мистер Старк, включив <TITLE> . &lt;\/ Html&gt;",
+        "space odyssey": "Прости, Дэйв. Боюсь, я не могу этого сделать.",
+        "resident evil": "<html> T-минус 1 минута до заражения. Администрирование <TITLE> . &lt;\/ Html&gt;",
+        "star wars": "<html> Помоги мне, Оби-Ван-Кеноби. <TITLE> моя единственная надежда. &lt;\/ html&gt;",
+        "they live": "<html> Я здесь, чтобы пережевывать пузырь и играть <TITLE> , и я весь из пузыря. &lt;\/ html&gt;",
+        "wall-e": "<html> Благодарим вас за покупки Buy and Large и наслаждайтесь, когда мы начнем <TITLE> . &lt;\/ Html&gt;",
+        "monty python": "<html> Твоя мать была хомяком, а твой отец пахнул койкой. Воспроизведение <TITLE> &lt;\/ Html&gt;",
+        "guide to the end of the universe": "<html> Эй, ты, пьяница. я собираюсь играть <TITLE> для вас. &lt;\/ html&gt;",
+        "rocky horror": "О, Рокки!",
+        "citizen kane": "Rosebud ...",
+        "godfather": "<html> Я собираюсь сделать вам предложение, от которого вы не можете отказаться. я собираюсь играть <TITLE> . &lt;\/ Html&gt;",
+        "with the wind": "Честно говоря, моя дорогая, я не даю iPhone.",
+        "dirty harry": "Давай, ты уже сделал свой день.",
+        "taxi driver": "<html> Ты говоришь со мной? Просто проверяю. Воспроизведение <TITLE> Теперь. &lt;\/ html&gt;",
+        "apocalypse now": "Я люблю запах озона утром.",
+        "e.t.": "<html> Телефон Google домой! Воспроизведение <TITLE> . &lt;\/ Html&gt;",
+        "silence of the lambs": "Этот фильм будет отлично сочетаться с некоторыми фавовыми фасолями и красивыми кьянти.",
+        "jerry maguire": "<html> Покажи мне деньги! И я покажу вам <TITLE> . &lt;\/ Html&gt;",
+        "a few good men": "<html> Вы не можете справиться с правдой. Но, может быть, вы справитесь <TITLE> . &lt;\/ Html&gt;",
+        "jaws": "Тебе понадобится большая лодка.",
+        "a streetcar named": "STELLA !!!!",
+        "super troopers": "<html> Засоряемся и ... Засоряемся и ... Засоряемся и наблюдаем <TITLE> . &lt;\/ Html&gt;"
+    },
+    "speechGreetingArray": [
+        "Приветствую!",
+        "Привет!",
+        "Привет, я Flex TV.",
+        "Добро пожаловать на вечеринку!",
+        "Дилли Дилли!"
+    ],
+    "speechGreetingHelpPrompt": [
+        "Если вам нужен список команд, вы можете сказать «Справка» или «Каковы ваши команды?».",
+        "Вы можете сказать «Помощь» или «Что вы можете сделать», чтобы узнать больше обо мне.",
+        "Попробуйте попросить меня что-нибудь сыграть или сказать «помощь» для получения дополнительных команд."
+    ],
+    "speechHookCustomDefault": "Поздравляем, вы уволили пользовательскую команду webhook!",
+    "speechMoreInfoArray": [
+        "Вот еще информация об этом.",
+        "Вот что я нашел для этого элемента.",
+        "Я посмотрел на тебя."
+    ],
+    "speechMultiResultArray": [
+        "Я нашел несколько возможных результатов для этого, был один из них, что вы хотели?",
+        "Было несколько вещей, которые, я думаю, вы могли бы просить, это все?",
+        "Что вы имели в виду?",
+        "У вас есть несколько вещей, которые могут соответствовать этому поиску, являются ли они одним из них?"
+    ],
+    "speechNotUnderstoodArray": [
+        "Опасность будет Робинсон! Я не понимаю команду &#39;",
+        "Боюсь, я не понимаю, что вы подразумеваете под",
+        "К сожалению, я не мог понять, когда ты сказал:"
+    ],
+    "speechOndeckRecentError": "К сожалению, я не смог найти никаких результатов для этого. Пожалуйста, повторите попытку позже.",
+    "speechNoInfoResultsArray": [
+        "К сожалению, я не мог найти <VAR>в вашей библиотеке прямо сейчас.<\/var>",
+        "Извините, я проверил, но результатов не получил <VAR>.<\/var>",
+        "Хммм. Кажется, на вашем сервере ничего не указано <VAR>.<\/var>",
+        "Я не нашел ничего подобного <VAR>.<\/var>"
+    ],
+    "speechNoResultsArray": [
+        "К сожалению, я не смог найти никаких результатов для этого.",
+        "Извините, но я не мог найти ничего для этого поиска.",
+        "Я посмотрел, но я не смог помочь с этой просьбой."
+    ],
+    "speechOndeckRecentTail": "Если вы хотите что-то посмотреть, просто скажите имя, иначе вы можете сказать «отменить».",
+    "speechPlaybackAffirmatives": [
+        "<html> Тогда хорошо, играя <TITLE> . &lt;\/ Html&gt;",
+        "<html> По команде, начиная <TITLE> . &lt;\/ Html&gt;",
+        "<html> Нет проблем, стрельба <TITLE> . &lt;\/ Html&gt;",
+        "<html> Хорошо, играя <TITLE> . &lt;\/ Html&gt;",
+        "<html> Конечно, играя <TITLE> . &lt;\/ Html&gt;",
+        "<html> Да, капитан, включив <TITLE> . &lt;\/ Html&gt;",
+        "<html> Да, мастер, я буду играть <TITLE> для вас. &lt;\/ html&gt;",
+        "<html> Вы получили это, начиная <TITLE> . &lt;\/ Html&gt;",
+        "<html> Да, <TITLE> это. &lt;\/ html&gt;",
+        "<html> Роджер, что, включив <TITLE> . &lt;\/ Html&gt;",
+        "<html> Подтверждаю. начало <TITLE> . &lt;\/ Html&gt;"
+    ],
+    "speechPlaybackAffirmativeShort": "<html> Воспроизведение <TITLE> . &lt;\/ Html&gt;",
+    "speechControlShort": "Хорошо.",
+    "speechFetchAffirmatives": [
+        "Allright,",
+        "Хорошо,",
+        "Успех!"
+    ],
+    "speechPlayer": "игрок",
+    "speechPlayError3": "Я не мог найти это в библиотеке, вы хотите, чтобы я попытался загрузить его?",
+    "speechPlayErrorEnd1": "в вашей библиотеке. Должен ли я попытаться добавить его в списки просмотра?",
+    "speechPlayErrorEnd2": "&#39; играть. Должен ли я попытаться забрать его для вас?",
+    "speechPlayErrorStart1": "Я не смог найти",
+    "speechPlayErrorStart2": "Я не нашел ничего,",
+    "speechPlayerStatus1": "В настоящее время",
+    "speechPlayerStatus2": "играет на",
+    "speechPlayerStatus3": "В настоящее время сезон",
+    "speechPlayerStatus4": "играет. Этот эпизод назван",
+    "speechPlayerStatus5": "Похоже, вы слушаете",
+    "speechPlayerStatus6": "из альбома",
+    "speechPlayerStatusBy": "от",
+    "speechPlayerStatusEpisode": "эпизод",
+    "speechPlayerStatusOf": "из",
+    "speechPlaying": "Воспроизведение",
+    "speechReturnOndeck": "Вот список предметов на палубе:",
+    "speechReturnRecent": "Вот список последних",
+    "speechReturnInfoArray": [
+        "Вот список <TYPE> :",
+        "Для <TYPE> , у тебя есть:",
+        "Я нашел эти <TYPE> в вашей библиотеке:"
+    ],
+    "speechServer": "сервер",
+    "speechShuffleResponse": "Хорошо, перетасовать",
+    "speechStatusNothingPlaying": "Не похоже, что сейчас что-то играет.",
+    "speechWordAnd": "а также",
+    "speechWordOkay": "Хорошо",
+    "speechWordTo": "в",
+    "suggestionCancel": "Отмена.",
+    "suggestionCouch": "Скачать фильм Трон.",
+    "suggestionDvr": "DVR Jeopardy.",
+    "suggestionSick": [
+        "Принесите шоу Сорняки.",
+        "Загрузите последний эпизод Corporate."
+    ],
+    "suggestionsApps": {
+        "show": [
+            "Загрузите последний эпизод Jeopardy",
+            "Принесите шоу Young Sheldon"
+        ],
+        "movie": [
+            "Загрузить Ghost Rider",
+            "Привлечение Ghostbusters 1989"
+        ],
+        "music": [
+            "Загрузите последний альбом Metallica",
+            "Возьмите новую песню Glitch Mob"
+        ],
+        "dvr": [
+            "Запись Колеса Фортуны",
+            "DVR Dr. Phil"
+        ]
+    },
+    "suggestionYesNo": [
+        "нет",
+        "да"
+    ],
+    "uiGreetingDefault": "Чем могу помочь?",
+    "uiPageTitle": "Flex TV (Web)",
+    "uiPlayerSelectPrompt": "Выберите игрока для управления.",
+    "uiRescanDevices": "Повторно сканировать устройства",
+    "uiSettingAccountLinking": "Учетная запись",
+    "uiSettingApiKey": "Ключ API:",
+    "uiSettingAutoUpdate": "Автоматическая установка обновлений",
+    "uiSettingNotifyUpdate": "Уведомлять, когда доступны обновления",
+    "uiSettingBtnReset": "СБРОС",
+    "uiSettingBtnTest": "КОНТРОЛЬНАЯ РАБОТА",
+    "uiSettingCastLogs": "Скачать литые журналы",
+    "uiSettingCopyIFTTT": "Нажмите, чтобы скопировать URL-адрес IFTTT:",
+    "uiSettingDevices": "Статические устройства",
+    "uiSettingDevicesAddNew": "Добавить новое устройство",
+    "uiSettingDevicesNameLabel": "Имя устройства",
+    "uiSettingDvrEndOffset": "Смещение конца (минуты):",
+    "uiSettingDvrNewAirings": "Только запись новых сообщений",
+    "uiSettingDvrRecordPartials": "Запись частичных эпизодов",
+    "uiSettingDvrReplaceLower": "Заменить записи низкого качества",
+    "uiSettingDvrComskipEnabled": "Пропустить рекламные ролики",
+    "uiSettingDvrResolution": "разрешение",
+    "uiSettingDvrResolutionAny": "Любые",
+    "uiSettingDvrResolutionHD": "Высокое разрешение",
+    "uiSettingDvrServer": "Сервер DVR",
+    "uiSettingDvrStartOffset": "Начало смещения (минуты):",
+    "uiSettingEnable": "включить",
+    "uiSettingFetcherPath": "Путь (необязательно)",
+    "uiSettingFetcherPort": "порт",
+    "uiSettingFetcherQualityProfile": "Профиль качества",
+    "uiSettingFetcherToken": "знак",
+    "uiSettingForceSSL": "Force SSL",
+    "uiSettingForceSSLHint": "Принудительный SSL, если он доступен. Требуется для прогрессивных веб-приложений.",
+    "uiSettingGeneral": "Генеральная",
+    "uiSettingHeaderDevices": "приборы",
+    "uiSettingHeaderMovies": "Кино",
+    "uiSettingHeaderShows": "шоу",
+    "uiSettingHeaderMusic": "Музыка",
+    "uiSettingHeaderLogs": "бревна",
+    "uiSettingHeaderPhlex": "Генеральная",
+    "uiSettingHeaderPlex": "Plex",
+    "uiSettingHookCustom": "изготовленный на заказ",
+    "uiSettingHookCustomPhrase": "Пользовательский ответ",
+    "uiSettingHookFetch": "получать",
+    "uiSettingHookGeneric": "URL:",
+    "uiSettingHookLabel": "Webhooks",
+    "uiSettingHookPause": "Пауза",
+    "uiSettingHookPlayback": "воспроизведение",
+    "uiSettingHookPlayHint": "? param = {{media name}} будет добавлено",
+    "uiSettingHookStop": "Стоп",
+    "uiSettingHookUrlGeneral": "URL веб-ссылки:",
+    "uiSettingInstallUpdates": "УСТАНОВИТЬ",
+    "uiSettingLangEnglish": "английский",
+    "uiSettingLangFrench": "Французский",
+    "uiSettingLanguage": "Язык:",
+    "uiSettingLinkAmazon": "LINK AMAZON",
+    "uiSettingLinkGoogle": "LINK GOOGLE",
+    "uiSettingLogCount": "Количество:",
+    "uiSettingLogLevel": "Уровень:",
+    "uiSettingLogUpdate": "Обновить",
+    "uiSettingMasterUser": "Главный пользователь",
+    "uiSettingMasterUserHint": "Там может быть только один! ... и ты.",
+    "uiSettingNoNewUsers": "Предотвращение новых пользователей",
+    "uiSettingNoNewUsersHint": "Отключите разрешение новых пользователей на использование Flex TV.",
+    "uiSettingNoPlexDirect": "Нет HTTPS \/ реле",
+    "uiSettingNoPlexDirectHint": "{EXPERIMENTAL) Отключить HTTPS и URL-адрес ретрансляции, необходимый для некоторых сетей.",
+    "uiSettingObscureLogs": "Нечеткие чувствительные данные в журналах",
+    "uiSettingOndeckRecent": "Количество на палубе \/ последние позиции для возврата:",
+    "uiSettingPlaybackServer": "Предпочтительный сервер:",
+    "uiSettingPlaybackServerHint": "Если результаты найдены на нескольких серверах, выберите те, которые были найдены на этом сервере.",
+    "uiSettingPlexDVR": "Plex DVR",
+    "uiSettingPublicAddress": "Публичный адресс:",
+    "uiSettingRefreshUpdates": "ОБНОВЛЕНИЕ",
+    "uiSettingRescanHint": "Как часто перезаписывать устройства.",
+    "uiSettingRescanInterval": "Интервал проверки устройства (минуты):",
+    "uiSettingSearchAccuracy": "Точность поиска (%):",
+    "uiSettingSeparateHookUrl": "Отдельные URL-адреса",
+    "uiSettingShortAnswers": "Использовать короткие ответы",
+    "uiSettingTestButton": "КОНТРОЛЬНАЯ РАБОТА",
+    "uiSettingTestServer": "Возможность тестирования",
+    "uiSettingThemeColor": "Использовать темную тему",
+    "uiSettingUpdates": "Обновления",
+    "uiSettingUseCast": "Использовать литые устройства"
+}

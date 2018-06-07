@@ -1,0 +1,487 @@
+{
+    "btnReadmePrompt": "रीडमी देखें",
+    "cardGreetingText": "फ्लेक्स टीवी में आपका स्वागत है!",
+    "cardReadmeButton": "रीडमी देखें",
+    "cardReadmeTitle": "स्वागत हे!",
+    "commandSynonymsArray": {
+        "play": [
+            "बायोडाटा"
+        ],
+        "skip": [
+            "छलांग",
+            "चले जाओ"
+        ],
+        "step": [
+            "मांगना"
+        ],
+        "forward": [
+            "आगे"
+        ],
+        "back": [
+            "पिछड़ा"
+        ],
+        "seekBack": [
+            "रिवाइंड"
+        ],
+        "seek": [
+            "उपवास"
+        ],
+        "skipNext": [
+            "छोड़कर आगे बढ़ो"
+        ],
+        "skipPrevious": [
+            "वापस छोड़ो"
+        ],
+        "stepForward": [
+            "तेजी से आगे बढ़ना",
+            "आगे की तलाश"
+        ],
+        "stepBack": [
+            "वापस तलाशो"
+        ],
+        "volume up": [
+            "ध्वनि तेज"
+        ],
+        "volume down": [
+            "आवाज निचे"
+        ]
+    },
+    "errorHelpSuggestionsArray": [
+        "नीचे कुछ सुझाव दिए गए हैं जिन्हें आप आजमा सकते हैं।",
+        "यहां कुछ संभावित आदेश दिए गए हैं।",
+        "निश्चित रूप से, आप इनमें से किसी एक का प्रयास क्यों नहीं करते?"
+    ],
+    "errorHelpCommandsArray": [
+        "डेक पर क्या है?",
+        "मेरे पास कौन सी नई फिल्में हैं?",
+        "प्लेबैक रोकें।",
+        "बैटमैन शुरू होता है।"
+    ],
+    "fetchSynonymsArray": {
+        "season": [
+            "ऋतु"
+        ],
+        "episode": [
+            "प्रकरण"
+        ],
+        "movie": [
+            "चलचित्र"
+        ],
+        "show": [
+            "प्रदर्शन",
+            "शृंखला"
+        ],
+        "latest": [
+            "नवीनतम",
+            "नया",
+            "नवीनतम",
+            "सबसे हाल का",
+            "सबसे नया",
+            "नवीनतम"
+        ]
+    },
+    "javaStrings": [
+        "मैं आपकी कैसे मदद कर सकता हूँ?",
+        "मै आप के लिये क्य कर सक्त हु?",
+        "तुमने कहा था:",
+        "मेरा उत्तर:",
+        "rescan डिवाइस"
+    ],
+    "parseStripArray": [
+        "का",
+        "",
+        "एक",
+        "ए",
+        "पर",
+        "वें",
+        "nd",
+        "में",
+        "से",
+        "&#39;",
+        "रों",
+        "तथा"
+    ],
+    "parseMediaArray": [
+        "ऋतु",
+        "शृंखला",
+        "प्रदर्शन",
+        "प्रकरण",
+        "चलचित्र",
+        "फ़िल्म",
+        "शुरू",
+        "आराम",
+        "समाप्त",
+        "मिनट",
+        "मिनट",
+        "घंटे",
+        "घंटा",
+        "सेकंड",
+        "दूसरा"
+    ],
+    "parseFilterArray": [
+        "शैली",
+        "साल",
+        "अभिनेता",
+        "निदेशक",
+        "निर्देशित",
+        "अभिनीत",
+        "की विशेषता",
+        "साथ में",
+        "बनाया गया",
+        "बनाया था",
+        "रिहा",
+        "फिल्माया"
+    ],
+    "parseNumberArray": [
+        "प्रथम",
+        "पायलट",
+        "दूसरा",
+        "तीसरा",
+        "अंतिम",
+        "अंतिम",
+        "नवीनतम",
+        "बिना सोचे समझे"
+    ],
+    "parsedDvrFailStart": "नामित मीडिया जोड़ें",
+    "parsedDvrSuccessNamed": "नामित",
+    "parsedDvrSuccessStart": "जोड़ें",
+    "speechAiringsAfternoon": "इस दोपहर,",
+    "speechAiringsErrors": [
+        "मेरे पास सूची में कुछ भी नहीं है",
+        "आपके पास कुछ भी निर्धारित नहीं है"
+    ],
+    "speechAiringsMids": [
+        "मुझे मिला",
+        "समझा",
+        "आपके पास"
+    ],
+    "speechAiringsOn": "पर",
+    "speechAiringsReturn": "अनुसूचित रिकॉर्डिंग की एक सूची यहां दी गई है:",
+    "speechAiringsToday": "आज",
+    "speechAiringsTomorrow": "आने वाला कल,",
+    "speechAiringsTonight": "आज रात,",
+    "speechAiringsWeekend": "इस सप्ताहांत,",
+    "speechAiringTails": [
+        "आ रहा है।",
+        "अनुसूची पर।",
+        "रिकॉर्ड करने के लिए सेट करें।"
+    ],
+    "speechBy": "द्वारा",
+    "speechChangDeviceFailureStart": "मुझे खेद है, लेकिन मुझे नहीं मिला",
+    "speechChange": "परिवर्तन",
+    "speechChangeDeviceFailEnd": "डिवाइस सूची में।",
+    "speechChangeDevicePrompt": ", ज़रूर। आप किस डिवाइस का उपयोग करना चाहते हैं?",
+    "speechChangeDeviceSuccessStart": "ठीक है, मैंने स्विच किया है",
+    "speechChangeDeviceWarnEnd1": "foo",
+    "speechChangeDeviceWarnEnd2": "foo",
+    "speechChangeDeviceWarnStart1": "foo",
+    "speechChangeDeviceWarnStart2": "foo",
+    "speechChangeDeviceWarnStart3": "foo",
+    "speechChangeMind": "ठीक है, अगर आप अपना मन बदलते हैं तो मुझे बताएं।",
+    "speechControlConfirm1": "एक आदेश भेज रहा है",
+    "speechControlConfirmGenericArray": [
+        "समझो हो गया।",
+        "ठीक है।",
+        "ज़रूर।",
+        "आपको यह मिला।"
+    ],
+    "speechControlConfirmPauseArray": [
+        "ठीक है, मैंने आपके लिए टीवी रोक दिया है।",
+        "प्लेबैक रोकना",
+        "प्लेक्स अब रोका जाना चाहिए।"
+    ],
+    "speechControlConfirmPlayArray": [
+        "खेल रहे हैं।",
+        "प्लेक्स खेलना चाहिए।",
+        "प्लेबैक फिर से शुरू करना।"
+    ],
+    "speechControlConfirmStopArray": [
+        "प्लेक्स बंद कर दिया गया है।",
+        "प्लेक्स अब रोका जाना चाहिए।",
+        "रोकना।"
+    ],
+    "speechControlConfirmSubsOffArray": [
+        "उपशीर्षक अक्षम करना",
+        "बेबेल मछली को हटा रहा है।",
+        "उपशीर्षक अक्षम कर दिए गए हैं।"
+    ],
+    "speechControlConfirmSubsOnArray": [
+        "उपशीर्षक सक्षम करना",
+        "सार्वभौमिक अनुवादक संलग्न।",
+        "उपशीर्षक सक्षम कर दिए गए हैं।"
+    ],
+    "speechControlArray": [
+        "जैसा आपका आदेश हो।",
+        "किया और किया।",
+        "तो बिल्कुल ठीक।",
+        "आपको यह मिला!",
+        "तुम वहाँ जाओ।"
+    ],
+    "speechControlGeneric1": "एक आदेश भेज रहा है",
+    "speechControlGeneric2": "ठीक है, मैं प्लेक्स को बता दूंगा",
+    "speechControlVolumeDown": "ठीक है, मैं इसे थोड़ा नीचे कर दूंगा।",
+    "speechControlVolumeSet": "ठीक है, वॉल्यूम को सेट करना",
+    "speechControlVolumeUp": "ठीक है, मैं इसे थोड़ा सा कर दूंगा।",
+    "speechDeviceListError": "उपकरणों की सूची पुनर्प्राप्त करने में त्रुटि हुई, कृपया बाद में पुनः प्रयास करें।",
+    "speechDeviceListErrorArray": [
+        "मैं इसके साथ आपकी मदद करना चाहता हूं, लेकिन मुझे केवल एक डिवाइस दिखाई देता है जिसे मैं वर्तमान में बात कर सकता हूं।",
+        "मुझे खेद है, मुझे केवल एक डिवाइस चुनने के लिए मिला है।",
+        "दुर्भाग्यवश, आपके पास अभी केवल एक डिवाइस है, और यह पहले से ही चुना गया है।"
+    ],
+    "speechDontUnderstand1": "मुझे माफ करदो लेकिन &#39;",
+    "speechDontUnderstand2": "&#39;मैंने जो भी कहा है उससे मेल नहीं खा रहा है।",
+    "speechDownloadAdded1": "ठीक है, मैंने जोड़ा है",
+    "speechDownloadAdded2": "लाने की सूची में।",
+    "speechDownloadErrorArray": [
+        "क्षमा करें, लेकिन मुझे आपके किसी भी खोजकर्ता में यह नहीं मिला।",
+        "यह शर्मनाक है। मुझे कहीं भी ऐसा प्रतीत नहीं होता है।",
+        "दुर्भाग्यवश, मैं उस शीर्षक के साथ डाउनलोड करने में कुछ भी नहीं ढूंढ पाया।"
+    ],
+    "speechDownloadExistsArray": [
+        "<html> ऐसा लग रहा है <TITLE> पहले ही &lt;\/ html&gt; पर डाउनलोड करने के लिए सेट है",
+        "<html><TITLE> &lt;\/ html&gt; के लिए पहले से ही वॉच सूची पर है",
+        "<html> मैं पहले से ही देख रहा हूँ <TITLE> &lt;\/ html&gt; पर"
+    ],
+    "speechDownloadExists1": "ऐसा लग रहा है",
+    "speechDownloadExists2": "पहले ही डाउनलोड करने के लिए सेट है।",
+    "speechDvrFailStart": "मैं एपिसोड गाइड में कोई भी परिणाम नहीं ढूंढ पाया जो मैच &#39;",
+    "speechDvrNoDevice": "मुझे खेद है, लेकिन मुझे उपयोग करने के लिए प्लेक्स डीवीआर के किसी भी उदाहरण नहीं मिला।",
+    "speechDvrSuccessEnd": "रिकॉर्डिंग कार्यक्रम के लिए।",
+    "speechDvrSuccessStart": "अरे, उस पर देखो। मैंने जोड़ा है",
+    "speechEggArray": {
+        "attack the block": "<html> क्या आप डॉक्टर हैं? खेल रहे हैं <TITLE> । &lt;\/ Html&gt;",
+        "avengers": "<html> परिवार इकट्ठा! यह देखने का समय है <TITLE> । &lt;\/ Html&gt;",
+        "batman": "<html> पवित्र समुद्री डाकू मीडिया, बैटमैन! आईटी इस <TITLE> । &lt;\/ Html&gt;",
+        "big hero": "<html> हैलो, मैं इलाज के लिए Baymax हूँ, मैं देखने की सलाह देते हैं <TITLE> । &lt;\/ Html&gt;",
+        "evil dead": "<html> राजपुत्र कि जय हो! आओ देखे <TITLE> । &lt;\/ Html&gt;",
+        "fifth element": "<html> लीलू डलास मुल-टी-पास! Mul-ti-पास। का आनंद लें <TITLE> । &lt;\/ Html&gt;",
+        "frozen": "<html> इसे जाने दो इसे जाने दो! चलो बैठ जाओ और देखो <TITLE> । &lt;\/ Html&gt;",
+        "game of thrones": "<html> अपने आप को संभालो... <TITLE> खेल रहा है। &lt;\/ html&gt;",
+        "ghostbusters": "<html> तुम किसे कॉल करने जा रहे हो? <TITLE> &lt;\/ Html&gt;",
+        "heathers": "<html> खैर, मुझे चेनसॉ के साथ धीरे-धीरे चार्ज करें। या देखो <TITLE> । &lt;\/ Html&gt;",
+        "iron man": "<html> हाँ श्री स्टार्क, चालू <TITLE> । &lt;\/ Html&gt;",
+        "space odyssey": "मुझे खेद है, डेव। मुझे डर है कि मैं ऐसा नहीं कर सकता।",
+        "resident evil": "<html> टी-माइनस संक्रमण तक 1 मिनट। व्यवस्थापन करना <TITLE> । &lt;\/ Html&gt;",
+        "star wars": "<html> मेरी मदद करो, ओबी-वान-केनोबी। <TITLE> मेरी एकमात्र आशा है। &lt;\/ html&gt;",
+        "they live": "<html> मैं यहाँ बुलबुगम चबाने और खेलने के लिए हूँ <TITLE> , और मैं सब बबलगम से बाहर हूं। &lt;\/ html&gt;",
+        "wall-e": "<html> खरीदारी और बड़े खरीदारी के लिए धन्यवाद, और जैसे ही हम शुरू करते हैं आनंद लें <TITLE> । &lt;\/ Html&gt;",
+        "monty python": "<html> आपकी मां एक हम्सटर थी, और आपके पिता ने बुजुर्गों की गंध ली। खेल रहे हैं <TITLE> &lt;\/ Html&gt;",
+        "guide to the end of the universe": "<html> अरे वहाँ, आप खुरचनी हो। मैं खेलने जा रहा हूँ <TITLE> आपके लिए। &lt;\/ html&gt;",
+        "rocky horror": "अरे रॉकी !!",
+        "citizen kane": "गुलाब का पौधा ...",
+        "godfather": "<html> मैं आपको एक प्रस्ताव देने जा रहा हूं जिसे आप मना नहीं कर सकते। मैं खेलने जा रहा हूँ <TITLE> । &lt;\/ Html&gt;",
+        "with the wind": "वाकई, मेरे प्यारे, मैं एक आईफोन नहीं देता हूं।",
+        "dirty harry": "आगे बढ़ो, आप पहले ही अपना दिन बना चुके हैं।",
+        "taxi driver": "<html> तुम मुझसे बात कर रहे हो? बस जाँच रहा हूँ। खेल रहे हैं <TITLE> अब। &lt;\/ html&gt;",
+        "apocalypse now": "मुझे सुबह में ओजोन की गंध पसंद है।",
+        "e.t.": "<html> Google फोन घर! खेल रहे हैं <TITLE> । &lt;\/ Html&gt;",
+        "silence of the lambs": "यह फिल्म कुछ फवा बीन्स और एक अच्छी चियाटी के साथ बढ़िया होगी।",
+        "jerry maguire": "<html> मुझे धन दिखाइए! और मैं आपको दिखाऊंगा <TITLE> । &lt;\/ Html&gt;",
+        "a few good men": "<html> आप सच संभाल नहीं सकते। लेकिन शायद आप संभाल सकते हैं <TITLE> । &lt;\/ Html&gt;",
+        "jaws": "आपको एक बड़ी नाव की आवश्यकता होगी।",
+        "a streetcar named": "स्टेला !!!!",
+        "super troopers": "<html> कूड़ेदान और ... कड़वाहट और ... कड़वाहट और देख रहे हैं <TITLE> । &lt;\/ Html&gt;"
+    },
+    "speechGreetingArray": [
+        "घणी खम्मां!",
+        "नमस्ते!",
+        "हाय, मैं फ्लेक्स टीवी हूँ।",
+        "दावत में आपका स्वागत है!",
+        "डिली डिली!"
+    ],
+    "speechGreetingHelpPrompt": [
+        "यदि आप आदेशों की एक सूची चाहते हैं, तो आप &#39;सहायता&#39; या &#39;आपके आदेश क्या हैं?&#39; कह सकते हैं।",
+        "आप मेरे बारे में और जानने के लिए &#39;सहायता&#39; या &#39;आप क्या कर सकते हैं&#39; कह सकते हैं।",
+        "मुझे कुछ खेलने के लिए कहने का प्रयास करें, या अधिक कमांड के लिए &#39;मदद&#39; कहें।"
+    ],
+    "speechHookCustomDefault": "बधाई हो, आपने कस्टम वेबहुक कमांड को निकाल दिया है!",
+    "speechMoreInfoArray": [
+        "यहां कुछ और जानकारी दी गई है।",
+        "मैं उस वस्तु के लिए जो पाया वह यहां है।",
+        "मैंने इसे तुम्हारे लिए देखा।"
+    ],
+    "speechMultiResultArray": [
+        "मुझे इसके लिए कई संभावित परिणाम मिले, क्या आप इनमें से एक थे?",
+        "ऐसी कुछ चीजें थीं जो मुझे लगता है कि आप पूछ सकते हैं, क्या इनमें से कोई भी है?",
+        "तुम्हारा क्या मतलब था?",
+        "आपके पास ऐसी कुछ चीजें हैं जो उस खोज से मेल खा सकती हैं, इनमें से एक है?"
+    ],
+    "speechNotUnderstoodArray": [
+        "डेंजर विल रॉबिन्सन! मैं कमांड को समझ नहीं पा रहा हूं &#39;",
+        "मुझे डर है कि मैं समझ नहीं पा रहा हूं कि आपका क्या मतलब है",
+        "दुर्भाग्यवश, जब आप कहते थे कि मैं ऐसा करने के लिए नहीं समझ पाया था &#39;"
+    ],
+    "speechOndeckRecentError": "दुर्भाग्यवश, मैं इसके लिए कोई परिणाम नहीं ढूंढ पाया। बाद में पुन: प्रयास करें।",
+    "speechNoInfoResultsArray": [
+        "दुर्भाग्यवश, मुझे <VAR>अभी आपकी लाइब्रेरी में<\/var> नहीं मिला <VAR>।<\/var>",
+        "मुझे खेद है, मैंने चेक किया, लेकिन इसके लिए कोई परिणाम नहीं मिला <VAR>।<\/var>",
+        "हममम। आपके सर्वर के लिए कुछ भी सूचीबद्ध नहीं प्रतीत होता है <VAR>।<\/var>",
+        "मुझे कुछ भी नहीं मिला जो मेल खाता है <VAR>।<\/var>"
+    ],
+    "speechNoResultsArray": [
+        "दुर्भाग्यवश, मैं इसके लिए कोई परिणाम नहीं ढूंढ पाया।",
+        "मुझे खेद है, लेकिन मुझे उस खोज के लिए कुछ भी नहीं मिला।",
+        "मैंने देखा, लेकिन मैं उस अनुरोध में मदद करने में सक्षम नहीं था।"
+    ],
+    "speechOndeckRecentTail": "अगर आप कुछ देखना चाहते हैं, तो बस नाम कहें, अन्यथा, आप &#39;रद्द&#39; कह सकते हैं।",
+    "speechPlaybackAffirmatives": [
+        "<html> फिर, खेल रहा है <TITLE> । &lt;\/ Html&gt;",
+        "<html> जैसा कि आप आदेश देते हैं, शुरू करते हैं <TITLE> । &lt;\/ Html&gt;",
+        "<html> कोई समस्या नहीं, फायरिंग <TITLE> । &lt;\/ Html&gt;",
+        "<html> ठीक है, खेल रहा है <TITLE> । &lt;\/ Html&gt;",
+        "<html> निश्चित रूप से, खेल रहा है <TITLE> । &lt;\/ Html&gt;",
+        "<html> हाँ कप्तान, चालू <TITLE> । &lt;\/ Html&gt;",
+        "<html> हाँ मास्टर, मैं खेलूँगा <TITLE> आपके लिए। &lt;\/ html&gt;",
+        "<html> आप इसे शुरू कर दिया <TITLE> । &lt;\/ Html&gt;",
+        "<html> ऐ ऐ, <TITLE> यह है। &lt;\/ html&gt;",
+        "<html> रोजर कि, चालू <TITLE> । &lt;\/ Html&gt;",
+        "<html> सकारात्मक। शुरुआत में <TITLE> । &lt;\/ Html&gt;"
+    ],
+    "speechPlaybackAffirmativeShort": "<html> खेल रहे हैं <TITLE> । &lt;\/ Html&gt;",
+    "speechControlShort": "ठीक है।",
+    "speechFetchAffirmatives": [
+        "allright,",
+        "ठीक है,",
+        "सफलता!"
+    ],
+    "speechPlayer": "खिलाड़ी",
+    "speechPlayError3": "मुझे लाइब्रेरी में यह नहीं मिला, क्या आप चाहते हैं कि मैं इसे डाउनलोड करने का प्रयास करूं?",
+    "speechPlayErrorEnd1": "आपकी पुस्तकालय में क्या मुझे इसे घड़ी सूचियों में जोड़ने की कोशिश करनी चाहिए?",
+    "speechPlayErrorEnd2": "&#39; खेलने के लिए। क्या मुझे इसे आपके लिए लाने की कोशिश करनी चाहिए?",
+    "speechPlayErrorStart1": "मुझे नहीं मिला",
+    "speechPlayErrorStart2": "मुझे कुछ नाम नहीं मिला &#39;",
+    "speechPlayerStatus1": "वर्तमान में,",
+    "speechPlayerStatus2": "खेल रहा है",
+    "speechPlayerStatus3": "वर्तमान में, मौसम",
+    "speechPlayerStatus4": "खेल रहा है। इस प्रकरण का नाम है",
+    "speechPlayerStatus5": "ऐसा लगता है कि आप सुन रहे हैं",
+    "speechPlayerStatus6": "एल्बम से",
+    "speechPlayerStatusBy": "द्वारा",
+    "speechPlayerStatusEpisode": "प्रकरण",
+    "speechPlayerStatusOf": "का",
+    "speechPlaying": "खेल रहे हैं",
+    "speechReturnOndeck": "यहां डेक आइटमों की एक सूची दी गई है:",
+    "speechReturnRecent": "हाल ही की एक सूची यहाँ दी गई है",
+    "speechReturnInfoArray": [
+        "यहां एक सूची है <TYPE> :",
+        "के लिये <TYPE> , आपके पास:",
+        "मैंने ये पाया <TYPE> आपकी पुस्तकालय में:"
+    ],
+    "speechServer": "सर्वर",
+    "speechShuffleResponse": "ठीक है, shuffling",
+    "speechStatusNothingPlaying": "ऐसा लगता है कि अभी कुछ भी खेल रहा है।",
+    "speechWordAnd": "तथा",
+    "speechWordOkay": "ठीक है",
+    "speechWordTo": "सेवा मेरे",
+    "suggestionCancel": "रद्द करना।",
+    "suggestionCouch": "फिल्म ट्रॉन डाउनलोड करें।",
+    "suggestionDvr": "डीवीआर खतरे",
+    "suggestionSick": [
+        "शो खरपतवार लाओ।",
+        "कॉर्पोरेट के नवीनतम एपिसोड डाउनलोड करें।"
+    ],
+    "suggestionsApps": {
+        "show": [
+            "Jeopardy का नवीनतम प्रकरण डाउनलोड करें",
+            "शो शेल्ड यंग शेल्डन लाओ"
+        ],
+        "movie": [
+            "घोस्ट राइडर डाउनलोड करें",
+            "Ghostbusters 1989 लाओ"
+        ],
+        "music": [
+            "नवीनतम मेटालिका एल्बम डाउनलोड करें",
+            "नया गड़बड़ मोब गीत पकड़ो"
+        ],
+        "dvr": [
+            "फॉर्च्यून का रिकॉर्ड व्हील",
+            "डीवीआर डॉ फिल"
+        ]
+    },
+    "suggestionYesNo": [
+        "नहीं",
+        "हाँ"
+    ],
+    "uiGreetingDefault": "मैं आपकी कैसे मदद कर सकता हूँ?",
+    "uiPageTitle": "फ्लेक्स टीवी (वेब)",
+    "uiPlayerSelectPrompt": "नियंत्रण के लिए एक खिलाड़ी का चयन करें।",
+    "uiRescanDevices": "Rescan डिवाइस",
+    "uiSettingAccountLinking": "खाता लिंकिंग",
+    "uiSettingApiKey": "एपीआई कुंजी:",
+    "uiSettingAutoUpdate": "स्वचालित रूप से अद्यतन स्थापित करें",
+    "uiSettingNotifyUpdate": "अपडेट उपलब्ध होने पर सूचित करें",
+    "uiSettingBtnReset": "रीसेट",
+    "uiSettingBtnTest": "परीक्षा",
+    "uiSettingCastLogs": "कास्ट लॉग डाउनलोड करें",
+    "uiSettingCopyIFTTT": "IFTTT URL कॉपी करने के लिए क्लिक करें:",
+    "uiSettingDevices": "स्टेटिक डिवाइस",
+    "uiSettingDevicesAddNew": "नया डिवाइस जोड़ें",
+    "uiSettingDevicesNameLabel": "यन्त्र का नाम",
+    "uiSettingDvrEndOffset": "अंत ऑफसेट (मिनट):",
+    "uiSettingDvrNewAirings": "केवल नई एयरिंग रिकॉर्ड करें",
+    "uiSettingDvrRecordPartials": "रिकॉर्ड आंशिक एपिसोड",
+    "uiSettingDvrReplaceLower": "कम गुणवत्ता रिकॉर्डिंग बदलें",
+    "uiSettingDvrComskipEnabled": "कमर्शियल छोड़ें",
+    "uiSettingDvrResolution": "संकल्प",
+    "uiSettingDvrResolutionAny": "कोई",
+    "uiSettingDvrResolutionHD": "हाई डेफिनेशन",
+    "uiSettingDvrServer": "डीवीआर सर्वर",
+    "uiSettingDvrStartOffset": "ऑफसेट शुरू करें (मिनट):",
+    "uiSettingEnable": "सक्षम करें",
+    "uiSettingFetcherPath": "पथ (वैकल्पिक)",
+    "uiSettingFetcherPort": "बंदरगाह",
+    "uiSettingFetcherQualityProfile": "गुणवत्ता प्रोफाइल",
+    "uiSettingFetcherToken": "टोकन",
+    "uiSettingForceSSL": "एसएसएल फोर्स",
+    "uiSettingForceSSLHint": "अगर उपलब्ध हो तो एसएसएल फोर्स करें। प्रगतिशील वेब ऐप्स के लिए आवश्यक है।",
+    "uiSettingGeneral": "सामान्य",
+    "uiSettingHeaderDevices": "उपकरण",
+    "uiSettingHeaderMovies": "चलचित्र",
+    "uiSettingHeaderShows": "दिखाता है",
+    "uiSettingHeaderMusic": "संगीत",
+    "uiSettingHeaderLogs": "लॉग्स",
+    "uiSettingHeaderPhlex": "सामान्य",
+    "uiSettingHeaderPlex": "Plex",
+    "uiSettingHookCustom": "रिवाज",
+    "uiSettingHookCustomPhrase": "कस्टम उत्तर दें",
+    "uiSettingHookFetch": "लाना",
+    "uiSettingHookGeneric": "यूआरएल:",
+    "uiSettingHookLabel": "Webhooks",
+    "uiSettingHookPause": "ठहराव",
+    "uiSettingHookPlayback": "प्लेबैक",
+    "uiSettingHookPlayHint": "? param = {{media name}} को जोड़ा जाएगा",
+    "uiSettingHookStop": "रुकें",
+    "uiSettingHookUrlGeneral": "वेबहुक यूआरएल:",
+    "uiSettingInstallUpdates": "इंस्टॉल करें",
+    "uiSettingLangEnglish": "अंग्रेज़ी",
+    "uiSettingLangFrench": "फ्रेंच",
+    "uiSettingLanguage": "भाषा:",
+    "uiSettingLinkAmazon": "लिंक अमेज़ॅन",
+    "uiSettingLinkGoogle": "लिंक गूगल",
+    "uiSettingLogCount": "गणना:",
+    "uiSettingLogLevel": "स्तर:",
+    "uiSettingLogUpdate": "अद्यतन करें",
+    "uiSettingMasterUser": "मास्टर उपयोगकर्ता",
+    "uiSettingMasterUserHint": "वहां केवल एक हो सकता है! ... और तुम हो",
+    "uiSettingNoNewUsers": "नए उपयोगकर्ताओं को रोकें",
+    "uiSettingNoNewUsersHint": "किसी भी नए उपयोगकर्ताओं को फ्लेक्स टीवी को अधिकृत करने से अनुमति दें।",
+    "uiSettingNoPlexDirect": "कोई HTTPS \/ रिले नहीं",
+    "uiSettingNoPlexDirectHint": "{प्रयोगात्मक) कुछ नेटवर्क के लिए आवश्यक HTTPS और रिले यूआरएल अक्षम करें।",
+    "uiSettingObscureLogs": "लॉग में अस्पष्ट संवेदनशील डेटा",
+    "uiSettingOndeckRecent": "वापसी के लिए ऑन-डेक \/ हालिया आइटम की संख्या:",
+    "uiSettingPlaybackServer": "पसंदीदा सर्वर:",
+    "uiSettingPlaybackServerHint": "यदि परिणाम एकाधिक सर्वर पर पाए जाते हैं, तो इस पर पाए गए लोगों को पसंद करें।",
+    "uiSettingPlexDVR": "प्लेक्स डीवीआर",
+    "uiSettingPublicAddress": "सार्वजनिक उद्घोषणा:",
+    "uiSettingRefreshUpdates": "रीफ़्रेश करें",
+    "uiSettingRescanHint": "डिवाइस को फिर से कैश करने के लिए कितनी बार।",
+    "uiSettingRescanInterval": "डिवाइस Rescan अंतराल (मिनट):",
+    "uiSettingSearchAccuracy": "खोज सटीकता (%):",
+    "uiSettingSeparateHookUrl": "अलग यूआरएल",
+    "uiSettingShortAnswers": "छोटे उत्तरों का प्रयोग करें",
+    "uiSettingTestButton": "परीक्षा",
+    "uiSettingTestServer": "टेस्ट कनेक्टिविटी",
+    "uiSettingThemeColor": "डार्क थीम का प्रयोग करें",
+    "uiSettingUpdates": "अपडेट",
+    "uiSettingUseCast": "कास्ट उपकरणों का प्रयोग करें"
+}

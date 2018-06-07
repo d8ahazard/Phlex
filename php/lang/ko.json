@@ -1,0 +1,487 @@
+{
+    "btnReadmePrompt": "Readme보기",
+    "cardGreetingText": "Flex TV에 오신 것을 환영합니다!",
+    "cardReadmeButton": "Readme보기",
+    "cardReadmeTitle": "환영!",
+    "commandSynonymsArray": {
+        "play": [
+            "이력서"
+        ],
+        "skip": [
+            "도약",
+            "가기"
+        ],
+        "step": [
+            "목표물 탐색"
+        ],
+        "forward": [
+            "앞으로"
+        ],
+        "back": [
+            "뒤로"
+        ],
+        "seekBack": [
+            "되감기"
+        ],
+        "seek": [
+            "빠른"
+        ],
+        "skipNext": [
+            "앞으로 건너 뛰기"
+        ],
+        "skipPrevious": [
+            "뒤로 건너 뛰다"
+        ],
+        "stepForward": [
+            "빨리 감기",
+            "앞으로 찾다"
+        ],
+        "stepBack": [
+            "다시 찾다"
+        ],
+        "volume up": [
+            "볼륨 업"
+        ],
+        "volume down": [
+            "볼륨 다운"
+        ]
+    },
+    "errorHelpSuggestionsArray": [
+        "다음은 시도 할 수있는 몇 가지 제안 사항입니다.",
+        "다음은 가능한 명령입니다.",
+        "물론, 이것들 중 하나를 시도해 보는 것은 어떨까요?"
+    ],
+    "errorHelpCommandsArray": [
+        "갑판에는 무엇이 있습니까?",
+        "어떤 새로운 영화가 있나요?",
+        "재생을 일시 중지하십시오.",
+        "배트맨이 시작됩니다."
+    ],
+    "fetchSynonymsArray": {
+        "season": [
+            "시즌"
+        ],
+        "episode": [
+            "삽화"
+        ],
+        "movie": [
+            "영화 필름"
+        ],
+        "show": [
+            "보여 주다",
+            "시리즈"
+        ],
+        "latest": [
+            "최근",
+            "새로운",
+            "최신의",
+            "가장 최근",
+            "최신",
+            "최신"
+        ]
+    },
+    "javaStrings": [
+        "내가 어떻게 도움이 될 수 있습니다?",
+        "내가 당신을 위해 무엇을 할 수?",
+        "너는 말했다 :",
+        "내 대답 :",
+        "기기 재검색"
+    ],
+    "parseStripArray": [
+        "의",
+        "그만큼",
+        "~",
+        "에이",
+        "...에서",
+        "일",
+        "nd",
+        "...에서",
+        "...에서",
+        "&#39;",
+        "에스",
+        "과"
+    ],
+    "parseMediaArray": [
+        "시즌",
+        "시리즈",
+        "보여 주다",
+        "삽화",
+        "영화",
+        "필름",
+        "처음",
+        "휴식",
+        "종료",
+        "의사록",
+        "분",
+        "시간",
+        "시간",
+        "초",
+        "둘째"
+    ],
+    "parseFilterArray": [
+        "유형",
+        "년",
+        "배우",
+        "감독",
+        "감독 된",
+        "주연",
+        "특징",
+        "와",
+        "만든",
+        "만들어진",
+        "석방 된",
+        "촬영 한"
+    ],
+    "parseNumberArray": [
+        "먼저",
+        "조종사",
+        "둘째",
+        "제삼",
+        "마지막",
+        "결정적인",
+        "최근",
+        "무작위의"
+    ],
+    "parsedDvrFailStart": "이름이 지정된 미디어 추가",
+    "parsedDvrSuccessNamed": "명명 된",
+    "parsedDvrSuccessStart": "더하기",
+    "speechAiringsAfternoon": "오늘 오후에,",
+    "speechAiringsErrors": [
+        "나는 목록에 아무것도 없다.",
+        "일정이 잡혀 있지 않아요."
+    ],
+    "speechAiringsMids": [
+        "찾았다.",
+        "내가 참조",
+        "너는 가지고있다."
+    ],
+    "speechAiringsOn": "에",
+    "speechAiringsReturn": "예약 녹화 목록은 다음과 같습니다.",
+    "speechAiringsToday": "오늘",
+    "speechAiringsTomorrow": "내일,",
+    "speechAiringsTonight": "오늘 밤,",
+    "speechAiringsWeekend": "이번 주말,",
+    "speechAiringTails": [
+        "오고있어.",
+        "일정에.",
+        "기록하도록 설정합니다."
+    ],
+    "speechBy": "으로",
+    "speechChangDeviceFailureStart": "미안하지만 찾지 못했습니다.",
+    "speechChange": "변화",
+    "speechChangeDeviceFailEnd": "장치 목록에 있습니다.",
+    "speechChangeDevicePrompt": ", 물론. 어떤 기기를 사용 하시겠습니까?",
+    "speechChangeDeviceSuccessStart": "좋아요.",
+    "speechChangeDeviceWarnEnd1": "푸",
+    "speechChangeDeviceWarnEnd2": "푸",
+    "speechChangeDeviceWarnStart1": "푸",
+    "speechChangeDeviceWarnStart2": "푸",
+    "speechChangeDeviceWarnStart3": "푸",
+    "speechChangeMind": "좋아, 너 마음이 바뀌면 알려줘.",
+    "speechControlConfirm1": "명령을 보내는 중",
+    "speechControlConfirmGenericArray": [
+        "그것이 끝났다고 생각해.",
+        "괜찮아.",
+        "확실한 것.",
+        "알았어."
+    ],
+    "speechControlConfirmPauseArray": [
+        "알았어, 너를 위해 TV를 일시 중지했다.",
+        "재생을 일시 중지합니다.",
+        "이제 플렉스가 일시 중지되어야합니다."
+    ],
+    "speechControlConfirmPlayArray": [
+        "연주 중입니다.",
+        "플렉스가 재생되어야합니다.",
+        "재생을 다시 시작하십시오."
+    ],
+    "speechControlConfirmStopArray": [
+        "플렉스가 중지되었습니다.",
+        "이제 플렉스를 중지해야합니다.",
+        "멎는."
+    ],
+    "speechControlConfirmSubsOffArray": [
+        "자막 사용 중지 중.",
+        "바벨 물고기 제거.",
+        "자막이 비활성화되었습니다."
+    ],
+    "speechControlConfirmSubsOnArray": [
+        "자막 사용.",
+        "약혼 한 통역사.",
+        "자막이 활성화되었습니다."
+    ],
+    "speechControlArray": [
+        "당신이 명령하는대로",
+        "완료 및 완료.",
+        "좋아, 그럼.",
+        "알았어!",
+        "됐어."
+    ],
+    "speechControlGeneric1": "명령을 보내는 중",
+    "speechControlGeneric2": "좋아요, 플렉스에게",
+    "speechControlVolumeDown": "좋아, 조금 내려 놓을 게.",
+    "speechControlVolumeSet": "좋아요. 볼륨을",
+    "speechControlVolumeUp": "좋아, 내가 좀 더 세울거야.",
+    "speechDeviceListError": "기기 목록을 가져 오는 중에 오류가 발생했습니다. 잠시 후 다시 시도하십시오.",
+    "speechDeviceListErrorArray": [
+        "그 점에 대해 도움을 드리고 싶지만 현재 이야기 할 수있는 장치는 하나뿐입니다.",
+        "죄송합니다. 선택할 기기가 하나뿐입니다.",
+        "안타깝게도 지금은 하나의 기기 만 보유하고 있으며 이미 선택되었습니다."
+    ],
+    "speechDontUnderstand1": "미안 근데 &#39;",
+    "speechDontUnderstand2": "&#39;내가 방금 말한 것과 일치하지 않는 것 같다.",
+    "speechDownloadAdded1": "좋아, 나는 추가했다.",
+    "speechDownloadAdded2": "가져 오기 목록으로 이동합니다.",
+    "speechDownloadErrorArray": [
+        "죄송 합니다만, 귀하의 수색자 중 누구 에게서도 그것을 찾을 수 없습니다.",
+        "이건 창피해. 나는 어디에도 그것을 발견 할 수 없다.",
+        "불행히도 다운로드 할 제목이있는 항목을 찾을 수 없었습니다."
+    ],
+    "speechDownloadExistsArray": [
+        "<html> 그것은 닮았다. <TITLE> &lt;\/ html&gt;에서 다운로드하도록 이미 설정되었습니다.",
+        "<html><TITLE> &lt;\/ html&gt;에 대한 감시 목록에 이미 있습니다.",
+        "<html> 나는 이미 찾고있다. <TITLE> on &lt;\/ html&gt;"
+    ],
+    "speechDownloadExists1": "그것은 닮았다.",
+    "speechDownloadExists2": "이미 다운로드하도록 설정되었습니다.",
+    "speechDvrFailStart": "에피소드 가이드에서 일치하는 &#39;결과&#39;를 찾을 수 없었습니다.",
+    "speechDvrNoDevice": "죄송합니다. 사용하려는 Plex DVR의 인스턴스를 찾지 못했습니다.",
+    "speechDvrSuccessEnd": "녹음 일정.",
+    "speechDvrSuccessStart": "이봐, 저거 봐. 나는",
+    "speechEggArray": {
+        "attack the block": "<html> 너 의사 야? 연주 중 <TITLE> . &lt;\/ html&gt;",
+        "avengers": "<html> 가족이 모인다! 볼 시간이다. <TITLE> . &lt;\/ html&gt;",
+        "batman": "<html> 거룩한 불법 복제 매체, 배트맨! 그 <TITLE> . &lt;\/ html&gt;",
+        "big hero": "<html> 안녕하세요, 저는 Baymax입니다. 치료를 ​​위해 나는 <TITLE> . &lt;\/ html&gt;",
+        "evil dead": "<html> 왕에게 우박 녀석! 구경하자 <TITLE> . &lt;\/ html&gt;",
+        "fifth element": "<html> Leeloo Dallas Mul-ti-Pass! 멀 티 패스. 즐겨 <TITLE> . &lt;\/ html&gt;",
+        "frozen": "<html> 놓아 줘 놓아 줘! 앉아서 보자. <TITLE> . &lt;\/ html&gt;",
+        "game of thrones": "<html> 자신을 지켜라. <TITLE> 재생 중입니다. &lt;\/ html&gt;",
+        "ghostbusters": "<html> 너는 누구에게 전화하려고하니? <TITLE> &lt;\/ html&gt;",
+        "heathers": "<html> 전기 톱으로 부드럽게 충전 해주세요. 또는 시계 <TITLE> . &lt;\/ html&gt;",
+        "iron man": "<html> 예 스탁 씨, 계속 켜십시오. <TITLE> . &lt;\/ html&gt;",
+        "space odyssey": "미안해, 데이브. 나는 그것을 할 수 없다는 것이 두렵다.",
+        "resident evil": "<html> 감염 될 때까지 T- 빼기 1 분. 관리 <TITLE> . &lt;\/ html&gt;",
+        "star wars": "<html> Obi-Wan-Kenobi 도와주세요. <TITLE> 내 유일한 희망입니다. &lt;\/ html&gt;",
+        "they live": "<html> 버블 검을 씹고 놀러 왔어. <TITLE> , 그리고 나는 버블 검을 모두 벗어났다. &lt;\/ html&gt;",
+        "wall-e": "<html> Buy and Large 쇼핑 주셔서 감사 드리며 시작으로 즐기십시오. <TITLE> . &lt;\/ html&gt;",
+        "monty python": "<html> 네 엄마는 햄스터 였고 너의 아버지는 엘더베리 냄새가났다. 연주 중 <TITLE> &lt;\/ html&gt;",
+        "guide to the end of the universe": "<html> 헤이, 너 hoopy frood. 나는 놀거야. <TITLE> 당신을 위해. &lt;\/ html&gt;",
+        "rocky horror": "오 록키 !!",
+        "citizen kane": "로즈 버드 ...",
+        "godfather": "<html> 나는 너에게 거절 할 수없는 제안을 할 것이다. 나는 놀거야. <TITLE> . &lt;\/ html&gt;",
+        "with the wind": "솔직히 말해서, 나는 아이폰을주지 않는다.",
+        "dirty harry": "너는 이미 내 하루를 보냈다.",
+        "taxi driver": "<html> 나에게 말하는 건가요? 그냥 확인해. 연주 중 <TITLE> 지금. &lt;\/ html&gt;",
+        "apocalypse now": "아침에 오존 냄새가 좋아.",
+        "e.t.": "<html> Google phone home! 연주 중 <TITLE> . &lt;\/ html&gt;",
+        "silence of the lambs": "이 영화는 일부 fava beans와 멋진 chianti와 잘 어울릴 것입니다.",
+        "jerry maguire": "<html> 돈을 보여줘! 그리고 내가 너에게 보여줄거야. <TITLE> . &lt;\/ html&gt;",
+        "a few good men": "<html> 당신은 진실을 다룰 수 없습니다. 하지만 어쩌면 당신은 <TITLE> . &lt;\/ html&gt;",
+        "jaws": "더 큰 보트가 필요할거야.",
+        "a streetcar named": "STELLA !!!!",
+        "super troopers": "<html> 지저분하고 ... 지저분한 ... 지저귐을보고 지켜보고있다. <TITLE> . &lt;\/ html&gt;"
+    },
+    "speechGreetingArray": [
+        "인사말!",
+        "안녕하십니까!",
+        "안녕하세요, 저는 Flex TV입니다.",
+        "파티에 오신 것을 환영합니다!",
+        "Dilly Dilly!"
+    ],
+    "speechGreetingHelpPrompt": [
+        "명령 목록을 원하면 &#39;도움말&#39;또는 &#39;명령은 무엇입니까?&#39;라고 말할 수 있습니다.",
+        "나를 더 자세히 알기 위해 &#39;도움&#39;또는 &#39;무엇을 할 수 있습니까&#39;라고 말할 수 있습니다.",
+        "나에게 무언가를 해보라고하거나, 더 많은 명령을 위해 &#39;도움&#39;이라고 말하십시오."
+    ],
+    "speechHookCustomDefault": "축하합니다. 사용자 정의 webhook 명령을 실행했습니다.",
+    "speechMoreInfoArray": [
+        "여기에 대한 자세한 정보가 있습니다.",
+        "그 항목에 대해 내가 찾은 것이있다.",
+        "나는 너를 찾았다."
+    ],
+    "speechMultiResultArray": [
+        "그 중 몇 가지는 가능한 결과를 발견했습니다.",
+        "네가 요구할 수 있다고 생각되는 것들이 몇 가지있다.",
+        "어느 것이 당신을 의미 했습니까?",
+        "당신은 그 수색과 일치 할 수있는 몇 가지 것들을 가지고 있습니다, 그것들 중 하나입니까?"
+    ],
+    "speechNotUnderstoodArray": [
+        "위험 윌 로빈슨! 나는 명령을 이해하지 못한다 &#39;",
+        "나는 네가 의미하는 바를 이해하지 못한다.",
+        "불행히도, 나는 당신이 &#39;"
+    ],
+    "speechOndeckRecentError": "불행히도, 나는 그 결과를 찾을 수 없었습니다. 나중에 다시 시도 해주십시오.",
+    "speechNoInfoResultsArray": [
+        "불행히도, <VAR>지금 도서관에서<\/var> 찾을 수 없습니다 <VAR>.<\/var>",
+        "미안하지만 확인해 봤지만 아무런 결과도 얻지 못했습니다 <VAR>.<\/var>",
+        "흠. 서버에 나열된 내용이없는 것 같습니다 <VAR>.<\/var>",
+        "일치하는 것을 찾지 못했습니다 <VAR>.<\/var>"
+    ],
+    "speechNoResultsArray": [
+        "불행히도, 나는 그 결과를 찾을 수 없었습니다.",
+        "미안하지만 그 수색을 위해 아무것도 찾을 수 없었어.",
+        "나는 보았다. 그러나 나는 그 요청을 도울 수 없었다."
+    ],
+    "speechOndeckRecentTail": "무엇인가보고 싶으면 이름을 말하면됩니다. 그렇지 않으면 &#39;취소&#39;라고 말할 수 있습니다.",
+    "speechPlaybackAffirmatives": [
+        "<html> Allrighty, then playing <TITLE> . &lt;\/ html&gt;",
+        "<html> 명령을 내릴 때 시작 <TITLE> . &lt;\/ html&gt;",
+        "<html> 문제 없어, 발사 <TITLE> . &lt;\/ html&gt;",
+        "<html> 좋아, 노는거야. <TITLE> . &lt;\/ html&gt;",
+        "<html> 물론, 연주 <TITLE> . &lt;\/ html&gt;",
+        "<html> 예 기장, 계속 켜십시오. <TITLE> . &lt;\/ html&gt;",
+        "<html> 예 마스터, 나는 연주해야합니다. <TITLE> 당신을 위해. &lt;\/ html&gt;",
+        "<html> 시작 했어, 시작했다. <TITLE> . &lt;\/ html&gt;",
+        "<html> 네 네, <TITLE> 그렇습니다. &lt;\/ html&gt;",
+        "<html> 로저, 계속 켜고있어. <TITLE> . &lt;\/ html&gt;",
+        "<html> 긍정. 시작 중 <TITLE> . &lt;\/ html&gt;"
+    ],
+    "speechPlaybackAffirmativeShort": "<html> 연주 중 <TITLE> . &lt;\/ html&gt;",
+    "speechControlShort": "괜찮아.",
+    "speechFetchAffirmatives": [
+        ", 무사",
+        "괜찮아,",
+        "성공!"
+    ],
+    "speechPlayer": "플레이어",
+    "speechPlayError3": "도서관에서 찾지 못했습니다. 다운로드 해 주시겠습니까?",
+    "speechPlayErrorEnd1": "귀하의 도서관에 있습니다. 시청 목록에 추가해야합니까?",
+    "speechPlayErrorEnd2": "&#39;놀아 라. 내가 너를 위해서 가져 가야 할까? &#39;",
+    "speechPlayErrorStart1": "찾지 못했습니다.",
+    "speechPlayErrorStart2": "나는 &#39;",
+    "speechPlayerStatus1": "현재,",
+    "speechPlayerStatus2": "계속 놀고있다.",
+    "speechPlayerStatus3": "현재, 시즌",
+    "speechPlayerStatus4": "놀고있다. 이 에피소드의 이름은",
+    "speechPlayerStatus5": "듣고있는 것처럼 보입니다.",
+    "speechPlayerStatus6": "앨범에서",
+    "speechPlayerStatusBy": "으로",
+    "speechPlayerStatusEpisode": "삽화",
+    "speechPlayerStatusOf": "의",
+    "speechPlaying": "연주 중",
+    "speechReturnOndeck": "다음은 데크 아이템 목록입니다.",
+    "speechReturnRecent": "다음은 최근의 목록입니다.",
+    "speechReturnInfoArray": [
+        "여기에 <TYPE> :",
+        "에 대한 <TYPE> , 당신은 :",
+        "나는 이것들을 발견했다. <TYPE> 귀하의 도서관 :"
+    ],
+    "speechServer": "섬기는 사람",
+    "speechShuffleResponse": "알았어.",
+    "speechStatusNothingPlaying": "지금 놀고있는 것 같지 않습니다.",
+    "speechWordAnd": "과",
+    "speechWordOkay": "괜찮아",
+    "speechWordTo": "에",
+    "suggestionCancel": "취소.",
+    "suggestionCouch": "영화 Tron을 다운로드하십시오.",
+    "suggestionDvr": "DVR 위험.",
+    "suggestionSick": [
+        "쇼 잡아 당기기.",
+        "Corporate의 최신 에피소드를 다운로드하십시오."
+    ],
+    "suggestionsApps": {
+        "show": [
+            "Jeopardy의 최신 에피소드 다운로드",
+            "쇼를 가져와 Young Sheldon"
+        ],
+        "movie": [
+            "고스트 라이더 다운로드",
+            "1989 고스트 버스 터즈 잡아라."
+        ],
+        "music": [
+            "최신 Metallica 앨범 다운로드",
+            "새로운 Glitch Mob 노래를 잡아라."
+        ],
+        "dvr": [
+            "레코드 휠 오브 포춘",
+            "DVR 박사 필"
+        ]
+    },
+    "suggestionYesNo": [
+        "아니",
+        "예"
+    ],
+    "uiGreetingDefault": "내가 어떻게 도움이 될 수 있습니다?",
+    "uiPageTitle": "Flex TV (웹)",
+    "uiPlayerSelectPrompt": "제어 할 플레이어를 선택하십시오.",
+    "uiRescanDevices": "디바이스 재검색",
+    "uiSettingAccountLinking": "계정 연결",
+    "uiSettingApiKey": "API 키 :",
+    "uiSettingAutoUpdate": "자동으로 업데이트 설치",
+    "uiSettingNotifyUpdate": "업데이트가있을 때 알림",
+    "uiSettingBtnReset": "다시 놓기",
+    "uiSettingBtnTest": "테스트",
+    "uiSettingCastLogs": "캐스트 로그 다운로드",
+    "uiSettingCopyIFTTT": "클릭하여 IFTTT URL 복사 :",
+    "uiSettingDevices": "정적 장치",
+    "uiSettingDevicesAddNew": "새 장치 추가",
+    "uiSettingDevicesNameLabel": "장치 이름",
+    "uiSettingDvrEndOffset": "끝 오프셋 (분) :",
+    "uiSettingDvrNewAirings": "새로운 방송만을 기록하십시오.",
+    "uiSettingDvrRecordPartials": "부분 에피소드 기록",
+    "uiSettingDvrReplaceLower": "낮은 품질의 레코딩 대체",
+    "uiSettingDvrComskipEnabled": "광고 건너 뛰기",
+    "uiSettingDvrResolution": "해결",
+    "uiSettingDvrResolutionAny": "어떤",
+    "uiSettingDvrResolutionHD": "고화질",
+    "uiSettingDvrServer": "DVR 서버",
+    "uiSettingDvrStartOffset": "시작 오프셋 (분) :",
+    "uiSettingEnable": "사용",
+    "uiSettingFetcherPath": "경로 (선택 사항)",
+    "uiSettingFetcherPort": "포트",
+    "uiSettingFetcherQualityProfile": "품질 프로필",
+    "uiSettingFetcherToken": "토큰",
+    "uiSettingForceSSL": "강제 SSL",
+    "uiSettingForceSSLHint": "사용 가능한 경우 SSL을 강제합니다. 프로그레시브 웹 앱에 필요합니다.",
+    "uiSettingGeneral": "일반",
+    "uiSettingHeaderDevices": "장치들",
+    "uiSettingHeaderMovies": "영화 산업",
+    "uiSettingHeaderShows": "쇼",
+    "uiSettingHeaderMusic": "음악",
+    "uiSettingHeaderLogs": "로그",
+    "uiSettingHeaderPhlex": "일반",
+    "uiSettingHeaderPlex": "플렉스",
+    "uiSettingHookCustom": "관습",
+    "uiSettingHookCustomPhrase": "맞춤 답장",
+    "uiSettingHookFetch": "술책",
+    "uiSettingHookGeneric": "URL :",
+    "uiSettingHookLabel": "Webhooks",
+    "uiSettingHookPause": "중지",
+    "uiSettingHookPlayback": "재생",
+    "uiSettingHookPlayHint": "? param = {{미디어 이름}}이 (가) 추가됩니다.",
+    "uiSettingHookStop": "중지",
+    "uiSettingHookUrlGeneral": "Webhook URL :",
+    "uiSettingInstallUpdates": "설치",
+    "uiSettingLangEnglish": "영어",
+    "uiSettingLangFrench": "프랑스 국민",
+    "uiSettingLanguage": "언어:",
+    "uiSettingLinkAmazon": "LINK AMAZON",
+    "uiSettingLinkGoogle": "Google에 연결",
+    "uiSettingLogCount": "카운트:",
+    "uiSettingLogLevel": "수평:",
+    "uiSettingLogUpdate": "최신 정보",
+    "uiSettingMasterUser": "마스터 사용자",
+    "uiSettingMasterUserHint": "단 하나만있을 수있다! ... 그리고 당신은 그것입니다.",
+    "uiSettingNoNewUsers": "새로운 사용자 방지",
+    "uiSettingNoNewUsersHint": "새로운 사용자가 Flex TV에 권한을 부여하는 것을 허용하지 않습니다.",
+    "uiSettingNoPlexDirect": "HTTPS \/ 릴레이 없음",
+    "uiSettingNoPlexDirectHint": "{실험} HTTPS 및 릴레이 URL을 사용 중지합니다 (일부 네트워크에서는 필수).",
+    "uiSettingObscureLogs": "로그의 민감한 데이터를 가려냅니다.",
+    "uiSettingOndeckRecent": "반환 할 온 데크 \/ 최근 항목 수 :",
+    "uiSettingPlaybackServer": "기본 설정 서버 :",
+    "uiSettingPlaybackServerHint": "결과가 여러 서버에서 발견되면이 서버에서 찾은 결과를 선호하십시오.",
+    "uiSettingPlexDVR": "플렉스 DVR",
+    "uiSettingPublicAddress": "공개 주소 :",
+    "uiSettingRefreshUpdates": "새롭게 하다",
+    "uiSettingRescanHint": "기기를 다시 캐시하는 빈도입니다.",
+    "uiSettingRescanInterval": "장치 재검색 간격 (분) :",
+    "uiSettingSearchAccuracy": "검색 정확도 (%) :",
+    "uiSettingSeparateHookUrl": "별도의 URL",
+    "uiSettingShortAnswers": "짧은 응답 사용",
+    "uiSettingTestButton": "테스트",
+    "uiSettingTestServer": "연결 테스트",
+    "uiSettingThemeColor": "다크 테마 사용",
+    "uiSettingUpdates": "업데이트",
+    "uiSettingUseCast": "전송 기기 사용"
+}

@@ -1,0 +1,487 @@
+{
+    "btnReadmePrompt": "Lihat Readme",
+    "cardGreetingText": "Selamat datang di Flex TV!",
+    "cardReadmeButton": "Lihat Readme",
+    "cardReadmeTitle": "SELAMAT DATANG!",
+    "commandSynonymsArray": {
+        "play": [
+            "lanjut"
+        ],
+        "skip": [
+            "melompat",
+            "pergi"
+        ],
+        "step": [
+            "mencari"
+        ],
+        "forward": [
+            "di depan"
+        ],
+        "back": [
+            "ke belakang"
+        ],
+        "seekBack": [
+            "mundur"
+        ],
+        "seek": [
+            "cepat"
+        ],
+        "skipNext": [
+            "lompat ke depan"
+        ],
+        "skipPrevious": [
+            "lewati kembali"
+        ],
+        "stepForward": [
+            "maju cepat",
+            "mencari ke depan"
+        ],
+        "stepBack": [
+            "mencari kembali"
+        ],
+        "volume up": [
+            "volume naik"
+        ],
+        "volume down": [
+            "volume turun"
+        ]
+    },
+    "errorHelpSuggestionsArray": [
+        "Di bawah ini adalah beberapa saran yang dapat Anda coba.",
+        "Berikut beberapa kemungkinan perintah.",
+        "Tentu, mengapa Anda tidak mencoba salah satu dari ini?"
+    ],
+    "errorHelpCommandsArray": [
+        "Apa yang ada di dek?",
+        "Film baru apa yang saya miliki?",
+        "Jeda pemutaran.",
+        "Mainkan Batman Begins."
+    ],
+    "fetchSynonymsArray": {
+        "season": [
+            "musim"
+        ],
+        "episode": [
+            "episode"
+        ],
+        "movie": [
+            "film, film"
+        ],
+        "show": [
+            "menunjukkan",
+            "seri"
+        ],
+        "latest": [
+            "terbaru",
+            "baru",
+            "terbaru",
+            "terbaru",
+            "yang terbaru",
+            "yang terbaru"
+        ]
+    },
+    "javaStrings": [
+        "Bagaimana saya bisa membantu?",
+        "Apa yang bisa saya lakukan untuk Anda?",
+        "Kamu berkata:",
+        "Balasan saya:",
+        "pindai ulang perangkat"
+    ],
+    "parseStripArray": [
+        "dari",
+        "itu",
+        "sebuah",
+        "Sebuah",
+        "di",
+        "th",
+        "nd",
+        "di",
+        "dari",
+        "&#39;",
+        "s",
+        "dan"
+    ],
+    "parseMediaArray": [
+        "musim",
+        "seri",
+        "menunjukkan",
+        "episode",
+        "film",
+        "film",
+        "awal",
+        "beristirahat",
+        "akhir",
+        "menit",
+        "menit",
+        "jam",
+        "jam",
+        "detik",
+        "kedua"
+    ],
+    "parseFilterArray": [
+        "aliran",
+        "tahun",
+        "aktor",
+        "Direktur",
+        "diarahkan",
+        "dibintangi",
+        "menampilkan",
+        "dengan",
+        "terbuat",
+        "dibuat",
+        "dilepaskan",
+        "difilmkan"
+    ],
+    "parseNumberArray": [
+        "pertama",
+        "pilot",
+        "kedua",
+        "ketiga",
+        "terakhir",
+        "terakhir",
+        "terbaru",
+        "acak"
+    ],
+    "parsedDvrFailStart": "Tambahkan nama media",
+    "parsedDvrSuccessNamed": "bernama",
+    "parsedDvrSuccessStart": "Tambahkan",
+    "speechAiringsAfternoon": "Sore ini,",
+    "speechAiringsErrors": [
+        "Saya tidak punya apa-apa di daftar",
+        "Anda tidak memiliki jadwal apa pun"
+    ],
+    "speechAiringsMids": [
+        "saya menemukan",
+        "saya melihat",
+        "kamu punya"
+    ],
+    "speechAiringsOn": "Di",
+    "speechAiringsReturn": "Berikut daftar rekaman terjadwal:",
+    "speechAiringsToday": "Hari ini",
+    "speechAiringsTomorrow": "Besok,",
+    "speechAiringsTonight": "Malam ini,",
+    "speechAiringsWeekend": "Akhir minggu ini,",
+    "speechAiringTails": [
+        "akan datang.",
+        "sesuai jadwal.",
+        "diatur untuk merekam."
+    ],
+    "speechBy": "oleh",
+    "speechChangDeviceFailureStart": "Maaf, tapi saya tidak dapat menemukannya",
+    "speechChange": "Perubahan",
+    "speechChangeDeviceFailEnd": "dalam daftar perangkat.",
+    "speechChangeDevicePrompt": ", yakin. Perangkat apa yang ingin Anda gunakan?",
+    "speechChangeDeviceSuccessStart": "Oke, saya sudah beralih",
+    "speechChangeDeviceWarnEnd1": "foo",
+    "speechChangeDeviceWarnEnd2": "foo",
+    "speechChangeDeviceWarnStart1": "foo",
+    "speechChangeDeviceWarnStart2": "foo",
+    "speechChangeDeviceWarnStart3": "foo",
+    "speechChangeMind": "Oke, beri tahu saya jika Anda berubah pikiran.",
+    "speechControlConfirm1": "Mengirimkan perintah ke",
+    "speechControlConfirmGenericArray": [
+        "Anggap saja sudah selesai.",
+        "Baik.",
+        "Tentu saja.",
+        "Anda mengerti."
+    ],
+    "speechControlConfirmPauseArray": [
+        "Oke, saya sudah menghentikan TV untuk Anda.",
+        "Menjeda pemutaran.",
+        "Plex sekarang harus dihentikan sebentar."
+    ],
+    "speechControlConfirmPlayArray": [
+        "Bermain.",
+        "Plex seharusnya dimainkan.",
+        "Melanjutkan pemutaran."
+    ],
+    "speechControlConfirmStopArray": [
+        "Plex dihentikan.",
+        "Plex sekarang harus dihentikan.",
+        "Henti."
+    ],
+    "speechControlConfirmSubsOffArray": [
+        "Menonaktifkan subtitel.",
+        "Menghapus ikan Babel.",
+        "Subtitel telah dinonaktifkan."
+    ],
+    "speechControlConfirmSubsOnArray": [
+        "Mengaktifkan subtitel.",
+        "Penerjemah universal yang menarik.",
+        "Subtitel telah diaktifkan."
+    ],
+    "speechControlArray": [
+        "Seperti yang Anda perintahkan.",
+        "Selesai dan selesai.",
+        "Baiklah, baiklah.",
+        "Anda mengerti!",
+        "Ini dia."
+    ],
+    "speechControlGeneric1": "Mengirimkan perintah ke",
+    "speechControlGeneric2": "Oke, saya akan memberi tahu Plex",
+    "speechControlVolumeDown": "Oke, saya akan menolaknya sedikit.",
+    "speechControlVolumeSet": "Oke, atur volumenya ke",
+    "speechControlVolumeUp": "Oke, saya akan mengubahnya sedikit.",
+    "speechDeviceListError": "Terjadi kesalahan saat mengambil daftar perangkat, coba lagi nanti.",
+    "speechDeviceListErrorArray": [
+        "Saya ingin membantu Anda dengan itu, tetapi saya hanya melihat satu perangkat yang saat ini dapat saya ajak bicara.",
+        "Maaf, saya hanya punya satu perangkat untuk dipilih.",
+        "Sayangnya, Anda hanya memiliki satu perangkat saat ini, dan itu sudah dipilih."
+    ],
+    "speechDontUnderstand1": "Maaf, tapi &#39;",
+    "speechDontUnderstand2": "&#39;Sepertinya tidak cocok dengan apa yang baru saya katakan.",
+    "speechDownloadAdded1": "Oke, saya sudah menambahkan",
+    "speechDownloadAdded2": "ke daftar pengambilan.",
+    "speechDownloadErrorArray": [
+        "Maaf, tapi saya tidak dapat menemukannya di salah satu penelusur Anda.",
+        "Ini memalukan. Saya tidak bisa menemukannya di mana saja.",
+        "Sayangnya, saya tidak dapat menemukan apa pun dengan judul itu untuk diunduh."
+    ],
+    "speechDownloadExistsArray": [
+        "<html> Sepertinya <TITLE> sudah diatur untuk diunduh di &lt;\/ html&gt;",
+        "<html><TITLE> sudah ada dalam daftar pantauan untuk &lt;\/ html&gt;",
+        "<html> Saya sudah mencari <TITLE> di &lt;\/ html&gt;"
+    ],
+    "speechDownloadExists1": "Sepertinya",
+    "speechDownloadExists2": "sudah diatur untuk mengunduh.",
+    "speechDvrFailStart": "Saya tidak dapat menemukan hasil apa pun di panduan episode yang cocok &#39;",
+    "speechDvrNoDevice": "Maaf, tapi saya tidak menemukan contoh Plex DVR untuk digunakan.",
+    "speechDvrSuccessEnd": "ke jadwal rekaman.",
+    "speechDvrSuccessStart": "Hei, lihat itu. Saya telah menambahkan",
+    "speechEggArray": {
+        "attack the block": "<html> Apakah Anda sang Dokter? Bermain <TITLE> . &lt;\/ html&gt;",
+        "avengers": "<html> Keluarga berkumpul! Saatnya menonton <TITLE> . &lt;\/ html&gt;",
+        "batman": "<html> Media bajakan suci, Batman! Nya <TITLE> . &lt;\/ html&gt;",
+        "big hero": "<html> Halo, saya Baymax, untuk perawatan, saya sarankan untuk menonton <TITLE> . &lt;\/ html&gt;",
+        "evil dead": "<html> Salam kepada raja, sayang! Mari saksikan <TITLE> . &lt;\/ html&gt;",
+        "fifth element": "<html> Leeloo Dallas Mul-ti-Pass! Mul-ti-pass. Nikmati <TITLE> . &lt;\/ html&gt;",
+        "frozen": "<html> Biarkan saja, biarkan saja! Mari duduk dan menonton <TITLE> . &lt;\/ html&gt;",
+        "game of thrones": "<html> Bersiaplah ... <TITLE> sedang diputar. &lt;\/ html&gt;",
+        "ghostbusters": "<html> Siapa yang akan kamu hubungi? <TITLE> &lt;\/ html&gt;",
+        "heathers": "<html> Yah, jawab saya dengan lembut dengan gergaji. Atau saksikan <TITLE> . &lt;\/ html&gt;",
+        "iron man": "<html> Ya, Tuan Stark, nyalakan <TITLE> . &lt;\/ html&gt;",
+        "space odyssey": "Saya minta maaf, Dave. Saya takut saya tidak bisa melakukan itu.",
+        "resident evil": "<html> T-minus 1 menit sampai infeksi. Mengatur <TITLE> . &lt;\/ html&gt;",
+        "star wars": "<html> Tolong aku, Obi-Wan-Kenobi. <TITLE> adalah satu-satunya harapan saya. &lt;\/ html&gt;",
+        "they live": "<html> Saya di sini untuk mengunyah permen karet dan bermain <TITLE> , dan saya kehabisan bubblegum. &lt;\/ html&gt;",
+        "wall-e": "<html> Terima kasih telah berbelanja Beli dan Besar, dan nikmati saat kami mulai <TITLE> . &lt;\/ html&gt;",
+        "monty python": "<html> Ibumu adalah seekor hamster, dan ayahmu berbau elderberry. Bermain <TITLE> &lt;\/ html&gt;",
+        "guide to the end of the universe": "<html> Hei di sana, kau membohong. saya akan bermain <TITLE> untuk Anda. &lt;\/ html&gt;",
+        "rocky horror": "Oh Rocky !!",
+        "citizen kane": "Kuntum bunga mawar...",
+        "godfather": "<html> Aku akan membuatkanmu tawaran yang tidak bisa kau tolak. saya akan bermain <TITLE> . &lt;\/ html&gt;",
+        "with the wind": "Sejujurnya, sayangku, aku tidak memberikan iPhone.",
+        "dirty harry": "Silakan, Anda sudah membuat hari saya.",
+        "taxi driver": "<html> Anda berbicara dengan saya? Hanya mengecek. Bermain <TITLE> sekarang. &lt;\/ html&gt;",
+        "apocalypse now": "Saya suka bau ozon di pagi hari.",
+        "e.t.": "<html> Ponsel Google dirumah! Bermain <TITLE> . &lt;\/ html&gt;",
+        "silence of the lambs": "Film ini sangat cocok dengan beberapa kacang fava dan chianti yang bagus.",
+        "jerry maguire": "<html> Tunjukkan padaku uangnya! Dan saya akan menunjukkan kepada Anda <TITLE> . &lt;\/ html&gt;",
+        "a few good men": "<html> Anda tidak bisa menangani kebenaran. Tapi mungkin Anda bisa mengatasinya <TITLE> . &lt;\/ html&gt;",
+        "jaws": "Anda akan membutuhkan perahu yang lebih besar.",
+        "a streetcar named": "STELLA !!!!",
+        "super troopers": "<html> Mengotori dan ... Mengotori dan ... Mengotori dan menonton <TITLE> . &lt;\/ html&gt;"
+    },
+    "speechGreetingArray": [
+        "Salam pembuka!",
+        "Halo!",
+        "Hai, saya Flex TV.",
+        "Selamat datang di pesta!",
+        "Dilly Dilly!"
+    ],
+    "speechGreetingHelpPrompt": [
+        "Jika Anda menginginkan daftar perintah, Anda dapat mengatakan &#39;Bantuan&#39; atau &#39;Apa perintah Anda?&#39;",
+        "Anda dapat mengatakan &#39;Bantuan&#39; atau &#39;Apa yang dapat Anda lakukan&#39; untuk mempelajari lebih lanjut tentang saya.",
+        "Coba minta saya untuk memainkan sesuatu, atau katakan &#39;bantuan&#39; untuk lebih banyak perintah."
+    ],
+    "speechHookCustomDefault": "Selamat, Anda telah memecat perintah webhook khusus!",
+    "speechMoreInfoArray": [
+        "Inilah beberapa informasi lebih lanjut tentang itu.",
+        "Inilah yang saya temukan untuk barang itu.",
+        "Saya mencari ini untuk Anda."
+    ],
+    "speechMultiResultArray": [
+        "Saya menemukan beberapa hasil yang mungkin untuk itu, apakah ini yang Anda inginkan?",
+        "Ada beberapa hal yang saya pikir bisa Anda minta, apakah ini salah satunya?",
+        "Yang mana yang Anda maksud?",
+        "Anda memiliki beberapa hal yang dapat menyamai pencarian itu, apakah salah satunya?"
+    ],
+    "speechNotUnderstoodArray": [
+        "Bahaya Akan Robinson! Saya tidak mengerti perintah &#39;",
+        "Saya takut saya tidak mengerti apa yang Anda maksud",
+        "Sayangnya, saya tidak tahu kapan Anda berkata &#39;"
+    ],
+    "speechOndeckRecentError": "Sayangnya, saya tidak dapat menemukan hasil apa pun untuk itu. Silakan coba lagi nanti.",
+    "speechNoInfoResultsArray": [
+        "Sayangnya, saya tidak dapat menemukannya <VAR>di perpustakaan Anda sekarang.<\/var>",
+        "Maaf, saya sudah memeriksanya, tetapi tidak mendapatkan hasil apa pun <VAR>.<\/var>",
+        "Hmmm. Server Anda sepertinya tidak memiliki apa pun yang terdaftar <VAR>.<\/var>",
+        "Saya tidak menemukan apa pun yang cocok <VAR>.<\/var>"
+    ],
+    "speechNoResultsArray": [
+        "Sayangnya, saya tidak dapat menemukan hasil apa pun untuk itu.",
+        "Maaf, tapi saya tidak dapat menemukan apa pun untuk pencarian itu.",
+        "Saya melihat, tetapi saya tidak dapat membantu dengan permintaan itu."
+    ],
+    "speechOndeckRecentTail": "Jika Anda ingin menonton sesuatu, katakan saja namanya, jika tidak, Anda bisa mengatakan &#39;batal&#39;.",
+    "speechPlaybackAffirmatives": [
+        "<html> Baiklah, bermain <TITLE> . &lt;\/ html&gt;",
+        "<html> Seperti yang Anda perintahkan, mulai <TITLE> . &lt;\/ html&gt;",
+        "<html> Tidak masalah, naik <TITLE> . &lt;\/ html&gt;",
+        "<html> Oke, main <TITLE> . &lt;\/ html&gt;",
+        "<html> Tentu, bermain <TITLE> . &lt;\/ html&gt;",
+        "<html> Ya kapten, nyalakan <TITLE> . &lt;\/ html&gt;",
+        "<html> Ya tuan, saya akan bermain <TITLE> untuk Anda. &lt;\/ html&gt;",
+        "<html> Anda mengerti, mulai <TITLE> . &lt;\/ html&gt;",
+        "<html> Aye aye, <TITLE> itu. &lt;\/ html&gt;",
+        "<html> Roger itu, nyalakan <TITLE> . &lt;\/ html&gt;",
+        "<html> Setuju. Mulai <TITLE> . &lt;\/ html&gt;"
+    ],
+    "speechPlaybackAffirmativeShort": "<html> Bermain <TITLE> . &lt;\/ html&gt;",
+    "speechControlShort": "Baik.",
+    "speechFetchAffirmatives": [
+        "Allright,",
+        "Baik,",
+        "Keberhasilan!"
+    ],
+    "speechPlayer": "pemain",
+    "speechPlayError3": "Saya tidak dapat menemukannya di perpustakaan, apakah Anda ingin saya mencoba mengunduhnya?",
+    "speechPlayErrorEnd1": "di perpustakaan Anda. Haruskah saya mencoba menambahkannya ke daftar jam?",
+    "speechPlayErrorEnd2": "&#39; bermain. Haruskah saya mencoba mengambilnya untuk Anda? &#39;",
+    "speechPlayErrorStart1": "Saya tidak dapat menemukannya",
+    "speechPlayErrorStart2": "Saya tidak menemukan apa pun yang bernama &#39;",
+    "speechPlayerStatus1": "Saat ini,",
+    "speechPlayerStatus2": "sedang diputar",
+    "speechPlayerStatus3": "Saat ini, Musim",
+    "speechPlayerStatus4": "sedang bermain. Episode ini diberi nama",
+    "speechPlayerStatus5": "Sepertinya Anda sedang mendengarkan",
+    "speechPlayerStatus6": "dari album",
+    "speechPlayerStatusBy": "oleh",
+    "speechPlayerStatusEpisode": "episode",
+    "speechPlayerStatusOf": "dari",
+    "speechPlaying": "Bermain",
+    "speechReturnOndeck": "Berikut daftar barang dek:",
+    "speechReturnRecent": "Ini daftar terbaru",
+    "speechReturnInfoArray": [
+        "Inilah daftar <TYPE> :",
+        "Untuk <TYPE> , kamu punya:",
+        "Saya menemukan ini <TYPE> di perpustakaan Anda:"
+    ],
+    "speechServer": "server",
+    "speechShuffleResponse": "Oke, terseok-seok",
+    "speechStatusNothingPlaying": "Sepertinya tidak ada yang dimainkan saat ini.",
+    "speechWordAnd": "dan",
+    "speechWordOkay": "baik",
+    "speechWordTo": "untuk",
+    "suggestionCancel": "Membatalkan.",
+    "suggestionCouch": "Unduh film Tron.",
+    "suggestionDvr": "DVR Jeopardy.",
+    "suggestionSick": [
+        "Ambil pertunjukan Gulma.",
+        "Unduh episode terbaru Perusahaan."
+    ],
+    "suggestionsApps": {
+        "show": [
+            "Unduh episode terbaru Jeopardy",
+            "Ambil pertunjukan Young Sheldon"
+        ],
+        "movie": [
+            "Unduh Ghost Rider",
+            "Ambil Ghostbusters 1989"
+        ],
+        "music": [
+            "Unduh album Metallica terbaru",
+            "Ambil lagu Mob Glitch baru"
+        ],
+        "dvr": [
+            "Rekam Wheel of Fortune",
+            "DVR Dr. Phil"
+        ]
+    },
+    "suggestionYesNo": [
+        "Tidak",
+        "iya nih"
+    ],
+    "uiGreetingDefault": "Bagaimana saya bisa membantu?",
+    "uiPageTitle": "Flex TV (Web)",
+    "uiPlayerSelectPrompt": "Pilih pemain untuk dikontrol.",
+    "uiRescanDevices": "Pindai ulang perangkat",
+    "uiSettingAccountLinking": "Penautan Akun",
+    "uiSettingApiKey": "Kunci API:",
+    "uiSettingAutoUpdate": "Secara Otomatis Menginstal Pembaruan",
+    "uiSettingNotifyUpdate": "Beri tahu jika pembaruan tersedia",
+    "uiSettingBtnReset": "RESET",
+    "uiSettingBtnTest": "UJI",
+    "uiSettingCastLogs": "Unduh Log Log",
+    "uiSettingCopyIFTTT": "Klik untuk menyalin URL IFTTT:",
+    "uiSettingDevices": "Perangkat Statis",
+    "uiSettingDevicesAddNew": "Tambahkan Perangkat Baru",
+    "uiSettingDevicesNameLabel": "Nama perangkat",
+    "uiSettingDvrEndOffset": "End Offset (Menit):",
+    "uiSettingDvrNewAirings": "Rekam Penalaran Baru Saja",
+    "uiSettingDvrRecordPartials": "Rekam Partial Episode",
+    "uiSettingDvrReplaceLower": "Ganti Rekaman Kualitas Lebih Rendah",
+    "uiSettingDvrComskipEnabled": "Lewati Iklan",
+    "uiSettingDvrResolution": "Resolusi",
+    "uiSettingDvrResolutionAny": "Apa saja",
+    "uiSettingDvrResolutionHD": "Definisi Tinggi",
+    "uiSettingDvrServer": "Server DVR",
+    "uiSettingDvrStartOffset": "Mulai Offset (Menit):",
+    "uiSettingEnable": "Memungkinkan",
+    "uiSettingFetcherPath": "Path (Opsional)",
+    "uiSettingFetcherPort": "Pelabuhan",
+    "uiSettingFetcherQualityProfile": "Profil Berkualitas",
+    "uiSettingFetcherToken": "Token",
+    "uiSettingForceSSL": "Paksa SSL",
+    "uiSettingForceSSLHint": "Paksa SSL jika tersedia. Diperlukan untuk Aplikasi Web Progresif.",
+    "uiSettingGeneral": "Umum",
+    "uiSettingHeaderDevices": "Perangkat",
+    "uiSettingHeaderMovies": "Film",
+    "uiSettingHeaderShows": "Shows",
+    "uiSettingHeaderMusic": "Musik",
+    "uiSettingHeaderLogs": "Log",
+    "uiSettingHeaderPhlex": "Umum",
+    "uiSettingHeaderPlex": "Plex",
+    "uiSettingHookCustom": "Adat",
+    "uiSettingHookCustomPhrase": "Balasan kustom",
+    "uiSettingHookFetch": "Mengambil",
+    "uiSettingHookGeneric": "URL:",
+    "uiSettingHookLabel": "Webhooks",
+    "uiSettingHookPause": "Berhenti sebentar",
+    "uiSettingHookPlayback": "Putar kembali",
+    "uiSettingHookPlayHint": "? param = {{nama media}} akan ditambahkan",
+    "uiSettingHookStop": "Berhenti",
+    "uiSettingHookUrlGeneral": "URL Webhook:",
+    "uiSettingInstallUpdates": "MEMASANG",
+    "uiSettingLangEnglish": "Inggris",
+    "uiSettingLangFrench": "Perancis",
+    "uiSettingLanguage": "Bahasa:",
+    "uiSettingLinkAmazon": "LINK AMAZON",
+    "uiSettingLinkGoogle": "TAUTKAN GOOGLE",
+    "uiSettingLogCount": "Menghitung:",
+    "uiSettingLogLevel": "Tingkat:",
+    "uiSettingLogUpdate": "Memperbarui",
+    "uiSettingMasterUser": "Pengguna Utama",
+    "uiSettingMasterUserHint": "Hanya ada satu! ... dan kamu itu.",
+    "uiSettingNoNewUsers": "Cegah Pengguna Baru",
+    "uiSettingNoNewUsersHint": "Dis-izinkan pengguna baru untuk memberi otorisasi ke Flex TV.",
+    "uiSettingNoPlexDirect": "Tidak ada HTTPS \/ Relay",
+    "uiSettingNoPlexDirectHint": "{EKSPERIMENTAL) Nonaktifkan HTTPS dan Estafet URL, diperlukan untuk beberapa jaringan.",
+    "uiSettingObscureLogs": "Data Sensitif Tidak Jelas di Log",
+    "uiSettingOndeckRecent": "Jumlah Barang yang Dimasukkan \/ Baru untuk Dikembalikan:",
+    "uiSettingPlaybackServer": "Server Pilihan:",
+    "uiSettingPlaybackServerHint": "Jika hasil ditemukan di beberapa server, lebih suka yang ditemukan pada yang satu ini.",
+    "uiSettingPlexDVR": "Plex DVR",
+    "uiSettingPublicAddress": "Alamat umum:",
+    "uiSettingRefreshUpdates": "MENYEGARKAN",
+    "uiSettingRescanHint": "Seberapa sering untuk memasang kembali perangkat.",
+    "uiSettingRescanInterval": "Perangkat Rescan Interval (Menit):",
+    "uiSettingSearchAccuracy": "Akurasi Pencarian (%):",
+    "uiSettingSeparateHookUrl": "URL terpisah",
+    "uiSettingShortAnswers": "Gunakan balasan yang lebih pendek",
+    "uiSettingTestButton": "UJI",
+    "uiSettingTestServer": "Uji Konektivitas",
+    "uiSettingThemeColor": "Gunakan Tema Gelap",
+    "uiSettingUpdates": "Pembaruan",
+    "uiSettingUseCast": "Gunakan Perangkat Cast"
+}

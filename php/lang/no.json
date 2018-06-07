@@ -1,0 +1,487 @@
+{
+    "btnReadmePrompt": "Se Readme",
+    "cardGreetingText": "Velkommen til Flex TV!",
+    "cardReadmeButton": "Se Readme",
+    "cardReadmeTitle": "Velkommen!",
+    "commandSynonymsArray": {
+        "play": [
+            "gjenoppta"
+        ],
+        "skip": [
+            "hoppe",
+            "gå"
+        ],
+        "step": [
+            "søke"
+        ],
+        "forward": [
+            "fremover"
+        ],
+        "back": [
+            "bakover"
+        ],
+        "seekBack": [
+            "spole"
+        ],
+        "seek": [
+            "fort"
+        ],
+        "skipNext": [
+            "hoppe fremover"
+        ],
+        "skipPrevious": [
+            "hoppe tilbake"
+        ],
+        "stepForward": [
+            "raskt fremover",
+            "søke fremover"
+        ],
+        "stepBack": [
+            "søk tilbake"
+        ],
+        "volume up": [
+            "volum opp"
+        ],
+        "volume down": [
+            "volum ned"
+        ]
+    },
+    "errorHelpSuggestionsArray": [
+        "Nedenfor er noen forslag du kan prøve.",
+        "Her er noen mulige kommandoer.",
+        "Jo, hvorfor prøver du ikke en av disse?"
+    ],
+    "errorHelpCommandsArray": [
+        "Hva er på dekk?",
+        "Hvilke nye filmer har jeg?",
+        "Pause avspilling.",
+        "Spill Batman Begins."
+    ],
+    "fetchSynonymsArray": {
+        "season": [
+            "årstid"
+        ],
+        "episode": [
+            "episode"
+        ],
+        "movie": [
+            "film, film"
+        ],
+        "show": [
+            "forestilling",
+            "serie"
+        ],
+        "latest": [
+            "siste",
+            "ny",
+            "nyeste",
+            "senest",
+            "det siste",
+            "Det nyeste"
+        ]
+    },
+    "javaStrings": [
+        "Hvordan kan jeg hjelpe?",
+        "Hva kan jeg gjøre for deg?",
+        "Du sa:",
+        "Mitt svar:",
+        "rescan-enheter"
+    ],
+    "parseStripArray": [
+        "av",
+        "de",
+        "en",
+        "en",
+        "på",
+        "th",
+        "nd",
+        "i",
+        "fra",
+        "&#39;",
+        "s",
+        "og"
+    ],
+    "parseMediaArray": [
+        "årstid",
+        "serie",
+        "forestilling",
+        "episode",
+        "film",
+        "film",
+        "begynnelse",
+        "hvile",
+        "slutt",
+        "minutter",
+        "minutt",
+        "timer",
+        "time",
+        "sekunder",
+        "sekund"
+    ],
+    "parseFilterArray": [
+        "sjanger",
+        "år",
+        "skuespiller",
+        "regissør",
+        "regissert",
+        "star",
+        "med",
+        "med",
+        "laget",
+        "opprettet",
+        "løslatt",
+        "filmet"
+    ],
+    "parseNumberArray": [
+        "først",
+        "Pilot",
+        "sekund",
+        "tredje",
+        "siste",
+        "endelig",
+        "siste",
+        "tilfeldig"
+    ],
+    "parsedDvrFailStart": "Legg til mediet som heter",
+    "parsedDvrSuccessNamed": "oppkalt",
+    "parsedDvrSuccessStart": "Legg til",
+    "speechAiringsAfternoon": "I ettermiddag,",
+    "speechAiringsErrors": [
+        "Jeg har ikke noe på listen for",
+        "Du har ikke noe planlagt for"
+    ],
+    "speechAiringsMids": [
+        "jeg fant",
+        "jeg skjønner",
+        "du har"
+    ],
+    "speechAiringsOn": "På",
+    "speechAiringsReturn": "Her er en liste over planlagte opptak:",
+    "speechAiringsToday": "I dag",
+    "speechAiringsTomorrow": "I morgen,",
+    "speechAiringsTonight": "I kveld,",
+    "speechAiringsWeekend": "Denne helgen,",
+    "speechAiringTails": [
+        "Kommer opp.",
+        "på planen.",
+        "satt til opptak."
+    ],
+    "speechBy": "av",
+    "speechChangDeviceFailureStart": "Jeg beklager, men jeg kunne ikke finne",
+    "speechChange": "Endring",
+    "speechChangeDeviceFailEnd": "i enhetslisten.",
+    "speechChangeDevicePrompt": ", sikker. Hvilken enhet vil du bruke?",
+    "speechChangeDeviceSuccessStart": "Ok, jeg har byttet",
+    "speechChangeDeviceWarnEnd1": "foo",
+    "speechChangeDeviceWarnEnd2": "foo",
+    "speechChangeDeviceWarnStart1": "foo",
+    "speechChangeDeviceWarnStart2": "foo",
+    "speechChangeDeviceWarnStart3": "foo",
+    "speechChangeMind": "Ok, gi meg beskjed hvis du skifter deg.",
+    "speechControlConfirm1": "Sender en kommando til",
+    "speechControlConfirmGenericArray": [
+        "Vurder det gjort.",
+        "Greit.",
+        "Sikkert.",
+        "Du har det."
+    ],
+    "speechControlConfirmPauseArray": [
+        "Ok, jeg har stoppet TVen for deg.",
+        "Pause avspilling.",
+        "Plex burde nå være pauset."
+    ],
+    "speechControlConfirmPlayArray": [
+        "Spille.",
+        "Plex skal spille.",
+        "Gjenoppta avspilling."
+    ],
+    "speechControlConfirmStopArray": [
+        "Plassen er stoppet.",
+        "Plassen skal nå stoppes.",
+        "Stoppe."
+    ],
+    "speechControlConfirmSubsOffArray": [
+        "Deaktiverer teksting.",
+        "Fjerner Babel fisk.",
+        "Teksting er deaktivert."
+    ],
+    "speechControlConfirmSubsOnArray": [
+        "Aktiverer teksting.",
+        "Engasjerende universell oversetter.",
+        "Teksting er aktivert."
+    ],
+    "speechControlArray": [
+        "Som du kommandoen.",
+        "Ferdig og ferdig.",
+        "Allrighty da.",
+        "Du har det!",
+        "Der går du."
+    ],
+    "speechControlGeneric1": "Sender en kommando til",
+    "speechControlGeneric2": "Ok, jeg forteller Plex til",
+    "speechControlVolumeDown": "Ok, jeg slår den litt ned.",
+    "speechControlVolumeSet": "Ok, sett volumet til",
+    "speechControlVolumeUp": "Ok, jeg slår det litt opp.",
+    "speechDeviceListError": "Det oppsto en feil ved å hente listen over enheter, prøv igjen senere.",
+    "speechDeviceListErrorArray": [
+        "Jeg vil gjerne hjelpe deg med det, men jeg ser bare en enhet som jeg for øyeblikket kan snakke med.",
+        "Beklager, jeg har bare en enhet til å velge.",
+        "Dessverre har du bare en enhet akkurat nå, og den er allerede valgt."
+    ],
+    "speechDontUnderstand1": "Jeg beklager men &#39;",
+    "speechDontUnderstand2": "&#39;ser ikke ut til å matche noe jeg nettopp sa.",
+    "speechDownloadAdded1": "Ok, jeg har lagt til",
+    "speechDownloadAdded2": "til hentelisten.",
+    "speechDownloadErrorArray": [
+        "Beklager, men jeg kunne ikke finne det i noen av dine søkere.",
+        "Dette er flaut. Jeg kan ikke synes å finne det hvor som helst.",
+        "Dessverre kunne jeg ikke finne noe med den tittelen å laste ned."
+    ],
+    "speechDownloadExistsArray": [
+        "<html> Det ser ut som <TITLE> er allerede satt til nedlasting på &lt;\/ html&gt;",
+        "<html><TITLE> er allerede på tittellisten for &lt;\/ html&gt;",
+        "<html> Jeg ser allerede etter <TITLE> på &lt;\/ html&gt;"
+    ],
+    "speechDownloadExists1": "Det ser ut som",
+    "speechDownloadExists2": "er allerede satt til nedlasting.",
+    "speechDvrFailStart": "Jeg kunne ikke finne noen resultater i episodeveiledningen som samsvarer med &#39;",
+    "speechDvrNoDevice": "Beklager, men jeg fant ingen eksempler på Plex DVR å bruke.",
+    "speechDvrSuccessEnd": "til opptaksplanen.",
+    "speechDvrSuccessStart": "Hei, se på det. Jeg har lagt til",
+    "speechEggArray": {
+        "attack the block": "<html> Er du legen? spille <TITLE> . &lt;\/ Html&gt;",
+        "avengers": "<html> Familie samle! Det er på tide å se <TITLE> . &lt;\/ Html&gt;",
+        "batman": "<html> Hellige piratkopierte medier, Batman! Det er <TITLE> . &lt;\/ Html&gt;",
+        "big hero": "<html> Hei, jeg er Baymax, for behandling, jeg anbefaler å se på <TITLE> . &lt;\/ Html&gt;",
+        "evil dead": "<html> Hail til kongen, baby! La oss se på <TITLE> . &lt;\/ Html&gt;",
+        "fifth element": "<html> Leeloo Dallas Mul-ti-pass! Mul-ti-pass. Nyt <TITLE> . &lt;\/ Html&gt;",
+        "frozen": "<html> La det gå la det gå! La oss sitte og se på <TITLE> . &lt;\/ Html&gt;",
+        "game of thrones": "<html> Gjør deg klar... <TITLE> spiller. &lt;\/ html&gt;",
+        "ghostbusters": "<html> Hvem skal du ringe? <TITLE> &lt;\/ Html&gt;",
+        "heathers": "<html> Vel, last meg forsiktig med motorsag. Eller se på <TITLE> . &lt;\/ Html&gt;",
+        "iron man": "<html> Ja, Stark, slår på <TITLE> . &lt;\/ Html&gt;",
+        "space odyssey": "Beklager, Dave. Jeg er redd jeg kan ikke gjøre det.",
+        "resident evil": "<html> T-minus 1 minutt til infeksjon. Admin <TITLE> . &lt;\/ Html&gt;",
+        "star wars": "<html> Hjelp meg, Obi-Wan-Kenobi. <TITLE> er mitt eneste håp. &lt;\/ html&gt;",
+        "they live": "<html> Jeg er her for å tygge bubblegum og leke <TITLE> , og jeg er helt ute av bubblegum. &lt;\/ html&gt;",
+        "wall-e": "<html> Takk for at du kjøpte Kjøp og Stort, og nyt når vi begynner <TITLE> . &lt;\/ Html&gt;",
+        "monty python": "<html> Din mor var en hamster, og din far luktet av eldbær. spille <TITLE> &lt;\/ Html&gt;",
+        "guide to the end of the universe": "<html> Hei der, du skummel frood. Jeg skal spille <TITLE> for deg. &lt;\/ html&gt;",
+        "rocky horror": "Oh Rocky!",
+        "citizen kane": "Rosebud ...",
+        "godfather": "<html> Jeg skal gjøre deg et tilbud du ikke kan nekte. Jeg skal spille <TITLE> . &lt;\/ Html&gt;",
+        "with the wind": "Oppriktig, kjære, jeg gir ikke en iPhone.",
+        "dirty harry": "Fortsett, du har allerede laget dagen min.",
+        "taxi driver": "<html> Snakker du til meg? Bare sjekker. spille <TITLE> nå. &lt;\/ html&gt;",
+        "apocalypse now": "Jeg elsker lukten av ozon om morgenen.",
+        "e.t.": "<html> Google telefon hjem! spille <TITLE> . &lt;\/ Html&gt;",
+        "silence of the lambs": "Denne filmen ville gå bra med noen fava bønner og en fin chianti.",
+        "jerry maguire": "<html> Vis meg pengene! Og jeg skal vise deg <TITLE> . &lt;\/ Html&gt;",
+        "a few good men": "<html> Du kan ikke håndtere sannheten. Men kanskje du kan håndtere <TITLE> . &lt;\/ Html&gt;",
+        "jaws": "Du trenger en større båt.",
+        "a streetcar named": "STELLA !!!!",
+        "super troopers": "<html> Littering og ... Littering og ... Littering and watching <TITLE> . &lt;\/ Html&gt;"
+    },
+    "speechGreetingArray": [
+        "Hilsener!",
+        "Hei der!",
+        "Hei, jeg er Flex TV.",
+        "Velkommen til festen!",
+        "Dilly Dilly!"
+    ],
+    "speechGreetingHelpPrompt": [
+        "Hvis du vil ha en liste over kommandoer, kan du si &quot;Hjelp&quot; eller &quot;Hva er kommandoene dine?&quot;",
+        "Du kan si &quot;Hjelp&quot; eller &quot;Hva kan du gjøre&quot; for å lære mer om meg.",
+        "Prøv å spørre meg om å spille noe, eller si &quot;hjelp&quot; for flere kommandoer."
+    ],
+    "speechHookCustomDefault": "Gratulerer, du har sparket den egendefinerte webhook-kommandoen!",
+    "speechMoreInfoArray": [
+        "Her er litt mer informasjon om det.",
+        "Her er hva jeg fant for det aktuelle elementet.",
+        "Jeg så dette opp for deg."
+    ],
+    "speechMultiResultArray": [
+        "Jeg fant flere mulige resultater for det, var en av disse hva du ønsket?",
+        "Det var noen ting jeg tror du kan be om, er det noen av disse?",
+        "Hvilket mener du?",
+        "Du har noen ting som kan matche det søket, er en av disse det?"
+    ],
+    "speechNotUnderstoodArray": [
+        "Fare vil Robinson! Jeg forstår ikke kommandoen &#39;",
+        "Jeg er redd for at jeg ikke forstår hva du mener med",
+        "Dessverre kunne jeg ikke finne ut når jeg sa &quot;"
+    ],
+    "speechOndeckRecentError": "Dessverre kunne jeg ikke finne noen resultater for det. Prøv igjen senere.",
+    "speechNoInfoResultsArray": [
+        "Dessverre kunne jeg ikke finne <VAR>i biblioteket ditt akkurat nå.<\/var>",
+        "Beklager, jeg sjekket, men fikk ingen resultater for <VAR>.<\/var>",
+        "Hmmm. Serveren din ser ikke ut til å ha noe oppført for <VAR>.<\/var>",
+        "Jeg fant ikke noe som passer <VAR>.<\/var>"
+    ],
+    "speechNoResultsArray": [
+        "Dessverre kunne jeg ikke finne noen resultater for det.",
+        "Beklager, men jeg kunne ikke finne noe for det søket.",
+        "Jeg så, men jeg kunne ikke hjelpe med den forespørselen."
+    ],
+    "speechOndeckRecentTail": "Hvis du vil se noe, bare si navnet, ellers kan du si &quot;avbryt&quot;.",
+    "speechPlaybackAffirmatives": [
+        "<html> Allrighty så spiller <TITLE> . &lt;\/ Html&gt;",
+        "<html> Som du befaler, starter du <TITLE> . &lt;\/ Html&gt;",
+        "<html> Ikke noe problem, skyte opp <TITLE> . &lt;\/ Html&gt;",
+        "<html> Ok, spiller <TITLE> . &lt;\/ Html&gt;",
+        "<html> Sikkert, spiller <TITLE> . &lt;\/ Html&gt;",
+        "<html> Ja kaptein, skru på <TITLE> . &lt;\/ Html&gt;",
+        "<html> Ja mester, jeg skal spille <TITLE> for deg. &lt;\/ html&gt;",
+        "<html> Du har det, starter <TITLE> . &lt;\/ Html&gt;",
+        "<html> Aye aye, <TITLE> det er. &lt;\/ html&gt;",
+        "<html> Roger det, slår på <TITLE> . &lt;\/ Html&gt;",
+        "<html> Bekreftende. starter <TITLE> . &lt;\/ Html&gt;"
+    ],
+    "speechPlaybackAffirmativeShort": "<html> spille <TITLE> . &lt;\/ Html&gt;",
+    "speechControlShort": "Greit.",
+    "speechFetchAffirmatives": [
+        "Okey,",
+        "Greit,",
+        "Suksess!"
+    ],
+    "speechPlayer": "spiller",
+    "speechPlayError3": "Jeg kunne ikke finne det i biblioteket, vil du at jeg skal prøve å laste ned den?",
+    "speechPlayErrorEnd1": "i biblioteket ditt. Skal jeg prøve å legge det til klokkelister?",
+    "speechPlayErrorEnd2": "&#39; å leke. Skal jeg prøve å hente det for deg? &#39;",
+    "speechPlayErrorStart1": "Jeg kunne ikke finne",
+    "speechPlayErrorStart2": "Jeg fant ikke noe som heter &#39;",
+    "speechPlayerStatus1": "For tiden er det",
+    "speechPlayerStatus2": "spiller på",
+    "speechPlayerStatus3": "For tiden, sesong",
+    "speechPlayerStatus4": "spiller. Denne episoden er oppkalt",
+    "speechPlayerStatus5": "Det ser ut til at du lytter til",
+    "speechPlayerStatus6": "fra albummet",
+    "speechPlayerStatusBy": "av",
+    "speechPlayerStatusEpisode": "episode",
+    "speechPlayerStatusOf": "av",
+    "speechPlaying": "spille",
+    "speechReturnOndeck": "Her er en liste over på dekksposter:",
+    "speechReturnRecent": "Her er en liste over nyere",
+    "speechReturnInfoArray": [
+        "Her er en liste over <TYPE> :",
+        "Til <TYPE> , du har:",
+        "Jeg fant disse <TYPE> i biblioteket ditt:"
+    ],
+    "speechServer": "serveren",
+    "speechShuffleResponse": "Ok, shuffling",
+    "speechStatusNothingPlaying": "Det ser ikke ut som det er noe som spiller akkurat nå.",
+    "speechWordAnd": "og",
+    "speechWordOkay": "Greit",
+    "speechWordTo": "til",
+    "suggestionCancel": "Avbryt.",
+    "suggestionCouch": "Last ned filmen Tron.",
+    "suggestionDvr": "DVR Jeopardy.",
+    "suggestionSick": [
+        "Hent showet Weeds.",
+        "Last ned den siste episoden av Corporate."
+    ],
+    "suggestionsApps": {
+        "show": [
+            "Last ned den siste episoden av Jeopardy",
+            "Hent showet Young Sheldon"
+        ],
+        "movie": [
+            "Last ned Ghost Rider",
+            "Hent Ghostbusters 1989"
+        ],
+        "music": [
+            "Last ned det siste Metallica-albumet",
+            "Ta tak i den nye Glitch Mob-sangen"
+        ],
+        "dvr": [
+            "Fortell Fortune Wheel",
+            "DVR Dr. Phil"
+        ]
+    },
+    "suggestionYesNo": [
+        "Nei",
+        "Ja"
+    ],
+    "uiGreetingDefault": "Hvordan kan jeg hjelpe?",
+    "uiPageTitle": "Flex TV (Web)",
+    "uiPlayerSelectPrompt": "Velg en spiller som skal kontrolleres.",
+    "uiRescanDevices": "Rescan-enheter",
+    "uiSettingAccountLinking": "Kontoforbindelse",
+    "uiSettingApiKey": "API-nøkkel:",
+    "uiSettingAutoUpdate": "Installer oppdateringer automatisk",
+    "uiSettingNotifyUpdate": "Gi beskjed når oppdateringer er tilgjengelige",
+    "uiSettingBtnReset": "TILBAKESTILLE",
+    "uiSettingBtnTest": "TEST",
+    "uiSettingCastLogs": "Last ned Cast-logger",
+    "uiSettingCopyIFTTT": "Klikk for å kopiere IFTTT URL:",
+    "uiSettingDevices": "Statiske enheter",
+    "uiSettingDevicesAddNew": "Legg til ny enhet",
+    "uiSettingDevicesNameLabel": "Enhetsnavn",
+    "uiSettingDvrEndOffset": "Sluttforskyvning (minutter):",
+    "uiSettingDvrNewAirings": "Legg kun inn nye flyreiser",
+    "uiSettingDvrRecordPartials": "Ta opp delvise episoder",
+    "uiSettingDvrReplaceLower": "Bytt ut nedre kvalitetsinnspillinger",
+    "uiSettingDvrComskipEnabled": "Hopp over reklame",
+    "uiSettingDvrResolution": "Vedtak",
+    "uiSettingDvrResolutionAny": "Noen",
+    "uiSettingDvrResolutionHD": "Høy oppløsning",
+    "uiSettingDvrServer": "DVR Server",
+    "uiSettingDvrStartOffset": "Start Offset (minutter):",
+    "uiSettingEnable": "Aktiver",
+    "uiSettingFetcherPath": "Sti (valgfritt)",
+    "uiSettingFetcherPort": "Havn",
+    "uiSettingFetcherQualityProfile": "Kvalitetsprofil",
+    "uiSettingFetcherToken": "pollett",
+    "uiSettingForceSSL": "Force SSL",
+    "uiSettingForceSSLHint": "Kraft SSL hvis tilgjengelig. Kreves for Progressive Web Apps.",
+    "uiSettingGeneral": "Generell",
+    "uiSettingHeaderDevices": "enheter",
+    "uiSettingHeaderMovies": "Filmer",
+    "uiSettingHeaderShows": "Viser",
+    "uiSettingHeaderMusic": "Musikk",
+    "uiSettingHeaderLogs": "logger",
+    "uiSettingHeaderPhlex": "Generell",
+    "uiSettingHeaderPlex": "Plex",
+    "uiSettingHookCustom": "Tilpasset",
+    "uiSettingHookCustomPhrase": "Tilpasset svar",
+    "uiSettingHookFetch": "Fetch",
+    "uiSettingHookGeneric": "URL:",
+    "uiSettingHookLabel": "Webhooks",
+    "uiSettingHookPause": "Pause",
+    "uiSettingHookPlayback": "avspilling",
+    "uiSettingHookPlayHint": "? param = {{media navn}} vil bli vedlagt",
+    "uiSettingHookStop": "Stoppe",
+    "uiSettingHookUrlGeneral": "Webhook URL:",
+    "uiSettingInstallUpdates": "INSTALLERE",
+    "uiSettingLangEnglish": "Engelsk",
+    "uiSettingLangFrench": "fransk",
+    "uiSettingLanguage": "Språk:",
+    "uiSettingLinkAmazon": "LINK AMAZON",
+    "uiSettingLinkGoogle": "LINK GOOGLE",
+    "uiSettingLogCount": "Telle:",
+    "uiSettingLogLevel": "Nivå:",
+    "uiSettingLogUpdate": "Oppdater",
+    "uiSettingMasterUser": "Hovedbruker",
+    "uiSettingMasterUserHint": "Det kan bare være en! ... og du er den.",
+    "uiSettingNoNewUsers": "Forhindre nye brukere",
+    "uiSettingNoNewUsersHint": "Disponér eventuelle nye brukere fra å autorisere til Flex TV.",
+    "uiSettingNoPlexDirect": "Ingen HTTPS \/ Relay",
+    "uiSettingNoPlexDirectHint": "{EXPERIMENTAL) Deaktiver HTTPS- og reléadresser, som er nødvendige for enkelte nettverk.",
+    "uiSettingObscureLogs": "Uklare følsomme data i logger",
+    "uiSettingOndeckRecent": "Antall på-dekk \/ Siste gjenstander å returnere:",
+    "uiSettingPlaybackServer": "Foretrukket server:",
+    "uiSettingPlaybackServerHint": "Hvis resultatene finnes på flere servere, foretrekker de som er funnet på denne.",
+    "uiSettingPlexDVR": "Plex DVR",
+    "uiSettingPublicAddress": "Offentlig adresse:",
+    "uiSettingRefreshUpdates": "FORFRISKE",
+    "uiSettingRescanHint": "Hvor ofte skal du cache enheter igjen.",
+    "uiSettingRescanInterval": "Enhet Rescan Interval (minutter):",
+    "uiSettingSearchAccuracy": "Søk nøyaktighet (%):",
+    "uiSettingSeparateHookUrl": "Separate nettadresser",
+    "uiSettingShortAnswers": "Bruk kortere svar",
+    "uiSettingTestButton": "TEST",
+    "uiSettingTestServer": "Test tilkobling",
+    "uiSettingThemeColor": "Bruk Dark Theme",
+    "uiSettingUpdates": "oppdateringer",
+    "uiSettingUseCast": "Bruk Cast-enheter"
+}

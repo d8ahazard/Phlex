@@ -1,323 +1,493 @@
 {
-	"btnReadmePrompt": "Readmeを表示",
-	"cardGreetingText": "Flex TVへようこそ！",
-	"cardReadmeButton": "Readmeを表示",
-	"cardReadmeTitle": "ようこそ！",
-	"errorHelpSuggestionsArray": [
-		"いくつかの可能なコマンドがあります。",
-		"以下はあなたが試すことができるいくつかの提案です。",
-		"確かに、これらのうちの1つを試してみてはいかがですか？"
-	],
-	"errorHelpCommandsArray": [
-		"デッキには何がありますか？",
-		"「私はどんな新しい映画を持っていますか？」",
-		"再生を一時停止する",
-		"「バットマンが始まる」"
-	],
-	"javaStrings": [
-		"手伝いましょうか？",
-		"どういうご用件ですか？",
-		"あなたが言った：",
-		"「私の返信：",
-		"デバイスの再スキャン"
-	],
-	"parseStripArray": [
-		"の",
-		"the",
-		"an",
-		"a",
-		"at",
-		"th",
-		"nd",
-		"に",
-		"から",
-		"'",
-		"s",
-		"そして"
-	],
-	"parseMediaArray": [
-		"「映画」",
-		"「映画」",
-		"「開始」",
-		"「休憩」",
-		"「終了」",
-		"「分」",
-		"「分」",
-		"「時間」",
-		"「時間」",
-		"「時間」",
-		"「時間」",
-		"秒",
-		"秒"
-	],
-	"parseFilterArray": [
-		"「監督」",
-		"「監督」",
-		"「主演」",
-		"「フィーチャー」",
-		"「あり」",
-		"「作った」",
-		"「作成した」",
-		"「リリースした」",
-		"「撮影した」"
-	],
-	"parseNumberArray": [
-		"第1",
-		"パイロット",
-		"第2",
-		"第3",
-		"最後",
-		"最終",
-		"最新",
-		"ランダム"
-	],
-	"parsedDvrFailStart": "名前のついたメディアを追加する",
-	"parsedDvrSuccessNamed": "名前",
-	"parsedDvrSuccessStart": "追加する",
-	"speechAiringsAfternoon": "今日の午後、",
-	"speechAiringsErrors": [
-		"あなたはスケジュールされたものはありません",
-		"私はリストの上に何も持っていない"
-	],
-	"speechAiringsMids": [
-		"あなたが持っている",
-		"そうですか",
-		"私は見つけた"
-	],
-	"speechAiringsOn": "に",
-	"speechAiringsReturn": "予約録画のリストは次のとおりです：",
-	"speechAiringsToday": "今日",
-	"speechAiringsTomorrow": "明日、",
-	"speechAiringsTonight": "今晩、",
-	"speechAiringsWeekend": "今週末、",
-	"speechAiringTails": [
-		"スケジュールで",
-		"登場する。",
-		"記録するように設定します。"
-	],
-	"speechBy": "〜によって",
-	"speechChangDeviceFailureStart": "申し訳ありませんが、私は見つけられませんでした",
-	"speechChange": "変化する",
-	"speechChangeDeviceFailEnd": "デバイスリストに表示されます。",
-	"speechChangeDevicePrompt": "、確かに。あなたはどんなデバイスを使いたいですか？",
-	"speechChangeDeviceSuccessStart": "さて、私は",
-	"speechChangeDeviceWarnEnd1": "foo",
-	"speechChangeDeviceWarnEnd2": "foo",
-	"speechChangeDeviceWarnStart1": "foo",
-	"speechChangeDeviceWarnStart2": "foo",
-	"speechChangeDeviceWarnStart3": "foo",
-	"speechChangeMind": "さて、もしあなたがあなたの心を変えたら、私に知らせてください。",
-	"speechControlConfirm1": "コマンドを送信する",
-	"speechControlConfirmGenericArray": [
-		"あなたはそれを持っています。",
-		"それが終わったと考えてください。",
-		"はい。",
-		"確実なこと。"
-	],
-	"speechControlConfirmPauseArray": [
-		"さて、私はあなたのためにテレビを一時停止しました。",
-		"プレックスが一時停止するはずです。",
-		"再生を一時停止する。"
-	],
-	"speechControlConfirmPlayArray": [
-		"プレックスが再生されるはずです。",
-		"再生を再開します。",
-		"遊ぶ。"
-	],
-	"speechControlConfirmStopArray": [
-		"プレックスが停止しています。",
-		"プレックスを停止する必要があります。",
-		"停止します。"
-	],
-	"speechControlConfirmSubsOffArray": [
-		"バベルの魚を取り除く。",
-		"字幕が無効になっています。",
-		"字幕を無効にする。"
-	],
-	"speechControlConfirmSubsOnArray": [
-		"字幕が有効になっています。",
-		"字幕を有効にする。",
-		"魅力的なユニバーサルトランスレータ。"
-	],
-	"speechControlGeneric1": "コマンドを送信する",
-	"speechControlGeneric2": "さて、私はPlexに",
-	"speechControlVolumeDown": "さて、私はそれを少し下げます。",
-	"speechControlVolumeSet": "さて、音量を",
-	"speechControlVolumeUp": "さて、私は少しそれを上げます。",
-	"speechDeviceListError": "デバイスのリストを取得中にエラーが発生しました。しばらくしてからもう一度お試しください。",
-	"speechDeviceListErrorArray": [
-		"残念ながら、現在のデバイスは1つのみで、既に選択されています。",
-		"申し訳ありませんが、選択するデバイスが1つしかありません。",
-		"私はそれをお手伝いしたいと思いますが、私が現在話していることができるデバイスは1つだけです。"
-	],
-	"speechDontUnderstand1": "申し訳ありませんが、",
-	"speechDontUnderstand2": "私はちょうど言った何も一致していないようです。",
-	"speechDownloadAdded1": "さて、私は追加しました",
-	"speechDownloadAdded2": "フェッチリストに追加します。",
-	"speechDownloadErrorArray": [
-		"これは恥ずかしいです。私はどこでもそれを見つけることができない。",
-		"残念ながら、私はそのタイトルをダウンロードするために何かを見つけることができませんでした。",
-		"申し訳ありませんが、あなたの検索者のいずれにも見つかりませんでした。"
-	],
-	"speechDownloadExists1": "それはのように見える",
-	"speechDownloadExists2": "既にダウンロードするように設定されています。",
-	"speechDvrFailStart": "私はエピソードガイドの中で、",
-	"speechDvrNoDevice": "申し訳ありませんが、使用するPlex DVRのインスタンスが見つかりませんでした。",
-	"speechDvrSuccessEnd": "録画スケジュールに追加します。",
-	"speechDvrSuccessStart": "ねえ、それを見てください。私は",
-	"speechEggAttackTheBlock": "あなたは医者ですか？",
-	"speechEggAvengers": "家族が集まる！",
-	"speechEggBatman": "聖なる海賊版のメディア！",
-	"speechEggBigHero": "こんにちは、私はBaymaxです、私は行くつもりです",
-	"speechEggEvilDead": "王様に挨拶、赤ちゃん！",
-	"speechEggFifthElement": "Leeloo Dallas Mul-ti-Pass！",
-	"speechEggFrozen": "手放す！",
-	"speechEggGameThrones": "自分を勇気づける...",
-	"speechEggGhostbusters": "誰に連絡しますか？",
-	"speechEggHeathers": "さて、チェーンソーで優しく私を充電してください。",
-	"speechEggIronMan": "はいスターク氏、",
-	"speechEggOdyssey": "私はそのデイブをすることができないのではないかと恐れている。じゃ、いいよ、",
-	"speechEggResidentEvil": "感染までT-マイナス1分。",
-	"speechEggStarWars": "これらはあなたが探しているドロイドではありません。",
-	"speechEggTheyLive": "私はバブルガムを噛むためにここにいる",
-	"speechEggWallE": "買い物をしていただきありがとうございます。",
-	"speechGreetingArray": [
-		"こんにちは、私はフレックステレビです。今日は何ができますか？",
-		"こんにちは。私に何かをプレイするように依頼してください。",
-		"ご挨拶！どんな御用でしょうか？"
-	],
-	"speechGreetingHelpPrompt": "コマンドのリストが必要な場合は、「ヘルプ」または「あなたのコマンドは何ですか？」と言うことができます。",
-	"speechHookCustomDefault": "おめでとう、カスタムWebhookコマンドを実行しました！",
-	"speechMoreInfoArray": [
-		"ここで私はそのアイテムのために見つけたものです。",
-		"それについてもう少し詳しい情報があります。",
-		"私はあなたのためにこれを見ました。"
-	],
-	"speechMultiResultArray": [
-		"あなたが求めることができると思うことがいくつかありましたが、それはどれですか？",
-		"その検索に一致するものがいくつかありますが、そのうちの1つですか？",
-		"どちらが意味ですか？",
-		"私はそれについていくつかの可能な結果を​​見つけました。あなたが望むものの1つでしたか？"
-	],
-	"speechNotUndertoodArray": [
-		"危険ウィルロビンソン！私はコマンド 'を理解していない'",
-		"残念ながら、私はあなたが '",
-		"私はあなたが何を意味するのか理解していません"
-	],
-	"speechOndeckRecentError": "残念ながら、私はそれについての結果を見つけることができませんでした。後でもう一度お試しください。",
-	"speechOndeckRecentTail": "何かを見たいのであれば、名前を言うだけです。それ以外の場合は、「キャンセル」と言うことができます。",
-	"speechPlaybackAffirmatives": [
-		"Allrighty、それから、",
-		"あなたが命令するとき、",
-		"あなたはそれを持って、",
-		"はい、",
-		"はいキャプテン、",
-		"はいマスター、",
-		"問題ない、",
-		"確かに、"
-	],
-	"speechPlayer": "プレーヤー",
-	"speechPlayError3": "私は図書館でそれを見つけることができませんでした、あなたは私にそれをダウンロードしてもらいたいですか？",
-	"speechPlayErrorEnd1": "あなたの図書館にそれをウォッチリストに追加するべきですか？",
-	"speechPlayErrorEnd2": "'を再生する。私はあなたのためにそれを取ってみるべきですか？",
-	"speechPlayErrorStart1": "私は見つけられなかった",
-	"speechPlayErrorStart2": "私は '",
-	"speechPlayerStatus1": "現在、",
-	"speechPlayerStatus2": "再生している",
-	"speechPlayerStatus3": "現在、シーズン",
-	"speechPlayerStatus4": "再生しています。このエピソードは",
-	"speechPlayerStatus5": "あなたが聞いているようです",
-	"speechPlayerStatus6": "アルバムから",
-	"speechPlayerStatusBy": "〜によって",
-	"speechPlayerStatusEpisode": "エピソード",
-	"speechPlayerStatusOf": "の",
-	"speechPlaying": "遊ぶ",
-	"speechReturnOndeck": "デッキアイテムの一覧は次のとおりです：",
-	"speechReturnRecent": "最近のリスト",
-	"speechServer": "サーバ",
-	"speechShuffleResponse": "さて、すべてのエピソードをシャッフルして",
-	"speechStatusNothingPlaying": "今は何かが遊んでいるように見えません。",
-	"speechWordAnd": "そして",
-	"speechWordOkay": "はい",
-	"speechWordTo": "に",
-	"suggestionCancel": "キャンセル。",
-	"suggestionCouch": "映画Tronをダウンロードしてください。",
-	"suggestionDvr": "DVRの危険性。",
-	"suggestionSick": "ショー雑草を取得します。",
-	"suggestionYesNo": [
-		"いいえ",
-		"はい"
-	],
-	"uiGreetingDefault": "こんにちは、私はフレックステレビです。どういうご用件ですか？",
-	"uiPageTitle": "Flex TV",
-	"uiPlayerSelectPrompt": "コントロールするプレイヤーを選択します。",
-	"uiRescanDevices": "デバイスの再スキャン",
-	"uiSettingAccountLinking": "アカウントのリンク：",
-	"uiSettingApiKey": "APIキー：",
-	"uiSettingAutoUpdate": "自動的にアップデートをインストールする",
-	"uiSettingBtnReset": "リセット",
-	"uiSettingBtnTest": "テスト",
-	"uiSettingCopyIFTTT": "IFTTT URLをコピーするにはクリックしてください：",
-	"uiSettingDevices": "静的デバイス",
-	"uiSettingDevicesAddNew": "新しいデバイスを追加する",
-	"uiSettingDevicesNameLabel": "装置名",
-	"uiSettingDvrEndOffset": "終了オフセット（分）：",
-	"uiSettingDvrNewAirings": "新しい気分だけを記録する",
-	"uiSettingDvrRecordPartials": "部分的なエピソードを記録する",
-	"uiSettingDvrReplaceLower": "低品質の録音を置き換える",
-	"uiSettingDvrResolution": "解決",
-	"uiSettingDvrResolutionAny": "どれか",
-	"uiSettingDvrResolutionHD": "高解像度",
-	"uiSettingDvrServer": "DVRサーバー",
-	"uiSettingDvrStartOffset": "開始オフセット（分）：",
-	"uiSettingEnable": "有効にする",
-	"uiSettingFetcherPath": "パス（オプション）",
-	"uiSettingFetcherPort": "ポート",
-	"uiSettingFetcherQualityProfile": "品質プロファイル",
-	"uiSettingFetcherToken": "トークン",
-	"uiSettingForceSSL": "SSLを強制する",
-	"uiSettingForceSSLHint": "使用可能な場合はSSLを強制します。プログレッシブWebアプリケーションに必要です。",
-	"uiSettingGeneral": "一般",
-	"uiSettingHeaderDevices": "デバイス",
-	"uiSettingHeaderFetchers": "Fetchers",
-	"uiSettingHeaderLogs": "ログ",
-	"uiSettingHeaderPhlex": "フレックス",
-	"uiSettingHeaderPlex": "プレックス",
-	"uiSettingHookCustom": "カスタム",
-	"uiSettingHookCustomPhrase": "カスタム返信",
-	"uiSettingHookFetch": "フェッチ",
-	"uiSettingHookGeneric": "URL：",
-	"uiSettingHookLabel": "Webhooks",
-	"uiSettingHookPause": "一時停止",
-	"uiSettingHookPlayback": "再生",
-	"uiSettingHookPlayHint": "？param = {{メディア名}}が追加されます",
-	"uiSettingHookStop": "やめる",
-	"uiSettingHookUrlGeneral": "Webhook URL：",
-	"uiSettingInstallUpdates": "インストール",
-	"uiSettingLangEnglish": "英語",
-	"uiSettingLangFrench": "フランス語",
-	"uiSettingLanguage": "言語：",
-	"uiSettingLinkAmazon": "LINK AMAZON",
-	"uiSettingLinkGoogle": "Googleとつながる",
-	"uiSettingLogCount": "カウント：",
-	"uiSettingLogLevel": "レベル：",
-	"uiSettingLogUpdate": "更新",
-	"uiSettingNoPlexDirect": "Plex.Directはありません",
-	"uiSettingNoPlexDirectHint": "{EXPERIMENTAL}サーバに接続できない場合はこれを有効にしてください。",
-	"uiSettingObscureLogs": "ログの敏感なデータを隠す",
-	"uiSettingOndeckRecent": "戻るデッキ/最近のアイテムの数：",
-	"uiSettingPlaybackServer": "優先サーバー：",
-	"uiSettingPlaybackServerHint": "複数のサーバーで結果が見つかった場合は、このサーバーで見つかったものを優先します。",
-	"uiSettingPlexDVR": "プレックスDVR",
-	"uiSettingPublicAddress": "公開アドレス：",
-	"uiSettingRefreshUpdates": "リフレッシュ",
-	"uiSettingRescanHint": "デバイスを再キャッシュする頻度。",
-	"uiSettingRescanInterval": "デバイス再スキャン間隔（分）：",
-	"uiSettingSearchAccuracy": "検索精度 (%)：",
-	"uiSettingDebugging": "デバッグを有効にする",
-	"uiSettingSeparateHookUrl": "別々のURL",
-	"uiSettingTestButton": "テスト",
-	"uiSettingThemeColor": "暗いテーマを使う",
-	"uiSettingUpdates": "アップデート",
-	"uiSettingUseCast": "キャストデバイスを使用する"
+    "btnReadmePrompt": "Readmeを表示",
+    "cardGreetingText": "Flex TVへようこそ！",
+    "cardReadmeButton": "Readmeを表示",
+    "cardReadmeTitle": "ようこそ！",
+    "errorHelpSuggestionsArray": [
+        "いくつかの可能なコマンドがあります。",
+        "以下はあなたが試すことができるいくつかの提案です。",
+        "確かに、これらのうちの1つを試してみてはいかがですか？"
+    ],
+    "errorHelpCommandsArray": [
+        "デッキには何がありますか？",
+        "「私はどんな新しい映画を持っていますか？」",
+        "再生を一時停止する",
+        "「バットマンが始まる」"
+    ],
+    "javaStrings": [
+        "手伝いましょうか？",
+        "どういうご用件ですか？",
+        "あなたが言った：",
+        "「私の返信：",
+        "デバイスの再スキャン"
+    ],
+    "parseStripArray": [
+        "の",
+        "the",
+        "an",
+        "a",
+        "at",
+        "th",
+        "nd",
+        "に",
+        "から",
+        "'",
+        "s",
+        "そして"
+    ],
+    "parseMediaArray": [
+        "「映画」",
+        "「映画」",
+        "「開始」",
+        "「休憩」",
+        "「終了」",
+        "「分」",
+        "「分」",
+        "「時間」",
+        "「時間」",
+        "「時間」",
+        "「時間」",
+        "秒",
+        "秒"
+    ],
+    "parseFilterArray": [
+        "「監督」",
+        "「監督」",
+        "「主演」",
+        "「フィーチャー」",
+        "「あり」",
+        "「作った」",
+        "「作成した」",
+        "「リリースした」",
+        "「撮影した」"
+    ],
+    "parseNumberArray": [
+        "第1",
+        "パイロット",
+        "第2",
+        "第3",
+        "最後",
+        "最終",
+        "最新",
+        "ランダム"
+    ],
+    "parsedDvrFailStart": "名前のついたメディアを追加する",
+    "parsedDvrSuccessNamed": "名前",
+    "parsedDvrSuccessStart": "追加する",
+    "speechAiringsAfternoon": "今日の午後、",
+    "speechAiringsErrors": [
+        "あなたはスケジュールされたものはありません",
+        "私はリストの上に何も持っていない"
+    ],
+    "speechAiringsMids": [
+        "あなたが持っている",
+        "そうですか",
+        "私は見つけた"
+    ],
+    "speechAiringsOn": "に",
+    "speechAiringsReturn": "予約録画のリストは次のとおりです：",
+    "speechAiringsToday": "今日",
+    "speechAiringsTomorrow": "明日、",
+    "speechAiringsTonight": "今晩、",
+    "speechAiringsWeekend": "今週末、",
+    "speechAiringTails": [
+        "スケジュールで",
+        "登場する。",
+        "記録するように設定します。"
+    ],
+    "speechBy": "〜によって",
+    "speechChangDeviceFailureStart": "申し訳ありませんが、私は見つけられませんでした",
+    "speechChange": "変化する",
+    "speechChangeDeviceFailEnd": "デバイスリストに表示されます。",
+    "speechChangeDevicePrompt": "、確かに。あなたはどんなデバイスを使いたいですか？",
+    "speechChangeDeviceSuccessStart": "さて、私は",
+    "speechChangeDeviceWarnEnd1": "foo",
+    "speechChangeDeviceWarnEnd2": "foo",
+    "speechChangeDeviceWarnStart1": "foo",
+    "speechChangeDeviceWarnStart2": "foo",
+    "speechChangeDeviceWarnStart3": "foo",
+    "speechChangeMind": "さて、もしあなたがあなたの心を変えたら、私に知らせてください。",
+    "speechControlConfirm1": "コマンドを送信する",
+    "speechControlConfirmGenericArray": [
+        "あなたはそれを持っています。",
+        "それが終わったと考えてください。",
+        "はい。",
+        "確実なこと。"
+    ],
+    "speechControlConfirmPauseArray": [
+        "さて、私はあなたのためにテレビを一時停止しました。",
+        "プレックスが一時停止するはずです。",
+        "再生を一時停止する。"
+    ],
+    "speechControlConfirmPlayArray": [
+        "プレックスが再生されるはずです。",
+        "再生を再開します。",
+        "遊ぶ。"
+    ],
+    "speechControlConfirmStopArray": [
+        "プレックスが停止しています。",
+        "プレックスを停止する必要があります。",
+        "停止します。"
+    ],
+    "speechControlConfirmSubsOffArray": [
+        "バベルの魚を取り除く。",
+        "字幕が無効になっています。",
+        "字幕を無効にする。"
+    ],
+    "speechControlConfirmSubsOnArray": [
+        "字幕が有効になっています。",
+        "字幕を有効にする。",
+        "魅力的なユニバーサルトランスレータ。"
+    ],
+    "speechControlGeneric1": "コマンドを送信する",
+    "speechControlGeneric2": "さて、私はPlexに",
+    "speechControlVolumeDown": "さて、私はそれを少し下げます。",
+    "speechControlVolumeSet": "さて、音量を",
+    "speechControlVolumeUp": "さて、私は少しそれを上げます。",
+    "speechDeviceListError": "デバイスのリストを取得中にエラーが発生しました。しばらくしてからもう一度お試しください。",
+    "speechDeviceListErrorArray": [
+        "残念ながら、現在のデバイスは1つのみで、既に選択されています。",
+        "申し訳ありませんが、選択するデバイスが1つしかありません。",
+        "私はそれをお手伝いしたいと思いますが、私が現在話していることができるデバイスは1つだけです。"
+    ],
+    "speechDontUnderstand1": "申し訳ありませんが、",
+    "speechDontUnderstand2": "私はちょうど言った何も一致していないようです。",
+    "speechDownloadAdded1": "さて、私は追加しました",
+    "speechDownloadAdded2": "フェッチリストに追加します。",
+    "speechDownloadErrorArray": [
+        "これは恥ずかしいです。私はどこでもそれを見つけることができない。",
+        "残念ながら、私はそのタイトルをダウンロードするために何かを見つけることができませんでした。",
+        "申し訳ありませんが、あなたの検索者のいずれにも見つかりませんでした。"
+    ],
+    "speechDownloadExists1": "それはのように見える",
+    "speechDownloadExists2": "既にダウンロードするように設定されています。",
+    "speechDvrFailStart": "私はエピソードガイドの中で、",
+    "speechDvrNoDevice": "申し訳ありませんが、使用するPlex DVRのインスタンスが見つかりませんでした。",
+    "speechDvrSuccessEnd": "録画スケジュールに追加します。",
+    "speechDvrSuccessStart": "ねえ、それを見てください。私は",
+    "speechEggAttackTheBlock": "あなたは医者ですか？",
+    "speechEggAvengers": "家族が集まる！",
+    "speechEggBatman": "聖なる海賊版のメディア！",
+    "speechEggBigHero": "こんにちは、私はBaymaxです、私は行くつもりです",
+    "speechEggEvilDead": "王様に挨拶、赤ちゃん！",
+    "speechEggFifthElement": "Leeloo Dallas Mul-ti-Pass！",
+    "speechEggFrozen": "手放す！",
+    "speechEggGameThrones": "自分を勇気づける...",
+    "speechEggGhostbusters": "誰に連絡しますか？",
+    "speechEggHeathers": "さて、チェーンソーで優しく私を充電してください。",
+    "speechEggIronMan": "はいスターク氏、",
+    "speechEggOdyssey": "私はそのデイブをすることができないのではないかと恐れている。じゃ、いいよ、",
+    "speechEggResidentEvil": "感染までT-マイナス1分。",
+    "speechEggStarWars": "これらはあなたが探しているドロイドではありません。",
+    "speechEggTheyLive": "私はバブルガムを噛むためにここにいる",
+    "speechEggWallE": "買い物をしていただきありがとうございます。",
+    "speechGreetingArray": [
+        "こんにちは、私はフレックステレビです。今日は何ができますか？",
+        "こんにちは。私に何かをプレイするように依頼してください。",
+        "ご挨拶！どんな御用でしょうか？"
+    ],
+    "speechGreetingHelpPrompt": "コマンドのリストが必要な場合は、「ヘルプ」または「あなたのコマンドは何ですか？」と言うことができます。",
+    "speechHookCustomDefault": "おめでとう、カスタムWebhookコマンドを実行しました！",
+    "speechMoreInfoArray": [
+        "ここで私はそのアイテムのために見つけたものです。",
+        "それについてもう少し詳しい情報があります。",
+        "私はあなたのためにこれを見ました。"
+    ],
+    "speechMultiResultArray": [
+        "あなたが求めることができると思うことがいくつかありましたが、それはどれですか？",
+        "その検索に一致するものがいくつかありますが、そのうちの1つですか？",
+        "どちらが意味ですか？",
+        "私はそれについていくつかの可能な結果を​​見つけました。あなたが望むものの1つでしたか？"
+    ],
+    "speechNotUndertoodArray": [
+        "危険ウィルロビンソン！私はコマンド 'を理解していない'",
+        "残念ながら、私はあなたが '",
+        "私はあなたが何を意味するのか理解していません"
+    ],
+    "speechOndeckRecentError": "残念ながら、私はそれについての結果を見つけることができませんでした。後でもう一度お試しください。",
+    "speechOndeckRecentTail": "何かを見たいのであれば、名前を言うだけです。それ以外の場合は、「キャンセル」と言うことができます。",
+    "speechPlaybackAffirmatives": [
+        "Allrighty、それから、",
+        "あなたが命令するとき、",
+        "あなたはそれを持って、",
+        "はい、",
+        "はいキャプテン、",
+        "はいマスター、",
+        "問題ない、",
+        "確かに、"
+    ],
+    "speechPlayer": "プレーヤー",
+    "speechPlayError3": "私は図書館でそれを見つけることができませんでした、あなたは私にそれをダウンロードしてもらいたいですか？",
+    "speechPlayErrorEnd1": "あなたの図書館にそれをウォッチリストに追加するべきですか？",
+    "speechPlayErrorEnd2": "'を再生する。私はあなたのためにそれを取ってみるべきですか？",
+    "speechPlayErrorStart1": "私は見つけられなかった",
+    "speechPlayErrorStart2": "私は '",
+    "speechPlayerStatus1": "現在、",
+    "speechPlayerStatus2": "再生している",
+    "speechPlayerStatus3": "現在、シーズン",
+    "speechPlayerStatus4": "再生しています。このエピソードは",
+    "speechPlayerStatus5": "あなたが聞いているようです",
+    "speechPlayerStatus6": "アルバムから",
+    "speechPlayerStatusBy": "〜によって",
+    "speechPlayerStatusEpisode": "エピソード",
+    "speechPlayerStatusOf": "の",
+    "speechPlaying": "遊ぶ",
+    "speechReturnOndeck": "デッキアイテムの一覧は次のとおりです：",
+    "speechReturnRecent": "最近のリスト",
+    "speechServer": "サーバ",
+    "speechShuffleResponse": "さて、すべてのエピソードをシャッフルして",
+    "speechStatusNothingPlaying": "今は何かが遊んでいるように見えません。",
+    "speechWordAnd": "そして",
+    "speechWordOkay": "はい",
+    "speechWordTo": "に",
+    "suggestionCancel": "キャンセル。",
+    "suggestionCouch": "映画Tronをダウンロードしてください。",
+    "suggestionDvr": "DVRの危険性。",
+    "suggestionSick": "ショー雑草を取得します。",
+    "suggestionYesNo": [
+        "いいえ",
+        "はい"
+    ],
+    "uiGreetingDefault": "こんにちは、私はフレックステレビです。どういうご用件ですか？",
+    "uiPageTitle": "Flex TV",
+    "uiPlayerSelectPrompt": "コントロールするプレイヤーを選択します。",
+    "uiRescanDevices": "デバイスの再スキャン",
+    "uiSettingAccountLinking": "アカウントのリンク：",
+    "uiSettingApiKey": "APIキー：",
+    "uiSettingAutoUpdate": "自動的にアップデートをインストールする",
+    "uiSettingBtnReset": "リセット",
+    "uiSettingBtnTest": "テスト",
+    "uiSettingCopyIFTTT": "IFTTT URLをコピーするにはクリックしてください：",
+    "uiSettingDevices": "静的デバイス",
+    "uiSettingDevicesAddNew": "新しいデバイスを追加する",
+    "uiSettingDevicesNameLabel": "装置名",
+    "uiSettingDvrEndOffset": "終了オフセット（分）：",
+    "uiSettingDvrNewAirings": "新しい気分だけを記録する",
+    "uiSettingDvrRecordPartials": "部分的なエピソードを記録する",
+    "uiSettingDvrReplaceLower": "低品質の録音を置き換える",
+    "uiSettingDvrResolution": "解決",
+    "uiSettingDvrResolutionAny": "どれか",
+    "uiSettingDvrResolutionHD": "高解像度",
+    "uiSettingDvrServer": "DVRサーバー",
+    "uiSettingDvrStartOffset": "開始オフセット（分）：",
+    "uiSettingEnable": "有効にする",
+    "uiSettingFetcherPath": "パス（オプション）",
+    "uiSettingFetcherPort": "ポート",
+    "uiSettingFetcherQualityProfile": "品質プロファイル",
+    "uiSettingFetcherToken": "トークン",
+    "uiSettingForceSSL": "SSLを強制する",
+    "uiSettingForceSSLHint": "使用可能な場合はSSLを強制します。プログレッシブWebアプリケーションに必要です。",
+    "uiSettingGeneral": "一般",
+    "uiSettingHeaderDevices": "デバイス",
+    "uiSettingHeaderFetchers": "Fetchers",
+    "uiSettingHeaderLogs": "ログ",
+    "uiSettingHeaderPhlex": "フレックス",
+    "uiSettingHeaderPlex": "プレックス",
+    "uiSettingHookCustom": "カスタム",
+    "uiSettingHookCustomPhrase": "カスタム返信",
+    "uiSettingHookFetch": "フェッチ",
+    "uiSettingHookGeneric": "URL：",
+    "uiSettingHookLabel": "Webhooks",
+    "uiSettingHookPause": "一時停止",
+    "uiSettingHookPlayback": "再生",
+    "uiSettingHookPlayHint": "？param = {{メディア名}}が追加されます",
+    "uiSettingHookStop": "やめる",
+    "uiSettingHookUrlGeneral": "Webhook URL：",
+    "uiSettingInstallUpdates": "インストール",
+    "uiSettingLangEnglish": "英語",
+    "uiSettingLangFrench": "フランス語",
+    "uiSettingLanguage": "言語：",
+    "uiSettingLinkAmazon": "LINK AMAZON",
+    "uiSettingLinkGoogle": "Googleとつながる",
+    "uiSettingLogCount": "カウント：",
+    "uiSettingLogLevel": "レベル：",
+    "uiSettingLogUpdate": "更新",
+    "uiSettingNoPlexDirect": "Plex.Directはありません",
+    "uiSettingNoPlexDirectHint": "{EXPERIMENTAL}サーバに接続できない場合はこれを有効にしてください。",
+    "uiSettingObscureLogs": "ログの敏感なデータを隠す",
+    "uiSettingOndeckRecent": "戻るデッキ\/最近のアイテムの数：",
+    "uiSettingPlaybackServer": "優先サーバー：",
+    "uiSettingPlaybackServerHint": "複数のサーバーで結果が見つかった場合は、このサーバーで見つかったものを優先します。",
+    "uiSettingPlexDVR": "プレックスDVR",
+    "uiSettingPublicAddress": "公開アドレス：",
+    "uiSettingRefreshUpdates": "リフレッシュ",
+    "uiSettingRescanHint": "デバイスを再キャッシュする頻度。",
+    "uiSettingRescanInterval": "デバイス再スキャン間隔（分）：",
+    "uiSettingSearchAccuracy": "検索精度 (%)：",
+    "uiSettingDebugging": "デバッグを有効にする",
+    "uiSettingSeparateHookUrl": "別々のURL",
+    "uiSettingTestButton": "テスト",
+    "uiSettingThemeColor": "暗いテーマを使う",
+    "uiSettingUpdates": "アップデート",
+    "uiSettingUseCast": "キャストデバイスを使用する",
+    "commandSynonymsArray": {
+        "play": [
+            "履歴書"
+        ],
+        "skip": [
+            "ジャンプ",
+            "行く"
+        ],
+        "step": [
+            "シーク"
+        ],
+        "forward": [
+            "前方に"
+        ],
+        "back": [
+            "後方に"
+        ],
+        "seekBack": [
+            "巻き戻し"
+        ],
+        "seek": [
+            "速い"
+        ],
+        "skipNext": [
+            "前方にスキップする"
+        ],
+        "skipPrevious": [
+            "スキップバック"
+        ],
+        "stepForward": [
+            "早送り",
+            "前方に求める"
+        ],
+        "stepBack": [
+            "追求する"
+        ],
+        "volume up": [
+            "音量を上げる"
+        ],
+        "volume down": [
+            "ボリュームダウン"
+        ]
+    },
+    "fetchSynonymsArray": {
+        "season": [
+            "シーズン"
+        ],
+        "episode": [
+            "エピソード"
+        ],
+        "movie": [
+            "映画、映画"
+        ],
+        "show": [
+            "ショー",
+            "シリーズ"
+        ],
+        "latest": [
+            "最新",
+            "新しい",
+            "最新",
+            "最も最近の",
+            "最新の",
+            "最新の"
+        ]
+    },
+    "speechControlArray": [
+        "あなたが命令するとき。",
+        "完了し、完了しました。",
+        "Allrighty then。",
+        "あなたはそれを持っています！",
+        "そこに行く。"
+    ],
+    "speechDownloadExistsArray": [
+        "<html>それはのように見える<TITLE> &lt;\/ html&gt;でダウンロードするように設定されています",
+        "<html><TITLE> &lt;\/ html&gt;のウォッチリストに既に入っています",
+        "<html>私はすでに探している<TITLE> on &lt;\/ html&gt;"
+    ],
+    "speechEggArray": {
+        "attack the block": "<html>あなたは医者ですか？遊ぶ<TITLE> 。&lt;\/ html&gt;",
+        "avengers": "<html>家族が集まる！見る時間です<TITLE> 。&lt;\/ html&gt;",
+        "batman": "<html>聖なる海賊版メディア、バットマン！それは<TITLE> 。&lt;\/ html&gt;",
+        "big hero": "<html>こんにちは、私はBaymaxです、治療のために、私は<TITLE> 。&lt;\/ html&gt;",
+        "evil dead": "<html>王様に挨拶、赤ちゃん！見よう<TITLE> 。&lt;\/ html&gt;",
+        "fifth element": "<html> Leeloo Dallas Mul-ti-Pass！マルチティパス。楽しい<TITLE> 。&lt;\/ html&gt;",
+        "frozen": "<html>それを行こう、それを行こう！座って見ましょう<TITLE> 。&lt;\/ html&gt;",
+        "game of thrones": "<html>自分を勇気づける... <TITLE>再生中です。&lt;\/ html&gt;",
+        "ghostbusters": "<html>誰に連絡しますか？ <TITLE> &lt;\/ html&gt;",
+        "heathers": "<html>さて、チェーンソーで優しく私を充電してください。または見る<TITLE> 。&lt;\/ html&gt;",
+        "iron man": "<html>はいスターク氏<TITLE> 。&lt;\/ html&gt;",
+        "space odyssey": "すみません、デイブ。私はそれができないのではないかと恐れています。",
+        "resident evil": "<html>感染までT-マイナス1分。管理者<TITLE> 。&lt;\/ html&gt;",
+        "star wars": "<html>オビ=ワン・ケノービ助けてください。 <TITLE>私の唯一の希望です。&lt;\/ html&gt;",
+        "they live": "<html>私はバブルガムを噛んで遊ぶためにここにいる<TITLE>私はすべてバブルガムから出ています。&lt;\/ html&gt;",
+        "wall-e": "<html>買い物をしていただきありがとうございます。 <TITLE> 。&lt;\/ html&gt;",
+        "monty python": "<html>あなたのお母さんはハムスターで、あなたのお父さんはエルダーベリーの香りをしていました。遊ぶ<TITLE> &lt;\/ html&gt;",
+        "guide to the end of the universe": "<html>ちょっとそこに、あなたhoopy frood。私はプレーするつもりです<TITLE>あなたのために。&lt;\/ html&gt;",
+        "rocky horror": "ああロッキー!!",
+        "citizen kane": "ローズバッド...",
+        "godfather": "<html>私はあなたに拒否することはできない申し出をするつもりです。私はプレーするつもりです<TITLE> 。&lt;\/ html&gt;",
+        "with the wind": "率直に言って、私はiPhoneを与えていない。",
+        "dirty harry": "先に、あなたはすでに私の一日を作りました。",
+        "taxi driver": "<html>あなたは私に話していますか？チェックしてるだけ。遊ぶ<TITLE>今すぐ。&lt;\/ html&gt;",
+        "apocalypse now": "私は朝にオゾンの臭いが大好きです。",
+        "e.t.": "<html> Google phone home！遊ぶ<TITLE> 。&lt;\/ html&gt;",
+        "silence of the lambs": "この映画は、いくつかのファヴァ豆と素敵なキャンティと素晴らしいものになるでしょう。",
+        "jerry maguire": "<html>私にお金をみせて！そして私はあなたを見せます<TITLE> 。&lt;\/ html&gt;",
+        "a few good men": "<html>あなたは真実を扱うことはできません。しかし、おそらくあなたが処理することができます<TITLE> 。&lt;\/ html&gt;",
+        "jaws": "あなたはもっと大きなボートが必要になります。",
+        "a streetcar named": "STELLA !!!!",
+        "super troopers": "<html>リッターリングと...リッターリングと...リッターリングとウォッチング<TITLE> 。&lt;\/ html&gt;"
+    },
+    "speechNotUnderstoodArray": [
+        "危険ウィルロビンソン！私はコマンド &#39;を理解していない&#39;",
+        "私はあなたが何を意味するのか理解していません",
+        "残念ながら、私はあなたが &#39;"
+    ],
+    "speechNoInfoResultsArray": [
+        "残念ながら、私は<VAR>今あなたの図書館で<\/var>見つけることができませんでした<VAR>。<\/var>",
+        "申し訳ありませんが、私は確認しましたが、結果は得られませんでした<VAR>。<\/var>",
+        "うーん。あなたのサーバーには何も記載されていないようです<VAR>。<\/var>",
+        "私は一致するものは見つけられませんでした<VAR>。<\/var>"
+    ],
+    "speechNoResultsArray": [
+        "残念ながら、私はそれについての結果を見つけることができませんでした。",
+        "申し訳ありませんが、その検索では何も見つかりませんでした。",
+        "私は見ましたが、私はその要求を手伝うことができませんでした。"
+    ],
+    "speechPlaybackAffirmativeShort": "<html>遊ぶ<TITLE> 。&lt;\/ html&gt;",
+    "speechControlShort": "はい。",
+    "speechFetchAffirmatives": [
+        "オールライト、",
+        "はい、",
+        "成功！"
+    ],
+    "speechReturnInfoArray": [
+        "ここには<TYPE> ：",
+        "ために<TYPE> 、 あなたが持っている：",
+        "私はこれらを見つけた<TYPE>あなたの図書館で："
+    ],
+    "suggestionsApps": {
+        "show": [
+            "Jeopardyの最新エピソードをダウンロードする",
+            "ショーを取る若いシェルドン"
+        ],
+        "movie": [
+            "ゴーストライダーをダウンロード",
+            "フェストゴーストバスターズ1989"
+        ],
+        "music": [
+            "最新のMetallicaアルバムをダウンロードする",
+            "新しいGlitch Mobの曲を手に入れよう"
+        ],
+        "dvr": [
+            "レコードホイールオブフォーチュン",
+            "DVR Dr. Phil"
+        ]
+    },
+    "uiSettingNotifyUpdate": "更新が利用可能なときに通知する",
+    "uiSettingCastLogs": "キャストログをダウンロードする",
+    "uiSettingDvrComskipEnabled": "コマーシャルをスキップする",
+    "uiSettingHeaderMovies": "映画",
+    "uiSettingHeaderShows": "ショー",
+    "uiSettingHeaderMusic": "音楽",
+    "uiSettingMasterUser": "マスターユーザー",
+    "uiSettingMasterUserHint": "一つだけ存在することができます！ ...そしてあなたはそれです。",
+    "uiSettingNoNewUsers": "新規ユーザーの防止",
+    "uiSettingNoNewUsersHint": "無効にすると、新しいユーザーはFlex TVへの認証を許可されません。",
+    "uiSettingShortAnswers": "短い返信を使用する",
+    "uiSettingTestServer": "テスト接続"
 }
