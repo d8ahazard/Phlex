@@ -409,7 +409,7 @@ function fetchMediaInfo(Array $params)
         $action = $check[0];
         $type = $check[1] ?? false;
     }
-    $request = $params['request'] ?? $params['music-artist'] ?? false;
+    $request = $params['request'] ?? $params['music-artist'] ?? $params['movie-title'] ?? false;
     $year = $params['year']['amount'] ?? false;
     $artist = $params['music-artist'] ?? false;
     if (!$artist) {
@@ -418,9 +418,7 @@ function fetchMediaInfo(Array $params)
     }
     $type = $type ?? ((($artist) && ($artist == $request)) ? ['music.artist'] : false);
     $type = $type ?? ((($artist) && ($artist != $request)) ? ['music'] : false);
-    $castMember = $params['given-name'] ?? "";
-    $castMember = $castMember . " " . ($params['last-name'] ?? "");
-    $castMember = (trim($castMember) !== "") ? $castMember : false;
+    $castMember = $params['movie-actor'] ?? false;
     $request = ((!$request & $castMember) ? $castMember : $request);
     $time = $params['time'] ?? $params['duration'] ?? false;
     if (is_array($time)) {
