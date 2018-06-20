@@ -661,20 +661,28 @@ function getCaller($custom = "foo") {
     $trace = debug_backtrace();
     $useNext = false;
     $caller = false;
+    $callers = [];
     foreach ($trace as $event) {
-        if ($useNext) {
-            if (($event['function'] != 'require') && ($event['function'] != 'include')) {
-                $caller .= "::" . $event['function'];
-                break;
-            }
-        }
-        if (($event['function'] == 'write_log') || ($event['function'] == 'doRequest') || ($event['function'] == $custom)) {
-            $useNext = true;
-            $file = pathinfo($event['file']);
-            $caller = $file['filename'] . "." . $file['extension'];
-        }
+        if ($event['function'] !== "write_log" &&
+            $event['function'] !== "getCaller" &&
+            $event['function'] !== "initialize" &&
+            $event['function'] !== "analyzeRequest") array_push($callers,$event['function']);
+
+//        if ($useNext) {
+//            if (($event['function'] != 'require') && ($event['function'] != 'include')) {
+//                $caller .= "::" . $event['function'];
+//                break;
+//            }
+//        }
+//        if (($event['function'] == 'write_log') || ($event['function'] == 'doRequest') || ($event['function'] == $custom)) {
+//            $useNext = true;
+//            $file = pathinfo($event['file']);
+//            $caller = $file['filename'] . "." . $file['extension'];
+//        }
     }
-    return $caller;
+    $file = pathinfo($trace[count($trace) - 1]['file'])['filename'];
+    $info = $file . "::" . join(":",array_reverse($callers));
+    return $info;
 }
 
 function getContent($file, $url, $hours = 56, $fn = '', $fn_args = '') {
@@ -2377,7 +2385,6 @@ function transcodeImage($path, $server, $full=false) {
         $good = $is_ip ? ($filtered && !preg_match("/localhost/",$serverAddress)) : true;
         $url = $server['Uri'] . "/photo/:/transcode?$size&minSize=1&url=" . urlencode($path) . "&X-Plex-Token=" . $token;
         if (!$good) {
-            write_log("This address is not public, we need to fix that.");
             $hostAddress = $_SESSION['publicAddress'] ?? false;
             if (!$hostAddress) {
                 $proto = ((strpos($_SERVER['SERVER_PROTOCOL'],"HTTPS") !== false) ? "https://" : "http://");
@@ -2387,7 +2394,6 @@ function transcodeImage($path, $server, $full=false) {
                 $hostParts['path'] = preg_replace("/\/index.php/", "", $hostParts['path']);
                 $hostParts['path'] = preg_replace("/\/api.php/", "", $hostParts['path']);
                 if (!trim($hostParts['path'])) unset($hostParts['path']);
-                write_log("HostParts: " . json_encode($hostParts));
                 $hostAddress = http_build_url($hostParts);
             }
             $typeInt = exif_imagetype($url);
@@ -2414,26 +2420,17 @@ function transcodeImage($path, $server, $full=false) {
                     $typeString = false;
             }
             if ($typeInt) {
-                write_log("We have a type, good to save.");
-
                 $imgName = md5_file($url);
                 $imgPath = file_build_path(dirname(__FILE__),"..","img","cache","$imgName.$typeString");
                 if (!file_exists($imgPath)) {
-                    write_log("Saving new file to $imgPath");
                     file_put_contents($imgPath, file_get_contents($url));
-                } else {
-                    write_log("File exists.");
                 }
                 $url = "$hostAddress/img/cache/$imgName.$typeString";
             }
 
-        } else {
-            write_log("This address should work.");
         }
 
-
         if (!preg_match("/https/",$url)) $url = "https://phlexchat.com/imageProxy.php?url=".urlencode($url);
-        write_log("Final URL is $url");
         return $url;
     }
     write_log("Invalid image path, returning generic image.", "WARN");

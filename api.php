@@ -2374,7 +2374,7 @@ function sendMedia($media)
             write_log("Error fetching client, you should work on that.","ERROR");
             return false;
         }
-
+        write_log("We have play queue, token, and client, playing now.");
         if ($client['Product'] === 'Cast') {
             $isAudio = ($media['type'] == 'album' || $media['type'] == 'artist' || $media['type'] == 'track');
             $userName = $_SESSION['plexUserName'];
@@ -2943,6 +2943,7 @@ function mapApiRequest($request)
 function mapData($dataArray)
 {
     $info = $media = $results = [];
+    write_log("Full data array: ".json_encode($dataArray),"ALERT");
     foreach ($dataArray as $key => $data) {
         if (is_array($data)) {
             $keys = explode(".", $key);
@@ -2951,21 +2952,25 @@ function mapData($dataArray)
             switch ($type) {
                 case 'movie':
                     $movieData = $data['results'] ?? false;
-                    if (is_array($movieData)) foreach ($data as $item) {
-                        $item['source'] = $type;
-                        $return = mapDataMovie($item);
-                        $info[] = $return;
+                    if (is_array($movieData)) {
+                        $count = count($movieData);
+                        write_log("Mapping $count TMDB items: ".json_encode($movieData),"ALERT");
+                        foreach ($movieData as $item) {
+                            $item['source'] = $type;
+                            $return = mapDataMovie($item);
+                            array_push($info,$return);
+                        }
                     }
                     break;
                 case 'music':
                     $musicData = $data['artist'] ?? $data['album'] ?? $data['track'] ?? $data['artists'] ?? $data['albums'] ?? $data['data'] ?? false;
-                    if (is_array($musicData)) foreach ($data as $item) {
+                    if (is_array($musicData)) foreach ($musicData as $item) {
                         $item['source'] = $type;
                         $type = $sub ?? $type;
                         $type = str_replace("albums", "album", $type);
                         $item['type'] = $item['type'] ?? $type;
                         $return = mapDataMusic($item);
-                        $info[] = $return;
+                        array_push($info,$return);
                     }
                     break;
                 case 'show':
@@ -2980,13 +2985,15 @@ function mapData($dataArray)
                             $episode['source'] = $data['source'];
                             $episode['type'] = "show.episode";
                             $episode['seriesTitle'] = $data['name'];
-                            $info[] = mapDataShow($episode);
+                            $return = mapDataShow($episode);
+                            array_push($info,$return);
                         }
                         unset($data['_embedded']);
                     }
                     write_log("mapping parent?");
                     $data['type'] = "show";
-                    $info[] = mapDataShow($data);
+                    $return = mapDataShow($data);
+                    array_push($info,$return);
                     break;
                 case 'plex':
                     $hubs = $data['MediaContainer']['Hub'] ?? false;
@@ -3018,8 +3025,7 @@ function mapData($dataArray)
     return $results;
 }
 
-function mapDataMovie($data)
-{
+function mapDataMovie($data) {
     $year = explode("-", $data['release_date'] ?? $data['first_air_date'])[0];
     $artPath = $data['backdrop_path'] !== null ? 'https://image.tmdb.org/t/p/original' . $data['backdrop_path'] : false;
     $thumbPath = $data['poster_path'] !== null ? 'https://image.tmdb.org/t/p/original' . $data['poster_path'] : false;
@@ -3449,6 +3455,14 @@ function buildQueryMulti($params)
     } else if ($year || $title) {
         foreach ($mediaArray as $media) {
             $resCheck = $resolved;
+            $types = ['artist','album','episode','track','song','show'];
+            foreach ($types as $check) {
+                if (preg_match("/$check/",strtolower($resCheck))) {
+                    write_log("Type specification.");
+                    $resCheck = $check;
+                    break;
+                }
+            }
             $type = $params['mediaTypes'] ?? false;
             $mediaType = $media['type'];
             $match = $title ? (strtolower($title) == strtolower($media['title'])) : true;
@@ -3564,7 +3578,6 @@ function buildSpeech($params, $results)
                     break;
                 case 1:
                     write_log("just the right amount.");
-                    $media = fetchPlayItem($media[0]);
                     $speech = buildSpeechAffirmative($media);
                     $playback = $media[0];
                     break;
