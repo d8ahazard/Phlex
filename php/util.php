@@ -684,7 +684,7 @@ function getContent($file, $url, $hours = 56, $fn = '', $fn_args = '') {
     if (file_exists($file) && ($current_time - $expire_time < $file_time)) {
         return $file;
     } else {
-        $content = doRequest($url);
+        $content = doRequest($url,15);
         if ($content) {
             if ($fn) {
                 $content = $fn($content, $fn_args);
