@@ -2757,40 +2757,6 @@ function mapApiRequest($request)
             write_log("Media Query result: " . json_encode($result));
             $media = $result['media'];
             $meta = $result['meta'];
-            $lastCheck = [];
-            if (count($media) >= 2) {
-                write_log("We have " . count($media) . " items, checking for duplicates.");
-                foreach ($media as $item) {
-                    $push = true;
-                    $i = 0;
-                    foreach ($lastCheck as $check) {
-                        $titleMatch = ($item['title'] === $check['title']);
-                        $yearMatch = ($item['year'] === $check['year']);
-                        $itemId = $item['tmdbId'] ?? $item['id'] ?? $item['key'] ?? 'item';
-                        $checkId = $check['tmdbId'] ?? $check['id'] ?? $check['key'] ?? 'check';
-                        $idMatch = ($itemId === $checkId);
-                        write_log("Item $itemId check $checkId match $idMatch titlematch $titleMatch");
-                        if ($titleMatch && $yearMatch && $idMatch) {
-                            $preferredId = $_SESSION['plexServerId'];
-                            if ($check['source'] == $preferredId) {
-                                write_log("Found identical items, but one is preferred.", "INFO");
-                                $push = false;
-                            } else if ($item['source'] === $preferredId) {
-                                write_log("New item is preferred, replacing.", "INFO");
-                                $lastCheck[$i] = $item;
-                                $push = false;
-                            }
-                        }
-                        $i++;
-                    }
-                    if ($push) array_push($lastCheck, $item);
-
-                }
-                $media = $lastCheck;
-                write_log("We now have " . count($media) . " items.");
-            }
-
-            $result['media'] = $media;
             $noPrompts = (isset($_GET['say']) && !isset($_GET['web']));
             $action = $params['control'] ?? 'play';
             write_log("Params here: " . json_encode($params));
@@ -2886,6 +2852,20 @@ function mapApiRequest($request)
                 }
                 $result['playback'] = $playResult;
                 write_log("PlayResult: " . json_encode($playResult));
+            }
+            if ($action == 'playMedia.shuffle') {
+                $playResult = false;
+                write_log("Someone requested a random episode/song.");
+                $type = $params['type'];
+                if (count($media) == 1) {
+                    $episode = fetchRandomEpisode($media[0]['key']);
+                    $result['media'] = [$episode];
+                    write_log("Random episode: " . json_encode($episode));
+                    if ($episode) {
+                        $playResult = sendMedia($episode);
+                    }
+                }
+                $result['playback'] = $playResult;
             }
             break;
         case 'controlMedia':
@@ -3234,7 +3214,7 @@ function mapDataResults($search, $media, $meta)
                 $itemTypes = explode(".", $search['type']);
                 $mt = $types[1] ?? $types[0] ?? $item['type'];
                 $it = $itemTypes[1] ?? $itemTypes[0] ?? $search['type'];
-                $typeMatch = ($mt == $it || $it == 'music');
+                $typeMatch = ($mt == $it || $it == 'music' || $it == 'episode');
             }
             if (isset($search['year']) && isset($item['year'])) {
                 $searchYear = trim($search['year']);
@@ -3429,6 +3409,41 @@ function buildQueryMedia($params)
 
     write_log(" params: " . json_encode($params));
     $results = fetchMediaInfo($params);
+    $media = $results['media'];
+    $lastCheck = [];
+    write_log("We have ".count($media)." items.");
+    if (count($media) >= 2) {
+        write_log("We have " . count($media) . " items, checking for duplicates...","INFO");
+        foreach ($media as $item) {
+            $push = true;
+            $i = 0;
+            foreach ($lastCheck as $check) {
+                $titleMatch = ($item['title'] === $check['title']);
+                $yearMatch = ($item['year'] === $check['year']);
+                $itemId = $item['tmdbId'] ?? $item['id'] ?? $item['key'] ?? 'item';
+                $checkId = $check['tmdbId'] ?? $check['id'] ?? $check['key'] ?? 'check';
+                $idMatch = ($itemId === $checkId);
+                write_log("Item $itemId check $checkId match $idMatch titlematch $titleMatch");
+                if ($titleMatch && $yearMatch && $idMatch) {
+                    $preferredId = $_SESSION['plexServerId'];
+                    if ($check['source'] == $preferredId) {
+                        write_log("Found identical items, but one is preferred.", "INFO");
+                        $push = false;
+                    } else if ($item['source'] === $preferredId) {
+                        write_log("New item is preferred, replacing.", "INFO");
+                        $lastCheck[$i] = $item;
+                        $push = false;
+                    }
+                }
+                $i++;
+            }
+            if ($push) array_push($lastCheck, $item);
+
+        }
+        $results['media'] = $lastCheck;
+        write_log("We now have " . count($lastCheck) . " items.");
+    }
+
     return $results;
 }
 
