@@ -511,6 +511,7 @@ function fetchMediaInfo(Array $params)
         if ($fetchShows) $searches['show'] = fetchTvInfo($request);
         if ($fetchMovies) $searches['movie'] = fetchMovieInfo($request, 'movie');
     }
+
     foreach ($_SESSION['deviceList']['Server'] as $server) {
         $id = $server['Id'];
         $searches["plex.$id"] = $server['Uri'] . "/hubs/search?query=" . urlencode($request) . "&limit=30&X-Plex-Token=" . $server['Token'];
@@ -637,6 +638,28 @@ function fetchMediaInfo(Array $params)
             }
         }
     }
+    if (!count($media) && count($meta) == 1) {
+        $src = $meta[0]['source'] ?? "foo";
+        if ($src == 'chartlyrics.com') {
+            write_log("Searching for song by lyric...");
+            $request = $meta[0]['title'];
+            foreach ($_SESSION['deviceList']['Server'] as $server) {
+                $id = $server['Id'];
+                $mediaSearches["plex.$id"] = $server['Uri'] . "/hubs/search?query=" . urlencode($request) . "&limit=30&X-Plex-Token=" . $server['Token'];
+                $dataCurl = new multiCurl($mediaSearches);
+                $dataArray = $dataCurl->process();
+                $result = mapData($dataArray);
+                $media = $result['media'];
+                if (count($media)) {
+                    write_log("Holy crap, I think it worked!","ALERT");
+                    $data['request'] = $request;
+                    $data['artist'] = $meta[0]['artist'];
+                    $data['type'] = 'music.track';
+                }
+            }
+        }
+    }
+
     $matched = mapDataResults($data, $media, $meta);
     return $matched;
 }
@@ -1596,6 +1619,8 @@ function fetchMusicInfo($title, $artist = false, $album = false)
     if (!$album) $url['music.album'] = "http://www.theaudiodb.com/api/v1/json/$d/searchalbum.php?a=$title" . ($artist ? "&s=$artist" : "");
     if ($artist && !$album) $url['music.track'] = "http://www.theaudiodb.com/api/v1/json/$d/searchtrack.php?s=$artist&t=$title";
     $url['music.deezer'] = "https://api.deezer.com/search?q=$title";
+    if (!$album && !$artist) $url['music.lyric'] = "http://api.chartlyrics.com/apiv1.asmx/SearchLyricText?lyricText=$title";
+
     $returns = [
         'urls' => $url,
         'music.artist' => $artistData
@@ -2944,6 +2969,20 @@ function mapData($dataArray)
                     break;
                 case 'music':
                     $musicData = $data['artist'] ?? $data['album'] ?? $data['track'] ?? $data['artists'] ?? $data['albums'] ?? $data['data'] ?? false;
+                    if (!$musicData) {
+                        write_log("Looking for lyric results");
+                        $lr = $data['ArrayOfSearchLyricResult']['SearchLyricResult'][0] ?? false;
+                        if ($lr) {
+                            write_log("We got a lyric result!","ALERT");
+                            $return = [
+                                'title' => $lr['Song'][0]['_text'],
+                                'type' => 'track',
+                                'source' => 'chartlyrics.com',
+                                'artist' => $lr['Artist'][0]['_text']
+                            ];
+                            array_push($info,$return);
+                        }
+                    }
                     if (is_array($musicData)) foreach ($musicData as $item) {
                         $item['source'] = $type;
                         $type = $sub ?? $type;
@@ -3037,7 +3076,8 @@ function mapDataMusic($data)
             'art' => proxyImage($data['strArtistFanart']),
             'tadbId' => $data['idArtist']
         ];
-    } else if (preg_match("/album/", $type)) {
+    }
+    if (preg_match("/album/", $type)) {
         ;
         $return = [
             'title' => $data['strAlbum'],
@@ -3050,7 +3090,8 @@ function mapDataMusic($data)
             'tadbId' => $data['idAlbum'],
             'artist' => $data['strArtist']
         ];
-    } else if ($type === 'track') {
+    }
+    if ($type === 'track') {
         $return = [
             'title' => $data['title'],
             'type' => $data['type'],
