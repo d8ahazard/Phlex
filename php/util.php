@@ -980,34 +980,47 @@ function joinStrings($items, $tail = "and") {
 
 function joinTitles($items, $tail = "and", $noType=false) {
     $titles = [];
+    $counts = [];
     $names = [];
-    $sayType = false;
     foreach ($items as $item) {
         write_log("Item: " . json_encode($item));
+        $type = explode(".",$item['type'])[1] ?? $item['type'];
+        if (!isset($counts[$type])) $counts[$type] = 0;
         $title = $item['Title'];
-        foreach($names as $check) if ($check['Title'] == $title) $sayType = true;
-        array_push($names, $item);
-
+        foreach($names as $check) if ($check['Title'] == $title) {
+            $counts[$type]++;
+        }
+        array_push($names,$item);
     }
+
+    write_log("Counts: ". json_encode($counts));
+    $singleType = (count($counts) == 1);
     foreach ($names as $item) {
-        $year = $item['year'] ?? "";
-        $type = $item['type'];
+        $year = $item['year'] ?? false;
+        $type = explode(".",$item['type'])[1] ?? $item['type'];
+        $typeCount = $counts[$type];
         switch ($type) {
             case 'movie':
             case 'show':
-                $string = $item['title'] . " ($year)";
+                $string = $item['title'];
+                if ($year) $string.= " ($year)";
                 break;
             case 'episode':
                 $string = $item['grandparentTitle'] . " - " . $item['title'];
                 break;
             case 'track':
+                $string = $item['artist'] . " - " . $item['title'];
+                if ($typeCount >= 2 && isset($item['album'])) $string.= " (".$item['album'].")";
+                break;
             case 'album':
                 $string = $item['artist'] . " - " . $item['title'];
+                if ($typeCount >=2 && $year) $string .= " ($year)";
                 break;
             default:
+                if ($typeCount >=2 && $year) $string .= " ($year)";
                 $string = $item['title'];
         }
-        if ($sayType && !$noType) $string = $string . " (the $type)";
+        if (!$singleType) $string = $string . " (the $type)";
         $string = trim($string);
         write_log("String is $string");
         if (!in_array($string, $titles)) array_push($titles, $string);
@@ -2370,6 +2383,7 @@ function toBool($var) {
 
 function transcodeImage($path, $server, $full=false) {
     if (preg_match("/library/", $path)) {
+        write_log("Tick");
         $token = $server['Token'];
         $size = $full ? 'width=1920&height=1920' : 'width=600&height=600';
         $serverAddress = $server['Uri'];
@@ -2468,7 +2482,8 @@ function write_log($text, $level = false, $caller = false, $force=false) {
         file_put_contents($log,$authString);
     }
 
-    $date = date(DATE_RFC2822);
+    $now = DateTime::createFromFormat('U.u', microtime(true));
+    $date = $now->format("m-d-Y H:i:s.u");
     $level = $level ? $level : "DEBUG";
     $user = $_SESSION['plexUserName'] ?? false;
     $user = $user ? "[$user] " : "";

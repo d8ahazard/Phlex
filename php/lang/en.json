@@ -345,6 +345,17 @@
 		"Success! "
 	],
 	"speechPlayer": "player",
+	"speechNoMediaArray": [
+		"Unfortunately, I couldn't find '<TITLE>' in the library.",
+		"I'm sorry, but I didn't find any results for '<TITLE>'.",
+		"I couldn't find anything called '<TITLE>' in your libraries."
+	],
+	"speechNoMediaFetchPrompts": [
+		"Would you like me to add it to your watch lists?",
+		"Should I try to fetch it for you?",
+		"Do you want me to try downloading it for you?",
+		"Shall I search for it in your fetchers?"
+	],
 	"speechPlayError3": "I couldn't find that in the library, do you want me to try downloading it?",
 	"speechPlayErrorEnd1": " in your library. Should I try to add it to the watch lists?",
 	"speechPlayErrorEnd2": "' to play. Should I try to fetch it for you?'",

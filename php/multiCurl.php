@@ -38,7 +38,8 @@ class multiCurl
             write_log("URL: $url");
             $ch[$i] = curl_init($url);
             curl_setopt($ch[$i], CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch[$i],CURLOPT_CONNECTTIMEOUT,$timeout);
+            curl_setopt($ch[$i],CURLOPT_CONNECTTIMEOUT,2);
+            curl_setopt($ch[$i],CURLOPT_TIMEOUT,$timeout);
 
             if ($header) {
                 //write_log("We have headers: ".json_encode($header));

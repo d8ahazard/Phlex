@@ -21,6 +21,7 @@ function downloadMedia(array $data, array $fetchers) {
     write_log("Incoming: ".json_encode([$data,$fetchers]));
     $results = [];
     foreach($fetchers as $fetcher) {
+
         $function = 'download'.ucfirst($fetcher);
         $results["$fetcher"] = $function($data);
     }
@@ -780,7 +781,7 @@ function parseWatcher($library) {
 // These guys are responsible for pulling together a list of all of the library items
 //  */
 
-function scanFetchers($type = false, $id=false) {
+function scanFetchers($type = false, $id=false, $noCurl=false) {
     $fetchers = $searchArray = [];
     write_log("Function fired, searching for type of $type. Session data is currently: ".json_encode(getSessionData()));
     switch($type) {
@@ -796,6 +797,9 @@ function scanFetchers($type = false, $id=false) {
             if ($_SESSION['sonarrEnabled'] ?? false) $searchArray['sonarr'] = scanSonarr();
             break;
         case 'music':
+        case 'music.track':
+        case 'music.album':
+        case 'music.artist':
         case 'album':
         case 'artist':
             if ($_SESSION['headphonesEnabled'] ?? false) $searchArray['headphones'] = scanHeadphones();
@@ -812,9 +816,13 @@ function scanFetchers($type = false, $id=false) {
     }
     write_log("Final fetcher search array: ".json_encode($searchArray),"INFO");
     foreach($searchArray as $key=>$value) if (!$value) unset($searchArray["$key"]); else array_push($fetchers,$key);
-    $data = new multiCurl($searchArray);
-    $data = $data->process();
-    $parsed = parseFetchers($data);
+    if ($noCurl) {
+        $parsed = false;
+    } else {
+        $data = new multiCurl($searchArray);
+        $data = $data->process();
+        $parsed = parseFetchers($data);
+    }
     return ['items'=>$parsed,'fetchers'=>$fetchers];
 }
 

@@ -10,6 +10,7 @@ class JsonConfig extends ArrayObject {
     protected $secure;
 
     public $data;
+    private $cache;
 
     /**
      * JsonConfig constructor.
@@ -28,6 +29,7 @@ class JsonConfig extends ArrayObject {
             die();
         } else {
             $this->data = $data;
+            $this->cache = $data;
         }
 
     }
@@ -189,8 +191,6 @@ class JsonConfig extends ArrayObject {
                 $data = json_decode($data,true);
                 if (!$data) {
                     write_log("JSON Decode failed!!","ALERT");
-                    rename($path,$path.".bk");
-                    $data = [];
                 }
             }
         } else {
@@ -214,13 +214,14 @@ class JsonConfig extends ArrayObject {
 
         if (!$result) {
             write_log("Can't save file!","ERROR");
-            throw New ConfigException("Error saving file, this is bad!!");
+            $this->data = $this->cache;
+        } else {
+            $this->cache = $this->data;
         }
         return $result;
     }
 
     protected function write($contents) {
-        $result = false;
         $path = $this->fileName;
         $result = file_put_contents($path,$contents,LOCK_EX);
         return $result !== false;

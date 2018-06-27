@@ -35,7 +35,7 @@ class PHPTail {
      * @param integer $defaultUpdateTime The time between AJAX requests to the server.
      * @param integer $maxSizeToLoad This variable holds the maximum amount of bytes this application can load into memory (in bytes). Default is 2 Megabyte = 2097152 byte
      */
-    public function __construct($log, $defaultUpdateTime = 1000, $maxSizeToLoad = 2097152,$token,$noHeader=false) {
+    public function __construct($log, $defaultUpdateTime = 1000, $maxSizeToLoad = 102097152,$token,$noHeader=false) {
         $this->log = is_array($log) ? $log : array($log);
         $this->updateTime = $defaultUpdateTime;
         $this->maxSizeToLoad = $maxSizeToLoad;
