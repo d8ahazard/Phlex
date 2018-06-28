@@ -18,3 +18,4 @@
 *.db.conf.php
 /img/cache/*
 !/img/cache/_.placeholder
+php/cacert.pem
