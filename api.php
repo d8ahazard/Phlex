@@ -3775,7 +3775,7 @@ function buildSpeechAffirmative($media)
 {
     write_log("Incoming media: ".json_encode($media));
     $affirmatives = lang("speechPlaybackAffirmatives");
-    $title = $media['title'];
+    $title = buildTitle($media);
     $eggs = lang("speechEggArray");
     write_log("Egg array: " . json_encode($eggs));
     foreach ($eggs as $eggTitle => $egg) {
@@ -3789,7 +3789,10 @@ function buildSpeechAffirmative($media)
         $affirmative = $affirmatives[array_rand($affirmatives)];
 
     } while ($affirmative == $last);
-    if ($_SESSION['shortAnswers'] ?? false) $affirmative = lang('speechPlaybackAffirmativeShort');
+    if ($_SESSION['shortAnswers'] ?? false) {
+        $affirmative = lang('speechPlaybackAffirmativeShort');
+        $title = $media['title'];
+    }
     write_log("Picked $affirmative out of: " . json_encode($affirmatives));
     writeSession("affirmative", $affirmative);
     $player = findDevice(false,false,"Client");
@@ -4002,6 +4005,38 @@ function buildSpeechHelp()
     ];
 }
 
+function buildTitle($item) {
+    $year = $item['year'] ?? false;
+    $type = explode(".",$item['type'])[1] ?? $item['type'];
+    $title = $item['title'];
+    switch ($type) {
+        case 'movie':
+            $string = $title;
+            if ($year) $string.= " ($year)";
+            break;
+        case 'show':
+            $string = $title;
+            break;
+        case 'episode':
+            $episode = $item['episode'] ?? $item['index'] ?? false;
+            $season = $item['season'] ?? $item['parentIndex'] ?? false;
+            $seasonString = ($episode && $season) ? " season {$season} episode {$episode}, " : "";
+            $show = $item['grandparentTitle'] ?? $item['seriesTitle'] ?? "";
+            $string = "$show $seasonString $title";
+            break;
+        case 'track':
+            $artist = $item['grandparentTitle'] ?? $item['artist'];
+            $string = "$title by $artist";
+            break;
+        case 'album':
+            $artist = $item['parentTitle'] ?? $item['artist'];
+            $string = "the album $title by $artist";
+            break;
+        default:
+            $string = $item['title'];
+    }
+    return $string;
+}
 
 function checkDeviceChange($params) {
     $request = $params['request'] ?? false;
