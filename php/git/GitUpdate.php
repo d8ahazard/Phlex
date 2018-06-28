@@ -88,6 +88,7 @@ class GitUpdate
     {
         $commits = [];
         foreach ($refs as $ref) {
+            $ref = trim($ref);
             $commit = [];
             $cmd = 'git log '.$ref.' -1 --pretty=format:"shortHead==%h||head==%H||subject==%s||body==%b||author==%aN||date==%aD"';
             $data = $this->gitExec($cmd);
@@ -125,7 +126,7 @@ class GitUpdate
         if ($allLines) {
             exec($cmd, $ret);
         } else {
-            $ret = exec($cmd);
+            $ret = `$cmd`;
         }
         chdir($this->cwd);
         return $ret;
