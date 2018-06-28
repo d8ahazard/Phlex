@@ -115,7 +115,7 @@ function makeSettingsBody($defaults) {
 			                    <div id='updateContainer'>
 			                    </div>
 			                </div>
-			                <div class='text-center autoUpdateGroup'>
+			                <div class='text-center'>
 			                    <div class='form-group btn-group'>
 			                        <button id='checkUpdates' value='checkUpdates' class='btn btn-raised btn-info btn-100' type='button'>" . $lang["uiSettingRefreshUpdates"] . "</button>
 			                        <button id='installUpdates' value='installUpdates' class='btn btn-raised btn-warning btn-100' type='button'>" . $lang["uiSettingInstallUpdates"] . "</button>

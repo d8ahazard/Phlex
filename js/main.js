@@ -321,6 +321,12 @@ function parseServerData(data) {
         delete data.userData;
     }
 
+    if ($('#autoUpdate').is(':checked')) {
+        $('#installUpdates').hide();
+    } else {
+        $('#installUpdates').show();
+    }
+
     if (force) $('.queryBtnGrp').removeClass('show');
 
     for (var propertyName in data) {
@@ -447,7 +453,7 @@ function toggleGroups() {
 		if (vars.hasOwnProperty(key)) {
 			var value = vars[key];
 			var element = $('#'+key);
-			var group = (key === 'hookSplit') ? $('.'+key+'Group') : group = $('#'+key+'Group');
+			var group = (key === 'hookSplit' || key === 'autoUpdate') ? $('.'+key+'Group') : $('#'+key+'Group');
 			group = (value === 'masterUser') ?  $('.noNewUsersGroup') : group;
 
 			if (element.prop('checked') != value) {
@@ -1285,6 +1291,14 @@ function setListeners() {
 		$.get('api.php?say&noLog=true&command=' + myId + "&apiToken=" + apiToken);
 	});
 
+    $(document).on('click', '#autoUpdate', function () {
+		var value = $(this).is(':checked');
+		if (value) {
+			$('#installUpdates').hide();
+		} else {
+            $('#installUpdates').show();
+		}
+    });
 
 	$(document).on('change', '.appInput', function () {
 		id = $(this).attr('id');
@@ -1298,7 +1312,7 @@ function setListeners() {
 			value = resetApiUrl($(this).val());
 		}
 
-		if ($(this).hasClass('appToggle') && $(this).data('app') !== 'autoUpdate') {
+		if ($(this).hasClass('appToggle') && id !== 'autoUpdate') {
 			id = id + "Enabled";
 		}
 
