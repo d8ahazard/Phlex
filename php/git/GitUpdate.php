@@ -54,7 +54,9 @@ class GitUpdate
         $branch = $this->gitExec('git branch -a',true);
         if (is_array($branch)) foreach($branch as $line) {
             $values = explode (" ",$line);
-            if ($values[0] == "*") return $values[1];
+            if ($values[0] == "*") {
+                return (trim($values[1] ?? "") !== "") ? $values[1] : "master" ;
+            }
         }
         return 'master';
     }
@@ -90,9 +92,10 @@ class GitUpdate
         foreach ($refs as $ref) {
             $ref = trim($ref);
             $commit = [];
-            $cmd = 'git log '.$ref.' -1 --pretty=format:"shortHead==%h||head==%H||subject==%s||body==%b||author==%aN||date==%aD"';
+            $cmd = 'git log '.$ref.' -1 --pretty=format:"shortHead==%hD/H*head==%HD/H*subject==%sD/H*body==%bD/H*author==%aND/H*date==%aD"';
+            write_log("Command: '$cmd'");
             $data = $this->gitExec($cmd);
-            $lines = explode("||",$data);
+            $lines = explode('D/H*',$data);
             foreach($lines as $pair) {
                 $data = explode("==",$pair);
                 $key = $data[0];
