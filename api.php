@@ -3654,7 +3654,7 @@ function buildSpeech($params, $results) {
                 case 0:
                     write_log("No results found.");
                     $mediaArray = $meta;
-                    $info = buildSpeechNoMedia($params,$meta);
+                    $info = buildSpeechNoMedia($params,$mediaArray);
                     $speech = $info['speech'];
                     $wait = $info['prompt'];
                     if ($wait) $context = "playMedia-followup";
@@ -3685,7 +3685,7 @@ function buildSpeech($params, $results) {
     if ($intent == 'fetchInfo') {
         $media = $results['media'] ?? [];
         $mediaArray = $media;
-        $speech = buildSpeechInfoQuery($params, $cards);
+        $speech = buildSpeechInfoQuery($params, $mediaArray);
         writeSession('mediaArray', $media);
     }
     if ($intent == 'Media.multipleResults') {
