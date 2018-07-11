@@ -2508,6 +2508,15 @@ function writeSession($key, $value, $unset = false) {
     }
 }
 
+function keyGen() {
+	$token = rand(1000,99999);
+	$token = $token * 7072775606;
+	$token = $token * 2;
+	$token = dechex($token);
+	write_log("Generated key of $token");
+	return $token;
+}
+
 function writeSessionArray($array, $unset = false) {
 	if ($unset) {
 		foreach($array as $key=>$value) {

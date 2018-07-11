@@ -516,7 +516,7 @@ function fetchMediaInfo(Array $params) {
 	$subType = $data['subType'] ?? false;
 	$query = urlencode($request);
 
-	$url = "https://search.phlexchat.com/search.php?query=$query";
+	$url = "https://search.phlexchat.com/search.php?query=$query&key=".keyGen();
 	if ($artist) $url .= "&artist=$artist";
 	if ($album) $url .= "&album=$album";
 	if ($subType) $url .= "&type=$subType";
@@ -1268,7 +1268,7 @@ function fetchAirings($params) {
 
 	}
 	foreach ($list as &$item) {
-		$data = curlGet("https://search.phlexchat.com/search.php?query=".urlencode($item['title'])."&type=show");
+		$data = curlGet("https://search.phlexchat.com/search.php?query=".urlencode($item['title'])."&type=show&key=".keyGen());
 		if ($data) {
 			$data = json_decode($data, true)[0] ?? false;
 		}
