@@ -1045,11 +1045,11 @@ function testConnection($serviceName,$returnList=false) {
 					break;
 				}
 				$result = json_decode($result, true);
-				write_log("Got some kind of result " . json_encode($result));
+				write_log("Got some kind of result: " . json_encode($result));
 				$list = $result['data']['initial'];
 				$count = 0;
 				foreach ($list as $profile) {
-				    $selected = 0;
+				    $selected = "0";
 					$profileList[$count] = $profile;
 					$count++;
 				}
@@ -1088,7 +1088,7 @@ function testConnection($serviceName,$returnList=false) {
 			break;
 	}
 
-	if (count($profileList) && $selected) {
+	if (count($profileList) && $selected !== false) {
         write_log("$serviceName Profile List Found!: " . json_encode($profileList),"INFO");
         $profileList = buildList($profileList,$selected);
     } else {

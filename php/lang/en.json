@@ -400,6 +400,7 @@
 	],
 	"uiGreetingDefault": "How can I help?",
 	"uiPageTitle": "Flex TV(Web)",
+	"uiNoCastPlugin": "The Cast plugin was not found on any of your servers. Click here to find out how to get it.",
 	"uiPlayerSelectPrompt": "Select a player to control.",
 	"uiRescanDevices": "Rescan devices",
 	"uiSettingAccountLinking": "Account Linking",

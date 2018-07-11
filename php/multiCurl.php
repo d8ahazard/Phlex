@@ -30,16 +30,22 @@ class multiCurl
         foreach($urls as $i => $item) {
             if (is_array($item)) {
                 $url = $item[0];
-                $header = $item[1];
+                $header = [$item[1]];
+                $post = $item[2] ?? false;
             } else {
                 $url = $item;
-                $header = false;
+                $header = $post = false;
+                $post = false;
             }
             write_log("URL: $url");
             $ch[$i] = curl_init($url);
             curl_setopt($ch[$i], CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch[$i],CURLOPT_CONNECTTIMEOUT,2);
             curl_setopt($ch[$i],CURLOPT_TIMEOUT,$timeout);
+            if ($post) {
+				curl_setopt($ch[$i], CURLOPT_POST, count($post));
+				curl_setopt($ch[$i], CURLOPT_POSTFIELDS, $post);
+			}
 
             if ($header) {
                 //write_log("We have headers: ".json_encode($header));

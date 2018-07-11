@@ -314,8 +314,6 @@ function compareTitles($search, $check, $sendWeight = false, $exact=false) {
         $weight = ($strength > $similarity) ? $strength : $similarity;
         return $sendWeight ? $weight : $str;
     }
-
-
     return false;
 }
 
@@ -1017,8 +1015,8 @@ function joinTitles($items, $tail = "and", $noType=false) {
                 if ($typeCount >=2 && $year) $string .= " ($year)";
                 break;
             default:
-                if ($typeCount >=2 && $year) $string .= " ($year)";
                 $string = $item['title'];
+                if ($typeCount >=2 && $year) $string .= " ($year)";
         }
         if (!$singleType) $string = $string . " (the $type)";
         $string = trim($string);
