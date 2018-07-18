@@ -20,7 +20,7 @@ class JsonXmlElement extends SimpleXmlElement implements JsonSerializable
 				$attributes = [];
 
 				foreach ($child->attributes() as $name => $value) {
-					$attributes["$name"] = (string) $value;
+					$attributes["$name"] = (string) utf8_encode($value);
 				}
 
 				$array[$tag][] = array_merge($temp, $attributes);
@@ -50,6 +50,6 @@ class JsonXmlElement extends SimpleXmlElement implements JsonSerializable
 	}
 
 	function asArray() {
-		return json_decode(json_encode($this),true);
+		return json_decode(json_encode($this, JSON_UNESCAPED_UNICODE),true);
 	}
 }
