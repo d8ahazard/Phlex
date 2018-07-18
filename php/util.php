@@ -78,6 +78,9 @@ function bye($msg = false, $title = false, $url = false, $log = false, $clear = 
     // TODO: Make sure this is only done when webflag is set
 
     write_log("-------TOTAL RUN TIME: $executionTime-------","ALERT");
+	if (function_exists('fastcgi_finish_request')) {
+		fastcgi_finish_request();
+	}
     die();
 }
 
@@ -264,7 +267,7 @@ function cmp($a, $b) {
     return $b['ratingCount'] > $a['ratingCount'] ? 1 : -1;
 }
 
-function compareTitles($search, $check, $sendWeight = false, $exact=false) {
+function compareTitles($search, $check, $sendWeight=false, $exact=false) {
     if (!is_string($search) || !is_string($check)) return false;
     $search = cleanCommandString($search);
     $check = cleanCommandString($check);
@@ -378,7 +381,7 @@ function curlGet($url, $headers = null, $timeout = 4) {
     return $result;
 }
 
-function curlPost($url, $content = false, $JSON = false, Array $headers = null) {
+function curlPost($url, $content = false, $JSON = false, Array $headers = null, $timeOut=3) {
     write_log("POST url $url","INFO","curlPost");
     $url = filter_var($url, FILTER_SANITIZE_URL);
     if (!filter_var($url, FILTER_VALIDATE_URL)) {
@@ -394,7 +397,7 @@ function curlPost($url, $content = false, $JSON = false, Array $headers = null) 
     curl_setopt($curl, CURLOPT_CAINFO, $cert);
     curl_setopt($curl, CURLOPT_POST, true);
     curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 4);
-    curl_setopt($curl, CURLOPT_TIMEOUT, 3);
+    curl_setopt($curl, CURLOPT_TIMEOUT, $timeOut);
     if ($headers) {
         if ($JSON) {
             $headers = array_merge($headers, ["Content-type: application/json"]);
@@ -770,7 +773,7 @@ function getRelativePath($from, $to) {
 }
 
 
-function getSessionData()
+function getSessionData($filter=false,$stripFilter=false)
 {
     $data = [];
     $boolKeys = [
@@ -796,11 +799,19 @@ function getSessionData()
         'hookStop'
     ];
     foreach ($_SESSION as $key => $value) {
-        if ($key !== "lang") {
+    	if ($key !== "lang") {
             if (in_array($key, $boolKeys)) {
                 $value = boolval($value);
             }
-            $data[$key] = $value;
+		    if (!$filter) {
+			    $data[$key] = $value;
+		    } else {
+            	if (preg_match("/$filter/",$key)) {
+            		if ($stripFilter) $key = preg_replace("/$filter/","",$key);
+            		$key = lcfirst($key);
+		            $data[$key] = $value;
+	            }
+		    }
         }
     }
     $dvr = $_SESSION['plexDvrId'] ?? false;
@@ -976,7 +987,7 @@ function joinStrings($items, $tail = "and") {
     return $string;
 }
 
-function joinTitles($items, $tail = "and", $noType=false) {
+function joinItems($items, $tail = "and", $noType=false) {
     $titles = [];
     $counts = [];
     $names = [];
@@ -1018,7 +1029,7 @@ function joinTitles($items, $tail = "and", $noType=false) {
                 $string = $item['title'];
                 if ($typeCount >=2 && $year) $string .= " ($year)";
         }
-        if (!$singleType) $string = $string . " (the $type)";
+        if (!$singleType && !$noType) $string = $string . " (the $type)";
         $string = trim($string);
         write_log("String is $string");
         if (!in_array($string, $titles)) array_push($titles, $string);
@@ -1036,6 +1047,33 @@ function joinTitles($items, $tail = "and", $noType=false) {
         $string = join(", ", $titles) . ", $tail $last.";
     }
     return $string;
+}
+
+function joinTitles($items,$tail="and") {
+	$titles = [];
+	foreach($items as $item) {
+		$title = is_array($item) ? $item['title'] : $item;
+		$type = $item['type'] ?? false;
+		if ($type) {
+			switch ($item['type']) {
+				case 'episode':
+					$showName = $item['seriesTitle'] ?? $item['grandparentTitle'] ?? false;
+					if ($showName) $title = "$showName - $title";
+					break;
+				case 'track':
+					$title .= " (" . $item['album'] . ")";
+					break;
+				case 'album':
+					$title = ($item['parentTitle'] ?? $item['artist']) . " - $title";
+					break;
+				case 'movie':
+					$year = $item['year'] ?? false;
+					if ($year) $title .= " ($year)";
+					break;
+			}
+		}
+		array_push($titles,$title);
+	}
 }
 
 /**
@@ -2037,15 +2075,16 @@ function plexHeaders($server=false) {
     $name = deviceName();
     $headers = [
         "X-Plex-Product"=>$name,
-        "X-Plex-Version"=>"1.1.0",
+        "X-Plex-Version"=>"2.0",
         "X-Plex-Client-Identifier"=>checkSetDeviceID(),
         "X-Plex-Platform"=>"Web",
-        "X-Plex-Platform-Version"=>"1.0.0",
+        "X-Plex-Platform-Version"=>"2.0",
         "X-Plex-Sync-Version"=>"2",
         "X-Plex-Device"=>$name,
         "X-Plex-Device-Name"=>"Phlex",
         "X-Plex-Device-Screen-Resolution"=>"1920x1080",
-        "X-Plex-Provider-Version"=>"1.1"
+        "X-Plex-Provider-Version"=>"1.1",
+	    "X-Plex-Language"=>strtolower($_SESSION['appLanguage'] ?? "en")
     ];
     if ($token) $headers["X-Plex-Token"] = $token;
     return $headers;
@@ -2513,7 +2552,6 @@ function keyGen() {
 	$token = $token * 7072775606;
 	$token = $token * 2;
 	$token = dechex($token);
-	write_log("Generated key of $token");
 	return $token;
 }
 
@@ -2544,5 +2582,3 @@ function xmlToJson($data) {
 	}
 	return is_array($arr) ? $arr : $response;
 }
-
-
