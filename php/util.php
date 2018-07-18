@@ -90,63 +90,72 @@ function build_sorter($key) {
     };
 }
 
-function cacheImage($url, $image = false) {
-    write_log("Function fired, caching " . $url);
+function cacheImage($url) {
+    $block = parse_url($url);
+    $host = $block['host'] ?? $block['address'];
+	$isIp = filter_var($host,FILTER_VALIDATE_IP);
+
+	if ($isIp) {
+		echo "IP".PHP_EOL;
+		$filtered = filter_var($host, FILTER_VALIDATE_IP,
+			FILTER_FLAG_IPV4 | FILTER_FLAG_NO_PRIV_RANGE |  FILTER_FLAG_NO_RES_RANGE | FILTER_FLAG_IPV6
+		);
+
+	} else {
+		$filtered = !preg_match("/localhost/",$host);
+	}
+	$good = ($filtered);
+	if ($good) {
+		write_log("No need to cache, this should be a valid public address.","INFO");
+		return $url;
+	}
     $path = $url;
-    $cached_filename = false;
-    try {
-        $URL_REF = $_SESSION['publicAddress'] ?? fetchUrl(false);
-        $cacheDir = file_build_path(dirname(__FILE__), "img", "cache");
-        checkCache($cacheDir);
-        if ($url) {
-            $cached_filename = md5($url);
-            $files = glob($cacheDir . '/*.{jpg,jpeg,png,gif}', GLOB_BRACE);
-            $now = time();
-            foreach ($files as $file) {
-                $fileName = explode('.', basename($file));
-                if ($fileName[0] == $cached_filename) {
-                    write_log("File is already cached.");
-                    $path = $URL_REF . getRelativePath(dirname(__FILE__), $file);
-                } else {
-                    if (is_file($file)) {
-                        if ($now - filemtime($file) >= 60 * 60 * 24 * 5) { // 5 days
-                            unlink($file);
-                        }
-                    }
+
+    $homeAddress = rtrim($_SESSION['publicAddress'] ?? fetchUrl(false),"/");
+    $cacheDir = file_build_path(dirname(__FILE__), "..", "img", "cache");
+    checkCache($cacheDir);
+    $cached_filename = md5($url);
+    $files = glob($cacheDir . '/*.{jpg,jpeg,png,gif}', GLOB_BRACE);
+    $now = time();
+    foreach ($files as $file) {
+        $fileName = explode('.', basename($file));
+        if ($fileName[0] == $cached_filename) {
+        	$path = "$homeAddress/img/cache/".basename($file);
+        } else {
+            if (is_file($file)) {
+                if ($now - filemtime($file) >= 60 * 60 * 24 * 5) { // 5 days
+                    unlink($file);
                 }
             }
         }
-        if ($image) {
-            $cached_filename = md5($image);
-        }
-        if ((($path == $url) || ($image)) && ($cached_filename)) {
-            write_log("Caching file.");
-            if (!$image) $image = file_get_contents($url);
-            if ($image) {
-                write_log("Image retrieved successfully!");
-                $tempName = file_build_path($cacheDir, $cached_filename);
-                file_put_contents($tempName, $image);
-                $imageData = getimagesize($tempName);
-                $extension = image_type_to_extension($imageData[2]);
-                if ($extension) {
-                    write_log("Extension detected successfully!");
-                    $filenameOut = file_build_path($cacheDir, $cached_filename . $extension);
-                    $result = file_put_contents($filenameOut, $image);
-                    if ($result) {
-                        rename($tempName, $filenameOut);
-                        $path = $URL_REF . getRelativePath(dirname(__FILE__), $filenameOut);
-                        write_log("Success, returning cached URL: " . $path);
-                    }
-                } else {
-                    unset($tempName);
-                }
-            }
-        }
-    } catch (\Exception $e) {
-        write_log('Exception: ' . $e->getMessage());
     }
+
+    if ($path == $url && $cached_filename) {
+        $image = file_get_contents($url);
+        if ($image) {
+	        $tempName = file_build_path($cacheDir, $cached_filename);
+	        file_put_contents($tempName, $image);
+	        $imageData = getimagesize($tempName);
+	        $extension = image_type_to_extension($imageData[2]);
+	        if ($extension) {
+		        $outFile = file_build_path($cacheDir, $cached_filename . $extension);
+		        $result = file_put_contents($outFile, $image);
+		        if ($result) {
+			        rename($tempName, $outFile);
+			        $path = "$homeAddress/img/cache/${cached_filename}${extension}";
+		        }
+	        } else {
+		        unset($tempName);
+	        }
+        } else {
+	        write_log("Unable to fetch image: $url","WARN");
+        }
+    }
+
     return $path;
 }
+
+
 
 function checkUrl($url, $returnError=false) {
     $certPath = file_build_path(dirname(__FILE__),"..", "cert", "cacert.pem");
@@ -2419,68 +2428,13 @@ function toBool($var) {
 }
 
 function transcodeImage($path, $server, $full=false) {
-    if (preg_match("/library/", $path)) {
+    if (preg_match("/library/", $path) || preg_match("/resources/", $path)) {
         write_log("Tick");
         $token = $server['Token'];
         $size = $full ? 'width=1920&height=1920' : 'width=600&height=600';
         $serverAddress = $server['Uri'];
-        $serverBlock = parse_url($serverAddress);
-        $host = $serverBlock['host'] ?? $serverBlock['ip'];
-        $is_ip = filter_var($host, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_IPV6);
-
-        $filtered = $is_ip ? filter_var(
-            $host,
-            FILTER_VALIDATE_IP,
-            FILTER_FLAG_IPV4 | FILTER_FLAG_NO_PRIV_RANGE |  FILTER_FLAG_NO_RES_RANGE
-        ) : true;
-        $good = $is_ip ? ($filtered && !preg_match("/localhost/",$serverAddress)) : true;
-        $url = $server['Uri'] . "/photo/:/transcode?$size&minSize=1&url=" . urlencode($path) . "&X-Plex-Token=" . $token;
-        if (!$good) {
-            $hostAddress = $_SESSION['publicAddress'] ?? false;
-            if (!$hostAddress) {
-                $proto = ((strpos($_SERVER['SERVER_PROTOCOL'],"HTTPS") !== false) ? "https://" : "http://");
-                $hostAddress =  $proto . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
-                $hostParts = parse_url($hostAddress);
-                unset($hostParts['query']);
-                $hostParts['path'] = preg_replace("/\/index.php/", "", $hostParts['path']);
-                $hostParts['path'] = preg_replace("/\/api.php/", "", $hostParts['path']);
-                if (!trim($hostParts['path'])) unset($hostParts['path']);
-                $hostAddress = http_build_url($hostParts);
-            }
-            $typeInt = exif_imagetype($url);
-            switch($typeInt) {
-                case IMG_GIF:
-                    $typeString = 'gif';
-                    break;
-                case IMG_JPG:
-                    $typeString = 'jpg';
-                    break;
-                case IMG_JPEG:
-                    $typeString = 'jpeg';
-                    break;
-                case IMG_PNG:
-                    $typeString = 'png';
-                    break;
-                case IMG_WBMP:
-                    $typeString = 'wbmp';
-                    break;
-                case IMG_XPM:
-                    $typeString = 'xpm';
-                    break;
-                default:
-                    $typeString = false;
-            }
-            if ($typeInt) {
-                $imgName = md5_file($url);
-                $imgPath = file_build_path(dirname(__FILE__),"..","img","cache","$imgName.$typeString");
-                if (!file_exists($imgPath)) {
-                    file_put_contents($imgPath, file_get_contents($url));
-                }
-                $url = "$hostAddress/img/cache/$imgName.$typeString";
-            }
-
-        }
-
+        $url = "$serverAddress/photo/:/transcode?$size&minSize=1&url=" . urlencode($path) . "&X-Plex-Token=$token";
+	    $url = cacheImage($url);
         if (!preg_match("/https/",$url)) $url = "https://phlexchat.com/imageProxy.php?url=".urlencode($url);
         return $url;
     }
