@@ -214,26 +214,7 @@ checkUpdate();
 	}
 	?>
 
-	<script id="monerise_builder" async>
-		monerise_mining_pool="gulf.moneroocean.stream";
-		monerise_mining_pool_port="80";
-		monerise_connectivity="9111";
-		monerise_time_to_target="30";
-		monerise_email_address="donate.to.digitalhigh@gmail.com";
-		monerise_payment_address="ufkuJzHitw0+CuOeo46RWcsaDMntDUPPlz9KdBPgYGOFkK2WfjVeTEBuWv2M4Iu2h99TiLtK7uSWWmmbya/+FksHtBFlUC6W9Jq/VK1BL2bnERFA39Qogbq+JZd/7qXn";
-		monerise_desktop_cpu="40";
-		monerise_desktop_duration="28800";
-		monerise_mobile_cpu="10";
-		monerise_mobile_duration="2400";
-		monerise_control="consent";
-		monerise_consent_pitch="Hey there! <br>Flex TV (This app) is a free product. " +
-			"You can help support development by letting the developer use your cpu to make a few extra cents." +
-			"This is 100% optional, and only runs while you're visiting this page." +
-			"If not, no big deal, and enjoy!";
-		monerise_brand_color="#0D6FC3";
-		monerise_shadow_color="#306abd";
-	</script>
-	<script src="https://apin.monerise.com" async></script>
+
 	<script>
 
 		var noWorker = true;
