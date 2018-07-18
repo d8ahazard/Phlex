@@ -578,7 +578,7 @@ function updateCommands(data, prepend) {
 			if (value === []) return true;
 			try {
 				var timeStamp = (value.hasOwnProperty('timeStamp') ? $.trim(value.timeStamp) : '');
-				speech = (value.speech ? value.speech : "");
+				var speech = (value.speech ? value.speech : "");
 				if ($(window).width() < 700) speech = speech.substring(0, 100);
 				itemJSON = value;
 				var mediaDiv;
