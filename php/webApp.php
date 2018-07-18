@@ -121,6 +121,9 @@ function getPreference($section, $keys=false, $default=false, $selector=null, $s
 
 function deleteData($section, $selector=null, $value=null) {
     $config = initConfig();
+    $selString = (is_array($selector)) ? json_encode($selector) : $selector;
+	$valString = (is_array($value)) ? json_encode($value) : $value;
+    write_log("Got a command to delete $section - $selString - $valString");
     $config->delete($section, $selector, $value);
 }
 
@@ -493,7 +496,7 @@ function logCommand($resultObject) {
     $data = json_encode($resultObject);
     if (trim($apiToken) && trim($data)) {
         #TODO: Verify that the commands are in the right order here
-        $rows = getPreference('commands','stamp',[],'apiToken',$apiToken,false);
+        $rows = getPreference('commands',['data','stamp'],[],'apiToken',$_SESSION['apiToken'],false);
         if (is_array($rows)) $rows = array_reverse($rows);
         $i = 1;
         $stamps = [];

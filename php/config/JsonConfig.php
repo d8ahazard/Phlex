@@ -120,6 +120,7 @@ class JsonConfig extends ArrayObject {
         $sectionData = $this->data[$section] ?? false;
         if ($sectionData) {
             if ($selectors && $values) {
+            	# If our selector/value is a single key/pair
                 if (is_string($selectors)) {
                     $selector = $selectors;
                     $value = $values;
@@ -131,16 +132,23 @@ class JsonConfig extends ArrayObject {
                     }
                 } else {
                     $j = 0;
-                    foreach($selectors as $selector) {
-                        $i = 0;
-                        $value = $values[$i];
-                        foreach ($sectionData as $record) {
-                            $check = $record[$selector] ?? 'foo';
-                            if ($check == $value) unset($sectionData[$i]);
-                            $i++;
-                        }
-                        $j++;
-                    }
+                    $matches = [];
+	                foreach ($sectionData as $record) {
+	                	$match = true;
+		                $i = 0;
+		                foreach ($selectors as $selector) {
+			                $value = $values[$i];
+			                $check = $record[$selector] ?? 'foo';
+			                if ($check !== $value) $match = false;
+			                $i++;
+		                }
+		                if ($match) {
+			                write_log("Deleting matching record: " . json_encode($sectionData[$j]));
+			                array_push($matches,$j);
+		                }
+		                $j++;
+	                }
+	                foreach($matches as $key) unset($sectionData[$key]);
                 }
                 $this->data[$section] = $sectionData;
             } else {
