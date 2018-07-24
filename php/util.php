@@ -61,7 +61,7 @@ function bye($msg = false, $title = false, $url = false, $log = false, $clear = 
                     var array = [{title:'$title',message:'$msg',url:'$url'}];
                     loopMessages(array);
                 </script>";
-        echo($display);
+	    echo $display;
     }
     $actual_link = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
     $url = parse_url($actual_link);
@@ -94,13 +94,10 @@ function cacheImage($url) {
     $block = parse_url($url);
     $host = $block['host'] ?? $block['address'];
 	$isIp = filter_var($host,FILTER_VALIDATE_IP);
-
 	if ($isIp) {
-		echo "IP".PHP_EOL;
 		$filtered = filter_var($host, FILTER_VALIDATE_IP,
 			FILTER_FLAG_IPV4 | FILTER_FLAG_NO_PRIV_RANGE |  FILTER_FLAG_NO_RES_RANGE | FILTER_FLAG_IPV6
 		);
-
 	} else {
 		$filtered = !preg_match("/localhost/",$host);
 	}
@@ -1015,24 +1012,32 @@ function joinItems($items, $tail = "and", $noType=false) {
     $singleType = (count($counts) == 1);
     foreach ($names as $item) {
         $year = $item['year'] ?? false;
+	    if (is_array($year)) $year = $year[0];
         $type = explode(".",$item['type'])[1] ?? $item['type'];
         $typeCount = $counts[$type];
         switch ($type) {
             case 'movie':
             case 'show':
                 $string = $item['title'];
-                if ($year) $string.= " ($year)";
+                if ($year) {
+	                $string .= " ($year)";
+                }
                 break;
             case 'episode':
                 $string = $item['grandparentTitle'] . " - " . $item['title'];
                 break;
             case 'track':
                 $string = $item['artist'] . " - " . $item['title'];
-                if ($typeCount >= 2 && isset($item['album'])) $string.= " (".$item['album'].")";
+                if ($typeCount >= 2 && isset($item['album'])) {
+                	$album = (is_array($item['album'])) ? $item['album'][0] : $item['album'];
+	                $string .= " ($album)";
+                }
                 break;
             case 'album':
                 $string = $item['artist'] . " - " . $item['title'];
-                if ($typeCount >=2 && $year) $string .= " ($year)";
+                if ($typeCount >=2 && $year) {
+                	$string .= " ($year)";
+                }
                 break;
             default:
                 $string = $item['title'];
@@ -2473,8 +2478,10 @@ function write_log($text, $level = false, $caller = false, $force=false) {
         file_put_contents($log,$authString);
     }
 
-    $now = DateTime::createFromFormat('U.u', microtime(true));
-    $date = $now->format("m-d-Y H:i:s.u");
+    $aux =  microtime(true);
+	$now = DateTime::createFromFormat('U.u', $aux);
+	if (is_bool($now)) $now = DateTime::createFromFormat('U.u', $aux += 0.001);
+	$date = $now->format("m-d-Y H:i:s.u");
     $level = $level ? $level : "DEBUG";
     $user = $_SESSION['plexUserName'] ?? false;
     $user = $user ? "[$user] " : "";
