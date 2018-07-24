@@ -476,6 +476,7 @@ function fetchMediaInfo(Array $params) {
 			$i++;
 		}
 	}
+	$podCast = ($type==='podcast');
 	if ($track && $request) {
 		write_log("Ripping the word track out, because DF sucks!");
 		$request = trim(str_replace("Track", "", $request));
@@ -1810,6 +1811,14 @@ function fetchPlayQueueAudio($media) {
 	return $response;
 }
 
+function fetchPodCast($params) {
+	$request = $params['request'] ?? false;
+	if ($request) {
+
+	}
+
+}
+
 function fetchRandomMediaByKey($key) {
 	$winner = false;
 	$server = findDevice(false, false, 'Server');
@@ -1878,6 +1887,7 @@ function fetchRandomMediaByCast($actor, $type = 'movie') {
 			'query' => '?X-Plex-Token=' . $server['Token']
 		]);
 	}
+
 	if ($result) {
 		$actors = (new JsonXmlElement($result))->asArray();
 		write_log("MediaArray: ".json_encode($actors));
