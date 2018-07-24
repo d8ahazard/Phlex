@@ -19,3 +19,4 @@
 /img/cache/*
 !/img/cache/_.placeholder
 php/cacert.pem
+logCustom.php
