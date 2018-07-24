@@ -549,7 +549,8 @@ function fetchDirectory($id = 0) {
         "NjU2NTRmODIwZDQ2NDdhYjljZjdlZGRkZGJiYTZlMDI=",
         "MTk1MDAz",
         "TmpKbE9XSXdPV010TWpBMllpMDBPRGxoTFRoaE1EUXROR05pTXpReE5tUTBNRE5r",
-        "N2EwMDg5NjFhYWZhNGUyNmFlOTNjYzA4MTZkMWYwNzI="
+        "N2EwMDg5NjFhYWZhNGUyNmFlOTNjYzA4MTZkMWYwNzI=",
+        "QUl6YVN5QnNob2xic0phUkI5MUVNdy1hX3hsRHdUQ3VpWjBZWHVv"
     ];
 
     $d = $dir[$id] ?? false;
@@ -2468,7 +2469,7 @@ function write_log($text, $level = false, $caller = false, $force=false) {
         $authString = "; <?php die('Access denied'); ?>".PHP_EOL;
         file_put_contents($log,$authString);
     }
-    if (filesize($log) > 1048576) {
+    if (filesize($log) > 10485760) {
         $oldLog = file_build_path(dirname(__FILE__),"..",'logs',"Phlex.log.php.old");
         if (file_exists($oldLog)) unlink($oldLog);
         rename($log, $oldLog);

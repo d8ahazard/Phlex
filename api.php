@@ -14,7 +14,6 @@ use Kryptonit3\SickRage\SickRage;
 use Kryptonit3\Sonarr\Sonarr;
 
 analyzeRequest();
-
 /**
  * Takes an incoming request and makes sure it's authorized and valid
  */
@@ -155,6 +154,7 @@ function initialize() {
 		}
 		if (!isset($_GET['say'])) bye();
 	}
+
 	if ((isset($_GET['id'])) && (!isset($_GET['device']))) {
 		$valid = true;
 		$id = $_GET['id'];
@@ -228,6 +228,7 @@ function initialize() {
 		}
 		bye();
 	}
+
 
 	if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 		$json = file_get_contents('php://input');
@@ -314,7 +315,10 @@ function triggerRescan() {
 	$servers = $_SESSION['deviceList']['Server'] ?? [];
 	$urls = [];
 	foreach ($servers as $server) {
-		$urls[$server['Name']] = $server['Uri'] . "/library/sections/all/refresh?X-Plex-Token=" . $server['Token'];
+		$name = $server['Name'];
+		$uri = $server['Uri'];
+		$token = $server['Token'];
+		$urls[$name] = "$uri/library/sections/all/refresh?X-Plex-Token=$token";
 	}
 	$mc = new multiCurl($urls);
 	$mc->process();
@@ -362,7 +366,7 @@ function getUiData($force = false) {
 			$result['devices'] = $devices;
 			writeSession('devices', $deviceText);
 		}
-		$sessionCommands = $_SESSION['commands'] ?? [];
+		$sessionCommands = $_SESSION['commandArray'] ?? [];
 		$commandData = [];
 		foreach ($commands as $command) {
 			$exists = false;
@@ -376,8 +380,9 @@ function getUiData($force = false) {
 			}
 		}
 		if (count($commandData)) {
+			write_log("Sending ".count($commandData)." new command cards...","ALERT",false,true);
 			$result['commands'] = $commandData;
-			writeSession('commands', $commands);
+			writeSession('commandArray', $commands);
 		}
 	}
 	if ($_SESSION['dologout'] ?? false) $result['dologout'] = true;
@@ -409,6 +414,7 @@ function fetchMediaInfo(Array $params) {
 			$shuffle = true;
 		}
 	}
+
 	$request = $params['request'] ?? $params['music-artist'] ?? $params['movie-title'] ?? false;
 	$year = $params['year']['amount'] ?? false;
 	$artist = $params['music-artist'] ?? false;
@@ -420,7 +426,7 @@ function fetchMediaInfo(Array $params) {
 	$type = $type ?? ((($artist) && ($artist != $request)) ? 'music' : false);
 	if (isset($params['movie-title'])) $type = ['movie'];
 	$castMember = $params['movie-actor'] ?? false;
-	$request = ((!$request & $castMember) ? $castMember : $request);
+	if ($castMember) write_log("This is a search by cast.","ALERT");
 	$time = $params['time'] ?? $params['duration'] ?? false;
 	if (is_array($time)) {
 		$unit = $time['unit'];
@@ -431,7 +437,7 @@ function fetchMediaInfo(Array $params) {
 	$time = ($time ? strtotime("+$time") : false);
 	$time = ($time ? ($time - strtotime("now")) : 0) * 1000;
 	// Associate number values and subtypes
-	$types = $params['type'] ?? $type ?? false;
+	$types = $params['type'] ?? [$type] ?? false;
 	if ($types) {
 		$i = 0;
 		foreach ($types as $checkType) {
@@ -460,25 +466,6 @@ function fetchMediaInfo(Array $params) {
 					write_log("Song search?? $subValue");
 					$track = $subValue;
 					break;
-				case 'lyric':
-					write_log("Lyric search, blow some stuff up!");
-//                    $newDataUrl = fetchMusicInfo($request,false,false,true)['urls']['music.lyric'];
-//                    write_log("Lyric URL: $newDataUrl");
-//                    //$lyricCheck = curlGet($newDataUrl);
-//                    $jsonXML = new JsonXmlElement($newDataUrl,0, true);
-//                    $array = $jsonXML->asArray();
-//                    write_log("Lyric JSON: ".json_encode($array));
-//                    $item = $array['ArrayOfSearchLyricResult']['SearchLyricResult'][0] ?? false;
-//                    if ($item) {
-//                        write_log("We've found a match for lyrics, whether it's right or wrong...");
-//                        $request = $item['Song'][0]['_text'];
-//                        $artist = $item['Artist'][0]['_text'];
-//                        $type = 'music.track';
-//                        $params['request'] = $request;
-//                        $params['artist'] = $artist;
-//                        $params['type'] = $type;
-//                    }
-
 			}
 			if ($subType && $subValue) {
 				$data["$subType"] = $subValue;
@@ -499,6 +486,7 @@ function fetchMediaInfo(Array $params) {
 	$type = ($type ? $type : ($track ? 'music.track' : false));
 	$data = [
 		'action' => $action,
+		'intent' => $action,
 		'shuffle' => $shuffle,
 		'request' => $request,
 		'type' => $type,
@@ -508,32 +496,85 @@ function fetchMediaInfo(Array $params) {
 		'album' => $album,
 		'track' => $track,
 		'offset' => $time,
-		'year' => $year
+		'year' => $year,
+		'cast' => $castMember
 	];
 	foreach ($data as $key => $value) if ($value === false) unset($data["$key"]);
 
-	$searches = [];
+	$result = $meta = $searches = [];
+	$result['params'] = $data;
 	$subType = $data['subType'] ?? false;
-	$query = urlencode($request);
 
+	if ($castMember) {
+		$type = $params['type'][0] ?? 'movie';
+		$castMedia = fetchRandomMediaByCast($castMember,$type);
+		if ($castMedia) {
+			$mediaItem = mapDataPlex($castMedia);
+			write_log("All purdy-like: ".json_encode($mediaItem));
+			$query = urlencode($mediaItem['title']);
+			$year = $mediaItem['year'];
+			$url = "https://search.phlexchat.com/search.php?query=$query&type=$type&year=$year&key=".keyGen();
+			$metaData = curlGet($url);
+			$meta = $metaData ? json_decode($metaData,true) : [];
+			$meta = $meta[0] ?? false;
+			write_log("Meta: ".json_encode($meta));
+			write_log("Media: ".json_encode($mediaItem));
+			$media = ($meta) ? array_merge($mediaItem,$meta) : $mediaItem;
+			write_log("MERGE: ".json_encode($media));
+			$data['control'] = 'play';
+			$result = ['media'=>[$media], 'meta'=>[$meta], 'params'=>$data];
+			write_log("Returning: ".json_encode($result));
+			return $result;
+		} else {
+			write_log("Something went wrong.","ERROR");
+			$media = [];
+			$meta = [];
+			$data['control'] = 'play';
+			$result = ['media'=>$media, 'meta'=>$meta, 'params'=>$data];
+			return $result;
+		}
+	}
+	if ($podCast) {
+		write_log("Podcast request.");
+		$result = fetchPodCast($data);
+		return $result;
+	}
+
+	$query = urlencode($request);
 	$url = "https://search.phlexchat.com/search.php?query=$query&key=".keyGen();
+	$queued = false;
 	if ($artist) $url .= "&artist=$artist";
 	if ($album) $url .= "&album=$album";
 	if ($subType) $url .= "&type=$subType";
-	$searches['meta'] = $url;
-	foreach ($_SESSION['deviceList']['Server'] as $server) {
-		$id = $server['Id'];
-		$searches["plex.$id"] = $server['Uri'] . "/hubs/search?query=" . urlencode($request) . "&limit=30&X-Plex-Token=" . $server['Token'];
+
+	if ($request) {
+		$searches['meta'] = $url;
+		foreach ($_SESSION['deviceList']['Server'] as $server) {
+			$id = $server['Id'];
+			$searches["plex.$id"] = $server['Uri'] . "/hubs/search?query=" . urlencode($request) . "&limit=30&X-Plex-Token=" . $server['Token'];
+		}
+
+		write_log("Search arrays: " . json_encode($searches));
+		$dataCurl = new multiCurl($searches, 3);
+		$dataArray = $dataCurl->process();
+		$result = mapData($dataArray);
+		$meta = $dataArray['meta'];
+		$media = $result['media'];
 	}
 
-	write_log("Search arrays: " . json_encode($searches));
-	$dataCurl = new multiCurl($searches, 3);
-	$dataArray = $dataCurl->process();
-	$result = mapData($dataArray);
-	$meta = $dataArray['meta'];
-	$media = $result['media'];
+	if (($type && !$request) || $shuffle) {
+		write_log("Okay, we need to fetch some random media!");
+		$media = [shuffleMedia($type)];
+		$queued = true;
+		$result['media'] = $media;
+		$result['meta'] = [];
+		$data['control'] = 'play';
+		$result['params'] = $data;
+	}
+
 	$ep = $key = $parent = false;
 	write_log("Mapped metadata array: " . json_encode($result));
+	// If we have a season or episode number
 	if ($season || $episode && (count($meta) >= 1)) {
 		write_log("We need a numbered TV item.");
 		if (count($media)) {
@@ -605,6 +646,7 @@ function fetchMediaInfo(Array $params) {
 			}
 		}
 	}
+	// If we have a track number
 	if ($track && count($meta) >= 1) {
 		write_log("We need to find a specific track number.");
 		if (count($media)) {
@@ -621,8 +663,7 @@ function fetchMediaInfo(Array $params) {
 					}
 					if ($album) {
 						write_log("Album lookup worked!");
-						$container = new JsonXmlElement($album);
-						$container = $container->asArray();
+						$container = (new JsonXmlElement($album))->asArray();
 						$trackArray = $container['MediaContainer']['Track'] ?? [];
 						write_log("TrackArray: " . json_encode($trackArray));
 						foreach ($trackArray as $trackItem) {
@@ -646,29 +687,12 @@ function fetchMediaInfo(Array $params) {
 			}
 		}
 	}
-	if (!count($media) && count($meta) == 1 && ($type !== 'lyric')) {
-		$src = $meta[0]['source'] ?? "foo";
-		if ($src == 'chartlyrics.com') {
-			write_log("Searching for song by lyric...");
-			$request = $meta[0]['title'];
-			$data['request'] = $request;
-			$data['artist'] = $meta[0]['artist'];
-			$data['type'] = 'music.track';
-			foreach ($_SESSION['deviceList']['Server'] as $server) {
-				$id = $server['Id'];
-				$mediaSearches["plex.$id"] = $server['Uri'] . "/hubs/search?query=" . urlencode($request) . "&limit=30&X-Plex-Token=" . $server['Token'];
-				$dataCurl = new multiCurl($mediaSearches, 3);
-				$dataArray = $dataCurl->process();
-				$result = mapData($dataArray);
-				$media = $result['media'];
-				if (count($media)) {
-					write_log("Holy crap, I think it worked!", "ALERT");
-				}
-			}
-		}
-	}
 
-	$matched = mergeData($data, $media, $meta);
+	if (!$castMember && !$queued) {
+		$matched = mergeData($data, $media, $meta);
+	} else {
+		$matched = $result;
+	}
 	return $matched;
 }
 
@@ -705,10 +729,8 @@ function scanDevices($force = false) {
 		writeSession('scanning', true);
 		$url = "https://plex.tv/api/resources?includeHttps=1&includeRelay=1&X-Plex-Token=" . $_SESSION['plexToken'];
 		$data = curlGet($url);
-		if (trim($data)) {
-			$json = new JsonXmlElement($data);
-			$container2 = $json->asArray();
-		}
+		if ($data) $container2 = (new JsonXmlElement($data))->asArray();
+
 		$devices = $container2['MediaContainer']['Device'] ?? false;
 		if ($devices) {
 			foreach ($devices as $device) {
@@ -1077,7 +1099,13 @@ function sortDevices($input) {
 						'Owned' => $device['Owned'] ?? false,
 						'Version' => $device['Version']
 					];
-					if ($class === 'Server') $new['Sections'] = json_encode(fetchSections($new));
+					if ($class === 'Server') {
+						$extras = fetchServerData($new);
+						$new['Sections'] = json_encode($extras['Sections']);
+						if (is_array($extras['Stations'])) {
+							$new['Stations'] = json_encode($extras['Stations']);
+						}
+					}
 					if (($class !== "Dvr") && (isset($device['localUri']))) $new['localUri'] = $device['localUri'];
 				}
 				array_push($names, $name);
@@ -1230,9 +1258,7 @@ function fetchAirings($params) {
 			'path' => "/media/subscriptions/scheduled",
 			'query' => "?X-Plex-Token=" . $dvr['Token']
 		], 5);
-		$new = new JsonXmlElement($data);
-		$schedule = $new->asArray();
-		write_log("New version: ".json_encode($schedule));
+		$schedule = (new JsonXmlElement($data))->asArray();
 		$items = $schedule['MediaContainer']['MediaGrabOperation'] ?? [];
 
 			foreach ($items as $showItem) {
@@ -1314,8 +1340,7 @@ function fetchFirstUnwatchedEpisode($key, $parent = false) {
 		'query' => "?X-Plex-Token=$token"
 	]);
 	if ($result) {
-		$container = new JsonXmlElement($result);
-		$container = $container->asArray();
+		$container = (new JsonXmlElement($result))->asArray();
 		write_log("Container: " . json_encode($container));
 		$videos = $container['MediaContainer']['Video'];
 		foreach ($videos as $video) {
@@ -1371,8 +1396,7 @@ function fetchHubList($section, $type = false) {
 			'query' => $query
 		]);
 		if ($result) {
-			$container = new JsonXmlElement($result);
-			$container = $container->asArray();
+			$container = (new JsonXmlElement($result))->asArray();
 			write_log("Hub response: " . json_encode($container));
 			if ($section == 'recent' && !$type) {
 				$hubs = $container['MediaContainer']['Hub'];
@@ -1506,10 +1530,9 @@ function fetchNumberedTVItem($seriesKey, $num, $epNum = false, $parent = false) 
 	$url = "$host$mediaDir?X-Plex-Token=$token";
 	$result = curlGet($url);
 	if ($result) {
-		$container2 = new JsonXmlElement($result);
-		$series = $container2->asArray();
+		$series = (new JsonXmlElement($result))->asArray();
 		$episodes = $series['MediaContainer']['Video'];
-		write_log("New container: " . json_encode($container2));
+		write_log("New container: " . json_encode($series));
 		// If we're specifying a season, get all those episodes who's ParentIndex matches the season number specified
 		if ($selector == "season") {
 			foreach ($episodes as $episode) {
@@ -1564,8 +1587,7 @@ function fetchPlayerState($wait = false) {
 		write_log("Error fetching Server info: " . json_encode($server), "ERROR", false, true);
 	}
 	if ($result) {
-		$result = new JsonXmlElement($result);
-		$result = $result->asArray();
+		$result = (new JsonXmlElement($result))->asArray();
 		write_log("Player JSON: " . json_encode($result), "INFO", false, true);
 		if (isset($result['Timeline'])) {
 			foreach ($result['Timeline'] as $timeline) {
@@ -1683,9 +1705,9 @@ function fetchPlayerStatus() {
 	return $status;
 }
 
-function fetchPlayQueue($media, $shuffle = false, $returnQueue = false) {
+function fetchPlayQueue($media, $shuffle=false, $returnQueue=false, $mediaId=false) {
 	write_log("Queuedamedia: " . json_encode($media));
-	$key = $media['key'];
+	$key = $media['key'] ?? false;
 	$queueID = $media['queueID'] ?? false;
 	$isAudio = ($media['type'] == 'album' || $media['type'] == 'artist' || $media['type'] == 'track');
 	$host = findDevice("Id", $media['source'], "Server");
@@ -1702,7 +1724,12 @@ function fetchPlayQueue($media, $shuffle = false, $returnQueue = false) {
 		}
 	}
 	write_log("SectionId is $sectionId and uuid is $uuid and sections: " . json_encode($sections));
-	$uri = urlencode("library://$uuid/item/" . urlencode($key));
+	if ($mediaId) {
+		$uri = urlencode("library://$uuid/directory//library/sections/$mediaId/all?type=$mediaId");
+	} else {
+		$uri = urlencode("library://$uuid/item/" . urlencode($key));
+	}
+	write_log("Formatted URI is '$uri'");
 	$query = [
 		'type' => ($isAudio ? 'audio' : 'video'),
 		'uri' => $uri,
@@ -1723,13 +1750,10 @@ function fetchPlayQueue($media, $shuffle = false, $returnQueue = false) {
 		'headers' => $headers
 	]);
 	if ($result) {
-		$container = new SimpleXMLElement($result);
-		$container2 = new JsonXmlElement($result);
-		$container2 = $container2->asArray();
-		$container = json_decode(json_encode($container), true);
-		write_log("Response container from queue: " . json_encode($container2));
+		$container = (new JsonXmlElement($result))->asArray();
+		write_log("Response container from queue: " . json_encode($container));
 		if ($returnQueue) return $container;
-		$queueID = $container['@attributes']['playQueueID'] ?? false;
+		$queueID = $container['playQueueID'] ?? false;
 	} else {
 		write_log("Error fetching queue ID!", "ERROR");
 	}
@@ -1769,8 +1793,7 @@ function fetchPlayQueueAudio($media) {
 		$result = curlPost($url);
 	}
 	if ($result) {
-		$container = new JsonXmlElement($result);
-		$container = $container->asArray();
+		$container = (new JsonXmlElement($result))->asArray();
 		write_log("Playqueue container: " . json_encode($container));
 		if (isset($container['playQueueID'])) {
 			$selectedOffset = intval($container['playQueueSelectedOffset'] ?? 0);
@@ -1825,8 +1848,7 @@ function fetchRandomEpisode($showKey) {
 		'query' => '?X-Plex-Token=' . $server['Token']
 	]);
 	if ($data) {
-		$xml = new JsonXmlElement($data);
-		$container = $xml->asArray();
+		$container = (new JsonXmlElement($data))->asArray();
 		write_log("Container: " . json_encode($container));
 		$parentArt = $container['art'];
 		$videos = $container['MediaContainer']['Video'] ?? false;
@@ -1846,25 +1868,10 @@ function fetchRandomEpisode($showKey) {
 function fetchRandomMediaByCast($actor, $type = 'movie') {
 	$section = false;
 	$server = findDevice(false, false, 'Server');
-	$result = doRequest([
-		'path' => '/library/sections',
-		'query' => '?X-Plex-Token=' . $server['Token']
-	]);
-	$actorKey = false;
-	if ($result) {
-		write_log("Random media search...");
-		#TODO: EWWWW!!!
-		$container = new SimpleXMLElement($result);
-		foreach ($container->children() as $directory) {
-			if ($directory['type'] == $type) {
-				$section = $directory->Location['id'];
-				break;
-			}
-		}
-	} else {
-		write_log("Unable to list sections", "WARN");
-		return false;
-	}
+	$sections = json_decode($server['Sections'],true);
+	foreach($sections as $check) if ($check['type'] === $type) $section = $check['id'];
+
+	$actorKey = $result = false;
 	if ($section) {
 		$result = doRequest([
 			'path' => '/library/sections/' . $section . '/actor',
@@ -1872,8 +1879,9 @@ function fetchRandomMediaByCast($actor, $type = 'movie') {
 		]);
 	}
 	if ($result) {
-		$container = new SimpleXMLElement($result);
-		foreach ($container->children() as $actors) {
+		$actors = (new JsonXmlElement($result))->asArray();
+		write_log("MediaArray: ".json_encode($actors));
+		foreach ($actors['MediaContainer']['Directory'] as $actors) {
 			if ($actors['title'] == ucwords(trim($actor))) {
 				$actorKey = $actors['fastKey'];
 			}
@@ -1888,16 +1896,14 @@ function fetchRandomMediaByCast($actor, $type = 'movie') {
 	}
 	$result = doRequest(['query' => $actorKey . '&X-Plex-Token=' . $server['Token']]);
 	if ($result) {
-		$matches = [];
-		$container = new SimpleXMLElement($result);
-		foreach ($container->children() as $video) {
-			array_push($matches, $video);
-		}
-		$size = sizeof($matches);
-		if ($size > 0) {
-			$winner = rand(0, $size);
-			$winner = $matches[$winner];
-			write_log("Matching result: " . $winner['title'], "INFO");
+		$container = (new JsonXmlElement($result))->asArray();
+		$videos = $container['MediaContainer']['Video'] ?? $container['MediaContainer']['Directory'] ?? false;
+		write_log("Videos from random: ".json_encode($videos));
+
+		if (is_array($videos)) {
+			$winner = $videos[array_rand($videos)];
+			write_log("Matching result: " . json_encode($winner), "INFO");
+			$winner['source'] = $server['Id'];
 			return $winner;
 		}
 	}
@@ -1955,7 +1961,7 @@ function fetchRandomNewMedia($type) {
 				$winner = $result;
 			}
 		} else {
-			write_log("Can't seem to find any random " . $type . ".", "WARN");
+			write_log("Can't seem to find any random ${type}.", "WARN");
 		}
 	}
 	if ($winner) {
@@ -1967,31 +1973,87 @@ function fetchRandomNewMedia($type) {
 	return $winner;
 }
 
-function fetchSections($server = false) {
+function shuffleMedia($type=false, $genre=false) {
+	$server = findDevice(false,false,"Server");
+	$sections = json_decode($server['Sections'],true);
+	$queue = [];
+	switch($type) {
+		case 'movie':
+		case 'show':
+			$id = $uuid = false;
+			foreach($sections as $section) if ($section['type'] === $type) {
+				$id = $section['id'];
+				$uuid = $section['uuid'];
+			}
+			if ($id && $uuid) {
+				$media = [
+					'type'=>$type,
+					'librarySectionID'=>$uuid,
+					'source'=>$server['Id']
+				];
+				$queue = fetchPlayQueue($media,true,true,$id);
+				write_log("Queue: ".json_encode($queue));
+			}
+
+			break;
+		case 'music':
+			break;
+		case 'playlist':
+			break;
+		case 'podcast':
+			break;
+		case 'news':
+			break;
+		default:
+			break;
+	}
+	if (count($queue)) $queue['type'] = 'queue';
+	return $queue;
+}
+
+function fetchServerData($server = false) {
 	$server = $server ? $server : findDevice(false, false, 'Server');
 	$sections = [];
+	$stations = false;
 	$uri = $server['Uri'];
 	$token = $server['Token'];
-	$url = "$uri/library/sections?X-Plex-Token=$token";
-	$results = curlGet($url);
+	$url = "$uri/library/sections?includeStations=1&includeRelated=1&X-Plex-Token=$token";
+	$results = curlGet($url,['Accept: application/json']);
 	if ($results) {
-		$container = new SimpleXMLElement($results);
+		$container = json_decode($results,true)['MediaContainer']['Directory'] ?? false;
+		write_log("Dur hur hur: ".json_encode($container));
 		if ($container) {
-			foreach ($container->children() as $section) {
+			foreach ($container as $section) {
 				array_push($sections, [
 					"id" => (string)$section['key'],
 					"uuid" => (string)$section['uuid'],
 					"type" => (string)$section['type']
 				]);
+				if ($section['Stations'] ?? false) $stations = $section['Stations'];
 			}
 		} else {
 			write_log("Error retrieving section data!", "ERROR");
 		}
 	}
+
 	if (count($sections)) {
 		writeSession('sections', $sections);
 	}
-	return $sections;
+
+	if ($stations) {
+		$items = [];
+		foreach($stations['Metadata'] as $station) {
+			$items[] = [
+				'title' => $station['title'],
+				'type' => $station['type'],
+				'key' => $station['key'],
+				'thumb' => transcodeImage($stations['thumb'],$server),
+				'art' => transcodeImage($stations['art'],$server)
+			];
+		}
+		$stations = $items;
+	}
+	return ['Sections'=>$sections, 'Stations'=>$stations];
 }
 
 function fetchTransientToken($host = false) {
@@ -2121,6 +2183,141 @@ function sendCommandCast($cmd, $value = false) {
 	return $return;
 }
 
+function sendCommandRecord($command) {
+	write_log("Function fired.");
+	$server = findDevice(false,false,'Dvr');
+	$ip = $server['Uri'];
+	$token = $server['Token'];
+	$key = $server['Key'];
+	$query = urlencode($command);
+	$url = "$ip/tv.plex.providers.epg.onconnect:${key}/hubs/search?sectionId=&query=$query&X-Plex-Token=$token";
+	write_log("Url is: ".$url);
+	$data = curlGet($url);
+	$results = [];
+	if ($data) {
+		$container = (new JsonXmlElement($data))->asArray()['MediaContainer']['Hub'] ?? false;
+		write_log("Result is: " . json_encode($container));
+		if ($container) foreach ($container as $hub){
+			write_log("Hubba hubba: ".json_encode($hub));
+			$type = $hub['type'];
+			if (($type == 'show') || ($type == 'movie')) {
+				$items = $hub['Directory'];
+				foreach($items as $item) {
+					$return = [
+						'title' => $item['title'],
+						'year' => $item['year'],
+						'type' => $item['type'],
+						'thumb' => $item['thumb'],
+						'art' => $item['thumb'],
+						'addedAt' => $item['addedAt'] ?? false,
+						'guid' => $item['guid']
+					];
+
+					array_push($results, $return);
+				}
+			}
+		}
+	}
+
+	if (count($results) === 1) {
+		$guid = $results[0]['guid'];
+		$title = $results[0]['title'];
+		$year = $results[0]['year'];
+		$thumb = $results[0]['thumb'];
+		$sectionId = $results[0]['librarySectionID'];
+		if ($results[0]['addedAt']) {
+			write_log("This item exists already.");
+			$template = false;
+		} else {
+			write_log("We have but one result...adding $title.");
+			$url = "$ip/media/subscriptions/template?guid=$guid&X-Plex-Token=$token";
+			$template = curlGet($url);
+		}
+		if ($template) {
+			$container = (new JsonXmlElement($template))->asArray();
+			write_log("Template container: ".json_encode($container));
+			$hintString = $container['MediaContainer']['SubscriptionTemplate'][0]['MediaSubscription'][0]['parameters'];
+			$hintItems = explode("&",$hintString);
+			//$paramString = urlencode($paramString);
+			write_log("hint string is '$hintString'");
+			$hints = [];
+			$hintParams = [];
+			foreach($hintItems as $hint) {
+				$hint = explode("=",$hint);
+				$key = $hint[0];
+				if (preg_match("/params/",$key)) {
+					$key = str_replace(["params", "[", "]"], "", $key);
+					$hintParams[$key] = urldecode($hint[1]);
+				} else {
+					$key = str_replace(["hints", "[", "]"], "", $key);
+					$hints[$key] = urldecode($hint[1]);
+				}
+			}
+
+			$plexSettings = $container['MediaContainer']['SubscriptionTemplate'][0]['MediaSubscription'][0]['Setting'];
+			$plexPrefs = [];
+			foreach ($plexSettings as $setting) {
+				$plexPrefs[$setting['id']] = $setting['value'];
+			}
+			$appPrefs = getSessionData('plexDvr',true);
+			if (isset($appPrefs['newAirings'])) {
+				$appPrefs['onlyNewAirings'] = $appPrefs['newAirings'];
+				unset($appPrefs['newAirings']);
+			}
+			if (isset($appPrefs['replaceLower'])) {
+				$appPrefs['replaceLowerQuality'] = $appPrefs['replaceLower'];
+				unset($appPrefs['replaceLower']);
+			}
+			if (isset($appPrefs['resolution'])) {
+				$appPrefs['minVideoQuality'] = $appPrefs['resolution'];
+				unset($appPrefs['resolution']);
+			}
+			write_log("App Prefs: ".json_encode($appPrefs));
+			write_log("Plex Prefs: ".json_encode($plexPrefs));
+			$prefs = array_merge($plexPrefs,$appPrefs);
+			unset($prefs['id']);
+			unset($prefs['dvrEnabled']);
+			$params['prefs'] = $prefs;
+			if (count($hints)) $params['hints'] = $hints;
+			if (count($hintParams)) $params['params'] = $hintParams;
+			$params['targetLibrarySectionID']= $sectionId;
+			$params['targetSectionLocationID']= $sectionId;
+			$params['includeGrabs'] = 1;
+			$params['type'] = $sectionId;
+			$params = array_merge($params,plexHeaders($server));
+			write_log("params: ".json_encode($params));
+			$paramString = http_build_query($params);
+			$url="$ip/media/subscriptions?$paramString";
+			$result = curlPost($url);
+			write_log("Add result: ".json_encode($result));
+			if ($result) {
+				$results = [];
+				$container = (new JsonXmlElement($result))->asArray();
+				$subscriptions = $container['MediaContainer']['MediaSubscription'] ?? false;
+				write_log("Container: ".json_encode($container));
+				foreach ($subscriptions as $show) {
+					$added = $show['Directory'][0]['title'];
+					if (cleanCommandString($title) == cleanCommandString($added)) {
+						write_log("Show added to record successfully: ".json_encode($show));
+						$return = [
+							'title'=>$title,
+							'year'=>$year,
+							'type'=>$show['Directory'][0]['type'],
+							'thumb'=>$thumb,
+							'art'=>$thumb,
+							'addedAt'=>"NOW"
+						];
+						array_push($results,$return);
+					}
+				}
+			}
+
+		}
+	}
+
+	return $results;
+}
+
 function sendFallback() {
 	write_log("Function fired!!", "WARN");
 	write_log("Session vars: " . getSessionData());
@@ -2220,7 +2417,7 @@ function sendMedia($media) {
 			$headers = clientHeaders($parent, $client);
 			$playUrl .= headerQuery($headers);
 			write_log('Playback URL is ' . protectURL($playUrl));
-			$result = curlGet($playUrl);
+			$result = curlGet($playUrl,false,6);
 			write_log("Result: $result");
 			$status = (((preg_match("/200/", $result) && (preg_match("/OK/", $result)))) ? 'success' : 'error');
 		}
@@ -2271,6 +2468,10 @@ function fetchPlayItem($media, $shuffle = false) {
 				$item['summary'] = $media['summary'];
 				$item['type'] = $type;
 				write_log("Queued item: " . json_encode($item));
+				break;
+			case 'queue':
+				$item = mapDataPlex($media['MediaContainer']['Video'][0]);
+				$item['queueId'] = $media['playQueueID'];
 				break;
 			default:
 				$item = false;
@@ -2325,25 +2526,27 @@ function sendSpeechAssistant($speech, $contextName, $cards, $waitForResponse, $s
 				write_log("Not displaying card for $cardTitle because image is not https.", "INFO");
 			}
 		} else {
-			if ($count >= 2 && $count <= 29) {
+			if ($count >= 2 && $count <= 30) {
 				$carousel = [];
+				$titles = [];
 				foreach ($cards as $card) {
-					$cardTitle = $card['title'];
+					$cardTitle = substr($card['title'], 0, 50);
 					$item = [];
 					$img = $card['image']['url'];
 					if (!preg_match("/http/", $img)) $img = proxyImage($img);
-					if (preg_match("/https/", $img)) {
+					if (preg_match("/https/", $img) && !arrayContains($cardTitle,$titles)) {
 						$item['image']['url'] = $img;
 						$item['image']['accessibilityText'] = $card['title'];
-						$item['title'] = substr($cardTitle, 0, 50);
+						$item['title'] = $cardTitle;
 						$item['description'] = $card['description'];
 						$item['optionInfo']['key'] = "play " . ($card['key'] ?? $cardTitle);
 						array_push($carousel, $item);
+						array_push($titles,$cardTitle);
 					} else {
 						write_log("Not displaying card for $cardTitle because image is not https.", "INFO");
 					}
 				}
-				if (count($carousel)) {
+				if (count($carousel) >=2 && count($carousel) <=30) {
 					$data['google']['systemIntent']['intent'] = 'actions.intent.OPTION';
 					$data['google']['systemIntent']['data']['@type'] = 'type.googleapis.com/google.actions.v2.OptionValueSpec';
 					$data['google']['systemIntent']['data']['listSelect']['items'] = $carousel;
@@ -2357,7 +2560,7 @@ function sendSpeechAssistant($speech, $contextName, $cards, $waitForResponse, $s
 	if (is_array($suggestions)) {
 		$sugs = [];
 		foreach ($suggestions as $suggestion) {
-			array_push($sugs, ["title" => $suggestion]);
+			if (trim($suggestion) and strlen($suggestion) <= 25) array_push($sugs, ["title" => $suggestion]);
 		}
 		if (count($sugs)) $data['google']['richResponse']['suggestions'] = $sugs;
 	}
@@ -2760,6 +2963,7 @@ function mergeData($search, $media, $meta) {
 
 	$vars['media'] = $media;
 	$vars['meta'] = $meta;
+	$castMedia = [];
 	if ($artist && $album && count($meta)) {
 		$albums = [];
 		foreach ($meta as $item) {
@@ -2797,10 +3001,11 @@ function mergeData($search, $media, $meta) {
 				$artist = $data['artist'] ?? 'asdf';
 				$artistMatch = ($search['artist'] !== $artist);
 			} else $artistMatch = true;
-			if ($yearMatch && $typeMatch && $artistMatch) {
+			$validMedia = ($section !== 'media' || isset($item['key']));
+			if ($yearMatch && $typeMatch && $artistMatch && $validMedia) {
 				if (isset($search['offset'])) $item['viewOffset'] = $search['offset'];
 				if (compareTitles($itemTitle, $searchTitle, false, true)) {
-					write_log("Pushing an exact match: $itemTitle");
+					write_log("Pushing an exact match named '$itemTitle': ".json_encode($item));
 					$exact = $exact ? $exact : [];
 					$exact[] = $item;
 				} else if (!is_array($exact) && compareTitles($itemTitle, $searchTitle)) {
@@ -2809,8 +3014,20 @@ function mergeData($search, $media, $meta) {
 					$fuzzy[] = $item;
 				}
 			}
+			if ($section === 'media') {
+				$reason = $item['reason'] ?? 'foo';
+				write_log("Reason is $reason");
+				if ($reason === 'actor') {
+					write_log("This is an actor search, do a random thing.");
+					array_push($castMedia,$item);
+				}
+			}
 		}
 		$results["$section"] = ($exact ? $exact : ($fuzzy ? $fuzzy : []));
+	}
+	if (!count($results['media']) && count($castMedia)) {
+		write_log("Hey, this is a search by cast, or at least we're going to pretend as much.");
+		$results['media'] = [$castMedia[array_rand($castMedia)]];
 	}
 	$results['params'] = $search;
 	return $results;
@@ -2825,11 +3042,16 @@ function buildCards($cards) {
 	$returns = [];
 	foreach ($cards as $card) {
 		$title = $card['title'];
+		$year = $card['year'] ?? false;
+		if (is_array($year)) $year = $year[0];
+
 		switch ($card['type']) {
 			case 'episode':
-				$showName = $card['seriesTitle'] ?? $card['grandParentTitle'];
-				$title = $card['seriesTitle'] . " - $title";
-				$subTitle = "S" . $card['season'] . "E" . $card['episode'] . "(" . $card['year'] . ")";
+				$showName = $card['seriesTitle'] ?? $card['grandparentTitle'] ?? false;
+				if ($showName) $title = "$showName - $title";
+				$season = $card['season'] ?? $card['index'] ?? false;
+				$episode = $card['episode'] ?? $card['parentIndex'] ?? false;
+				$subTitle = ($season && $episode && $year) ? "S${season}E${episode} (${year})" : $card['summary'];
 				break;
 			case 'track':
 				$title .= " (" . $card['album'] . ")";
@@ -2839,10 +3061,10 @@ function buildCards($cards) {
 				$title = ($card['parentTitle'] ?? $card['artist']) . " - $title";
 				break;
 			case 'movie':
-				$year = $card['year'] ?? false;
 				if ($year) $title .= " ($year)";
 				break;
 		}
+
 		$subTitle = $subTitle ?? $card['tagline'] ?? $card['description'] ?? '';
 		$formattedText = $card['summary'] ?? $card['description'] ?? '';
 		$image = $card['art'] ?? $card['thumb'] ?? '';
@@ -3023,7 +3245,7 @@ function buildQueryMedia($params) {
 
 
 	$noPrompts = (isset($_GET['say']) && !isset($_GET['web']));
-	$action = $params['control'] ?? 'play';
+	$action = $params['control'] ?? $params['action'] ?? 'play';
 	write_log("Params here: " . json_encode($params));
 	write_log("Action is $action!!", "INFO");
 	if ($action == 'fetchMedia') {
@@ -3115,6 +3337,11 @@ function buildQueryMedia($params) {
 		$results['playback'] = $playResult ?? false;
 		write_log("PlayResult: " . json_encode($playResult));
 	}
+	if ($action == 'dvrMedia') {
+		$data = sendCommandRecord($params['request']);
+		write_log("Response from record command: ".json_encode($data));
+		$results['dvr'] = $data;
+	}
 
 	$results['params'] = $params;
 	write_log("Result: " . json_encode($results));
@@ -3193,13 +3420,14 @@ function buildSpeech($params, $results) {
 	write_log("Incoming: " . json_encode([$params, $results]));
 	$speech = "Tell dude to build me a speech string!";
 	$intent = $params['intent'];
+	write_log("Intent is $intent");
 	if ($intent == 'Fetch - yes') {
 		$intent = 'playMedia';
 		$params['control'] = 'fetchMedia';
 	}
+
 	if ($intent == 'playMedia') {
 		$speech = "Media query.";
-		$cards = [];
 		$wait = $params['wait'] ?? false;
 		write_log("Retrieved data: " . json_encode($results), "INFO");
 		$media = $results['media'];
@@ -3247,7 +3475,7 @@ function buildSpeech($params, $results) {
 							write_log("Multi speech...");
 							$speech = "Which one did you want?  ";
 							$noType = isset($params['type']);
-							$speech .= joinTitles($meta, "or", $noType);
+							$speech .= joinItems($meta, "or", $noType);
 						}
 					}
 					$mediaArray = $meta;
@@ -3255,8 +3483,11 @@ function buildSpeech($params, $results) {
 					$speech = buildSpeechNoResults($params);
 				}
 			}
-		} else {
-			write_log("Media array: " . json_encode($media), "INFO", false, true);
+		}
+
+		if ($params['control'] == 'play' || $params['control'] == 'playMedia') {
+
+			write_log("Media array for playback Command: " . json_encode($media), "INFO", false, true);
 			$mediaArray = $media;
 			switch (count($mediaArray)) {
 				case 0:
@@ -3276,26 +3507,77 @@ function buildSpeech($params, $results) {
 				default:
 					$speech = "Which one did you want? ";
 					$noType = isset($params['type']);
-					$speech .= joinTitles($media, "or", $noType);
+					$speech .= joinItems($media, "or", $noType);
 					$mediaArray = $media;
 					write_log("We found a bunch! " . count($media));
 					$wait = true;
 					$context = "playMedia-followup";
 			}
 		}
+
+		if ($params['control'] == 'dvrMedia') {
+			$added = $existing = false;
+			$dvr = $results['dvr'] ?? [];
+			write_log("Okay, now we build speech for a fetch Command.");
+			if (count($dvr)) {
+				foreach($dvr as $item) {
+					$title = $item['title'];
+					if ($item['addedAt'] ?? false) {
+						if ($item['addedAt'] === "NOW") {
+							$added = true;
+							$speech = "Okay, I've added $title the recording schedule.";
+							break;
+						} else {
+							$existing = true;
+							if (count($media)) {
+								foreach($media as $mediaItem) {
+									if ($mediaItem['title'] === $title) {
+										write_log("We have a match for existing media, replace and prompt to play.");
+										$speech = "It looks like $title is already set to record and in your library. Would you like to watch it now?";
+										$wait = true;
+										$mediaArray = [$mediaItem];
+										$context = "recordMedia.multipleResults";
+										break 2;
+									}
+								}
+							} else {
+								$title = ucfirst($title);
+								$speech = "$title is already set to record, but nothing has been recorded yet. Check back later.";
+								break;
+							}
+						}
+					}
+				}
+
+				if (!$added && !$existing) {
+					$speech = "Which one did you want? ". joinItems($dvr);
+					$mediaArray = $dvr;
+					writeSession("fallBackAction", 'record');
+					writeSession("fallBackMedia", $mediaArray);
+					$wait = true;
+				}
+
+			} else {
+				write_log("No results?");
+				$speech = buildSpeechNoResults($params);
+			}
+		}
 	}
+
 	if ($intent == 'controlMedia') {
 		write_log("Building a control query reply!");
 		$cmd = $params['controls'];
 		$params['result'] = $results;
 		$speech = buildSpeechCommand($cmd, $params);
 	}
+
 	if ($intent == 'fetchInfo') {
 		$media = $results['media'] ?? [];
 		$mediaArray = $media;
 		$speech = buildSpeechInfoQuery($params, $mediaArray);
 		writeSession('mediaArray', $media);
 	}
+
 	if ($intent == 'Media.multipleResults') {
 		$media = $results['media'];
 		$wait = false;
@@ -3311,10 +3593,12 @@ function buildSpeech($params, $results) {
 				$speech = "I'm still not sure which one you wanted.";
 		}
 	}
+
 	if ($intent == 'Default Welcome Intent') {
 		$speech = buildSpeechWelcome();
 		$wait = true;
 	}
+
 	if ($intent == 'helpRequest') {
 		$help = buildSpeechHelp();
 		$speech = $help[0];
@@ -3329,6 +3613,7 @@ function buildSpeech($params, $results) {
 
 		$wait = true;
 	}
+
 	$cards = buildCards($mediaArray);
 	write_log("Cards?: " . json_encode($cards));
 	#TODO: Add the output context here
@@ -3460,7 +3745,8 @@ function buildSpeechInfoQuery($params, $cards) {
 			$info = str_replace("<TYPE>", $type, $info);
 			$titles = [];
 			foreach ($cards as $card) array_push($titles, $card['title']);
-			$speech = $info . " " . joinStrings($titles);
+			$speech = $info . " " . joinItems($cards,"and", true);
+			$speech .= " " . lang("speechReturnInfoTail");
 	}
 	return $speech;
 }
@@ -3563,9 +3849,15 @@ function buildSpeechHelp() {
 	if ($movie) array_push($helpSuggestions, $movieSuggestions[array_rand($movieSuggestions)]);
 	if ($show) array_push($helpSuggestions, $showSuggestions[array_rand($showSuggestions)]);
 	if ($music) array_push($helpSuggestions, $musicSuggestions[array_rand($musicSuggestions)]);
-	if ($dvr) array_push($helpSuggestions, $dvrSuggestions['array_rand($dvrSuggestions']);
-	$helpSuggestions[] = "Cancel";
-	$suggestions = $helpSuggestions;
+	if ($dvr) array_push($helpSuggestions, $dvrSuggestions[array_rand($dvrSuggestions)]);
+	$helpStrings = $suggestions = [];
+	foreach ($helpSuggestions as $string) {
+		array_push($helpStrings, "'$string'");
+		if (strlen($string) <= 25) array_push($suggestions, $string);
+	}
+	$suggestionString = joinStrings($helpStrings,"or");
+	$speech .= " $suggestionString";
+
 	return [
 		$speech,
 		$suggestions
