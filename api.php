@@ -416,7 +416,7 @@ function fetchMediaInfo(Array $params) {
 	}
 
 	$request = $params['request'] ?? $params['music-artist'] ?? $params['movie-title'] ?? false;
-	$year = $params['year']['amount'] ?? false;
+	$year = $params['year']['amount'] ?? $params['age'] ?? false;
 	$artist = $params['music-artist'] ?? false;
 	if (!$artist) {
 		$data = explode(" by ", $params['resolved']);
@@ -535,6 +535,7 @@ function fetchMediaInfo(Array $params) {
 			return $result;
 		}
 	}
+
 	if ($podCast) {
 		write_log("Podcast request.");
 		$result = fetchPodCast($data);
@@ -547,6 +548,7 @@ function fetchMediaInfo(Array $params) {
 	if ($artist) $url .= "&artist=$artist";
 	if ($album) $url .= "&album=$album";
 	if ($subType) $url .= "&type=$subType";
+	if ($year) $url .= "&year=$year";
 
 	if ($request) {
 		$searches['meta'] = $url;
@@ -690,6 +692,21 @@ function fetchMediaInfo(Array $params) {
 	}
 
 	if (!$castMember && !$queued) {
+		if ($action == 'fetchMedia' && !isset($data['type'])) {
+			$fetchers = listFetchers();
+			$types = ['music'=>['track,album,artist'], 'movie'=>['movie'], 'show'=>['show','season','episode']];
+			$providers = ['music'=>['headphones','lidarr'], 'movie'=>['couch','radarr','watcher'],'show'=>['sonarr','watcher']];
+			$type = [];
+			foreach($providers as $section=>$items) {
+				foreach($items as $check) {
+					if (in_array($check, $fetchers)) {
+						foreach ($types[$section] as $item) array_push($type, $item);
+					}
+				}
+			}
+			write_log("Possible types to fetch: ".json_encode($type));
+			$data['type'] = $type;
+		}
 		$matched = mergeData($data, $media, $meta);
 	} else {
 		$matched = $result;
@@ -2934,10 +2951,8 @@ function mergeData($search, $media, $meta) {
 	$results = [];
 	$artist = $search['artist'] ?? false;
 	$album = $search['album'] ?? false;
-	$vars = [
-		'media' => $media,
-		'meta' => $meta
-	];
+	$intent = $search['intent'];
+
 	$newMedia = [];
 	if ($media && $meta) {
 		foreach ($media as $item) {
@@ -2971,8 +2986,11 @@ function mergeData($search, $media, $meta) {
 		$media = $newMedia;
 	}
 
-	$vars['media'] = $media;
-	$vars['meta'] = $meta;
+	$vars = [
+		'a_meta' => $meta,
+		'media' => $media
+
+	];
 	$castMedia = [];
 	if ($artist && $album && count($meta)) {
 		$albums = [];
@@ -2989,18 +3007,35 @@ function mergeData($search, $media, $meta) {
 			$search['request'] = $search['title'];
 		}
 	}
+
+	$metaExact = false;
 	foreach ($vars as $section => $data) {
+		if ($section === "a_meta") $section = 'meta';
+		write_log("Processing section $section","ALERT");
 		$exact = $fuzzy = false;
 		foreach ($data as $item) {
 			$typeMatch = $yearMatch = true;
 			$searchTitle = $search['request'];
 			$itemTitle = $item['title'];
-			if (isset($search['type'])) {
-				$types = explode(".", $item['type']);
-				$itemTypes = explode(".", $search['type']);
-				$mt = $types[1] ?? $types[0] ?? $item['type'];
-				$it = $itemTypes[1] ?? $itemTypes[0] ?? $search['type'];
-				$typeMatch = ($mt == $it || $it == 'music' || $it == 'episode');
+			$searchTypes = $search['type'] ?? false;
+			if ($searchTypes) {
+				$typeMatch = false;
+				if (is_array($searchTypes)) {
+					foreach($searchTypes as $searchType) {
+						$types = explode(".", $item['type']);
+						$itemTypes = explode(".", $searchType);
+						$mt = $types[1] ?? $types[0] ?? $item['type'];
+						$it = $itemTypes[1] ?? $itemTypes[0];
+						if ($mt == $it) $typeMatch = true;
+					}
+				} else {
+					$searchType = $searchTypes;
+					$types = explode(".", $item['type']);
+					$itemTypes = explode(".", $searchType);
+					$mt = $types[1] ?? $types[0] ?? $item['type'];
+					$it = $itemTypes[1] ?? $itemTypes[0];
+					if ($mt == $it) $typeMatch = true;
+				}
 			}
 			if (isset($search['year']) && isset($item['year'])) {
 				$searchYear = trim($search['year']);
@@ -3015,22 +3050,34 @@ function mergeData($search, $media, $meta) {
 			if ($yearMatch && $typeMatch && $artistMatch && $validMedia) {
 				if (isset($search['offset'])) $item['viewOffset'] = $search['offset'];
 				if (compareTitles($itemTitle, $searchTitle, false, true)) {
+					if (!is_array($exact)) $exact = [];
 					write_log("Pushing an exact match named '$itemTitle': ".json_encode($item));
-					$exact = $exact ? $exact : [];
-					$exact[] = $item;
+					array_push($exact,$item);
+					$exCount = count($exact);
+					write_log("We have $exCount items in exact array.");
 				} else if (!is_array($exact) && compareTitles($itemTitle, $searchTitle)) {
 					write_log("Pushing a fuzzy match: $itemTitle");
-					$fuzzy = $fuzzy ? $fuzzy : [];
-					$fuzzy[] = $item;
+					if (!is_array($fuzzy)) $fuzzy = [];
+					array_push($fuzzy,$item);
 				}
 			}
 			if ($section === 'media') {
 				$reason = $item['reason'] ?? 'foo';
-				write_log("Reason is $reason");
 				if ($reason === 'actor') {
 					write_log("This is an actor search, do a random thing.");
 					array_push($castMedia,$item);
 				}
+			}
+		}
+		if ($exact) {
+			write_log("Using exact results for $section section");
+			$metaExact = ($section==='meta' && $exact);
+		} else {
+			if ($section==='media' && $metaExact && $intent==='fetchMedia') {
+				write_log("Dumping results because of a fetch command and matching meta");
+				$fuzzy = [];
+			} else {
+				write_log("Using fuzzy results for $section section.");
 			}
 		}
 		$results["$section"] = ($exact ? $exact : ($fuzzy ? $fuzzy : []));
@@ -3218,7 +3265,7 @@ function buildQueryMedia($params) {
 	$media = $results['media'];
 	$meta = $results['meta'];
 	$lastCheck = [];
-	write_log("We have " . count($media) . " items.");
+	write_log("We have " . count($media) . " media items and ". count($meta). " meta items.");
 	if (count($media) >= 2) {
 		write_log("We have " . count($media) . " items, checking for duplicates...", "INFO");
 		foreach ($media as $item) {
@@ -3231,7 +3278,7 @@ function buildQueryMedia($params) {
 				$itemId = $item['tmdbId'] ?? $item['tadbId'] ?? 'item';
 				$checkId = $check['tmdbId'] ?? $check['tadbId'] ?? 'check';
 				$idMatch = ($itemId === $checkId);
-				write_log("Item $itemId check $checkId match $idMatch titlematch $titleMatch");
+				//write_log("Item $itemId check $checkId match $idMatch titlematch $titleMatch");
 				if ($titleMatch && $yearMatch && ($idMatch || $typeMatch)) {
 					$preferredId = $_SESSION['plexServerId'];
 					if ($check['source'] == $preferredId) {
@@ -3253,31 +3300,26 @@ function buildQueryMedia($params) {
 		write_log("We now have " . count($media) . " items.");
 	}
 
-
 	$noPrompts = (isset($_GET['say']) && !isset($_GET['web']));
 	$action = $params['control'] ?? $params['action'] ?? 'play';
 	write_log("Params here: " . json_encode($params));
 	write_log("Action is $action!!", "INFO");
 	if ($action == 'fetchMedia') {
 		write_log("We have a fetch command. GET SOME.");
-		$fetch = true;
-		$dataArray = $meta;
-		if (count($media) != 0) {
-			write_log("Matching media found for fetch request, prompting or playing...");
-			#TODO: Trigger bg scan of fetchers for data here.
-			$fetch = !$noPrompts;
-			if ($fetch) $dataArray = $media;
-		}
 
-		if ($fetch) {
-			write_log("Fetching, pre-fetcher result: " . json_encode($dataArray));
-			if (!count($dataArray)) {
-				write_log("No results found.", "WARN");
-				// No media, yell at the user.
-			} else {
-				if (count($dataArray) == 1 || $noPrompts) {
-					write_log("We have an appropriate ammount...or not prompts.");
-					$fetch = $dataArray[0];
+		if (count($media) === 0 && count($meta)) {
+			write_log("Fetching, pre-fetcher result: " . json_encode($meta));
+
+
+				if (count($meta) >= 2) {
+					// Ask which one to download
+					write_log("Multiple search results found, need moar info.", "INFO");
+					$results['fetch'] = "MULTI";
+					writeSession("fallBackAction", 'fetchMedia');
+					writeSession("fallBackMedia", $meta[0]);
+				} else {
+					write_log("We have one meta result, attempting to fetch.");
+					$fetch = $meta[0];
 					$type = $fetch['type'];
 					$id = ($type == 'show.episode') ? $fetch['tvdbId'] ?? false : false;
 					$fetchers = $matched = [];
@@ -3307,19 +3349,12 @@ function buildQueryMedia($params) {
 						$fetchResults = downloadMedia($fetch, $fetchers);
 						write_log("Fetch Results: " . json_encode($fetchResults));
 					}
-					$result['fetch'] = ['fetched' => $fetchResults, 'existing' => array_unique($existing)];
-
-				} else {
-					// Ask which one to download
-					write_log("Multiple search results found, need moar info.", "INFO");
-					$result['fetch'] = "MULTI";
-					writeSession("fallBackAction", 'fetch');
-					writeSession("fallBackMedia", $dataArray[0]);
+					$results['fetch'] = ['fetched' => $fetchResults, 'existing' => array_unique($existing)];
 				}
-			}
-		}
 
+		}
 	}
+
 	if ($action == 'play' || $action == 'playMedia') {
 		$shuffle = $params['shuffle'];
 		$playItem = false;
@@ -3429,6 +3464,10 @@ function buildSpeech($params, $results) {
 	$context = "end";
 	write_log("Incoming: " . json_encode([$params, $results]));
 	$speech = "Tell dude to build me a speech string!";
+	$wait = $params['wait'] ?? false;
+	write_log("Retrieved data: " . json_encode($results), "INFO");
+	$media = $results['media'] ?? [];
+	$meta = $results['meta'] ?? [];
 	$intent = $params['intent'];
 	write_log("Intent is $intent");
 	if ($intent == 'Fetch - yes') {
@@ -3437,63 +3476,8 @@ function buildSpeech($params, $results) {
 	}
 
 	if ($intent == 'playMedia') {
-		$speech = "Media query.";
-		$wait = $params['wait'] ?? false;
-		write_log("Retrieved data: " . json_encode($results), "INFO");
-		$media = $results['media'];
-		$meta = $results['meta'];
+
 		$playback = false;
-		if ($params['control'] === 'fetchMedia') {
-			#TODO: Add a param to download stuff even if someone else has it already
-			$prompt = false;
-			if (count($media)) {
-				foreach ($media as $item) {
-					$server = $item['parent'] ?? $item['source'] ?? false;
-					$server = $server ? findDevice('Id', $server, 'Server') : $server;
-					write_log("Server for media: " . json_encode($server));
-					if ($server['Owned'] === "1") {
-						write_log("Media already exists on a server owned by the user.");
-						$prompt = true;
-						break;
-					}
-				}
-			}
-			if ($prompt) {
-				$request = $media[0]['title'];
-				$speech = "It looks like '$request' is already in your collection. Would you like me to play it?";
-				$wait = true;
-				$mediaArray = $media;
-				writeSessionArray([
-					'mediaItems' => $media,
-					'metaItems' => $meta
-				]);
-			} else {
-				write_log("Here we are...");
-				$data = $results['fetch'] ?? false;
-				if ($data) {
-					write_log("We have results from a download!");
-					if (is_array($data)) {
-						write_log("Fetch array: " . json_encode($results['fetch']));
-						$fetched = $results['fetch']['fetched'] ?? [];
-						$existing = $results['fetch']['existing'] ?? [];
-						if (count($fetched) || count($existing)) {
-							$speech = buildSpeechFetch($meta[0], $fetched, $existing);
-						}
-					} else {
-						write_log("Fetch wasn't run for some reason...");
-						if ($data == "MULTI") {
-							write_log("Multi speech...");
-							$speech = "Which one did you want?  ";
-							$noType = isset($params['type']);
-							$speech .= joinItems($meta, "or", $noType);
-						}
-					}
-					$mediaArray = $meta;
-				} else {
-					$speech = buildSpeechNoResults($params);
-				}
-			}
-		}
 
 		if ($params['control'] == 'play' || $params['control'] == 'playMedia') {
 
@@ -3569,6 +3553,54 @@ function buildSpeech($params, $results) {
 
 			} else {
 				write_log("No results?");
+				$speech = buildSpeechNoResults($params);
+			}
+		}
+	}
+
+	if ($intent === 'fetchMedia') {
+		#TODO: Add a param to download stuff even if someone else has it already
+		$prompt = false;
+		if (count($media)) {
+			foreach ($media as $item) {
+				$server = $item['parent'] ?? $item['source'] ?? false;
+				$server = $server ? findDevice('Id', $server, 'Server') : $server;
+				write_log("Server for media: " . json_encode($server));
+				if ($server['Owned'] === "1") {
+					write_log("Media already exists on a server owned by the user.");
+					$request = $media[0]['title'];
+					$speech = "It looks like '$request' is already in your collection. Would you like me to play it?";
+					$wait = true;
+					$mediaArray = $media;
+					writeSessionArray([
+						'mediaItems' => $media,
+						'metaItems' => $meta
+					]);
+				}
+			}
+		} else {
+			write_log("Here we are...");
+			$data = $results['fetch'] ?? false;
+			if ($data) {
+				write_log("We have results from a download!");
+				if (is_array($data)) {
+					write_log("Fetch array: " . json_encode($results['fetch']));
+					$fetched = $results['fetch']['fetched'] ?? [];
+					$existing = $results['fetch']['existing'] ?? [];
+					if (count($fetched) || count($existing)) {
+						$speech = buildSpeechFetch($meta[0], $fetched, $existing);
+					}
+				} else {
+					write_log("Fetch wasn't run for some reason...");
+					if ($data == "MULTI") {
+						write_log("Multi speech...");
+						$speech = "Which one did you want?  ";
+						$noType = isset($params['type']);
+						$speech .= joinItems($meta, "or", $noType);
+					}
+				}
+				$mediaArray = $meta;
+			} else {
 				$speech = buildSpeechNoResults($params);
 			}
 		}
