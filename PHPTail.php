@@ -215,6 +215,19 @@ class PHPTail {
 	right: 15px;
 	position: absolute;
 }
+
+.navbar-default .navbar-brand {
+    color: #cecece !important;
+}
+.navbar-brand, .navbar-nav>li>a {
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.25) !important;
+}
+.navbar-default {
+    background-image: -webkit-linear-gradient(top,#545454 0,#000000 100%)!important;
+    background-image: -o-linear-gradient(top,#545454 0,#000000 100%)!important;
+    background-image: -webkit-gradient(linear,left top,left bottom,from(#545454),to(#000000))!important;
+    background-image: linear-gradient(to bottom,#545454 0,#000000 100%)!important;
+}
 .float {
     background: white;
     border-bottom: 1px solid black;
@@ -227,36 +240,39 @@ class PHPTail {
 .jsonParse {
 	border: none;
 	background: transparent;
-	color:blue;
+	color: #3787ff;
 	display: inline-block;
 }
 .contents {
     margin-top: 30px;
 }
 .WARN {
-	color:black;
-	background-color:yellow!important;
+    color: #cecece;
+	background-color: #ca9000 !important;
 }
+
 .DEBUG {
-	color: #007900;
+	color: #8dc3ff;
 }
 
 .ALERT {
-    color: #ffffff;
-    background-color: black !important;
+    color: #000000;
+    background-color: #ffffff !important;
 }
 
 .ERROR {
-	color:red;
+	background-color: #ab0006 !important;
+    color: #cecece;
 }
 .INFO {
-	color:blue;
+	background-color: #00229f !important;
+    color: #cecece;
 }
 .grey {
-	background-color: rgb(223, 223, 223);
+	background-color: rgb(87, 87, 87);
 }
 .white {
-	background-color:white;
+	background-color: #000000;
 }
 .grey, .white {
 	width: 100%;
