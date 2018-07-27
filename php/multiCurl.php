@@ -41,7 +41,7 @@ class multiCurl
             $ch[$i] = curl_init($url);
             curl_setopt($ch[$i], CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch[$i],CURLOPT_CONNECTTIMEOUT,$timeout);
-            //curl_setopt($ch[$i],CURLOPT_TIMEOUT,$timeout);
+            curl_setopt($ch[$i],CURLOPT_TIMEOUT,$timeout);
             if ($post) {
 				curl_setopt($ch[$i], CURLOPT_POST, count($post));
 				curl_setopt($ch[$i], CURLOPT_POSTFIELDS, $post);
