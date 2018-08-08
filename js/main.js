@@ -6,7 +6,7 @@ var apiToken, appName, bgs, bgWrap, cv, token, newToken, deviceID, resultDuratio
 var cleanLogs=true, couchEnabled=false, lidarrEnabled=false, ombiEnabled=false, sickEnabled=false, sonarrEnabled=false, radarrEnabled=false,
 	headphonesEnabled=false, watcherEnabled=false, dvrEnabled=false, hook=false, hookPlay=false, polling=false, pollcount=false,
 	hookPause=false, hookStop=false, hookCustom=false, hookFetch=false, hookSplit = false, autoUpdate = false, masterUser = false,
-	noNewUsers=false, notifyUpdate=false, waiting=false, isWebApp="false";
+	noNewUsers=false, notifyUpdate=false, waiting=false;
 
 var forceUpdate = true;
 
@@ -168,14 +168,10 @@ function buildUiDeferred() {
 
 	$(".remove").remove();
 
-	if (isWebApp === "false") {
-        setInterval(function () {
-            forceUpdate = false;
-            updateStatus();
-        }, 10000);
-    } else {
-		console.log("Update polling is temporarily disabled for the web application.");
-	}
+	setInterval(function () {
+		forceUpdate = false;
+		updateStatus();
+	}, 5000);
 
 	setInterval(function () {
 		setBackground();
@@ -1373,11 +1369,10 @@ function clearLoadBar() {
 $(window).on("load",function () {
 	$('body').addClass('loaded');
 	var uiData = $('#uiData').data('default');
-    isWebApp = $('#isWebApp').data('enable');
-	console.log("isWebappValue is " + isWebApp);
+
 	if ('requestIdleCallback' in window) {
+		forceUpdate = uiData;
 		requestIdleCallback(updateStatus);
-        forceUpdate = uiData;
 	} else {
 		setTimeout(updateStatus, 1);
 	}

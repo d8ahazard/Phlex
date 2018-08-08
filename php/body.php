@@ -75,7 +75,6 @@ function makeMetaTags() {
     $uiData = json_encode(getUiData(true));
     $uiData = str_replace("'","`",$uiData);
     $dvr = ($_SESSION['plexDvrId'] ? "true" : "");
-    $isWebApp = ($_SESSION['webApp'] ?? false) ? "true" : "false";
     $tags .= '<meta id="usernameData" data="' . $_SESSION['plexUserName'] . '"/>' . PHP_EOL .
         '<meta id="updateAvailable" data="' . $_SESSION['updateAvailable'] . '"/>' . PHP_EOL .
         '<meta id="deviceID" data="' . $_SESSION['deviceID'] . '"/>' . PHP_EOL .
@@ -84,7 +83,6 @@ function makeMetaTags() {
         '<meta id="clientURI" data="' . $client['Uri'] . '"/>' . PHP_EOL .
         '<meta id="clientName" data="' . $client['Name'] . '"/>' . PHP_EOL .
         '<meta id="plexDvr" data-enable="' . $dvr . '"/>' . PHP_EOL .
-	    '<meta id="isWebApp" data-enable="' . $isWebApp . '"/>' . PHP_EOL .
         '<div id="uiData" data-default=\''.$uiData.'\' class="hidden"></div>' . PHP_EOL .
         '<meta id="rez" value="' . $_SESSION['plexDvrResolution'] . '"/>' . PHP_EOL;
 
