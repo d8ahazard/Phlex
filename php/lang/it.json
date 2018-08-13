@@ -1,61 +1,60 @@
 {
-    "btnReadmePrompt": "Mostra readme",
+    "btnReadmePrompt": "Mostra il readme",
     "cardGreetingText": "Benvenuto su Flex TV!",
-    "cardReadmeButton": "Mostra readme",
+    "cardReadmeButton": "Mostra il readme",
     "cardReadmeTitle": "Benvenuto!",
     "commandSynonymsArray": {
         "play": [
-            "curriculum vitae"
+            "riproduci",
+            "play"
         ],
         "skip": [
-            "saltare",
-            "partire"
+            "salta"
         ],
         "step": [
-            "ricercare"
+            "passa"
         ],
         "forward": [
             "avanti"
         ],
         "back": [
-            "arretrato"
+            "indietro"
         ],
         "seekBack": [
-            "riavvolgere"
+            "riavvolgi"
         ],
         "seek": [
-            "veloce"
+            "cerca"
         ],
         "skipNext": [
-            "saltare in avanti"
+            "salta in avanti"
         ],
         "skipPrevious": [
             "salta indietro"
         ],
         "stepForward": [
-            "avanti veloce",
-            "cercare in avanti"
+            "avanti veloce"
         ],
         "stepBack": [
-            "cercare indietro"
+            "torna indietro"
         ],
         "volume up": [
-            "aumentare di volume"
+            "alza volume"
         ],
         "volume down": [
-            "volume basso"
+            "abbassa volume"
         ]
     },
     "errorHelpSuggestionsArray": [
         "Di seguito sono riportati alcuni suggerimenti che puoi provare.",
         "Ecco alcuni possibili comandi.",
-        "Certo, perché non provi uno di questi?"
+        "Certo, tu puoi provare qualcuno di questi?"
     ],
     "errorHelpCommandsArray": [
-        "Cosa c&#39;è sul ponte?",
+        "Cosa c&#39;è nella mia libreria?",
         "Quali nuovi film ho?",
         "Metti in pausa la riproduzione.",
-        "Gioca a Batman Begins."
+        "Riproduci Batman Begins."
     ],
     "fetchSynonymsArray": {
         "season": [
@@ -65,27 +64,26 @@
             "episodio"
         ],
         "movie": [
-            "film, cinema"
+            "film", 
+            "cinema"
         ],
         "show": [
-            "mostrare",
+            "show",
             "serie"
         ],
         "latest": [
             "più recente",
             "nuovo",
-            "più recente",
-            "piu recente",
             "l&#39;ultimo",
             "il più recente"
         ]
     },
     "javaStrings": [
-        "Come posso aiutare?",
+        "Come ti posso aiutare?",
         "Cosa posso fare per lei?",
         "Tu hai detto:",
         "La mia risposta:",
-        "analizza i dispositivi"
+        "Analizza i dispositivi"
     ],
     "parseStripArray": [
         "di",
@@ -123,14 +121,14 @@
         "anno",
         "attore",
         "direttore",
-        "dirette",
+        "diretto",
         "starring",
         "con",
         "con",
         "fatto",
         "creato",
         "rilasciato",
-        "filmata"
+        "ripreso"
     ],
     "parseNumberArray": [
         "primo",
@@ -148,7 +146,7 @@
     "speechAiringsAfternoon": "Questo pomeriggio,",
     "speechAiringsErrors": [
         "Non ho niente sulla lista per",
-        "Non hai programmato nulla"
+        "Non hai nulla programmato per"
     ],
     "speechAiringsMids": [
         "ho trovato",
@@ -156,20 +154,20 @@
         "hai"
     ],
     "speechAiringsOn": "Sopra",
-    "speechAiringsReturn": "Ecco un elenco di registrazioni programmate:",
+    "speechAiringsReturn": "Ecco le tue registrazioni programmate:",
     "speechAiringsToday": "Oggi",
-    "speechAiringsTomorrow": "Domani,",
-    "speechAiringsTonight": "Stasera,",
-    "speechAiringsWeekend": "Questo fine settimana,",
+    "speechAiringsTomorrow": "Domani, ",
+    "speechAiringsTonight": "Stasera, ",
+    "speechAiringsWeekend": "Questo fine settimana, ",
     "speechAiringTails": [
-        "in arrivo.",
-        "sul programma.",
-        "impostato per registrare."
+        " in arrivo.",
+        " in programma.",
+        " impostato per registrare."
     ],
-    "speechBy": "di",
+    "speechBy": " di ",
     "speechChangDeviceFailureStart": "Mi dispiace, ma non ho potuto trovare",
-    "speechChange": "Modificare",
-    "speechChangeDeviceFailEnd": "nell&#39;elenco dei dispositivi.",
+    "speechChange": "Cambia",
+    "speechChangeDeviceFailEnd": " nell&#39;elenco dei dispositivi.",
     "speechChangeDevicePrompt": ", sicuro. Quale dispositivo vorresti usare?",
     "speechChangeDeviceSuccessStart": "Ok, ho cambiato il",
     "speechChangeDeviceWarnEnd1": "foo",
@@ -187,17 +185,17 @@
     ],
     "speechControlConfirmPauseArray": [
         "Ok, ho messo in pausa la TV per te.",
-        "Mettere in pausa la riproduzione.",
+        "Sto mettendo in pausa la riproduzione.",
         "Plex dovrebbe ora essere messo in pausa."
     ],
     "speechControlConfirmPlayArray": [
-        "Giocando.",
-        "Plex dovrebbe giocare.",
+        "Riproducendo.",
+        "Plex dovrebbe essere in riproduzione.",
         "Ripresa della riproduzione."
     ],
     "speechControlConfirmStopArray": [
         "Plex viene fermato.",
-        "Plex dovrebbe ora essere fermato.",
+        "Plex dovrebbe ora essere fermo.",
         "Arresto."
     ],
     "speechControlConfirmSubsOffArray": [
@@ -207,13 +205,13 @@
     ],
     "speechControlConfirmSubsOnArray": [
         "Abilitare i sottotitoli.",
-        "Coinvolgente traduttore universale.",
+        "Attivazione traduttore universale.",
         "I sottotitoli sono stati abilitati."
     ],
     "speechControlArray": [
-        "Come tu comandi.",
+        "Ai tuoi comandi.",
         "Fatto e fatto.",
-        "Alluminoso allora.",
+        "Tutto ok.",
         "Avete capito bene!",
         "Ecco qua."
     ],
@@ -238,49 +236,49 @@
         "Sfortunatamente, non sono riuscito a trovare nulla con quel titolo da scaricare."
     ],
     "speechDownloadExistsArray": [
-        "<html> Sembra <TITLE> è già impostato per il download su &lt;\/ html&gt;",
-        "<html><TITLE> è già presente nell&#39;elenco di controllo &lt;\/ html&gt;",
-        "<html> Sto già cercando <TITLE> su &lt;\/ html&gt;"
+        "Sembra <TITLE> è già impostato per il download su ",
+        "<TITLE> è già presente nell&#39;elenco di controllo ",
+        "Sto già cercando <TITLE> su "
     ],
     "speechDownloadExists1": "Sembra",
-    "speechDownloadExists2": "è già impostato per il download.",
+    "speechDownloadExists2": " è già impostato per il download.",
     "speechDvrFailStart": "Non sono stato in grado di trovare alcun risultato nella guida episodio che corrisponde &quot;",
     "speechDvrNoDevice": "Mi dispiace, ma non ho trovato nessuna istanza di Plex DVR da usare.",
     "speechDvrSuccessEnd": "al programma di registrazione.",
     "speechDvrSuccessStart": "Ehi, guarda. Ho aggiunto il",
     "speechEggArray": {
-        "attack the block": "<html> Sei il dottore? Giocando <TITLE> . &lt;\/ Html&gt;",
-        "avengers": "<html> La famiglia si riunisce! È tempo di guardare <TITLE> . &lt;\/ Html&gt;",
-        "batman": "<html> Santi media pirata, Batman! Suo <TITLE> . &lt;\/ Html&gt;",
-        "big hero": "<html> Ciao, sono Baymax, per il trattamento, mi raccomando di guardare <TITLE> . &lt;\/ Html&gt;",
-        "evil dead": "<html> Salve al re, piccola! Guardiamo <TITLE> . &lt;\/ Html&gt;",
-        "fifth element": "<html> Leeloo Dallas Mul-ti-Pass! Mul-ti-pass. Godere <TITLE> . &lt;\/ Html&gt;",
-        "frozen": "<html> Lascialo andare lascialo andare! Sediamoci e guardiamo <TITLE> . &lt;\/ Html&gt;",
-        "game of thrones": "<html> Preparati... <TITLE> sta giocando. &lt;\/ html&gt;",
-        "ghostbusters": "<html> Chi chiamerai? <TITLE> &lt;\/ Html&gt;",
-        "heathers": "<html> Bene, caricami dolcemente con una motosega. O guarda <TITLE> . &lt;\/ Html&gt;",
-        "iron man": "<html> Sì, signor Stark, si accende <TITLE> . &lt;\/ Html&gt;",
+        "attack the block": " Sei il dottore? Riproducendo <TITLE> . ",
+        "avengers": " La famiglia si riunisce! È tempo di guardare <TITLE> . ",
+        "batman": " Santi media pirata, Batman! Suo <TITLE> . ",
+        "big hero": " Ciao, sono Baymax, per il trattamento, mi raccomando di guardare <TITLE> . ",
+        "evil dead": " Salve al re, piccola! Guardiamo <TITLE> . ",
+        "fifth element": " Leeloo Dallas Mul-ti-Pass! Mul-ti-pass. Godere <TITLE> . ",
+        "frozen": " Lascialo andare lascialo andare! Sediamoci e guardiamo <TITLE> . ",
+        "game of thrones": " Preparati... <TITLE> sta riproducendo. ",
+        "ghostbusters": " Chi chiamerai? <TITLE> ",
+        "heathers": " Bene, caricami dolcemente con una motosega. O guarda <TITLE> . ",
+        "iron man": " Sì, signor Stark, si accende <TITLE> . ",
         "space odyssey": "Mi dispiace, Dave. Temo di non poterlo fare.",
-        "resident evil": "<html> T-meno 1 minuto fino all&#39;infezione. Amministrazione <TITLE> . &lt;\/ Html&gt;",
-        "star wars": "<html> Aiutami, Obi-Wan-Kenobi. <TITLE> è la mia unica speranza. &lt;\/ html&gt;",
-        "they live": "<html> Sono qui per masticare gomma da masticare e giocare <TITLE> e sono completamente fuori di gomma da masticare. &lt;\/ html&gt;",
-        "wall-e": "<html> Grazie per lo shopping Buy e Large, e divertiti fin dall&#39;inizio <TITLE> . &lt;\/ Html&gt;",
-        "monty python": "<html> Tua madre era un criceto e tuo padre odorava di bacche di sambuco. Giocando <TITLE> &lt;\/ Html&gt;",
-        "guide to the end of the universe": "<html> Ehilà, sei un ghiacciolo. Sto per giocare <TITLE> per te. &lt;\/ html&gt;",
+        "resident evil": " T-meno 1 minuto fino all&#39;infezione. Amministrazione <TITLE> . ",
+        "star wars": " Aiutami, Obi-Wan-Kenobi. <TITLE> è la mia unica speranza. ",
+        "they live": " Sono qui per masticare gomma da masticare e giocare <TITLE> e sono completamente fuori di gomma da masticare. ",
+        "wall-e": " Grazie per lo shopping Buy e Large, e divertiti fin dall&#39;inizio <TITLE> . ",
+        "monty python": " Tua madre era un criceto e tuo padre odorava di bacche di sambuco. Riproducendo <TITLE> ",
+        "guide to the end of the universe": " Ehilà, sei un ghiacciolo. Sto per giocare <TITLE> per te. ",
         "rocky horror": "Oh Rocky !!",
         "citizen kane": "Rosebud ...",
-        "godfather": "<html> Ti farò un&#39;offerta che non puoi rifiutare. Sto per giocare <TITLE> . &lt;\/ Html&gt;",
+        "godfather": " Ti farò un&#39;offerta che non puoi rifiutare. Sto per giocare <TITLE> . ",
         "with the wind": "Francamente, mia cara, non do un iPhone.",
         "dirty harry": "Vai avanti, hai già fatto la mia giornata.",
-        "taxi driver": "<html> Tu sai parlando con me? Solo controllando. Giocando <TITLE> ora. &lt;\/ html&gt;",
+        "taxi driver": " Tu sai parlando con me? Solo controllando. Riproducendo <TITLE> ora. ",
         "apocalypse now": "Adoro l&#39;odore dell&#39;ozono al mattino.",
-        "e.t.": "<html> Telefono di Google a casa! Giocando <TITLE> . &lt;\/ Html&gt;",
+        "e.t.": " Telefono di Google a casa! Riproducendo <TITLE> . ",
         "silence of the lambs": "Questo film andrebbe benissimo con alcune fave e un bel chianti.",
-        "jerry maguire": "<html> Mostrarmi il denaro! E te lo mostrerò <TITLE> . &lt;\/ Html&gt;",
-        "a few good men": "<html> Non puoi gestire la verità. Ma forse puoi gestire <TITLE> . &lt;\/ Html&gt;",
+        "jerry maguire": " Mostrarmi il denaro! E te lo mostrerò <TITLE> . ",
+        "a few good men": " Non puoi gestire la verità. Ma forse puoi gestire <TITLE> . ",
         "jaws": "Avrai bisogno di una barca più grande.",
         "a streetcar named": "STELLA!!!!",
-        "super troopers": "<html> Littering e ... Littering e ... Littering e watching <TITLE> . &lt;\/ Html&gt;"
+        "super troopers": " Littering e ... Littering e ... Littering e watching <TITLE> . "
     },
     "speechGreetingArray": [
         "Saluti!",
@@ -290,9 +288,9 @@
         "Dilly Dilly!"
     ],
     "speechGreetingHelpPrompt": [
-        "Se desideri un elenco di comandi, puoi pronunciare &quot;Guida&quot; o &quot;Quali sono i tuoi comandi?&quot;",
+        "Se desideri un elenco di comandi, puoi pronunciare &quot;Aiuto&quot; o &quot;Quali sono i tuoi comandi?&quot;",
         "Puoi dire &quot;Aiuto&quot; o &quot;Cosa puoi fare&quot; per saperne di più su di me.",
-        "Prova a chiedermi di suonare qualcosa o di dire &quot;aiuto&quot; per altri comandi."
+        "Prova a chiedermi di riprodurre qualcosa o di dire &quot;aiuto&quot; per altri comandi."
     ],
     "speechHookCustomDefault": "Congratulazioni, hai attivato il comando personalizzato webhook!",
     "speechMoreInfoArray": [
@@ -313,7 +311,7 @@
     ],
     "speechOndeckRecentError": "Sfortunatamente, non sono stato in grado di trovare risultati per questo. Per favore riprova più tardi.",
     "speechNoInfoResultsArray": [
-        "Sfortunatamente, non sono riuscito a trovarlo <VAR>nella tua biblioteca in questo momento.<\/var>",
+        "Sfortunatamente, non sono riuscito a trovarlo <VAR> nella tua libreria in questo momento.<\/var>",
         "Mi dispiace, ho controllato, ma non ho ottenuto risultati per <VAR>.<\/var>",
         "Hmmm. Sembra che il tuo server non abbia nulla di elencato <VAR>.<\/var>",
         "Non ho trovato nulla che corrisponda <VAR>.<\/var>"
@@ -325,47 +323,47 @@
     ],
     "speechOndeckRecentTail": "Se desideri guardare qualcosa, dì semplicemente il nome, altrimenti puoi dire &quot;cancella&quot;.",
     "speechPlaybackAffirmatives": [
-        "<html> Onnipotente, giocando <TITLE> . &lt;\/ Html&gt;",
-        "<html> Come comandi, a partire <TITLE> . &lt;\/ Html&gt;",
-        "<html> Nessun problema, sparando <TITLE> . &lt;\/ Html&gt;",
-        "<html> Ok, giocando <TITLE> . &lt;\/ Html&gt;",
-        "<html> Certo, giocando <TITLE> . &lt;\/ Html&gt;",
-        "<html> Sì, capitano, accendendo <TITLE> . &lt;\/ Html&gt;",
-        "<html> Sì maestro, giocherò <TITLE> per te. &lt;\/ html&gt;",
-        "<html> Hai capito, a cominciare <TITLE> . &lt;\/ Html&gt;",
-        "<html> Si si, <TITLE> lo è. &lt;\/ html&gt;",
-        "<html> Roger, accendendo <TITLE> . &lt;\/ Html&gt;",
-        "<html> Affermativa. Di partenza <TITLE> . &lt;\/ Html&gt;"
+        " Onnipotente, riproduco <TITLE> . ",
+        " Come comandi, a partire <TITLE> . ",
+        " Nessun problema, sparando <TITLE> . ",
+        " Ok, riproducendo <TITLE> . ",
+        " Certo, riproducendo <TITLE> . ",
+        " Sì, capitano, riproduco <TITLE> . ",
+        " Sì maestro, giocherò <TITLE> per te. ",
+        " Hai capito, a cominciare <TITLE> . ",
+        " Si si, <TITLE> lo è. ",
+        " Roger, riproduco <TITLE> . ",
+        " Affermativa. Di partenza <TITLE> . "
     ],
-    "speechPlaybackAffirmativeShort": "<html> Giocando <TITLE> . &lt;\/ Html&gt;",
+    "speechPlaybackAffirmativeShort": " Riproducendo <TITLE> . ",
     "speechControlShort": "Va bene.",
     "speechFetchAffirmatives": [
-        "allright,",
+        "D&#39;accordo,",
         "Va bene,",
         "Successo!"
     ],
-    "speechPlayer": "giocatore",
-    "speechPlayError3": "Non riuscivo a trovarlo nella biblioteca, vuoi che provassi a scaricarlo?",
-    "speechPlayErrorEnd1": "nella tua biblioteca. Dovrei provare ad aggiungerlo agli elenchi di controllo?",
+    "speechPlayer": "riproducendo",
+    "speechPlayError3": "Non riuscivo a trovarlo nella libreria, vuoi che provassi a scaricarlo?",
+    "speechPlayErrorEnd1": "nella tua libreria. Dovrei provare ad aggiungerlo agli elenchi di controllo?",
     "speechPlayErrorEnd2": "&#39; giocare. Dovrei provare a prenderlo per te? &#39;",
     "speechPlayErrorStart1": "Non ho potuto trovare",
     "speechPlayErrorStart2": "Non ho trovato nulla chiamato &#39;",
     "speechPlayerStatus1": "Attualmente, il",
-    "speechPlayerStatus2": "sta giocando",
+    "speechPlayerStatus2": "sta riproducendo",
     "speechPlayerStatus3": "Attualmente, stagione",
-    "speechPlayerStatus4": "sta giocando. Questo episodio è chiamato",
+    "speechPlayerStatus4": "sta riproducendo. Questo episodio è chiamato",
     "speechPlayerStatus5": "Sembra che tu stia ascoltando",
     "speechPlayerStatus6": "dall&#39;album",
     "speechPlayerStatusBy": "di",
     "speechPlayerStatusEpisode": "episodio",
     "speechPlayerStatusOf": "di",
-    "speechPlaying": "Giocando",
+    "speechPlaying": "Riproducendo",
     "speechReturnOndeck": "Ecco una lista di oggetti in coperta:",
     "speechReturnRecent": "Ecco una lista dei recenti",
     "speechReturnInfoArray": [
         "Ecco una lista di <TYPE> :",
         "Per <TYPE> , hai:",
-        "Ho trovato questi <TYPE> nella tua biblioteca:"
+        "Ho trovato questi <TYPE> nella tua libreria:"
     ],
     "speechServer": "server",
     "speechShuffleResponse": "Ok, mischiando",
@@ -402,14 +400,15 @@
         "No",
         "sì"
     ],
-    "uiGreetingDefault": "Come posso aiutare?",
+    "uiGreetingDefault": "Come ti posso aiutare?",
     "uiPageTitle": "Flex TV (Web)",
+    "uiNoCastPlugin": "Il plugin per il casting non &#232; stato trovato sul tuo server. Clicca qui per scoprire come ottenerlo.",
     "uiPlayerSelectPrompt": "Seleziona un giocatore da controllare.",
     "uiRescanDevices": "Ripeti la scansione dei dispositivi",
     "uiSettingAccountLinking": "Collegamento dell&#39;account",
     "uiSettingApiKey": "Chiave API:",
     "uiSettingAutoUpdate": "Installa automaticamente gli aggiornamenti",
-    "uiSettingNotifyUpdate": "Notifica quando gli aggiornamenti sono disponibili",
+    "uiSettingNotifyUpdate": "Notifica quando ci sono aggiornamenti disponibili",
     "uiSettingBtnReset": "RESET",
     "uiSettingBtnTest": "TEST",
     "uiSettingCastLogs": "Scarica i registri di cast",
@@ -427,35 +426,35 @@
     "uiSettingDvrResolutionHD": "Alta definizione",
     "uiSettingDvrServer": "Server DVR",
     "uiSettingDvrStartOffset": "Start Offset (minuti):",
-    "uiSettingEnable": "Abilitare",
+    "uiSettingEnable": "Abilita",
     "uiSettingFetcherPath": "Percorso (facoltativo)",
     "uiSettingFetcherPort": "Porta",
     "uiSettingFetcherQualityProfile": "Profilo di qualità",
-    "uiSettingFetcherToken": "Gettone",
+    "uiSettingFetcherToken": "Token",
     "uiSettingForceSSL": "Forza SSL",
-    "uiSettingForceSSLHint": "Forza SSL se disponibile. Richiesto per applicazioni Web progressive.",
+    "uiSettingForceSSLHint": "Forza SSL se disponibile. Richiesto per Web Apps Progressive.",
     "uiSettingGeneral": "Generale",
-    "uiSettingHeaderDevices": "dispositivi",
+    "uiSettingHeaderDevices": "Dispositivi",
     "uiSettingHeaderMovies": "Film",
     "uiSettingHeaderShows": "Spettacoli",
     "uiSettingHeaderMusic": "Musica",
-    "uiSettingHeaderLogs": "logs",
+    "uiSettingHeaderLogs": "Logs",
     "uiSettingHeaderPhlex": "Generale",
     "uiSettingHeaderPlex": "Plex",
-    "uiSettingHookCustom": "costume",
+    "uiSettingHookCustom": "Personalizzato",
     "uiSettingHookCustomPhrase": "Risposta personalizzata",
-    "uiSettingHookFetch": "andare a prendere",
+    "uiSettingHookFetch": "Cerca",
     "uiSettingHookGeneric": "URL:",
     "uiSettingHookLabel": "Webhooks",
     "uiSettingHookPause": "Pausa",
-    "uiSettingHookPlayback": "riproduzione",
+    "uiSettingHookPlayback": "Riproduzione",
     "uiSettingHookPlayHint": "? param = {{media name}} sarà aggiunto",
     "uiSettingHookStop": "Stop",
     "uiSettingHookUrlGeneral": "URL Webhook:",
-    "uiSettingInstallUpdates": "INSTALLARE",
+    "uiSettingInstallUpdates": "INSTALLA",
     "uiSettingLangEnglish": "Inglese",
-    "uiSettingLangFrench": "francese",
-    "uiSettingLanguage": "Linguaggio:",
+    "uiSettingLangFrench": "Francese",
+    "uiSettingLanguage": "Lingua:",
     "uiSettingLinkAmazon": "LINK AMAZON",
     "uiSettingLinkGoogle": "LINK GOOGLE",
     "uiSettingLogCount": "Contare:",
@@ -467,10 +466,10 @@
     "uiSettingNoNewUsersHint": "Disabilita ogni nuovo utente dall&#39;autorizzazione a Flex TV.",
     "uiSettingNoPlexDirect": "Nessun HTTPS \/ relè",
     "uiSettingNoPlexDirectHint": "{SPERIMENTALE) Disattiva gli URL HTTPS e di inoltro, necessari per alcune reti.",
-    "uiSettingObscureLogs": "Dati sensibili oscuri nei log",
-    "uiSettingOndeckRecent": "Numero di oggetti sul ponte \/ recenti da restituire:",
+    "uiSettingObscureLogs": "Oscura i dati sensibili nel log",
+    "uiSettingOndeckRecent": "Numero di media sulla libreria \/ recenti da restituire:",
     "uiSettingPlaybackServer": "Server preferito:",
-    "uiSettingPlaybackServerHint": "Se i risultati si trovano su più server, preferisci quelli trovati su questo.",
+    "uiSettingPlaybackServerHint": "Se i risultati trovano più server, preferisci quelli trovati su questo.",
     "uiSettingPlexDVR": "Plex DVR",
     "uiSettingPublicAddress": "Indirizzo pubblico:",
     "uiSettingRefreshUpdates": "RICARICARE",
@@ -482,6 +481,6 @@
     "uiSettingTestButton": "TEST",
     "uiSettingTestServer": "Test di connettività",
     "uiSettingThemeColor": "Usa il tema scuro",
-    "uiSettingUpdates": "aggiornamenti",
+    "uiSettingUpdates": "Aggiornamenti",
     "uiSettingUseCast": "Utilizza i dispositivi di trasmissione"
 }
