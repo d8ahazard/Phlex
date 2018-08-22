@@ -21,3 +21,4 @@
 !/img/cache/_.placeholder
 php/cacert.pem
 logCustom.php
+minify.php
