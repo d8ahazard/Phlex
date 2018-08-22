@@ -326,7 +326,11 @@ function triggerRescan() {
 }
 
 function getUiData($force = false) {
+	$isWeb = isWebApp();
 	$result = [];
+	if ($isWeb && !$force) {
+		return $result;
+	}
 	$playerStatus = fetchPlayerStatus();
 	$devices = selectDevices(scanDevices(false));
 	$deviceText = json_encode($devices);
@@ -340,6 +344,7 @@ function getUiData($force = false) {
 	if ($playerStatus) {
 		$result['playerStatus'] = $playerStatus;
 	}
+
 	if ($force) {
 		$result['devices'] = $devices;
 		$result['userData'] = $userData;
@@ -380,11 +385,12 @@ function getUiData($force = false) {
 			}
 		}
 		if (count($commandData)) {
-			write_log("Sending ".count($commandData)." new command cards...","ALERT",false,true);
+			write_log("Sending " . count($commandData) . " new command cards...", "ALERT", false, true);
 			$result['commands'] = $commandData;
 			writeSession('commandArray', $commands);
 		}
 	}
+
 	if ($_SESSION['dologout'] ?? false) $result['dologout'] = true;
 	if (isset($_SESSION['messages'])) {
 		$result['messages'] = $_SESSION['messages'];
@@ -3597,6 +3603,8 @@ function buildSpeech($params, $results) {
 						$speech = "Which one did you want?  ";
 						$noType = isset($params['type']);
 						$speech .= joinItems($meta, "or", $noType);
+					} else {
+						$speech = "Unfortunately, there was an error communicating with your fetchers. Please check the configuration and try again.";
 					}
 				}
 				$mediaArray = $meta;

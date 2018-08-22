@@ -19,7 +19,7 @@ class PHPTail {
      */
     private $maxSizeToLoad;
 	/**
-	 * This variable holds a token used for authentication with Phlex.
+	 * This variable holds a token used for authentication with Flex TV.
 	 * @var string
 	 */
 	private $apiToken;
@@ -190,7 +190,7 @@ class PHPTail {
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Phlex Log Viewer</title>
+<title>Flex TV Log Viewer</title>
 
 <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
 <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">

@@ -129,6 +129,9 @@ function makeSettingsBody($defaults) {
 
 	$apiToken = $_SESSION['apiToken'];
 
+	$rev = checkRevision(true);
+	$revString = $rev ? "Revision: $rev" : "";
+
 	$string = "	<div class='modal fade' id='settingsModal'>
 					<div class='modal-dialog' role='document'>
 			            <div class='modal-header' id='settingsHeader' role='header'>
@@ -811,9 +814,7 @@ function makeSettingsBody($defaults) {
 			                        <span class='tempDiv meta'></span>
 			                        <div class='weatherIcon'></div>
 			                        <div class='timeDiv meta'></div>
-			                        <div id='metadata-line-1' class='meta'></div>
-			                        <div id='metadata-line-2' class='meta'></div>
-			                        <div id='metadata-line-3' class='meta'></div>
+			                        <div id='revision' class='meta'>".$revString."</div>
 			                    </div>
 			                </div>
 			            </div>

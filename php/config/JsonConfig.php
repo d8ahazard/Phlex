@@ -131,9 +131,8 @@ class JsonConfig extends ArrayObject {
                         $i++;
                     }
                 } else {
-                    $j = 0;
                     $matches = [];
-	                foreach ($sectionData as $record) {
+	                foreach ($sectionData as $key=>$record) {
 	                	$match = true;
 		                $i = 0;
 		                foreach ($selectors as $selector) {
@@ -143,10 +142,9 @@ class JsonConfig extends ArrayObject {
 			                $i++;
 		                }
 		                if ($match) {
-			                write_log("Deleting matching record: " . json_encode($sectionData[$j]));
-			                array_push($matches,$j);
+			                write_log("Deleting matching record: " . json_encode($sectionData[$key]));
+			                array_push($matches,$key);
 		                }
-		                $j++;
 	                }
 	                foreach($matches as $key) unset($sectionData[$key]);
                 }

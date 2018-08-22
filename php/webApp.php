@@ -144,6 +144,13 @@ function checkUpdate() {
     return $updates;
 }
 
+function checkRevision($short=false) {
+	write_log("Function fired!");
+	$git = new GitUpdate\GitUpdate(dirname(__FILE__)."/..");
+	$revision = ($git->hasGit) ? $git->revision : false;
+	return ($short && $revision) ? substr($revision,0,7) : $revision;
+}
+
 function installUpdate() {
     write_log("Function fired!!");
     $git = new GitUpdate\GitUpdate(dirname(__FILE__)."/..");
