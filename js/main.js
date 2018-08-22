@@ -1,7 +1,7 @@
 var action = "play";
-var apiToken, appName, bgs, bgWrap, cv, token, newToken, deviceID, resultDuration, logLevel, lastLog, itemJSON,
-	messageArray, publicIP, weatherClass, city, state, updateAvailable,
-	weatherHtml, scrollTimer, direction, progressSlider, volumeSlider;
+var apiToken, appName, bgs, bgWrap, cv, dvr, token, newToken, deviceID, resultDuration, logLevel, itemJSON,
+	messageArray, publicIP, weatherClass, city, state, updateAvailable, scrollTimer, direction, progressSlider,
+	volumeSlider;
 
 var cleanLogs=true, couchEnabled=false, lidarrEnabled=false, ombiEnabled=false, sickEnabled=false, sonarrEnabled=false, radarrEnabled=false,
 	headphonesEnabled=false, watcherEnabled=false, dvrEnabled=false, hook=false, hookPlay=false, polling=false, pollcount=false,
@@ -11,7 +11,6 @@ var cleanLogs=true, couchEnabled=false, lidarrEnabled=false, ombiEnabled=false, 
 var forceUpdate = true;
 
 var scrolling = false;
-var condition = null;
 var lastUpdate = [];
 var devices = "foo";
 var staticCount = 0;
@@ -46,7 +45,7 @@ $(function () {
 
 
 // Self-explanatory
-$(window).resize(function () {
+$(window).on("resize",function () {
 	scaleElements();
 });
 
@@ -165,6 +164,7 @@ function buildUiDeferred() {
 
 	setListeners();
 	checkUpdate();
+	fetchWeather();
 
 	$(".remove").remove();
 
@@ -178,7 +178,7 @@ function buildUiDeferred() {
 	}, 1000 * 60);
 
 	setInterval(function () {
-		setWeather();
+		fetchWeather();
 		checkUpdate();
 	}, 10 * 1000 * 60);
 
@@ -191,17 +191,19 @@ function buildUiDeferred() {
 function deviceHtml(type, deviceData) {
 	var output = "";
 	$.each(deviceData, function (key, device) {
-		var string = "";
-		var id = device.Id;
-		var name = device.Name;
-		var	selected = ((device.Selected) ? ((type === 'Client') ? " dd-selected" : " selected") : "");
+	    if (device.hasOwnProperty('Id') && device.hasOwnProperty('Name') && device.hasOwnProperty('Selected')) {
+            var string = "";
+            var id = device["Id"];
+            var name = device["Name"];
+            var selected = ((device["Selected"]) ? ((type === 'Client') ? " dd-selected" : " selected") : "");
 
-		if (type === 'Client') {
-			string = "<a class='dropdown-item client-item" + selected + "' data-type='Client' data-id='" + id + "'>" + name + "</a>";
-		} else {
-			string = "<option data-type='" + type + "' value='" + id + "'" + selected + ">" + name + "</option>";
-		}
-		output += string;
+            if (type === 'Client') {
+                string = "<a class='dropdown-item client-item" + selected + "' data-type='Client' data-id='" + id + "'>" + name + "</a>";
+            } else {
+                string = "<option data-type='" + type + "' value='" + id + "'" + selected + ">" + name + "</option>";
+            }
+            output += string;
+        }
 	});
 	if (type === 'Client') output += '<a class="dropdown-item client-item" data-id="rescan"><b>rescan devices</b></a>';
 	return output;
@@ -212,17 +214,18 @@ function updateDevices(newDevices) {
 	var newString = JSON.stringify(newDevices);
 	if (newString !== devices) {
 		console.log("Device array changed, updating: ", newDevices);
-		$('#clientWrapper').html(deviceHtml('Client', newDevices.Client));
-		$('#serverList').html(deviceHtml('Server', newDevices.Server));
-		$('#parentList').html(deviceHtml('Parent', newDevices.Server));
-		if (newDevices.Dvr.length === 0) $('.dvrGroup').hide(); else ($('.dvrGroup').show());
-		$('#dvrList').html(deviceHtml('Dvr', newDevices.Dvr));
-		$('.ddLabel').html($('.dd-selected').text());
+		if (newDevices.hasOwnProperty("Client")) $('#clientWrapper').html(deviceHtml('Client', newDevices["Client"]));
+        if (newDevices.hasOwnProperty("Server")) $('#serverList').html(deviceHtml('Server', newDevices["Server"]));
+        if (newDevices.hasOwnProperty("Dvr")) {
+            if (newDevices["Dvr"].length === 0) $('.dvrGroup').hide(); else ($('.dvrGroup').show());
+            $('#dvrList').html(deviceHtml('Dvr', newDevices.Dvr));
+            $('.ddLabel').html($('.dd-selected').text());
+        }
 		devices = JSON.stringify(newDevices);
 	}
 }
 
-function updateDevice(type, id, token) {
+function updateDevice(type, id) {
 	var noSocket = true;
 	if (noSocket) {
 		apiToken = $('#apiTokenData').data('token');
@@ -298,7 +301,7 @@ function updateStatus() {
                     parseServerData(data);
                 }
                 polling = false;
-            }, dataType = "json");
+            }, "json");
         }
 	} else {
 		pollcount++;
@@ -330,48 +333,47 @@ function parseServerData(data) {
     if (force) $('.queryBtnGrp').removeClass('show');
 
     for (var propertyName in data) {
-        if (propertyName !== 'ui' && propertyName !== 'playerStatus') {
-            console.log("Received updated " + propertyName + " data:", data[propertyName]);
-        }
 
-        switch (propertyName) {
-            case "dologout":
-                if (data.dologout === true || data.dologout === "true") {
-                    document.getElementById('logout').click();
-                }
-                break;
-            case "commands":
-                updateCommands(data.commands, !force);
-                break;
-            case "messages":
-                messages = data.messages;
-                for (var i = 0, l = messages.length; i < l; i++) {
-                    var msg = messages[i];
-                    showMessage(msg.title,msg.message,msg.url);
-                }
-                break;
-            case "updates":
-                $('#updateContainer').html(data.updates);
-                break;
-            case "devices":
-                updateDevices(data.devices);
-                break;
-            case "playerStatus":
-                updatePlayerStatus(data.playerStatus);
-                break;
-            case "ui":
-            case "userdata":
-                break;
-            default:
-                console.log("Unknown value: " + propertyName);
+        if (data.hasOwnProperty(propertyName)) {
+            if (propertyName !== 'ui' && propertyName !== 'playerStatus') {
+                console.log("Received updated " + propertyName + " data:", data[propertyName]);
+            }
+            var val = data[propertyName];
+            switch (propertyName) {
+                case "dologout":
+                    if (val === true || val === "true") document.getElementById('logout').click();
+                    break;
+                case "commands":
+                    updateCommands(val, !force);
+                    break;
+                case "messages":
+                    for (var i = 0, l = val.length; i < l; i++) {
+                        var msg = val[i];
+                        showMessage(msg.title,msg.message,msg.url);
+                    }
+                    break;
+                case "updates":
+                    $('#updateContainer').html(val);
+                    break;
+                case "devices":
+                    updateDevices(val);
+                    break;
+                case "playerStatus":
+                    updatePlayerStatus(val);
+                    break;
+                case "ui":
+                case "userdata":
+                    break;
+                default:
+                    console.log("Unknown value: " + propertyName);
+            }
         }
     }
 }
 
 function setUiVariables(data) {
 	for (var propertyName in data) {
-		switch (propertyName) {
-
+		if (data.hasOwnProperty(propertyName)) switch (propertyName) {
 			case 'sonarrEnabled':
 			case 'sickEnabled':
 			case 'couchEnabled':
@@ -393,7 +395,6 @@ function setUiVariables(data) {
 			case 'cleanLogs':
 			case 'autoUpdate':
 			case 'notifyUpdate':
-				console.log("Trying to parse " + propertyName);
 				var value = data[propertyName];
                 try {
                     value = JSON.parse(value);
@@ -456,7 +457,7 @@ function toggleGroups() {
 			var group = (key === 'hookSplit' || key === 'autoUpdate') ? $('.'+key+'Group') : $('#'+key+'Group');
 			group = (value === 'masterUser') ?  $('.noNewUsersGroup') : group;
 
-			if (element.prop('checked') != value) {
+			if (element.prop('checked') !== value) {
 				element.prop('checked', value);
 			}
             if (key === 'autoUpdate') value = !value;
@@ -486,44 +487,44 @@ function updatePlayerStatus(data) {
 				playBtn.show();
 				break;
 		}
-		var mr = data.mediaResult;
+		var mr = data["mediaResult"];
 		if (hasContent(mr)) {
-			var resultTitle = mr.title;
-			var resultType = mr.type;
-			var thumbPath = mr.thumb;
-			var artPath = mr.art;
-			var resultSummary = mr.summary;
-			var tagline = mr.tagline;
-
+			var resultTitle = mr["title"];
+			var resultType = mr["type"];
+			var thumbPath = mr["thumb"];
+			var artPath = mr["art"];
+			var resultSummary = mr["summary"];
+			var tagline = mr["tagline"];
+			var vs = $('#volumeSlider');
 			progressSlider = $('#progressSlider').bootstrapSlider();
-			volumeSlider = $('#volumeSlider').bootstrapSlider({
+			volumeSlider = vs.bootstrapSlider({
 				reversed : true
 			});
 
-			$('#volumeSlider').change(function() {
+			vs.on("change", function() {
 				apiToken = $('#apiTokenData').data('token');
 				var volume = $(this).val();
 				var url = 'api.php?say&command=set+the+volume+to+' + volume + "+percent&apiToken=" + apiToken;
 				$.get(url);
 			});
 
-			progressSlider.fadeOut;
-			volumeSlider.fadeOut;
+			progressSlider.fadeOut();
+			volumeSlider.fadeOut();
 
 			TitleString = resultTitle;
 			if (resultType === "episode") {
-				TitleString = "S" + mr.parentIndex + "E" + mr.index + " - " + resultTitle;
-				tagline = mr.grandParentTitle + " (" + mr.year + ") ";
+				TitleString = "S" + mr["parentIndex"] + "E" + mr.index + " - " + resultTitle;
+				tagline = mr["grandParentTitle"] + " (" + mr.year + ") ";
 			}
 
 			if (resultType === "track") {
 				TitleString = resultTitle;
-				tagline = mr.grandParentTitle + " - " + mr.parentTitle;
+				tagline = mr["grandParentTitle"] + " - " + mr["parentTitle"];
 			}
 
-			var resultOffset = data.time;
-			var volume = data.volume;
-			resultDuration = mr.duration;
+			var resultOffset = data["time"];
+			var volume = data["volume"];
+			resultDuration = mr["duration"];
 			var progress = (resultOffset / 1000);
 			progressSlider.bootstrapSlider({max: resultDuration / 1000});
 			progressSlider.bootstrapSlider('setValue', progress);
@@ -574,12 +575,9 @@ function updateCommands(data, prepend) {
 		}
 
 		$.each(data, function (i, value) {
-			console.log("Command data: ",value);
 			if (value === []) return true;
 			try {
 				var timeStamp = (value.hasOwnProperty('timeStamp') ? $.trim(value.timeStamp) : '');
-				var speech = (value.speech ? value.speech : "");
-				if ($(window).width() < 700) speech = speech.substring(0, 100);
 				itemJSON = value;
 				var mediaDiv;
 				// Build our card
@@ -609,8 +607,6 @@ function updateCommands(data, prepend) {
 				},700);
 
 				$('.lazy').Lazy();
-
-				str = "#" + timeStamp;
 			} catch (e) {
 				console.error(e, e.stack);
 			}
@@ -624,13 +620,11 @@ function updateCommands(data, prepend) {
 			});
 
 			$('#CARDCLOSE' + i).click(function () {
-				var id = $(this).attr("id").replace("CARDCLOSE", "");
 				var stamp = $(this).parent().attr("id");
 				$(this).parent().slideUp(750, function () {
 					$(this).remove();
 				});
 				apiToken = $('#apiTokenData').data('token');
-
 				$.get('api.php?apiToken=' + apiToken + '&card=' + stamp, function (data) {
 					lastUpdate = data;
 				});
@@ -704,9 +698,9 @@ function buildCards(value, i) {
 	var title = '';
 	var subtitle = '';
 	var description = '';
-	var initialCommand = ucFirst(value.initialCommand);
-	var speech = (value.speech ? value.speech : "");
-	var JSONdiv = '<a href="javascript:void(0)" id="JSON' + i + '" class="JSONPop" data="' + encodeURIComponent(JSON.stringify(value, null, 2)) + '" title="Result JSON">{JSON}</a>';
+	var initialCommand = ucFirst(value["initialCommand"]);
+	var speech = (value["speech"] ? value["speech"] : "");
+    var JSONdiv = '<a href="javascript:void(0)" id="JSON' + i + '" class="JSONPop" data="' + encodeURIComponent(JSON.stringify(value, null, 2)) + '" title="Result JSON">{JSON}</a>';
 	if ($(window).width() < 700) speech = speech.substring(0, 100);
 
 	if (value.hasOwnProperty('cards')) {
@@ -762,7 +756,7 @@ function animateContent(angle,speed)
 		animationOffset = 0;
 	}
 
-	sc.animate({ "marginTop": (animationOffset)+ "px" }, speed, 'swing',function() {
+	sc.animate({"marginTop": (animationOffset)+ "px"}, speed, 'swing',function() {
 		scrolling = 'pause';
 		direction = (direction ==="up") ? "down" : "up";
 	});
@@ -803,7 +797,8 @@ function hasContent(obj) {
 function ucFirst(string) {
 	if (string !== undefined && string !== null) {
 		if (string.length !== 0) {
-			return string.charAt(0).toUpperCase() + string.slice(1);
+			var char1 = string.split("")[0];
+			return char1.toUpperCase() + string.slice(1);
 		}
 	}
 	return '';
@@ -815,29 +810,41 @@ function notify() {
 
 
 function fetchWeather() {
-	$.get("https://freegeoip.net/json/", function (data) {
-		city = data.city;
-		state = data.region_name;
+	var condition = "";
+	$.getJSON('http://www.geoplugin.net/json.gp?jsoncallback=?', function (data) {
+		city = data["geoplugin_city"];
+		state = data["geoplugin_regionName"];
+		console.log("City and state are " + city + " and " + state);
 		$.simpleWeather({
 			location: city + ',' + state,
 			woeid: '',
 			unit: 'f',
 			success: function (weather) {
-				weatherHtml = weather.temp + String.fromCharCode(176) + weather.units.temp;
-				condition = weather.code;
+				console.log("SUCCESS!",weather);
+				setWeather(weather);
 			},
 			error: function (error) {
 				console.log("Error: ", error);
-				condition = "";
+				setWeather("");
 			}
 		});
 	});
+	return condition;
 
 }
 
-function setWeather() {
-	fetchWeather();
-	switch (condition) {
+function setWeather(weather) {
+	var condition;
+	if (weather !== "") {
+		var cityString = weather.city + ", " + weather.region;
+		var weatherHtml = weather.temp + String.fromCharCode(176) + weather.units.temp;
+        condition = weather.code;
+    } else {
+		condition = "";
+	}
+	console.log("Condition? " + condition);
+	console.log("Condition is '" + condition + "'. Weather html is '" + weatherHtml + "'.");
+    switch (condition) {
 		case "0":
 		case "1":
 		case "2":
@@ -923,12 +930,12 @@ function setWeather() {
 			break;
 
 	}
-	$('.weatherIcon').html('<span class="weather ' + weatherClass + '"> </span>');
+	$('.weatherIcon').html('<span id="city">'+cityString+'</span><span class="weather ' + weatherClass + '"> </span>');
 	$(".tempDiv").text(weatherHtml);
 }
 
 function setTime() {
-    date = new Date();
+    var date = new Date();
     var hours = date.getHours();
     var minutes = date.getMinutes();
     var ampm = hours >= 12 ? 'PM' : 'AM';
@@ -938,12 +945,6 @@ function setTime() {
     var time = hours + ':' + minutes + ' ' + ampm;
     var timeDiv = $(".timeDiv");
     if (time !== timeDiv.text()) timeDiv.text(time);
-}
-
-function imgError(image) {
-	image.onerror = "";
-	image.src = "https://img.phlexchat.com?height=" + $(document).height() + "&width=" + $(document).width() + "&v=" + (Math.floor(Math.random() * (1084)));
-	return true;
 }
 
 function setListeners() {
@@ -1014,10 +1015,9 @@ function setListeners() {
 		$.snackbar({content: "Logging out."});
 		sessionStorage.clear();
 		localStorage.clear();
-		window.caches.delete('phlex');
-		caches.delete('phlex');
-
-		setcookie('PHPSESSID', '', time() - 86400, '/folder/');
+		var del = window.caches.delete('phlex');
+		del = caches.delete('phlex');
+		setCookie('PHPSESSID','',1);
 		setTimeout(
 			function () {
 				$('#mainWrap').css({"top": "-200px"});
@@ -1096,10 +1096,10 @@ function setListeners() {
 			serverAddress = encodeURIComponent(serverAddress);
 			if (action === 'googlev2') regUrl = 'https://phlexchat.com/api.php?apiToken=' + apiToken + "&serverAddress=" + serverAddress;
 			if (action === 'amazon') regUrl = 'https://phlexchat.com/alexaAuth.php?apiToken=' + apiToken + "&serverAddress=" + serverAddress;
-			if (regUrl !== false) {
-				var newwindow = window.open(regUrl, '');
+			if (typeof(regUrl) === "string") {
+				var newWindow = window.open(regUrl, '');
 				if (window.focus) {
-					newwindow.focus();
+					newWindow.focus();
 				}
 			} else {
 				if (action === 'test') {
@@ -1135,7 +1135,7 @@ function setListeners() {
 		} else {
 			console.log("Rescanning devices.");
 		}
-		updateDevice('Client', clientId, apiToken);
+		updateDevice('Client', clientId);
 	});
 
 	$(document).on('click', '.nav-item', function () {
@@ -1269,7 +1269,7 @@ function setListeners() {
 			return;
 		}
 
-		if (Notification.permission !== "granted")
+		if (Notification["permission"] !== "granted")
 			Notification.requestPermission();
 	});
 
@@ -1342,29 +1342,22 @@ function setListeners() {
 	});
 }
 
-jQuery.extend({
-	arrayCompare: function (arrayA, arrayB) {
-		if (arrayA.length !== arrayB.length) {
-			return false;
-		}
-		// sort modifies original array
-		// (which are passed by reference to our method!)
-		// so clone the arrays before sorting
-		for (var i = 0, l = arrayA.length; i < l; i++) {
-			if (arrayA[i].length !== arrayB[i].length) {
-				return false;
-			}
-		}
-
-		return true;
-	}
-});
-
 function clearLoadBar() {
 	if (waiting) {
 		$('.load-bar').hide();
 	}
 }
+
+function setCookie(key, value, days) {
+    var expires = new Date();
+    if (days) {
+        expires.setTime(expires.getTime() + (days * 24 * 60 * 60 * 1000));
+        document.cookie = key + '=' + value + ';expires=' + expires.toUTCString();
+    } else {
+        document.cookie = key + '=' + value + ';expires=Fri, 30 Dec 9999 23:59:59 GMT;';
+    }
+}
+
 
 $(window).on("load",function () {
 	$('body').addClass('loaded');

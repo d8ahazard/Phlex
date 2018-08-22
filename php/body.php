@@ -811,7 +811,7 @@ function makeSettingsBody($defaults) {
 			                <div class='fade1 ccBackground'>
 			                    <div class='ccTextDiv'>
 			                        <span class='spacer'></span>
-			                        <span class='tempDiv meta'></span>
+			                        <span class='tempDiv meta'></span><br>
 			                        <div class='weatherIcon'></div>
 			                        <div class='timeDiv meta'></div>
 			                        <div id='revision' class='meta'>".$revString."</div>
@@ -819,8 +819,7 @@ function makeSettingsBody($defaults) {
 			                </div>
 			            </div>
 			        </div>
-			    </div>
-				";
+			    </div>";
 
 	return $string;
 }

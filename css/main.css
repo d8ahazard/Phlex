@@ -25,6 +25,12 @@ html, body {
 	border: 1px solid var(--theme-primary-inverse-50);
 }
 
+#city {
+	right: 62px;
+	position: fixed;
+	text-align: right;
+}
+
 .nav-tabs {
 	border: 1px solid var(--theme-primary-inverse-50);
 	background-color: var(--theme-accent-dark);
