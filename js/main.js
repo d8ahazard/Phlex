@@ -1052,8 +1052,8 @@ function setListeners() {
 				if (data.hasOwnProperty('list')) {
 					var list = data['list'];
 					if (list !== false) {
-						var appName = "#" + value.toLowerCase() + "List";
-                        console.log("We have a list!",list);
+						var appName = "#" + value.toLowerCase() + "Profile";
+                        console.log("We have a list, appending to " + appName,list);
                         $(appName).html(list);
 					}
 				}
