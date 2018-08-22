@@ -326,11 +326,7 @@ function triggerRescan() {
 }
 
 function getUiData($force = false) {
-	$isWeb = isWebApp();
 	$result = [];
-	if ($isWeb && !$force) {
-		return $result;
-	}
 	$playerStatus = fetchPlayerStatus();
 	$devices = selectDevices(scanDevices(false));
 	$deviceText = json_encode($devices);
