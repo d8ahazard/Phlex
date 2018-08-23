@@ -3296,7 +3296,7 @@ function buildQueryMedia($params) {
 	$lastCheck = [];
 	write_log("We have " . count($media) . " media items and ". count($meta). " meta items.");
 	if (count($media) >= 2) {
-		write_log("We have " . count($media) . " items, checking for duplicates...", "INFO");
+		write_log("We have " . count($media) . " items, checking for duplicates: ".json_encode($media), "INFO");
 		foreach ($media as $item) {
 			$push = true;
 			$i = 0;
@@ -3307,23 +3307,21 @@ function buildQueryMedia($params) {
 				$itemId = $item['tmdbId'] ?? $item['tadbId'] ?? 'item';
 				$checkId = $check['tmdbId'] ?? $check['tadbId'] ?? 'check';
 				$idMatch = ($itemId === $checkId);
-				//write_log("Item $itemId check $checkId match $idMatch titlematch $titleMatch");
 				if ($titleMatch && $yearMatch && ($idMatch || $typeMatch)) {
 					$preferredId = $_SESSION['plexServerId'];
-					if ($check['source'] == $preferredId) {
-						write_log("Found identical items, but one is preferred.", "INFO");
-						$push = false;
-					} else if ($item['source'] === $preferredId) {
+					$push = false;
+					if ($item['source'] === $preferredId) {
 						write_log("New item is preferred, replacing.", "INFO");
 						$lastCheck[$i] = $item;
-						$push = false;
+					} else {
+						write_log("Skipping identical item ".$item['title'],"INFO");
 					}
 				}
 				$i++;
 			}
 			if ($push) array_push($lastCheck, $item);
-
 		}
+		
 		$media = $lastCheck;
 		$results['media'] = $media;
 		write_log("We now have " . count($media) . " items.");
@@ -3975,8 +3973,9 @@ function buildTitle($item) {
 function checkDeviceChange($params) {
 	$request = $params['request'] ?? false;
 	$device = $params['Devices'] ?? false;
-	$delim = $player = false;
+	$player = false;
 	if (!$device) {
+		#TODO: These will need to be internationalized
 		$loc = [
 			" on the ",
 			" in the ",
@@ -3986,23 +3985,25 @@ function checkDeviceChange($params) {
 			" to "
 		];
 		foreach ($loc as $delimiter) {
-			$device = explode($delimiter, $request)[1] ?? false;
+			$exploded = explode($delimiter, $request);
+			$device = (count($exploded) >= 2) ? end($exploded) : false;
 			$player = $device ? findDevice("Name", $device, "Client") : false;
 			if ($player) {
-				$delim = $delimiter;
+				array_pop($exploded);
+				$request = implode($delimiter,$exploded);
+				write_log("New request string is '$request'");
 				break;
 			}
 
 		}
 	} else {
-		$player = $device ? findDevice("Name", $device, "Client") : false;
+		$player = findDevice("Name", $device, "Client");
+		$request = str_replace($device, "", $request);
 	}
 	if ($player) {
 		write_log("Switching client...", "INFO");
 		setSelectedDevice("Client", $player['Id']);
-		$req = str_replace($device, "", $request);
-		$req = $delim ? str_replace($delim, "", $req) : $req;
-		$params['request'] = $req;
+		$params['request'] = $request;
 	}
 
 	return $params;
