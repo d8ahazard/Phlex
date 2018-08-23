@@ -567,15 +567,15 @@ function fetchMediaInfo(Array $params) {
 		$media = $result['media'];
 	}
 
-	if (($type && !$request) || $shuffle) {
-		write_log("Okay, we need to fetch some random media!");
-		$media = [shuffleMedia($type)];
-		$queued = true;
-		$result['media'] = $media;
-		$result['meta'] = [];
-		$data['control'] = 'play';
-		$result['params'] = $data;
-	}
+//	if (($type && !$request) || $shuffle) {
+//		write_log("Okay, we need to fetch some random media!");
+//		$media = [shuffleMedia($type)];
+//		$queued = true;
+//		$result['media'] = $media;
+//		$result['meta'] = [];
+//		$data['control'] = 'play';
+//		$result['params'] = $data;
+//	}
 
 	$ep = $key = $parent = false;
 	write_log("Mapped metadata array: " . json_encode($result));
@@ -2954,6 +2954,7 @@ function mergeData($search, $media, $meta) {
 	$artist = $search['artist'] ?? false;
 	$album = $search['album'] ?? false;
 	$intent = $search['intent'];
+	$shuffle = $search['shuffle'] ?? false;
 
 	$newMedia = [];
 	if ($media && $meta) {
@@ -3037,6 +3038,10 @@ function mergeData($search, $media, $meta) {
 					$mt = $types[1] ?? $types[0] ?? $item['type'];
 					$it = $itemTypes[1] ?? $itemTypes[0];
 					if ($mt == $it) $typeMatch = true;
+				}
+				if ($item['type']==='show' && $search['type'] === 'show.episode' && $shuffle) {
+					write_log("Pushing a matching show for an episode shuffle.");
+					$typeMatch = true;
 				}
 			}
 			if (isset($search['year']) && isset($item['year'])) {
@@ -3366,7 +3371,10 @@ function buildQueryMedia($params) {
 			writeSession("fallBackMedia", $meta[0]);
 		}
 		write_log("We have " . count($media) . " items to play...");
-		if (count($media) == 1 || $noPrompts) $playItem = $media[0];
+		write_log("We have " . count($media) . " item(s) to play from media array: ".json_encode($media));
+		if (count($media) == 1 || $noPrompts) {
+			$playItem = $media[0];
+		}
 		if (count($media) >= 2 && !$noPrompts) {
 			$fallBackMedia = fetchPlayItem($media[0], $shuffle);
 			writeSession("fallBackAction", 'play');
@@ -3481,7 +3489,7 @@ function buildSpeech($params, $results) {
 
 		$playback = false;
 
-		if ($params['control'] == 'play' || $params['control'] == 'playMedia') {
+		if (preg_match("/play/",$params['control'])) {
 
 			write_log("Media array for playback Command: " . json_encode($media), "INFO", false, true);
 			$mediaArray = $media;
