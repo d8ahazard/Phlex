@@ -479,6 +479,7 @@ function fetchMediaInfo(Array $params) {
 		}
 	}
 	$podCast = ($type==='podcast');
+	$playlist = ($type==='playlist');
 	if ($track && $request) {
 		write_log("Ripping the word track out, because DF sucks!");
 		$request = trim(str_replace("Track", "", $request));
@@ -540,8 +541,21 @@ function fetchMediaInfo(Array $params) {
 
 	if ($podCast) {
 		write_log("Podcast request.");
-		$result = fetchPodCast($data);
+		//$result = fetchPodCast($data);
 		return $result;
+	}
+
+	if ($playlist) {
+		write_log("Playlist request here, stripping extraneous words.");
+		$strippers = ['the', 'my', 'called', 'named', 'titled'];
+		$newRequest = str_replace($strippers,"",$request);
+		if ($request !== $newRequest) {
+			write_log("Stripped out some strings: $newRequest");
+			$request = $newRequest;
+			$data['request'] = $newRequest;
+		}
+
+
 	}
 
 	$query = urlencode($request);
@@ -1736,6 +1750,7 @@ function fetchPlayQueue($media, $shuffle=false, $returnQueue=false, $mediaId=fal
 	$sectionId = $media['librarySectionID'] ?? false;
 	$uuid = false;
 	$typeCheck = ($isAudio ? 'artist' : ($media['type'] == 'movie' ? 'movie' : 'show'));
+	$playlist = ($media['type'] === 'playlist');
 	foreach ($sections as $section) {
 		if ($sectionId) {
 			if ($section['Id'] == $sectionId) $uuid = $section['uuid'];
@@ -1749,6 +1764,7 @@ function fetchPlayQueue($media, $shuffle=false, $returnQueue=false, $mediaId=fal
 	} else {
 		$uri = urlencode("library://$uuid/item/" . urlencode($key));
 	}
+
 	write_log("Formatted URI is '$uri'");
 	$query = [
 		'type' => ($isAudio ? 'audio' : 'video'),
@@ -1761,6 +1777,12 @@ function fetchPlayQueue($media, $shuffle=false, $returnQueue=false, $mediaId=fal
 		'includeGeolocation' => 1,
 		'X-Plex-Client-Identifier' => $_SESSION['plexClientId']
 	];
+
+	if ($playlist) {
+		write_log("This is a playlist, replacing uri with playlistID pararm");
+		unset($query['uri']);
+		$query['playlistID'] = $media['ratingKey'];
+	}
 	$headers = clientHeaders($host);
 	$result = doRequest([
 		'uri' => $host['Uri'],
@@ -2880,7 +2902,7 @@ function mapData($dataArray) {
 						$counts = 0;
 						foreach ($hubs as $hub) {
 							if ($hub['size'] >= 1) {
-								$items = $hub['Directory'] ?? $hub['Track'] ?? $hub['Video'] ?? $hub['Season'] ?? $hub['Actor'] ?? false;
+								$items = $hub['Directory'] ?? $hub['Track'] ?? $hub['Video'] ?? $hub['Season'] ?? $hub['Actor'] ?? $hub['Playlist'] ?? false;
 								if (is_array($items)) {
 									$counts += count($items);
 									foreach ($items as $item) {
@@ -3370,7 +3392,6 @@ function buildQueryMedia($params) {
 			writeSession("fallBackAction", 'fetch');
 			writeSession("fallBackMedia", $meta[0]);
 		}
-		write_log("We have " . count($media) . " items to play...");
 		write_log("We have " . count($media) . " item(s) to play from media array: ".json_encode($media));
 		if (count($media) == 1 || $noPrompts) {
 			$playItem = $media[0];
