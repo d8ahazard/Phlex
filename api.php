@@ -885,7 +885,7 @@ function scanDevices($force = false) {
 					[
 						'title' => 'Cast Plugin Not Found!',
 						'message' => $message,
-						'url' => "https://github.com/d8ahazard/FlexTV.bundle"
+						'url' => "https://github.com/d8ahazard/Cast.bundle"
 					]
 				];
 				writeSession('messages', $alert);
@@ -984,6 +984,24 @@ function scrapeServers($serverArray) {
 				array_push($dvrs, $device);
 			}
 			if ($castDevices) {
+				write_log("Raw cast device data: ".json_encode($data),"ALERT");
+				$version = $data['version'] ?? false;
+				#TODO: Set this as a system param
+				if (!$version || $version !== "1.1.104") {
+					write_log("No version number detected!");
+					$message = "Your cast plugin is out of date. Please install the latest version for proper functionality.";
+					$alert = [
+						[
+							'title' => 'Cast Plugin out-of-date!',
+							'message' => $message,
+							'url' => "https://github.com/d8ahazard/Cast.bundle"
+						]
+					];
+					writeSession('messages', $alert);
+
+				} else {
+					write_log("We have a version number - '$version'");
+				}
 				$hasPlugin = $_SESSION['hasPlugin'] ?? false;
 				if (!$hasPlugin) updateUserPreference('hasPlugin', true);
 				foreach ($castDevices as $castDevice) {
