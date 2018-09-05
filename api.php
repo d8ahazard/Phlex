@@ -1879,9 +1879,6 @@ function fetchPlayQueueAudio($media) {
 	return $response;
 }
 
-	}
-}
-
 function fetchRandomMediaByKey($key) {
 	$winner = false;
 	$server = findDevice(false, false, 'Server');
