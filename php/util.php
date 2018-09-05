@@ -1034,7 +1034,8 @@ function joinItems($items, $tail = "and", $noType=false) {
                 }
                 break;
             case 'album':
-                $string = $item['artist'] . " - " . $item['title'];
+	        case 'artist':
+                $string = $item['title'] . "(The $type)";
                 if ($typeCount >=2 && $year) {
                 	$string .= " ($year)";
                 }

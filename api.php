@@ -478,7 +478,6 @@ function fetchMediaInfo(Array $params) {
 			$i++;
 		}
 	}
-	$podCast = ($type==='podcast');
 	$playlist = ($type==='playlist');
 	if ($track && $request) {
 		write_log("Ripping the word track out, because DF sucks!");
@@ -539,6 +538,11 @@ function fetchMediaInfo(Array $params) {
 		}
 	}
 
+//	if ($podCast) {
+//		write_log("Podcast request.");
+//		//$result = fetchPodCast($data);
+//		return $result;
+//	}
 
 	if ($playlist) {
 		write_log("Playlist request here, stripping extraneous words.");
@@ -575,15 +579,26 @@ function fetchMediaInfo(Array $params) {
 		$media = $result['media'];
 	}
 
-//	if (($type && !$request) || $shuffle) {
-//		write_log("Okay, we need to fetch some random media!");
-//		$media = [shuffleMedia($type)];
-//		$queued = true;
-//		$result['media'] = $media;
-//		$result['meta'] = [];
-//		$data['control'] = 'play';
-//		$result['params'] = $data;
-//	}
+	if ($shuffle) {
+		if ($type && !$request && !$artist) {
+			write_log("Okay, we need to fetch some random media!");
+			$media = [shuffleMedia($type)];
+			$queued = true;
+			$result['media'] = $media;
+			$result['meta'] = [];
+			$data['control'] = 'play';
+			$result['params'] = $data;
+		}
+
+		if (($artist) && (count($media) > 1)) {
+			foreach ($media as $item) {
+				if ($item['type'] === 'artist') {
+					$media = [$item];
+					break;
+				}
+			}
+		}
+	}
 
 	$ep = $key = $parent = false;
 	write_log("Mapped metadata array: " . json_encode($result));
