@@ -539,11 +539,6 @@ function fetchMediaInfo(Array $params) {
 		}
 	}
 
-	if ($podCast) {
-		write_log("Podcast request.");
-		//$result = fetchPodCast($data);
-		return $result;
-	}
 
 	if ($playlist) {
 		write_log("Playlist request here, stripping extraneous words.");
@@ -572,7 +567,6 @@ function fetchMediaInfo(Array $params) {
 			$id = $server['Id'];
 			$searches["plex.$id"] = $server['Uri'] . "/hubs/search?query=" . urlencode($request) . "&limit=30&X-Plex-Token=" . $server['Token'];
 		}
-
 		write_log("Search arrays: " . json_encode($searches));
 		$dataCurl = new multiCurl($searches, 3);
 		$dataArray = $dataCurl->process();
@@ -1852,12 +1846,7 @@ function fetchPlayQueueAudio($media) {
 	return $response;
 }
 
-function fetchPodCast($params) {
-	$request = $params['request'] ?? false;
-	if ($request) {
-
 	}
-
 }
 
 function fetchRandomMediaByKey($key) {
@@ -2107,9 +2096,10 @@ function fetchServerData($server = false) {
 	return ['Sections'=>$sections, 'Stations'=>$stations];
 }
 
-function fetchTransientToken($host = false) {
 	$host = $host ? $host : findDevice(false, false, "Server");
+function fetchTransientToken($host = false, $type=false) {
 	$header = headerQuery(plexHeaders($host));
+
 	$url = $host['Uri'] . '/security/token?type=delegation&scope=all' . $header;
 	$result = curlGet($url);
 	if ($result) {
@@ -2418,7 +2408,7 @@ function sendMedia($media) {
 	$offset = ($media['viewOffset'] ?? 0);
 	$commandId = $_SESSION['counter'];
 	$token = $parent['Token'];
-	$transientToken = fetchTransientToken($host);
+	$transientToken = fetchTransientToken($host,$media['type']);
 	if ($queueID && $transientToken) {
 		$client = findDevice("Id", $_SESSION['plexClientId'], "Client");
 		if (!$client) {
@@ -2442,10 +2432,12 @@ function sendMedia($media) {
 				'X-Plex-Queueid' => $queueID,
 				'X-Plex-Transienttoken' => $transientToken
 			];
+
+			write_log("Header array: " . json_encode($headers));
 			$headers = headerQuery($headers);
 			$url = $parent['Uri'] . "/chromecast/play?X-Plex-Token=" . $token;
 			//$headers = headerRequestArray($headers);
-			//write_log("Header array: " . json_encode($headers));
+
 			$result = curlGet($url . $headers);
 			write_log("Result: " . $result);
 			$status = "FOO";
@@ -2891,7 +2883,7 @@ function mapData($dataArray) {
 		if (is_array($data)) {
 			$keys = explode(".", $key);
 			$type = $keys[0];
-			$sub = $keys[1] ?? null;
+			$sub = end($keys);
 			switch ($type) {
 				case 'meta':
 					$meta = $data;
@@ -2913,7 +2905,7 @@ function mapData($dataArray) {
 								}
 							}
 						}
-						write_log("Mapped $counts Plex Items.");
+						write_log("Mapped $counts Plex Items for $sub.");
 					}
 					break;
 			}
@@ -2925,7 +2917,10 @@ function mapData($dataArray) {
 		'media' => $media,
 		'meta' => $meta
 	];
-	write_log("ITEMS: " . json_encode($results));
+
+	$mediaCount = count($media);
+	$metaCount = count($meta);
+	write_log("We have $mediaCount media ITEMS and $metaCount meta items: " . json_encode($results));
 	return $results;
 }
 
@@ -2946,6 +2941,7 @@ function mapDataPlex($data) {
 		$art = $data['grandparentArt'] ?? $data['parentArt'] ?? $data['art'] ?? false;
 		if ($art) $result['art'] = $art;
 		if ($thumb) $result['thumb'] = $thumb;
+
 		if ($data['type'] == 'track') {
 			$result['artist'] = $data['grandparentTitle'];
 			$result['album'] = $data['parentTitle'];
@@ -2977,7 +2973,8 @@ function mergeData($search, $media, $meta) {
 	$album = $search['album'] ?? false;
 	$intent = $search['intent'];
 	$shuffle = $search['shuffle'] ?? false;
-
+	$mediaCount = count($media);
+	$mergeCount = 0;
 	$newMedia = [];
 	if ($media && $meta) {
 		foreach ($media as $item) {
@@ -2999,6 +2996,7 @@ function mergeData($search, $media, $meta) {
 						}
 					}
 					if ($merge) {
+						$mergeCount++;
 						if (isset($item['art']) && isset($check['art'])) unset($item['art']);
 						if (isset($item['thumb']) && isset($check['thumb'])) unset($item['thumb']);
 						$item = array_merge($check, $item);
@@ -3009,6 +3007,7 @@ function mergeData($search, $media, $meta) {
 			array_push($newMedia, $item);
 		}
 		$media = $newMedia;
+		write_log("Merged meta into $mergeCount items out of a total of $mediaCount items");
 	}
 
 	$vars = [
@@ -3287,7 +3286,6 @@ function buildQueryInfo($params) {
 }
 
 function buildQueryMedia($params) {
-
 	write_log(" params: " . json_encode($params));
 	$results = fetchMediaInfo($params);
 	$params = $results['params'];
@@ -3336,7 +3334,6 @@ function buildQueryMedia($params) {
 
 		if (count($media) === 0 && count($meta)) {
 			write_log("Fetching, pre-fetcher result: " . json_encode($meta));
-
 
 				if (count($meta) >= 2) {
 					// Ask which one to download

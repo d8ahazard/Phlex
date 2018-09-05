@@ -846,7 +846,6 @@ function headerQuery($headers) {
         $string.="&".urlencode($key)."=".urlencode($val);
     }
     return $string;
-    return $string;
 }
 
 function headerRequestArray($headers) {
@@ -2098,7 +2097,7 @@ function plexHeaders($server=false) {
         "X-Plex-Device"=>$name,
         "X-Plex-Device-Name"=>"Phlex",
         "X-Plex-Device-Screen-Resolution"=>"1920x1080",
-        "X-Plex-Provider-Version"=>"1.1",
+        "X-Plex-Provider-Version"=>"1.2",
 	    "X-Plex-Language"=>strtolower($_SESSION['appLanguage'] ?? "en")
     ];
     if ($token) $headers["X-Plex-Token"] = $token;
