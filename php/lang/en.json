@@ -409,6 +409,8 @@
 	"uiSettingApiKey": "API Key:",
 	"uiSettingAutoUpdate": "Automatically Install Updates",
 	"uiSettingNotifyUpdate": "Notify when updates are available",
+	"uiSettingBroadcastDevice": "Broadcast Device",
+	"uiSettingBroadcastDeviceHint": "The device to broadcast notifications to.",
 	"uiSettingBtnReset": "RESET",
 	"uiSettingBtnTest": "TEST",
 	"uiSettingCastLogs": "Download Cast Logs",

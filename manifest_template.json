@@ -1,5 +1,6 @@
 {
 	"name": "Flex TV",
+	"short_name": "Flex TV",
 	"icons": [
 		{
 			"src": "img\/android-icon-192x192.png",

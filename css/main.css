@@ -67,6 +67,14 @@ a:hover:not(#executeButton), .barBtn:hover, .barBtn:hover, .barBtn:hover > .clie
 	background-color: var(--theme-accent) !important;
 }
 
+.form-control-sm {
+	display: inline-block !important;
+	max-width: 35%;
+}
+
+.center-group {
+	text-align: center;
+}
 
 .nav-item > .nav-link, .appContainer, .userGroup *, .form-control, .text-muted {
 	color: var(--theme-primary-shade2) !important;

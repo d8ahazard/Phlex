@@ -6,18 +6,22 @@ write_log("-------NEW REQUEST RECEIVED-------", "ALERT");
 scriptDefaults();
 $defaults = checkDefaults();
 $forceSSL = $defaults['forceSSL'] ?? false;
-
+if ($forceSSL === "false") $forceSSL = false;
+write_log("ForceSSL is set to $forceSSL");
 if ((empty($_SERVER['HTTPS']) || $_SERVER['HTTPS'] == "off") && $forceSSL) {
 	$redirect = 'https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+	write_log("Force is on, redirecting to: $redirect","ERROR");
 	if (isDomainAvailable($redirect)) {
 		header('HTTP/1.1 301 Moved Permanently');
 		header('Location: ' . $redirect);
 		exit();
 	}
 }
+
 if (!session_started()) {
 	session_start();
 }
+
 writeSessionArray($defaults);
 $GLOBALS['time'] = microtime(true);
 if (substr_count($_SERVER["HTTP_ACCEPT_ENCODING"], "gzip") && hasGzip()) ob_start("ob_gzhandler"); else ob_start();

@@ -209,7 +209,7 @@ function makeSettingsBody($defaults) {
 					                            </div>
 					                            <div class='togglebutton".$hidden."'>
 					                                <label for='cleanLogs' class='appLabel checkLabel'>" . $lang["uiSettingObscureLogs"] . "
-					                                    <input id='cleanLogs' type='checkbox' class='appInput appToggle' " . ($_SESSION['cleanLogs'] ? 'checked' : '') . "/>
+					                                    <input id='cleanLogs' type='checkbox' class='appInput' " . ($_SESSION['cleanLogs'] ? 'checked' : '') . "/>
 					                                </label>
 					                            </div>
 					                            <div class='togglebutton'>
@@ -246,9 +246,23 @@ function makeSettingsBody($defaults) {
 					                    <div class='appContainer card'>
 				                            <div class='card-body'>
 				                                <h4 class='cardHeader'>Notifications</h4>
+				                                <div class='form-group'>
+				                                    <label class='appLabel' for='broadcastList'>" . $lang["uiSettingBroadcastDevice"] . "</label>
+				                                    <select class='form-control custom-select deviceList' id='broadcastList' title='".$lang['uiSettingBroadcastDeviceHint']."'>				                                    
+				                                    </select>
+			                                    </div>
+			                                    <div class='form-group center-group'>
+        											<label for='appt-time'>Start:</label>
+                                                    <input type='time' id='quietStart' class='form-control form-control-sm appInput' min='0:00' max='23:59'/>
+                                                    <label for='appt-time'>Stop:</label>
+                                                    <input type='time' id='quietStop' class='form-control form-control-sm appInput' min='0:00' max='23:59'/>
+                                                </div>
 					                            <div class='fetchNotify'>
-					                                <button id='copyCouch' value='urlCouchPotato' class='hookLnk btn btn-raised btn-warn btn-100' title='Copy WebHook Notification URL'>
+					                                <button id='copyBroadcast' class='hookLnk btn btn-raised btn-warn btn-100' title='Copy WebHook Notification URL'>
 			                                            <i class='material-icons'>assignment</i>
+		                                            </button>
+		                                            <button id='testBroadcast' value='broadcast' class='testInput btn btn-info btn-raised btn-100' title='Test WebHook Notification'>
+			                                            <i class='material-icons'>send</i>
 		                                            </button>
 		                                        </div>
 											</div>

@@ -373,7 +373,6 @@ function curlGet($url, $headers = null, $timeout = 4) {
     curl_setopt($ch, CURLOPT_CAINFO, $cert);
     if ($headers !== null) curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
     $result = curl_exec($ch);
-    write_log("Curl result: ".json_encode($result));
     if (!curl_errno($ch)) {
         switch ($http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE)) {
             case 200:
@@ -384,6 +383,25 @@ function curlGet($url, $headers = null, $timeout = 4) {
         }
     }
     curl_close($ch);
+    if ($result) {
+    	$decoded = false;
+    	try {
+    		$array = json_decode($result,true);
+    		if ($array) {
+    			$decoded = true;
+			    write_log("Curl result(JSON): " . json_encode($array));
+		    } else {
+    			$array = (new JsonXmlElement($result))->asArray();
+    			if (!empty($array)) {
+				    $decoded = true;
+				    write_log("Curl result(XML): " . json_encode($array));
+			    }
+		    }
+    		if (!$decoded) write_log("Curl result(String): $result");
+	    } catch (Exception $e) {
+
+	    }
+    }
     return $result;
 }
 
@@ -478,7 +496,7 @@ function doRequest($parts, $timeout = 6) {
         write_log("URL $url is not valid.","ERROR");
         return false;
     }
-    write_log("URL is " . protectURL($url), "INFO", getCaller());
+    write_log("Request URL: $url", "INFO", getCaller());
 
     $client = new GuzzleHttp\Client([
         'timeout' => $timeout,
@@ -2121,54 +2139,76 @@ function plexSignIn($token) {
     return $user;
 }
 
-function protectURL($string) {
-    if ($_SESSION['cleanLogs']) {
-        $keys = parse_url($string);
-        $parts = explode(".", $keys['host']);
-        if (count($parts) >= 2) {
-            $i = 0;
-            foreach ($parts as $part) {
-                if ($i != 0) {
-                    $parts[$i] = str_repeat("X", strlen($part));
-                }
-                $i++;
-            }
-            $cleaned = implode(".", $parts);
-        } else {
-            $cleaned = str_repeat("X", strlen($keys['host']));
-        }
-        $string = str_replace($keys['host'], $cleaned, $string);
+function protectMessage($string) {
+    if ($_SESSION['cleanLogs'] ?? true) {
+    	$str = $string;
+	    preg_match_all('#\bhttps?://[^,\s()<>]+(?:\([\w\d]+\)|([^,[:punct:]\s]|/))#', $string, $urls);// Remove tokens and host from URL's
+	    foreach($urls as $url) {
+		    $url = $url[0] ?? "";
+		    if (trim($url)) {
+			    $parsed = parse_url($url);
+			    if (isset($parsed['query'])) {
+				    $qParts = explode("&", $parsed['query']);
+				    foreach ($qParts as &$part) {
+					    $params = explode("=", $part);
+					    if ($params[0] == "X-Plex-Token" || $params[0] == "apiToken") $params[1] = '[REDACTED]';
+					    $part = implode("=", $params);
+				    }
+				    $parsed['query'] = implode("&", $qParts);
+			    }
+			    if (isset($parsed['host'])) $parsed['host'] = '[REDACTED]';
+			    $newUrl = http_build_url($parsed);
+			    if ($newUrl !== $url) {
+				    $str = str_replace($url, $newUrl, $str);
+			    }
+		    }
+	    }
 
-        $cleaned = str_repeat("X", strlen($keys['host']));
-        $string = str_replace($keys['host'], $cleaned, $string);
-        $pairs = [];
-        if ($keys['query']) {
-            parse_str($keys['query'], $pairs);
-            foreach ($pairs as $key => $value) {
-                if ((preg_match("/token/", $key)) || (preg_match("/Token/", $key))) {
-                    $cleaned = str_repeat("X", strlen($value));
-                    $string = str_replace($value, $cleaned, $string);
-                }
-                if (preg_match("/address/", $key)) {
-                    $parts = explode(".", $value);
-                    if (count($parts) >= 2) {
-                        $i = 0;
-                        foreach ($parts as &$part) {
-                            if ($i <= count($parts) - 1) {
-                                $part = str_repeat("X", strlen($part));
-                            }
-                            $i++;
-                        }
-                        $cleaned = implode(".", $parts);
-                    } else {
-                        $cleaned = str_repeat("X", strlen($value));
-                    }
-                    $string = str_replace($value, $cleaned, $string);
-                }
-            }
-        }
+	    // Remove any API Tokens
+	    $prefs = getPreference('userdata',false,[]);
+	    $tokens = [];
+	    foreach($prefs as $user) {
+	    	$token = $user['apiToken'] ?? false;
+	    	if ($token) array_push($tokens,$token);
+	    }
+	    $str = str_replace($tokens, '[REDACTED]', $str);
+
+	    // Search for JSON and remove instances of various keys
+	    $matches = [];
+	    $pattern = '/\{(?:[^{}]|(?R))*\}/x';
+	    preg_match_all($pattern,$str,$matches);
+	    foreach($matches as $match)  {
+	    	$decoded = json_decode($match[0],true);
+	    	if (is_array($decoded)) {
+	    		$keys = ['X-Plex-Token','apiToken','plexToken', 'authToken','token','email','username',
+				    'uid','publicAddress','plexUserName','plexEmail','uri','address'];
+	    		$cleaned = json_encode(arrayReplaceRecursive($decoded,$keys,'[REDACTED]'),true);
+	    		if ($cleaned !== $match) $str = str_replace($match, $cleaned,$str);
+		    }
+	    }
+	    $string = $str;
     }
     return $string;
+}
+
+function arrayReplaceRecursive($array,$keys,$replacement) {
+	if (is_array($keys)) {
+		foreach ($keys as $check) {
+			$array = arrayReplaceRecursive($array,$check,$replacement);
+		}
+	} else {
+		foreach($array as $key => $sub) {
+			if (is_array($sub)) {
+				$array = arrayReplaceRecursive($sub,$keys,$replacement);
+			} else {
+				if (strtolower($key) === strtolower($keys)) {
+					//write_log("Replacing $key in array.","ERROR",false,false,true);
+					$array[$key] = $replacement;
+				}
+			}
+		}
+	}
+	return $array;
 }
 
 function proxyImage($url) {
@@ -2202,8 +2242,8 @@ function session_started() {
 }
 
 function setStartUrl() {
-    $fileOut = dirname(__FILE__) . "/manifest.json";
-    $file = (file_exists($fileOut)) ? $fileOut : dirname(__FILE__) . "/manifest_template.json";
+    $fileOut = dirname(__FILE__) . "/../manifest.json";
+    $file = (file_exists($fileOut)) ? $fileOut : dirname(__FILE__) . "/../manifest_template.json";
     $json = json_decode(file_get_contents($file), true);
     $url = 'https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
     $url = parse_url($url);
@@ -2456,7 +2496,7 @@ function translateControl($string, $searchArray) {
     return $string;
 }
 
-function write_log($text, $level = false, $caller = false, $force=false) {
+function write_log($text, $level = false, $caller = false, $force=false, $skip=false) {
     $log = file_build_path(dirname(__FILE__), '..', 'logs', "Phlex.log.php");
     $pp = false;
     if ($force && isset($_GET['pollPlayer'])) {
@@ -2487,7 +2527,7 @@ function write_log($text, $level = false, $caller = false, $force=false) {
     $user = $_SESSION['plexUserName'] ?? false;
     $user = $user ? "[$user] " : "";
     $caller = $caller ? getCaller($caller) : getCaller();
-    $text = trim($text);
+    if (!$skip) $text = protectMessage(($text));
 
     if ((isset($_GET['pollPlayer']) || isset($_GET['passive'])) || ($text === "") || !file_exists($log)) return;
 

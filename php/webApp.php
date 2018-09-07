@@ -13,15 +13,15 @@ $publicAddress = serverAddress();
 $_SESSION['appAddress'] = $publicAddress;
 $_SESSION['publicAddress'] = $publicAddress;
 
-function updateUserPreference($key, $value) {
+function updateUserPreference($key, $value, $section='userdata') {
     $value = scrubBools($value, $key);
-    setPreference('userdata',[$key=>$value],'apiToken',$_SESSION['apiToken']);
+    setPreference($section, [$key=>$value],'apiToken',$_SESSION['apiToken']);
     writeSession($key,$value);
 }
 
-function updateUserPreferenceArray($data) {
+function updateUserPreferenceArray($data, $section='userdata') {
     $data = scrubBools($data);
-    setPreference('userdata',$data,'apiToken',$_SESSION['apiToken']);
+    setPreference($section,$data,'apiToken',$_SESSION['apiToken']);
     writeSessionArray($data);
 }
 
@@ -182,7 +182,6 @@ function scriptDefaults() {
 }
 
 function checkDefaults() {
-    // OG Stuff
     $config = dirname(__FILE__) . "/../rw/db.conf.php";
     $useDb = file_exists($config);
     if ($useDb) {
@@ -196,14 +195,16 @@ function checkDefaults() {
             foreach($value as $id => $data) {
                 if ($id == 'name') {
                     array_push($keys,$data);
-                } else {
+                }
+                if ($id == 'value') {
+                	if ($data === "true") $data = true;
+                	if ($data === "false") $data = false;
                     array_push($values,$data);
                 }
             }
         }
         $defaults = array_combine($keys,$values);
-        //$id = $defaults['deviceId'] ?? 'foo';
-        //if ($id == 'foo') $defaults = false;
+
     }
     if (!$defaults) {
         write_log("Creating default values!","ALERT");
@@ -215,12 +216,15 @@ function checkDefaults() {
             'deviceName' => "Flex TV (Home)",
             'publicAddress' => currentAddress(),
             'revision' => '000',
-            'updates' => "[]"
+            'updates' => "[]",
+	        'cleanLogs' => true
         ];
         foreach($defaults as $key=>$value) {
             $data = ['name'=>$key, 'value'=>$value];
             setPreference('general',$data,"name",$key);
         }
+    } else {
+    	write_log("Fetched defaults: ".json_encode($defaults));
     }
     return $defaults;
 }
@@ -372,6 +376,9 @@ function checkDefaultsDb($config) {
  `hookPausedUrl` longtext NOT NULL,
  `hookFetchUrl` longtext NOT NULL,
  `hookCustomUrl` longtext NOT NULL,
+ `broadcastDevice` tinytext NOT NULL,
+ `quietStart` tinytext NOT NULL DEFAULT '20:00',
+ `quietEnd` tinytext NOT NULL DEFAULT '8:00',
  PRIMARY KEY (`apiToken`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1";
                     break;
@@ -527,7 +534,9 @@ function logCommand($resultObject) {
 
 function firstUser() {
     $data = getPreference('userdata',false,[]);
-    return (is_array($data) && count($data)) ? false : true;
+    $isFirst = (is_array($data) && count($data)) ? false : true;
+    if ($isFirst) write_log("HELLO, MASTER.","ALERT");
+    return $isFirst;
 }
 
 function newUser($user) {
@@ -554,7 +563,9 @@ function newUser($user) {
         'masterUser' => firstUser(),
         'publicAddress' => currentAddress(),
         'shortAnswers' => false,
-        'autoUpdate' => false
+        'autoUpdate' => false,
+	    'quietStart' => "20:00",
+	    'quietStop' => "8:00"
     ];
     $user = array_merge($user,$defaults);
     write_log("Creating and saving $userName as a new user: ".json_encode($defaults),"ALERT");

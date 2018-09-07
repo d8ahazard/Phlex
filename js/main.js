@@ -6,7 +6,7 @@ var apiToken, appName, bgs, bgWrap, cv, dvr, token, newToken, deviceID, resultDu
 var cleanLogs=true, couchEnabled=false, lidarrEnabled=false, ombiEnabled=false, sickEnabled=false, sonarrEnabled=false, radarrEnabled=false,
 	headphonesEnabled=false, watcherEnabled=false, dvrEnabled=false, hook=false, hookPlay=false, polling=false, pollcount=false,
 	hookPause=false, hookStop=false, hookCustom=false, hookFetch=false, hookSplit = false, autoUpdate = false, masterUser = false,
-	noNewUsers=false, notifyUpdate=false, waiting=false;
+	noNewUsers=false, notifyUpdate=false, waiting=false, broadcastDevice="all";
 
 var forceUpdate = true;
 
@@ -191,21 +191,41 @@ function buildUiDeferred() {
 function deviceHtml(type, deviceData) {
 	var output = "";
 	$.each(deviceData, function (key, device) {
+		var skip = false;
 	    if (device.hasOwnProperty('Id') && device.hasOwnProperty('Name') && device.hasOwnProperty('Selected')) {
             var string = "";
             var id = device["Id"];
             var name = device["Name"];
+            var friendlyName = device["FriendlyName"];
+            if (type === 'Broadcast') {
+            	if (id === broadcastDevice) device["Selected"] = true;
+			}
             var selected = ((device["Selected"]) ? ((type === 'Client') ? " dd-selected" : " selected") : "");
 
             if (type === 'Client') {
-                string = "<a class='dropdown-item client-item" + selected + "' data-type='Client' data-id='" + id + "'>" + name + "</a>";
+                string = "<a class='dropdown-item client-item" + selected + "' data-type='Client' data-id='" + id + "'>" + friendlyName + "</a>";
             } else {
                 string = "<option data-type='" + type + "' value='" + id + "'" + selected + ">" + name + "</option>";
             }
-            output += string;
+            if (device.hasOwnProperty('Product')) {
+            	console.log("Device type present.");
+            	if (device["Product"] !== 'Cast' && type==="Broadcast") {
+            		console.log("Skip this baby.");
+            		skip = true;
+				}
+			}
+            if (!skip) output += string;
         }
 	});
-	if (type === 'Client') output += '<a class="dropdown-item client-item" data-id="rescan"><b>rescan devices</b></a>';
+    if (type === 'Broadcast') {
+    	console.log("Generating broadcast device list here...");
+    	var tmp = output;
+    	var selected = (broadcastDevice === 'all') ? " selected" : "";
+    	output = "<option data-type='Broadcast' value='all'" + selected + ">ALL DEVICES</option>";
+        output += tmp;
+    } else {
+        if (type === 'Client') output += '<a class="dropdown-item client-item" data-id="rescan"><b>rescan devices</b></a>';
+    }
 	return output;
 }
 
@@ -214,7 +234,10 @@ function updateDevices(newDevices) {
 	var newString = JSON.stringify(newDevices);
 	if (newString !== devices) {
 		console.log("Device array changed, updating: ", newDevices);
-		if (newDevices.hasOwnProperty("Client")) $('#clientWrapper').html(deviceHtml('Client', newDevices["Client"]));
+		if (newDevices.hasOwnProperty("Client")) {
+			$('#clientWrapper').html(deviceHtml('Client', newDevices["Client"]));
+            $('#broadcastList').html(deviceHtml('Broadcast', newDevices["Client"]));
+        }
         if (newDevices.hasOwnProperty("Server")) $('#serverList').html(deviceHtml('Server', newDevices["Server"]));
         if (newDevices.hasOwnProperty("Dvr")) {
             if (newDevices["Dvr"].length === 0) $('.dvrGroup').hide(); else ($('.dvrGroup').show());
@@ -372,6 +395,7 @@ function parseServerData(data) {
 }
 
 function setUiVariables(data) {
+	console.log("Setting UI Variables: ",data);
 	for (var propertyName in data) {
 		if (data.hasOwnProperty(propertyName)) switch (propertyName) {
 			case 'sonarrEnabled':
@@ -395,6 +419,7 @@ function setUiVariables(data) {
 			case 'cleanLogs':
 			case 'autoUpdate':
 			case 'notifyUpdate':
+			case 'broadcastDevice':
 				var value = data[propertyName];
                 try {
                     value = JSON.parse(value);
@@ -413,7 +438,11 @@ function setUiVariables(data) {
 					window[propertyName] = value;
 				}
 				break;
-
+			case 'quietStart':
+			case 'quietStop':
+                value = data[propertyName];
+				$('#'+ propertyName).val(value);
+				break;
 			case 'couchList':
 			case 'sonarrList':
 			case 'radarrList':
@@ -811,9 +840,9 @@ function notify() {
 
 function fetchWeather() {
 	var condition = "";
-	$.getJSON('http://www.geoplugin.net/json.gp?jsoncallback=?', function (data) {
-		city = data["geoplugin_city"];
-		state = data["geoplugin_regionName"];
+	$.getJSON('https://geoip.tools/v1/json', function (data) {
+		city = data["city"];
+		state = data["region_name"];
 		console.log("City and state are " + city + " and " + state);
 		$.simpleWeather({
 			location: city + ',' + state,
@@ -1035,14 +1064,21 @@ function setListeners() {
 		var value, regUrl;
 		if ($(this).hasClass("copyInput")) {
 			value = $(this).val();
-			clipboard.copy(value);
-			$.snackbar({content: "Successfully copied URL."});
+			
+			copyString(value);
 		}
 
 		if ($(this).hasClass("testInput")) {
-			value = encodeURIComponent($(this).val());
+			var url = "";
+			if ($(this).val() === 'broadcast') {
+				var msg = encodeURIComponent("Flex TV is the bee's, knees, Mcgee.");
+				url = 'api.php?notify=true&message=' + msg + '&apiToken=' + apiToken;
+			} else {
+                value = encodeURIComponent($(this).val());
+                url = 'api.php?test=' + value + '&apiToken=' + apiToken
+            }
 
-			$.get('api.php?test=' + value + '&apiToken=' + apiToken, function (data) {
+			$.get(url, function (data) {
 				if (data.hasOwnProperty('status')) {
 					console.log("We have a msg.",data['status']);
 					var msg = data['status'].replace(/"/g,"");
@@ -1069,8 +1105,8 @@ function setListeners() {
 
 		if ($(this).hasClass("hookLnk")) {
 			appName = $(this).data('value');
-			var string = serverAddress + "/api.php?apiToken=" + apiToken + "&notify=true";
-			clipboard.copy(string);
+			var string = serverAddress + "api.php?apiToken=" + apiToken + "&notify=true&message=";
+			copyString(string);
 		}
 
         if ($(this).hasClass("logBtn")) {
@@ -1158,6 +1194,16 @@ function setListeners() {
 			id: serverID
 		});
 	});
+
+    $(document).on("click change", "#broadcastList",function () {
+        var ID = $(this).val();
+        apiToken = $('#apiTokenData').data('token');
+
+        $.get('api.php?apiToken=' + apiToken, {
+            device: 'Broadcast',
+            id: ID
+        });
+    });
 
 	$(document).on("click change", "#dvrList", function () {
 		var serverID = $(this).val();
@@ -1371,3 +1417,14 @@ $(window).on("load",function () {
 	}
 
 });
+
+function copyString(data) {
+    var dummy = document.createElement("input");
+    document.body.appendChild(dummy);
+    dummy.setAttribute("id", "dummy_id");
+    document.getElementById("dummy_id").value=JSON.stringify(data);
+    dummy.select();
+    document.execCommand("copy");
+    document.body.removeChild(dummy);
+    $.snackbar({content: "Successfully copied data."});
+}
