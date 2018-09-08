@@ -710,15 +710,15 @@ function getCaller($custom = "foo") {
 }
 
 function getCert() {
-	if (function_exists('openssl_get_cert_locations')) {
-		$paths = openssl_get_cert_locations();
-		foreach($paths as $key=>$path) if ($path == "") unset($paths[$key]);
-		$sysCert = $paths['ini_cafile'] ?? $paths['default_cert_file'] ?? false;
-		if ($sysCert) {
-			write_log("Using system cert.");
-			return $sysCert;
-		}
-	}
+//	if (function_exists('openssl_get_cert_locations')) {
+//		$paths = openssl_get_cert_locations();
+//		foreach($paths as $key=>$path) if ($path == "") unset($paths[$key]);
+//		$sysCert = $paths['ini_cafile'] ?? $paths['default_cert_file'] ?? false;
+//		if ($sysCert) {
+//			write_log("Using system cert.");
+//			return $sysCert;
+//		}
+//	}
 	$file = file_build_path(dirname(__FILE__), "..", "rw", "cacert.pem");
 	$url = 'https://curl.haxx.se/ca/cacert.pem';
 	$current_time = time();
