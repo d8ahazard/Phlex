@@ -5,7 +5,6 @@
 /config*
 /composer.lock
 /.idea/*
-/cacert.pem
 /manifest.json
 /logs/*.log.php
 /logs/*.log.old.php

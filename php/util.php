@@ -155,8 +155,8 @@ function cacheImage($url) {
 
 
 function checkUrl($url, $returnError=false) {
-    $certPath = file_build_path(dirname(__FILE__),"..", "cert", "cacert.pem");
-    $url = filter_var($url, FILTER_SANITIZE_URL);
+	$cert = getCert();
+	$url = filter_var($url, FILTER_SANITIZE_URL);
     if (!filter_var($url, FILTER_VALIDATE_URL)) {
         write_log("URL $url is not valid.","ERROR");
         return false;
@@ -165,7 +165,7 @@ function checkUrl($url, $returnError=false) {
     $ch = curl_init($url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
     curl_setopt($ch, CURLOPT_TIMEOUT, 15);
-    curl_setopt($ch, CURLOPT_CAINFO, $certPath);
+    curl_setopt($ch, CURLOPT_CAINFO, $cert);
 
     $result = curl_exec($ch);
     /* Get the error code. */
@@ -357,9 +357,8 @@ function numberToRoman($number) {
 }
 
 function curlGet($url, $headers = null, $timeout = 4) {
-    $cert = getContent(file_build_path(dirname(__FILE__),"..", "cacert.pem"), 'https://curl.haxx.se/ca/cacert.pem');
-    if (!$cert) $cert = file_build_path(dirname(__FILE__), "..","cert", "cacert.pem");
-    write_log("GET url $url","INFO","curlGet");
+	$cert = getCert();
+	write_log("GET url $url","INFO","curlGet");
     $url = filter_var($url, FILTER_SANITIZE_URL);
     if (!filter_var($url, FILTER_VALIDATE_URL)) {
         write_log("URL $url is not valid.","ERROR");
@@ -413,8 +412,7 @@ function curlPost($url, $content = false, $JSON = false, Array $headers = null, 
         return false;
     }
 
-    $cert = getContent(file_build_path(dirname(__FILE__), "cacert.pem"), 'https://curl.haxx.se/ca/cacert.pem');
-    if (!$cert) $cert = file_build_path(dirname(__FILE__), "cert", "cacert.pem");
+	$cert = getCert();
     $curl = curl_init($url);
     curl_setopt($curl, CURLOPT_HEADER, false);
     curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
@@ -711,26 +709,40 @@ function getCaller($custom = "foo") {
     return $info;
 }
 
-function getContent($file, $url, $hours = 56, $fn = '', $fn_args = '') {
-    $current_time = time();
-    $expire_time = $hours * 60 * 60;
-    $file_time = filemtime($file);
-    if (file_exists($file) && ($current_time - $expire_time < $file_time)) {
-        return $file;
-    } else {
-        $content = doRequest($url,15);
-        if ($content) {
-            if ($fn) {
-                $content = $fn($content, $fn_args);
-            }
-            $content .= '<!-- cached:  ' . time() . '-->';
-            file_put_contents($file, $content);
-            write_log('Retrieved fresh from ' . $url, "INFO");
-            if (file_exists($file)) return $file;
-        }
-        return false;
-    }
+function getCert() {
+	if (function_exists('openssl_get_cert_locations')) {
+		$paths = openssl_get_cert_locations();
+		foreach($paths as $key=>$path) if ($path == "") unset($paths[$key]);
+		$sysCert = $paths['ini_cafile'] ?? $paths['default_cert_file'] ?? false;
+		if ($sysCert) {
+			write_log("Using system cert.");
+			return $sysCert;
+		}
+	}
+	$file = file_build_path(dirname(__FILE__), "..", "rw", "cacert.pem");
+	$url = 'https://curl.haxx.se/ca/cacert.pem';
+	$current_time = time();
+	$expire_time = 56 * 60 * 60;
+	if (file_exists($file)) {
+		$file_time = filemtime($file);
+		if ($current_time - $expire_time < $file_time) {
+			return $file;
+		}
+	} else {
+		write_log("Fetching updated cert.");
+		$content = doRequest($url,5);
+		if ($content) {
+			$content .= '<!-- cached:  ' . time() . '-->';
+			file_put_contents($file, $content);
+			write_log('Retrieved fresh from ' . $url, "INFO");
+			if (file_exists($file)) return $file;
+		}
+	}
+	// If unable to fetch or write cert, use the "default" one in the project root
+	$cert = file_build_path(dirname(__FILE__), "..", "cacert.pem");
+	return $cert;
 }
+
 
 function getLocale() {
     $locale = trim($_SESSION['appLanguage'] ?? "");
