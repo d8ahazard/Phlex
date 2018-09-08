@@ -2177,7 +2177,7 @@ function protectMessage($string) {
 	    $matches = [];
 	    $pattern = '/\{(?:[^{}]|(?R))*\}/x';
 	    preg_match_all($pattern,$str,$matches);
-	    foreach($matches as $match)  {
+	    foreach($matches as $match) if (isset($match[0])) {
 	    	$decoded = json_decode($match[0],true);
 	    	if (is_array($decoded)) {
 	    		$keys = ['X-Plex-Token','apiToken','plexToken', 'authToken','token','email','username',
