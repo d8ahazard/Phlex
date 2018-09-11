@@ -147,8 +147,10 @@ checkUpdate();
 										<b><h3 class="loginLabel card-title">Welcome to Flex TV!</h3></b>
 										<img class="loginLogo" src="./img/phlex-med.png" alt="Card image">
 										<h6 class="loginLabel card-subtitle text-muted">Please log in below to begin.</h6>
-									</div>
-									<div class="card-block">
+									</div>';
+		$rev = checkRevision(true);
+		if ($rev) echo "<div id='revision' class='meta'>Revision: $rev</div>";
+echo '                            <div class="card-block">
 										<div id="loginForm">
 											<button class="btn btn-raised btn-primary" id="plexAuth">DO IT!</button>
 											<br><br>

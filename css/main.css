@@ -72,6 +72,12 @@ a:hover:not(#executeButton), .barBtn:hover, .barBtn:hover, .barBtn:hover > .clie
 	max-width: 35%;
 }
 
+.loginCard #revision {
+	text-align: center;
+	max-width: 100%;
+	color: #80808075;
+}
+
 .center-group {
 	text-align: center;
 }
