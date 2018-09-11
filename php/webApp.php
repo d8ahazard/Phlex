@@ -451,7 +451,13 @@ function fetchCommands() {
             array_push($out,$data);
         }
     }
-    return array_reverse($out);
+	usort($out, function ($a, $b) {
+		if ($a['timecode'] == $b['timecode']) {
+			return 0;
+		}
+		return ($a['timecode'] < $b['timecode']) ? 1 : -1;
+	});
+    return $out;
 }
 
 #TODO: Should we be writing session here?
