@@ -2151,6 +2151,7 @@ function plexSignIn($token) {
 }
 
 function protectMessage($string) {
+	//return $string;
     if (($_SESSION['cleanLogs'] ?? true) && !isWebApp()) {
     	$str = $string;
 	    preg_match_all('#\bhttps?://[^,\s()<>]+(?:\([\w\d]+\)|([^,[:punct:]\s]|/))#', $string, $urls);// Remove tokens and host from URL's
@@ -2176,13 +2177,15 @@ function protectMessage($string) {
 	    }
 
 	    // Remove any API Tokens
-	    $prefs = getPreference('userdata',false,[]);
-	    $tokens = [];
-	    foreach($prefs as $user) {
-	    	$token = $user['apiToken'] ?? false;
-	    	if ($token) array_push($tokens,$token);
+	    if (session_started()) {
+		    $prefs = getPreference('userdata', false, []);
+		    $tokens = [];
+		    foreach ($prefs as $user) {
+			    $token = $user['apiToken'] ?? false;
+			    if ($token) array_push($tokens, $token);
+		    }
+		    $str = str_replace($tokens, '[REDACTED]', $str);
 	    }
-	    $str = str_replace($tokens, '[REDACTED]', $str);
 
 	    // Search for JSON and remove instances of various keys
 	    $matches = [];

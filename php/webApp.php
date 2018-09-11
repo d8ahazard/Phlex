@@ -85,7 +85,7 @@ function initConfig() {
         try {
             $config = new digitalhigh\appConfig($configFile);
         } catch (\digitalhigh\ConfigException $e) {
-            write_log("An exception occurred creating the configuration. '$e'", "ERROR");
+            write_log("An exception occurred creating the configuration. '$e'", "ERROR",false,false,true);
             $error = true;
         }
         $_SESSION['configObject'] = $config;
@@ -378,7 +378,7 @@ function checkDefaultsDb($config) {
  `hookCustomUrl` longtext NOT NULL,
  `broadcastDevice` tinytext NOT NULL,
  `quietStart` tinytext NOT NULL DEFAULT '20:00',
- `quietEnd` tinytext NOT NULL DEFAULT '8:00',
+ `quietStop` tinytext NOT NULL DEFAULT '8:00',
  PRIMARY KEY (`apiToken`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1";
                     break;
@@ -652,7 +652,8 @@ function checkFiles() {
     }
     foreach ($files as $file) {
         if (!file_exists($file)) {
-            write_log("Creating file $file");
+        	$name = basename($file);
+            write_log("Creating file $name","INFO",false,false,true);
             touch($file);
             chmod($file, 0777);
             file_put_contents($file, $secureString);
@@ -694,9 +695,6 @@ function checkFiles() {
         }
     }
 
-
-    //$testMessage = ['title'=>'Test message.','message'=>"This is a test of the emergency alert system. If this were a real emergency, you'd be screwed.",'url'=>'https://www.google.com'];
-    //array_push($messages,$testMessage);
     return $messages;
 }
 

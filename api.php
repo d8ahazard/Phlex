@@ -2491,7 +2491,7 @@ function sendFallback() {
 	writeSessionArray(['fallBackMedia' => false, 'fallBackAction' => false], true);
 }
 
-function sendMedia($media) {
+function sendMedia($media, $shuffle = false) {
 	write_log("Incoming media: " . json_encode($media));
 	$playUrl = false;
 	$client = findDevice(false, false, 'Client');
@@ -2514,7 +2514,7 @@ function sendMedia($media) {
 	$serverPort = $server['port'];
 	$serverID = $host['Id'];
 	write_log("Relay target is $serverProtocol");
-	$queueID = (isset($media['queueID']) ? $media['queueID'] : fetchPlayQueue($media));
+	$queueID = (isset($media['queueID']) ? $media['queueID'] : fetchPlayQueue($media, $shuffle));
 	$isAudio = ($media['type'] == 'album' || $media['type'] == 'artist' || $media['type'] == 'track');
 	$type = $isAudio ? 'music' : 'video';
 	$key = urlencode($media['key']);
@@ -3514,7 +3514,7 @@ function buildQueryMedia($params) {
 			$playItem = fetchPlayItem($playItem, $shuffle);
 			$media = [$playItem];
 			$results['media'] = $media;
-			$playResult = sendMedia($playItem);
+			$playResult = sendMedia($playItem, $shuffle);
 		} else {
 			write_log("NO PLAYBACK ITEM.", "ALERT");
 			$playResult = false;

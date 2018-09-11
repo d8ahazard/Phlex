@@ -25,7 +25,7 @@ class JsonConfig extends ArrayObject {
         $this->secure = $secure;
         $data = $this->read();
         if (!is_array($data)) {
-            write_log("Error, dying to protect config.");
+            write_log("Error, dying to protect config.","ERROR",false,false,true);
             die();
         } else {
             $this->data = $data;
@@ -142,7 +142,7 @@ class JsonConfig extends ArrayObject {
 			                $i++;
 		                }
 		                if ($match) {
-			                write_log("Deleting matching record: " . json_encode($sectionData[$key]));
+			                write_log("Deleting matching record: " . json_encode($sectionData[$key]),"INFO",false,false,true);
 			                array_push($matches,$key);
 		                }
 	                }
@@ -150,7 +150,7 @@ class JsonConfig extends ArrayObject {
                 }
                 $this->data[$section] = $sectionData;
             } else {
-                write_log("Unsetting a whole section because you told me to.","ALERT");
+                write_log("Unsetting a whole section because you told me to.","ALERT",false,false,true);
                 unset($this->data[$section]);
             }
             $this->save();
