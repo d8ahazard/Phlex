@@ -611,12 +611,11 @@ function findDevice($key=false, $value=false, $type) {
     $devices = $_SESSION['deviceList'];
     $section = $devices["$type"] ?? false;
     if ($section) {
-        if ($key && !$value) {
+        if (!$key || !$value) {
             return $devices["$type"][0] ?? false;
         }
         foreach ($section as $device) {
             if (trim(strtolower($device["$key"])) === trim(strtolower($value))) {
-                //write_log("Returning $string: " . json_encode($device));
                 return $device;
             }
         }

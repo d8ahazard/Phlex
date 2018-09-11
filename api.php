@@ -1987,29 +1987,32 @@ function fetchRandomMediaByKey($key) {
 	return false;
 }
 
-function fetchRandomEpisode($showKey) {
-	$result = false;
-	$server = findDevice(false, false, 'Server');
-	$data = doRequest([
-		'path' => preg_replace('/children/', 'allLeaves', $showKey),
-		'query' => '?X-Plex-Token=' . $server['Token']
-	]);
-	if ($data) {
-		$container = (new JsonXmlElement($data))->asArray();
-		write_log("Container: " . json_encode($container));
-		$parentArt = $container['art'];
-		$videos = $container['MediaContainer']['Video'] ?? false;
-		if (is_array($videos)) {
-			$size = count($videos);
-			$winner = rand(0, $size - 1);
-			$result = $videos[$winner];
-			$result['art'] = $parentArt;
-		}
+function shuffleShow($item) {
+	write_log("Shuffling item: ".json_encode($item));
+	$parent = findDevice('Id', $item['parent'], 'Server');
+	$ratingKey = $item['ratingKey'];
+	$sectionKey = false;
+	$parentUri = $parent['Uri'];
+	$sections = json_decode($parent['Sections'],true);
+	foreach($sections as $section) if ("/library/sections/".$section['id'] === $item['sectionKey']) $sectionKey = $section['uuid'];
+	if ($sectionKey) {
+		$uri = urlencode("library://$sectionKey/item/".urlencode("/library/metadata/$ratingKey"));
+		$url = "$parentUri/playQueues?type=video&shuffle=1&continuous=1&uri=$uri";
+		$url .= "&repeat=0&own=1&includeChapters=1&includeGeolocation=1".headerQuery(plexHeaders($parent));
+		write_log("URL: $url");
+		$data = curlPost($url);
+
+			if ($data) {
+				$container = (new JsonXmlElement($data))->asArray();
+				write_log("Container: " . json_encode($container));
+				$queueId = $container['playQueueID'] ?? false;
+				if ($queueId) {
+					$item['queueID'] = $queueId;
+					return $item;
+				}
+			}
 	}
-	write_log("Result: " . json_encode($result));
-	if ($result) $result = mapDataPlex($result);
-	write_log("Result2: " . json_encode($result));
-	return $result;
+	return false;
 }
 
 function fetchRandomMediaByCast($actor, $type = 'movie') {
@@ -2267,6 +2270,7 @@ function sendCommand($cmd, $value = false) {
 		$cmd = strtolower($cmd);
 		$result = sendCommandCast($cmd, $value);
 	} else {
+		if ($cmd === 'next') $cmd = 'skipNext';
 		//TODO: Volume command for non-cast devices
 		$url = $server['Uri'] . '/player/playback/' . $cmd . '?type=video&commandID=' . $_SESSION['counter'] . headerQuery(clientHeaders($server, $client));
 		$result = doRequest($url);
@@ -2598,7 +2602,7 @@ function fetchPlayItem($media, $shuffle = false) {
 				break;
 			case 'show':
 				if ($shuffle) {
-					$item = fetchRandomEpisode($media['key']);
+					$item = shuffleShow($media);
 				} else {
 					write_log("Play the latest on-deck item, or first unwatched episode.");
 					$item = $media['ondeck'][0] ?? fetchFirstUnwatchedEpisode($media['key'], $parent);
