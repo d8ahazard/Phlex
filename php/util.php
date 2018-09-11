@@ -682,7 +682,7 @@ function flattenXML($xml) {
 }
 
 function getCaller($custom = "foo") {
-    $trace = debug_backtrace();
+    $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
     $useNext = false;
     $caller = false;
     $callers = [];
@@ -2214,7 +2214,6 @@ function arrayReplaceRecursive($array,$keys,$replacement) {
 				$array = arrayReplaceRecursive($sub,$keys,$replacement);
 			} else {
 				if (strtolower($key) === strtolower($keys)) {
-					//write_log("Replacing $key in array.","ERROR",false,false,true);
 					$array[$key] = $replacement;
 				}
 			}
