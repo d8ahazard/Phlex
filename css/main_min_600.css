@@ -11,3 +11,11 @@
 .btn-toolbar {
 	margin-left: 0;
 }
+
+.dd-full {
+	display: block;
+}
+
+.dd-menu {
+	display: none;
+}

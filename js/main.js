@@ -148,7 +148,7 @@ function buildUiDeferred() {
 	scaleElements();
 
 	setTimeout(function () {
-		$('#results').css({"top": 0, "max-height": "100%", "overflow": "inherit"})
+		$('#results').css({"top": "64px", "max-height": "100%", "overflow": "scroll"})
 	}, 500);
 
 	$('.formpop').popover();
@@ -994,6 +994,37 @@ function setListeners() {
 		loopMessages();
 	});
 
+	var y = 0;
+    $("#hamburger").click(function () {
+    	if ($(this).hasClass("withCheese")) {
+    		$(this).removeClass("withCheese");
+        	console.log("Hiding Menu");
+            $("#sideMenu").animate({
+                left: '-350px'
+            }, 200);
+            y = 0;
+        } else {
+    		setTimeout(function() {$("#hamburger").addClass("withCheese");}, 0.1);
+
+    		console.log("Showing Menu");
+        	$("#sideMenu").animate({
+            left: '0px'
+        }, 200);
+        y = 1;
+    }
+    });
+
+    $("#body").click(function() {
+    	console.log("CLICK");
+    	if ($("#hamburger").hasClass("withCheese")) {
+            $("#hamburger").removeClass("withCheese");
+            console.log("Hiding Menu");
+            $("#sideMenu").animate({
+                left: '-350px'
+            }, 200);
+    	}
+	});
+
 
 	var checkbox = $(':checkbox');
 	checkbox.change(function () {
@@ -1254,16 +1285,23 @@ function setListeners() {
 		}
 	});
 
+	var client = $('.dropdown-toggle');
 
 	client.click(function () {
 		var pos = client.position();
 		var width = client.outerWidth();
-
+		var side = $(this).data("position");
 		//show the menu directly over the placeholder
-		$("#plexClient").css({
+		var string3 = "";
+		var pc = $("#plexClient");
+		if (side === "left") {
+			pc.css({left: 0 + 'px'});
+		} else {
+            pc.css({right: (pos.right - width) + 'px'});
+		}
+		pc.css({
 			position: "absolute",
-			top: pos.bottom + "px",
-			left: (pos.left - width) + "px"
+			top: pos.bottom + "px"
 		});
 	});
 

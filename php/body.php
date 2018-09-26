@@ -11,57 +11,83 @@ function makeBody($defaults) {
 	$lang = checkSetLanguage();
 	$defaults['lang'] = $lang;
 
-	$bodyText = '<div id="body" class="row justify-content-center">
-
-				<div class="wrapper col-xs-12 col-lg-8 col-xl-5" id="mainWrap">
-	                <div class="queryWrap col-xs-12" id="queryCard">
-			        	<div class="query">
-				            <div class="queryBg">
-				                <div class="btn-toolbar row">
-				                    <div class="queryGroup form-group label-floating col-xs-10 col-md-7 col-lg-6">
-				                        <div class="inputWrap">
-					                        <label id="actionLabel" for="commandTest" class="control-label">' . $lang['uiGreetingDefault'] . '</label>
-					                        <input type="text" class="form-control" id="commandTest"/>
-					                        <div class="load-bar">
-												<div class="bar"></div>
-												<div class="bar"></div>
-												<div class="bar"></div>
-											</div>
-					                        <a class="material-icons sendBtn" id="executeButton">message</a>
-				                        </div>
-				                    </div>
-				                    <div class="queryBtnWrap col">
-				                        <div class="queryBtnGrp">
-				                            <div class="btn btn-sm dropdown-toggle barBtn" href="javascript:void(0)" id="client" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-				                                <div class="ddLabel"></div><br>
-				                                <i class="material-icons barIcon clientBtn">cast</i>
-				                            </div>
-				                            <div class="dropdown-menu" id="plexClient" aria-labelledby="dropdownMenuLink">
-				                                <div id="clientWrapper">
-				                                    <a class="dropdown-item client-item" data-id="rescan"><b>rescan devices</b></a>
-				                                </div>
-				                            </div>
-				                            <a href="" id="settings" class="btn btn-sm barBtn" data-toggle="modal" data-target="#settingsModal"><i class="material-icons barIcon">settings</i></a>
-				                            <a href="?logout" id="logout" class="btn btn-sm barBtn"><i class="material-icons barIcon">exit_to_app</i></a>
-				
-				                        </div>
-				                    </div>
-				                </div>
+	$bodyText = '
+			<div class="dropdown-menu" id="plexClient" aria-labelledby="dropdownMenuLink">
+                <div id="clientWrapper">
+                    <a class="dropdown-item client-item" data-id="rescan"><b>rescan devices</b></a>
+                </div>
+  		    </div>
+			<div id="sideMenu">
+            	<div class="drawer-header">Settings
+            	</div>
+            	<div class="drawer-item dd-menu">
+	                <div class="btn btn-sm dropdown-toggle barBtn" data-position="left" href="javascript:void(0)" id="client" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+	                    <i class="material-icons barIcon clientBtn">cast</i>
+	                    <div class="ddLabel"></div>
+	                </div>
+                </div>
+                <div class="drawer-item">
+                	<a href="" id="settings" class="btn btn-sm barBtn" data-toggle="modal" data-target="#settingsModal"><i class="material-icons barIcon">settings</i></a>
+                	Settings
+                </div>
+                <div class="drawer-item">
+                	<a href="?logout" id="logout" class="btn btn-sm barBtn"><i class="material-icons barIcon">exit_to_app</i></a>
+                	Log Out
+                </div>
+			</div>
+        	
+			<div id="body">
+				<div class="topBar row justify-content-center">
+					<div class="btn btn-sm" id="hamburger">
+						<span class="material-icons">menu</span>
+					</div>
+					<div class="wrapper col-sm-9 col-lg-8" id="mainWrap">
+		                <div class="searchWrap" id="queryCard">
+				            <div class="query">
+					            <div class="queryBg">
+					                <div class="btn-toolbar">
+					                    <div class="queryGroup form-group label-floating">
+					                        <div class="inputWrap">
+						                        <label id="actionLabel" for="commandTest" class="control-label">' . $lang['uiGreetingDefault'] . '</label>
+						                        <input type="text" class="form-control" id="commandTest"/>
+						                        <div class="load-bar">
+													<div class="bar"></div>
+													<div class="bar"></div>
+													<div class="bar"></div>
+												</div>
+						                        <a class="material-icons sendBtn" id="executeButton">message</a>
+					                        </div>
+					                    </div>
+					                   
+					                </div>
+					            </div>
 				            </div>
-			            </div>
-			        </div>
-			        <div id="results" class="queryWrap">
-			        	<div id="resultsInner"  class=""></div>
-			    	</div>
-			    	'.makeSettingsBody($defaults).'
+				        </div>
+				        '.makeSettingsBody($defaults).'
+		            </div>		            
+		                <div class="dd-full btn btn-sm dropdown-toggle" data-position="right" href="javascript:void(0)" id="client" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+	                    <div class="ddLabel"></div><br>
+	                        <i class="material-icons barIcon clientBtn">cast</i>
+	                    </div>	                
 	            </div>
+	            <div id="results" class="">
+	            	<div id="resultsInner"  class="queryWrap col-md-9 col-lg-8">
+					</div>
+		        </div>
+			    	
 	            
 				<div id="metaTags">
 			        <meta id="apiTokenData" data-token="' . $_SESSION["apiToken"] . '"/>
 			        <meta id="strings" data-array="' . urlencode(json_encode($lang['javaStrings'])) . '"/>' .
 					makeMetaTags() . '
 			    </div>
-			</div>';
+			    <div id="settingsPage">
+			    
+				</div>
+				
+			</div>
+			
+			';
     return [$bodyText,$_SESSION['darkTheme']];
 }
 

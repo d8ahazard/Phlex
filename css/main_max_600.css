@@ -17,17 +17,39 @@ input {
 	min-width: 0 !important;
 }
 
-.queryWrap {
-	margin-top: 0 !important;
-	margin-bottom: 20px;
-	padding: 0 !important;
-
-}
-
 .card-description {
 	display: none;
 }
 
 .card-subtitle {
 	display: none;
+}
+
+.wrapper {
+	max-width: 70%;
+}
+
+.dd-full {
+	display: none;
+}
+
+.dd-menu {
+	display: block;
+}
+
+.sendBtn {
+	line-height: 34px;
+	cursor: pointer;
+	position: fixed;
+	z-index: 11;
+	top: 18px;
+	right: 18px;
+}
+
+#actionLabel {
+	left: 0;
+}
+
+#sideMenu {
+	max-width: 80%;
 }
