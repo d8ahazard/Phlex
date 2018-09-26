@@ -101,6 +101,10 @@ a:hover:not(#executeButton), .drawer-item:hover .barIcon {
 	text-align: center;
 }
 
+.fade {
+	display: none;
+}
+
 .nav-item > .nav-link, .appContainer, .userGroup *, .form-control, .text-muted {
 	color: var(--theme-primary-shade2) !important;
 }
@@ -131,6 +135,11 @@ a:hover:not(#executeButton), .drawer-item:hover .barIcon {
 	display: none;
 }
 
+.drawer-separator {
+	height:1px;
+	background-color: var(--theme-primary-inverse);
+}
+
 #sideMenu {
 	background-color: var(--theme-primary);
 	background: var(--theme-primary);
@@ -153,14 +162,14 @@ a:hover:not(#executeButton), .drawer-item:hover .barIcon {
 	color: var(--theme-primary-inverse);
 }
 
-.collapsed {
-	height: 0;
-	display: none !important;
-}
-
 .settings-item {
 	height: 56px;
 	overflow: hidden;
+}
+
+.drawer-list {
+	margin-left: 25px;
+	display: none;
 }
 
 .settings-item.expanded {
@@ -212,8 +221,16 @@ a:hover:not(#executeButton), .drawer-item:hover .barIcon {
 	box-shadow: 0 1px 6px 0 var(--theme-primary-20), 0 1px 6px 0 var(--theme-primary-20);
 }
 
+.view-tab.active > {
+	display: block !important;
+}
 
-.nav-item.active > .nav-link {
+.view-tab {
+	width: 100%;
+	height: 100%;
+}
+
+.drawer-item.active > .barBtn {
 	color: var(--theme-primary-inverse) !important;
 	border-bottom: 3px solid var(--theme-primary);
 	-webkit-box-sizing: border-box;
@@ -1082,6 +1099,11 @@ span.toggle {
 	left: 0;
 	width: 100%;
 	overflow: scroll;
+}
+
+.settingPage {
+    width: 70%;
+    margin: 0 auto;
 }
 
 #homeTab {

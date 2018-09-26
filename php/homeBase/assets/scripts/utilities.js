@@ -3,7 +3,7 @@
 function queryPlex (query) {
   return $.ajax({
     type: 'POST',
-    url: 'plex-api.php',
+    url: './php/homeBase/plex-api.php',
     cache: false,
     data: {'postData': query},
     dataType: 'json'
@@ -13,7 +13,7 @@ function queryPlex (query) {
 function queryTautulli (query) {
   return $.ajax({
     type: 'POST',
-    url: 'tautulli-api.php',
+    url: './php/homeBase/tautulli-api.php',
     cache: false,
     data: {'postData': query},
     dataType: 'json'

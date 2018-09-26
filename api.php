@@ -13,7 +13,9 @@ use digitalhigh\multiCurl;
 use Kryptonit3\SickRage\SickRage;
 use Kryptonit3\Sonarr\Sonarr;
 
-analyzeRequest();
+if (!empty($_GET) || !(empty($_POST))) {
+	analyzeRequest();
+}
 /**
  * Takes an incoming request and makes sure it's authorized and valid
  */

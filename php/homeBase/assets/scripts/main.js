@@ -307,7 +307,7 @@ function getTopContentRatings (includeLibraryTypes = ['movie', 'show'], excludeL
   function getContentRatingBySection (id, array) {
     return $.ajax({
       type: 'POST',
-      url: 'plex-api.php',
+      url: './php/homeBase/plex-api.php',
       cache: false,
       data: {'postData': '/library/sections/' + id + '/contentRating'},
       dataType: 'json',
@@ -320,7 +320,7 @@ function getTopContentRatings (includeLibraryTypes = ['movie', 'show'], excludeL
   function getContentRatingCount (fastKey, title, array) {
     return $.ajax({
       type: 'POST',
-      url: 'plex-api.php',
+      url: './php/homeBase/plex-api.php',
       cache: false,
       data: {'postData': fastKey},
       dataType: 'json',
@@ -528,7 +528,7 @@ function getTopGenres (includeLibraryTypes = ['movie', 'show'], excludeLibraryId
   function getGenreBySection (id, array) {
     return $.ajax({
       type: 'POST',
-      url: 'plex-api.php',
+      url: './php/homeBase/plex-api.php',
       cache: false,
       data: {'postData': '/library/sections/' + id + '/genre'},
       dataType: 'json',
@@ -541,7 +541,7 @@ function getTopGenres (includeLibraryTypes = ['movie', 'show'], excludeLibraryId
   function getGenreCount (fastKey, title, array) {
     return $.ajax({
       type: 'POST',
-      url: 'plex-api.php',
+      url: './php/homeBase/plex-api.php',
       cache: false,
       data: {'postData': fastKey},
       dataType: 'json',
@@ -938,7 +938,7 @@ function getTopTag (tagType, statCount = 5, includeLibraryTypes = ['movie', 'sho
   function getTagBySection (id, array) {
     return $.ajax({
       type: 'POST',
-      url: 'plex-api.php',
+      url: './php/homeBase/plex-api.php',
       cache: false,
       data: {'postData': '/library/sections/' + id + '/' + tagType},
       dataType: 'json',
@@ -951,7 +951,7 @@ function getTopTag (tagType, statCount = 5, includeLibraryTypes = ['movie', 'sho
   function getTagCount (fastKey, title, array) {
     return $.ajax({
       type: 'POST',
-      url: 'plex-api.php',
+      url: './php/homeBase/plex-api.php',
       cache: false,
       data: {'postData': fastKey},
       dataType: 'json',

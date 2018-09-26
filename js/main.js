@@ -1227,6 +1227,35 @@ function setListeners() {
 
 	});
 
+	$(document).on('click', '.drawer-item', function () {
+		console.log("Drawer item is clicked.");
+		if ($(this).hasClass("active")) {
+			console.log("Active item, nothing to do.");
+		} else {
+			$('.drawer-item.active').removeClass('active');
+			var linkVal = $(this).data("link");
+			var currentTab = $('.view-tab.active');
+			var newTab = $("#" + linkVal);
+			console.log("Enabling " + linkVal + " tab.");
+			currentTab.addClass('fade');
+			currentTab.removeClass('active');
+			newTab.removeClass('fade');
+			newTab.addClass('active');
+            var expandDrawer = $(".drawer-list");
+			if (linkVal.includes("SettingsTab")) {
+				console.log("Expand");
+				if (expandDrawer.hasClass("collapsed")) {
+					expandDrawer.removeClass("collapsed");
+					expandDrawer.slideDown();
+				}
+			} else {
+				console.log("Collapse");
+				expandDrawer.addClass("collapsed");
+				expandDrawer.slideUp();
+			}
+		}
+	});
+
 	$(document).on("click change", "#serverList",function () {
 		var serverID = $(this).val();
 		apiToken = $('#apiTokenData').data('token');

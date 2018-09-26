@@ -356,7 +356,7 @@ function numberToRoman($number) {
     return $returnValue;
 }
 
-function curlGet($url, $headers = null, $timeout = 4) {
+function curlGet($url, $headers = null, $timeout = 4, $decode = true) {
 	$cert = getCert();
 	write_log("GET url $url","INFO","curlGet");
     $url = filter_var($url, FILTER_SANITIZE_URL);
@@ -383,22 +383,26 @@ function curlGet($url, $headers = null, $timeout = 4) {
     }
     curl_close($ch);
     if ($result) {
-    	$decoded = false;
-    	try {
-    		$array = json_decode($result,true);
-    		if ($array) {
-    			$decoded = true;
-			    write_log("Curl result(JSON): " . json_encode($array));
-		    } else {
-    			$array = (new JsonXmlElement($result))->asArray();
-    			if (!empty($array)) {
+    	if ($decode) {
+		    $decoded = false;
+		    try {
+			    $array = json_decode($result, true);
+			    if ($array) {
 				    $decoded = true;
-				    write_log("Curl result(XML): " . json_encode($array));
+				    write_log("Curl result(JSON): " . json_encode($array));
+			    } else {
+				    $array = (new JsonXmlElement($result))->asArray();
+				    if (!empty($array)) {
+					    $decoded = true;
+					    write_log("Curl result(XML): " . json_encode($array));
+				    }
 			    }
-		    }
-    		if (!$decoded) write_log("Curl result(String): $result");
-	    } catch (Exception $e) {
+			    if (!$decoded) write_log("Curl result(String): $result");
+		    } catch (Exception $e) {
 
+		    }
+	    } else {
+    		write_log("Curl result(RAW): ".json_encode($result));
 	    }
     }
     return $result;
