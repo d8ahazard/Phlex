@@ -211,8 +211,11 @@ echo '                            <div class="card-block">
 	<link rel="stylesheet" media="(max-width: 600px)" href="css/main_max_600.css">
 	<link rel="stylesheet" media="(min-width: 600px)" href="css/main_min_600.css">
 	<link rel="stylesheet" media="(min-width: 2000px)" href="css/main_min_2000.css">
+    <link rel="stylesheet" href="./php/homeBase/assets/styles/custom.min.css">
+    <script defer src="https://use.fontawesome.com/releases/v5.1.0/js/all.js" integrity="sha384-3LK/3kTpDE/Pkp8gTNp2gR/2gOiwQ6QaO7Td0zV76UFJVhqLl4Vl3KL1We6q6wR9" crossorigin="anonymous"></script>
 
-	<?php
+
+    <?php
 	if ($GLOBALS['login']) {
 		echo '<script type="text/javascript" src="./js/login.js" async></script>';
 	} else {
@@ -287,6 +290,37 @@ echo '                            <div class="card-block">
 			}
 		}
 	</script>
+    <script src="./php/homeBase/assets/scripts/utilities.js"></script>
+    <script src="./php/homeBase/assets/scripts/main.js"></script>
+
+    <script type="text/javascript">
+
+        'use strict';
+
+        $(document).ready(function () {
+
+            // INITIALIZE OFFCANVAS MENU TOGGLES
+            $('[data-toggle="offcanvas"]').on('click', function () {
+                $('.offcanvas-collapse').toggleClass('open');
+                $('.modal-backdrop').toggleClass('fade');
+            });
+
+            getServerStatus();
+            getCurrentActivityViaPlex();
+            getLibraryStats();
+            getPopularMovies('30', '5');
+            getPopularTvShows('30', '5');
+            getTopPlatforms('30', '5');
+            getTopContentRatings(['movie', 'show'], [], 6);
+            getTopGenres(['movie', 'show'], [], 6);
+
+            // getTopTag() is definitely a work in progress
+            //getTopTag('contentRating');
+            //getTopTag('genre');
+            //getTopTag('year');
+
+        });
+    </script>
 
 </body>
 </html>

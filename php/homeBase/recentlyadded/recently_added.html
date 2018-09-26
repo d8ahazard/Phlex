@@ -1,0 +1,333 @@
+% if data:
+<%
+  import datetime
+  import plexpy
+  from plexpy.helpers import grouper, get_img_service
+
+  from datetime import datetime
+  start_date = datetime.strptime(parameters['start_date'], '%Y-%m-%d')
+  end_date = datetime.strptime(parameters['end_date'], '%Y-%m-%d')
+  start_date_string = start_date.strftime('%x')
+  end_date_string = end_date.strftime('%x')
+
+  recently_added = data['recently_added']
+  if plexpy.CONFIG.NEWSLETTER_SELF_HOSTED and plexpy.CONFIG.HTTP_BASE_URL:
+    base_url = plexpy.CONFIG.HTTP_BASE_URL + plexpy.HTTP_ROOT + 'newsletter/'
+  elif preview:
+    base_url = 'newsletter/'
+  else:
+    base_url = ''
+
+  service = get_img_service(include_self=True)
+  if service == 'self-hosted' and plexpy.CONFIG.HTTP_BASE_URL:
+    base_url_image = plexpy.CONFIG.HTTP_BASE_URL + plexpy.HTTP_ROOT + 'image/'
+  elif preview and service and service != 'self-hosted':
+    base_url_image = 'image/'
+  else:
+    base_url_image = ''
+%>
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>Recently Added | Homebase</title>
+
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.2/css/bootstrap.min.css" integrity="sha384-Smlep5jCw/wG7hdkwQ/Z5nLIefveQRIY9nfy6xoR1uRYBtpZgI6339F5dgvm/e9B" crossorigin="anonymous">
+  
+  <link rel="stylesheet" href="../assets/styles/custom.min.css">
+
+  <script defer src="https://use.fontawesome.com/releases/v5.1.0/js/all.js" integrity="sha384-3LK/3kTpDE/Pkp8gTNp2gR/2gOiwQ6QaO7Td0zV76UFJVhqLl4Vl3KL1We6q6wR9" crossorigin="anonymous"></script>
+
+</head>
+
+<body>
+  
+  <nav class="navbar fixed-top navbar-dark bg-transparent">
+    
+    <button class="navbar-toggler btn-dark" type="button" data-toggle="offcanvas">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="navbar-collapse offcanvas-collapse bg-white shadow">
+
+      <button type="button" id="dismissNav" class="btn btn-link text-dark" data-toggle="offcanvas">
+        <i class="fas fa-times fa-lg"></i>
+      </button>
+
+      <div class="d-flex justify-content-center align-items-center">
+        <img src="../assets/images/homebase-logo-invert.svg" alt="Place Logo" width="40" height="80">
+      </div>
+
+      <div class="list-group list-group-flush mb-3">
+        <a href="/" title="Home" class="list-group-item list-group-item-action active">
+          Home
+        </a>
+        <a href="/ombi" title="Ombi" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">Request Content <i class="fas fa-fw fa-external-link-alt"></i></a>
+        <a href="/recentlyadded" title="Recently Added" class="list-group-item list-group-item-action">Recently Added</a>
+      </div>
+
+      <div class="list-group list-group-flush mb-3">
+        <a href="http://app.plex.tv/web/app" title="Plex Web" target="_blank" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">Watch Now <i class="fas fa-fw fa-external-link-alt"></i></a>
+      </div>
+
+      <div class="container">
+        <a href="https://www.paypal.me/tylerforesthauser" title="Donate" target="_blank" class="btn btn-dark btn-block">DONATE</a>
+      </div>
+      
+    </div>
+    
+  </nav>
+  
+  <header class="jumbotron jumbotron-fluid bg-dark text-white text-center">
+    
+    <div class="container">
+      <img src="../assets/images/homebase-logo.svg" alt="Homebase Logo" width="160" height="160">
+      <h1 class="display-4 mt-0">Recently Added</h1>
+      <p>${start_date_string} - ${end_date_string}</p>
+      % if message:
+      <div class="alert alert-light" role="alert">
+        ${'<br>'.join(l for l in message.splitlines()) | n}
+      </div>
+      % endif
+    </div>
+    
+  </header>
+  
+  <main role="main">
+
+    % if recently_added.get('movie'):
+
+    <div class="bg-info text-white p-4 mb-4">
+      <div class="container">
+        <div class="row">
+          <div class="col-12 col-lg-6">
+            <h4 class="my-0 d-flex justify-content-center justify-content-lg-start align-items-center">
+              <i class="fas fa-film"></i><span class="pl-2">Movies</span>
+            </h4>
+          </div>
+          <div class="col-12 col-lg-6 text-center text-lg-right">
+            <h5 class="my-0">
+              ${len(recently_added['movie'])} New Movie${'s' if len(recently_added['movie']) != 1 else ''}
+            </h5>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="row">
+
+        % for movie in recently_added['movie']:
+
+        <div class="col-12 col-lg-6 mb-4">
+
+          <div class="card text-light h-100" style="min-height:285px;background-image:url(${(base_url_image + movie['art_hash']) if base_url_image else movie['art_url']});background-color:#282828;background-position: center;background-size:cover;background-repeat:no-repeat;background-clip:padding-box;border:1px solid rgba(255,255,255,.1);">
+            <div class="card-body">
+              <div class="media">
+                <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${movie['rating_key']}" class="mr-3 d-none d-sm-block" title="${movie['title']}" target="_blank" style="background-image: url(${(base_url_image + movie['thumb_hash']) if base_url_image else movie['thumb_url']});border-collapse: separate;width: 150px;height: 225px;background-color: #3F4245;background-position: center;background-size: cover;background-repeat: no-repeat;background-clip: padding-box;">
+                  <img src="/assets/images/view-on-plex-poster.png" width="150px" height="225px">
+                </a>
+                <div class="media-body">
+                  <h4 class="card-title mb-0">${movie['title']}</h4>
+                  <div>
+                    % if movie['directors']:
+                      <small>
+                        <span class="text-muted">Directed by: </span>
+                        ${', '.join(movie['directors'])}
+                      </small>
+                    % endif
+                  </div>
+                  <div>
+                    % if movie['year']:
+                      <small><span class="text-muted">Year:</span> ${movie['year']}</small>
+                    % endif
+                    % if movie['duration']:
+                      <% duration = int(int(movie['duration'])/60000) %>
+                      <small><span class="text-muted">Runtime:</span> ${duration} mins</small>
+                    % endif
+                    % if movie['content_rating']:
+                      <small><span class="text-muted">Rated:</span> ${movie['content_rating']}</small>
+                    % endif
+                  </div>
+                  <div class="mt-2 mb-0 summary">${movie['summary']}</div>
+                  % if movie['genres']:
+                    <div class="mt-3">
+                      % for genre in movie['genres'][:]:
+                      <span class="badge badge-pill badge-info">${genre}</span>
+                      % endfor
+                    </div>
+                  % endif
+                </div><!-- media-body -->
+              </div><!-- media -->
+            </div><!-- card-body -->
+          </div><!-- card -->
+
+        </div><!-- col-12 col-lg-6 -->
+
+        % endfor
+
+      </div><!-- row -->
+    </div><!-- container -->
+
+    % endif
+
+    % if recently_added.get('show'):
+
+    <div class="bg-info text-white p-4 mb-4">
+      <div class="container">
+        <div class="row">
+          <div class="col-12 col-lg-6">
+            <h4 class="my-0 d-flex justify-content-center justify-content-lg-start align-items-center">
+              <i class="fas fa-film"></i><span class="pl-2">TV Shows</span>
+            </h4>
+          </div>
+          <div class="col-12 col-lg-6 text-center text-lg-right">
+            <h5 class="my-0">
+              <span>${len(recently_added['show'])} New TV Show${'s' if len(recently_added['show']) != 1 else ''}</span>
+              <span> / </span>
+              <% total_episodes = sum(season['episode_count'] for show in recently_added['show'] for season in show['season']) %>
+              <span>${total_episodes} New Episode${'s' if total != 1 else ''}</span>
+            </h5>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="row">
+
+        % for show in recently_added['show']:
+
+        <div class="col-12 col-lg-6 mb-4">
+
+          <div class="card text-light h-100" style="min-height:300px;background-image:url(${(base_url_image + show['art_hash']) if base_url_image else show['art_url']});background-color:#282828;background-position:center;background-size:cover;background-repeat:no-repeat;background-clip:padding-box;border:1px solid rgba(255,255,255,.1);">
+            <div class="card-body">
+              <div class="media">
+                <%
+                  if show['season_count'] == 1:
+                    if show['season'][0]['episode_count'] == 1:
+                      link_rating_key = show['season'][0]['episode'][0]['rating_key']
+                    else:
+                      link_rating_key = show['season'][0]['episode'][0]['parent_rating_key']
+                  else:
+                    link_rating_key = show['rating_key']
+                %>
+                <a href="${parameters['pms_web_url']}#!/server/${parameters['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${link_rating_key}" class="mr-3 d-none d-sm-block" title="${show['title']}" target="_blank" style="background-image: url(${(base_url_image + show['thumb_hash']) if base_url_image else show['thumb_url']});border-collapse: separate;width: 150px;height: 225px;background-color: #3F4245;background-position: center;background-size: cover;background-repeat: no-repeat;background-clip: padding-box;">
+                  <img src="/assets/images/view-on-plex-poster.png" width="150px" height="225px">
+                </a>
+                <div class="media-body">
+                  <h4 class="card-title mb-0">${show['title']}</h4>
+                  <div>
+                    % if show['year']:
+                      <small><span class="text-muted">Year:</span> ${show['year']}</small>
+                    % endif
+                    % if show['duration']:
+                      <% duration = int(int(show['duration'])/60000) %>
+                      <small><span class="text-muted">Runtime:</span> ${duration} mins</small>
+                    % endif
+                    % if show['content_rating']:
+                      <small><span class="text-muted">Rated:</span> ${show['content_rating']}</small>
+                    % endif
+                  </div>
+                  <div class="p-2 mt-2 bg-light text-dark">
+                    % if show['season_count'] > 1:
+                      ${show['season_count']} seasons /
+                    % endif
+                    <% total_show_episodes = sum(s['episode_count'] for s in show['season']) %>
+                    ${total_show_episodes} episode${'s' if total_show_episodes > 1 else ''}
+                  </div>
+                  <div class="p-2 m-0 bg-dark text-white">
+                    % for i, season in enumerate(show['season'][:8]):
+                      % if season['episode_count'] == 1:
+                        Season ${season['media_index']} &middot; Episode ${season['episode'][0]['media_index']} - ${season['episode'][0]['title']}
+                      % else:
+                        Season ${season['media_index']} &middot; Episodes ${season['episode_range']}
+                      % endif
+                      % if i < min(show['season_count'], 7):
+                        <br>
+                      % elif i == 7 and show['season_count'] > 8:
+                        <% remaining_seasons = show['season_count'] - 8 %>
+                        ...plus ${remaining_seasons} more season${'s' if remaining_seasons > 1 else ''}!
+                      % endif
+                    % endfor
+                  </div>
+                  <div class="mt-2 mb-0 summary">
+                    % if show['season_count'] == 1 and show['season'][0]['episode_count'] == 1:
+                      ${show['season'][0]['episode'][0]['summary']}
+                    % else:
+                      ${show['summary']}
+                    % endif
+                  </div>
+                  % if show['genres']:
+                    <div class="mt-3">
+                      % for genre in show['genres'][:]:
+                      <span class="badge badge-pill badge-info">${genre}</span>
+                      % endfor
+                    </div>
+                  % endif
+                </div><!-- media-body -->
+              </div><!-- media -->
+            </div><!-- card-body -->
+          </div><!-- card -->
+
+        </div><!-- col-12 col-lg-6 -->
+
+        % endfor
+
+      </div><!-- row -->
+    </div><!-- container -->
+
+  </main>
+
+  % endif
+
+  <div class="container">
+    <div class="row">
+
+      <div class="col mb-4">
+
+        <footer class="p-3 bg-dark text-white rounded d-flex align-items-center shadow">
+          <small>Copyright &copy; <?= date("Y") ?> Tyler Forest-Hauser &#124; Site Development by <a href="https://tylerforesthauser.com/" title="Tyler Forest-Hauser - Is he an astronaut?">Tyler Forest-Hauser</a> &#124; Statistics and Recently Added by <a href="http://tautulli.com/" title="Tautulli - Monitoring for your Plex Media Server">Tautulli</a> <div class="powered-by d-none">
+            <!-- FOOTER MESSAGE - DO NOT REMOVE -->
+          </div></small>
+        </footer>
+
+      </div><!-- col -->
+
+    </div><!-- row -->
+  </div><!-- container -->
+
+  <div class="modal-backdrop fade" data-toggle="offcanvas"></div>
+
+  <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.2/js/bootstrap.min.js" integrity="sha384-o+RDsa0aLu++PJvFqy8fFScvbHFLtbvScb8AjopnFD+iEQ7wo/CG0xlczd+2O/em" crossorigin="anonymous"></script>
+  <script src="readMoreJS.min.js"></script>
+
+  <script type="text/javascript">
+
+    $(document).ready(function() {
+
+      // INITIALIZE OFFCANVAS MENU TOGGLES
+      $('[data-toggle="offcanvas"]').on('click', function () {
+        $('.offcanvas-collapse').toggleClass('open');
+        $('.modal-backdrop').toggleClass('fade');
+      });
+
+      // READ MORE - for long media descriptions
+      $readMoreJS.init({
+        target: '.summary',
+        numOfWords: 30,
+        toggle: true,
+        moreLink: 'READ MORE',
+        lessLink: 'READ LESS'
+      });
+
+    });
+  </script>
+
+</body>
+</html>
+% endif

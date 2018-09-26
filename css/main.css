@@ -59,7 +59,7 @@ body {
 	background: var(--theme-primary-75) !important;
 }
 
-a, .barBtn, .clientBtn, .sendBtn, .appLabel, .btnAdd {
+a, .barBtn, .barBtn > i, .clientBtn, .sendBtn, .appLabel, .btnAdd {
 	color: var(--theme-accent) !important;
 }
 
@@ -78,11 +78,11 @@ a, .barBtn, .clientBtn, .sendBtn, .appLabel, .btnAdd {
 	color: var(--theme-primary-75) !important;
 }
 
-a:hover:not(#executeButton), .barBtn:hover, .barBtn:hover, .barBtn:hover > .clientBtn, .barBtn:hover > .ddLabel {
+a:hover:not(#executeButton), .drawer-item:hover .barIcon {
 	color: var(--theme-primary-75) !important;
 }
 
-.dd-selected, a:hover:not(#executeButton),  .btn-primary:hover, .barBtn:hover, .btn-info {
+.dd-selected, a:hover:not(#executeButton),  .btn-primary:hover, .drawer-item:hover, .btn-info {
 	background-color: var(--theme-accent) !important;
 }
 
@@ -147,19 +147,36 @@ a:hover:not(#executeButton), .barBtn:hover, .barBtn:hover, .barBtn:hover > .clie
 	-webkit-padding-start: 24px;
 	align-items: center;
 	display: flex;
-	font-size: 123.08%;
+	font-size: 90%;
 	min-height: 56px;
 	outline: none;
 	color: var(--theme-primary-inverse);
+}
+
+.collapsed {
+	height: 0;
+	display: none !important;
+}
+
+.settings-item {
+	height: 56px;
+	overflow: hidden;
+}
+
+.settings-item.expanded {
+	height: auto;
+	overflow: visible;
 }
 
 .drawer-item {
 	align-items: center;
 	display: flex;
 	font-size: 113.08%;
-	min-height: 56px;
+	height: 56px;
 	outline: none;
-	color: var(--theme-primary-inverse);
+	color: var(--theme-primary-inverse) !important;
+	text-transform: none !important;
+	width: 100% !important;
 }
 
 #hamburger {
@@ -688,7 +705,7 @@ p.card-subtitle {
 }
 
 .userHeader {
-	padding-top: 14px;
+	padding-top: 20px;
 	margin-bottom: 0 !important;
 }
 
@@ -837,7 +854,7 @@ pre.prettyprint {
 }
 
 .barIcon {
-	margin-top: 8px;
+	margin-top: 13px;
 	text-color: var(--theme-accent);
 }
 
@@ -927,7 +944,7 @@ select {
 
 .avatar {
 	float: left;
-	border-radius: 5px;
+	border-radius: 36px;
 	margin-right:10px;
 	margin-bottom:15px;
 }
@@ -1062,9 +1079,17 @@ span.toggle {
 	position: fixed;
 	height: 100%;
 	top: 64px;
+	left: 0;
 	width: 100%;
 	overflow: scroll;
+}
 
+#homeTab {
+	width: 100%;
+	height: 100%;
+	top: 0;
+	left: 0;
+	position: absolute;
 }
 
 .expandWrap {

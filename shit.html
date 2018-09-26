@@ -1,213 +1,14 @@
-<?php
-require_once dirname(__FILE__) . '/vendor/autoload.php';
-require_once dirname(__FILE__) . '/../api.php';
-
-
-function makeBody($defaults) {
-	if (!defined('LOGGED_IN')) {
-		write_log("Dying because not logged in?", "ERROR");
-		die();
-	}
-	$lang = checkSetLanguage();
-	$defaults['lang'] = $lang;
-
-	$bodyText = '
-			<div class="dropdown-menu" id="plexClient" aria-labelledby="dropdownMenuLink">
-                <div id="clientWrapper">
-                    <a class="dropdown-item client-item" data-id="rescan"><b>rescan devices</b></a>
-                </div>
-  		    </div>
-			<div id="sideMenu">
-            	<div class="drawer-header">
-	                <div class="userWrap row justify-content-center">
-	                    <img class="avatar col-xs-3" src="' . $_SESSION['plexAvatar'] . '"/>
-	                    <div class="col-xs-9">
-		                    <p class="userHeader">' . ucfirst($_SESSION['plexUserName']) . '</p>
-		                    <p>' . $_SESSION['plexEmail'] . '</p>
-	                    </div>
-	                </div>
-            	</div>
-            	<div class="drawer-separator"></div>
-            	
-            	<div class="drawer-item btn dd-menu">
-	                <div class="btn btn-sm dropdown-toggle barBtn" data-position="left" id="client" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-	                	<span class="barBtn"><i class="material-icons barIcon">cast</i></span>
-	                    <div class="ddLabel"></div>
-	                </div>
-                </div>
-                <div class="drawer-item btn" data-link="home" data-toggle="tab" role="tab" href="#homeTab">
-                	<span class="barBtn"><i class="material-icons barIcon">home</i></span>Home
-                </div>
-                <div class="drawer-item btn" data-link="voice" data-toggle="tab" role="tab" href="#voiceTab">
-                	<span class="barBtn"><i class="material-icons barIcon">list</i></span>Voice
-                </div>
-                <div class="drawer-item btn" data-link="log">
-                	<span class="barBtn"><i class="material-icons barIcon">bug_report</i></span>Logs
-                </div>
-                <div class="drawer-item btn" data-link="settings">
-                	<span class="barBtn"><i class="material-icons barIcon">settings</i></span>Settings
-                </div>
-                
-                <div class="drawer-list collapsed">
-                   <ul class="nav nav-tabs collapsed" id="tabContent" role="tablist">
-						    <li class="nav-item active">
-						        <a href="#generalSettingsTab" class="nav-link" data-toggle="tab" role="tab">' . $lang['uiSettingHeaderPhlex'] . '</a>
-					        </li>
-					        <li class="nav-item">
-						        <a href="#plexSettingsTab" class="nav-link" data-toggle="tab" role="tab">' . $lang['uiSettingHeaderPlex'] . '</a>
-					        </li>
-					        <li class="nav-item">
-						        <a href="#movieFetcherSettingsTab" class="nav-link" data-toggle="tab" role="tab">' . $lang['uiSettingHeaderMovies'] . '</a>
-					        </li>
-					        <li class="nav-item">
-						        <a href="#showFetcherSettingsTab" class="nav-link" data-toggle="tab" role="tab">' . $lang['uiSettingHeaderShows'] . '</a>
-					        </li>
-					        <li class="nav-item">
-						        <a href="#musicFetcherSettingsTab" class="nav-link" data-toggle="tab" role="tab">' . $lang['uiSettingHeaderMusic'] . '</a>
-					        </li>
-					        <li class="nav-item logNav'.$hidden.'">
-						        <a href="#logTab" class="nav-link" data-toggle="tab" role="tab">' . $lang['uiSettingHeaderLogs'] . '</a>
-					        </li>
-					        <li class="nav-item">
-						        <a href="https://github.com/d8ahazard/Phlex/wiki" target="_blank" class="nav-link">?</a>
-					        </li>
-				            <button type="button" id="settingsClose" data-dismiss="modal" aria-label="Close">
-			                    <span class="material-icons" aria-hidden="true">close</span>
-			                </button>
-						</ul>
-					</div>
-				<div class="drawer-item btn" data-link="logout">
-                	<span class="barBtn"><i class="material-icons barIcon">exit_to_app</i></span>Log Out
-                </div>          
-			</div>
-        	
-			<div id="body">
-				<div class="topBar row justify-content-center">
-					<div class="btn btn-sm" id="hamburger">
-						<span class="material-icons">menu</span>
-					</div>
-					<div class="wrapper col-sm-9 col-lg-8" id="mainWrap">
-		                <div class="searchWrap" id="queryCard">
-				            <div class="query">
-					            <div class="queryBg">
-					                <div class="btn-toolbar">
-					                    <div class="queryGroup form-group label-floating">
-					                        <div class="inputWrap">
-						                        <label id="actionLabel" for="commandTest" class="control-label">'. $lang['uiGreetingDefault'] . '
-						                        </label>
-						                        <input type="text" class="form-control" id="commandTest"/>
-						                        <div class="load-bar">
-													<div class="bar"></div>
-													<div class="bar"></div>
-													<div class="bar"></div>
-												</div>
-						                        <a class="material-icons sendBtn" id="executeButton">message</a>
-					                        </div>
-					                    </div>
-					                   
-					                </div>
-					            </div>
-				            </div>
-				        </div>
-				        '. makeSettingsBody($defaults) .'
-		            </div>		            
-		                <div class="dd-full btn btn-sm dropdown-toggle" data-position="right" href="javascript:void(0)" id="client" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-	                    <div class="ddLabel"></div><br>
-	                        <i class="material-icons barIcon clientBtn">cast</i>
-	                    </div>	                
-	            </div>
-	            <div id="results" class="">
-	            	<div id="resultsInner"  class="queryWrap col-md-9 col-lg-8">
-					</div>
-		        </div>
-			    	
-	            
-				<div id="metaTags">
-			        <meta id="apiTokenData" data-token="' . $_SESSION["apiToken"] . '"/>
-			        <meta id="strings" data-array="' . urlencode(json_encode($lang['javaStrings'])) . '"/>
-					'. makeMetaTags() . '
-			    </div>
-				
-			</div>';
-
-
-    return [$bodyText,$_SESSION['darkTheme']];
-}
-
-
-
-
-function makeMetaTags() {
-	$server = findDevice(false,false,"Server");
-	$client = findDevice(false,false,"Client");
-    $tags = '';
-    $uiData = json_encode(getUiData(true));
-    $uiData = str_replace("'","`",$uiData);
-    $dvr = ($_SESSION['plexDvrId'] ? "true" : "");
-    $tags .= '<meta id="usernameData" data="' . $_SESSION['plexUserName'] . '"/>' . PHP_EOL .
-        '<meta id="updateAvailable" data="' . $_SESSION['updateAvailable'] . '"/>' . PHP_EOL .
-        '<meta id="deviceID" data="' . $_SESSION['deviceID'] . '"/>' . PHP_EOL .
-        '<meta id="serverURI" data="' . $server['Uri'] . '"/>' . PHP_EOL .
-        '<meta id="publicMeta" value="' . serverAddress() . '"/>' . PHP_EOL .
-        '<meta id="clientURI" data="' . $client['Uri'] . '"/>' . PHP_EOL .
-        '<meta id="clientName" data="' . $client['Name'] . '"/>' . PHP_EOL .
-        '<meta id="plexDvr" data-enable="' . $dvr . '"/>' . PHP_EOL .
-        '<div id="uiData" data-default=\''.$uiData.'\' class="hidden"></div>' . PHP_EOL .
-        '<meta id="rez" value="' . $_SESSION['plexDvrResolution'] . '"/>' . PHP_EOL;
-
-    return $tags;
-}
-
-function makeSettingsBody($defaults) {
-	$hide = $defaults['isWebApp'];
-	$hidden = $hide ? " remove" : "";
-	$hiddenHome = $hide ? "" : " remove";
-	$useGit = $hide ? false : checkGit();
-	$webAddress = serverAddress();
-	$lang = $defaults['lang'];
-
-	$gitDiv = "<div class='appContainer card updateDiv$hidden'>
-			        <div class='card-body'>
-			            <h4 class='cardHeader'>" . $lang["uiSettingUpdates"] . "</h4>
-			            <div class='form-group'>
-			                <div class='togglebutton'>
-			                    <label for='autoUpdate' class='appLabel checkLabel'>" . $lang["uiSettingAutoUpdate"] . "
-			                        <input id='autoUpdate' type='checkbox' class='appInput appToggle' data-app='autoUpdate'/>
-			                    </label>
-			                </div>
-			                <div class='togglebutton'>
-			                    <label for='notifyUpdate' class='appLabel checkLabel'>" . $lang["uiSettingNotifyUpdate"] . "
-			                        <input id='notifyUpdate' type='checkbox' class='appInput'" . ($_SESSION['notifyUpdate'] ? 'checked' : '') . "/>
-			                    </label>
-			                </div>
-			                <div class='form-group'>
-			                    <div id='updateContainer'>
-			                    </div>
-			                </div>
-			                <div class='text-center'>
-			                    <div class='form-group btn-group'>
-			                        <button id='checkUpdates' value='checkUpdates' class='btn btn-raised btn-info btn-100' type='button'>" . $lang["uiSettingRefreshUpdates"] . "</button>
-			                        <button id='installUpdates' value='installUpdates' class='btn btn-raised btn-warning btn-100' type='button'>" . $lang["uiSettingInstallUpdates"] . "</button>
-			                    </div>
-			                </div>
-			            </div>
-			        </div>
-			    </div>";
-
-	$gitDiv = $useGit ? $gitDiv : "";
-
-	$apiToken = $_SESSION['apiToken'];
-
-	$rev = checkRevision(true);
-	$revString = $rev ? "Revision: $rev" : "";
-	$homeBase = file_get_contents(dirname(__FILE__) . "/homeBase/index.html");
-	$string = "	<div id='results'>
-    <div class='' role='document'>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<div id='results'>
+    <div class='modal-dialog' role='document'>
         <div class='tab-content'>
-        	<div class='tab-pane active' id='homeTab'>
-                $homeBase
-            </div>
-            <div class='tab-pane fade' id='voiceTab'>
+            <div class='tab-pane active' id='voiceTab'>
                 <div id='resultsInner'  class='queryWrap col-md-9 col-lg-8'>
                 </div>
             </div>
@@ -217,7 +18,7 @@ function makeSettingsBody($defaults) {
                         <div class='appContainer card'>
                             <div class='card-body'>
                                 <h4 class='cardHeader'>" . $lang["uiSettingGeneral"] . "</h4>
-    
+
                                 <div class='form-group'>
                                     <label class='appLabel' for='appLanguage'>" . $lang["uiSettingLanguage"] . "</label>
                                     <select class='form-control custom-select' id='appLanguage'>
@@ -268,7 +69,7 @@ function makeSettingsBody($defaults) {
                                     </label>
                                     <span class='bmd-help'>" . $lang["uiSettingForceSSLHint"] . "</span>
                                 </div>
-    
+
                             </div>
                         </div>
                         <div class='appContainer card'>
@@ -287,7 +88,7 @@ function makeSettingsBody($defaults) {
                                 </div>
                             </div>
                         </div>
-    
+
                         <div class='appContainer card'>
                             <div class='card-body'>
                                 <h4 class='cardHeader'>Notifications</h4>
@@ -313,8 +114,8 @@ function makeSettingsBody($defaults) {
                             </div>
                         </div>
                         " .
-		$gitDiv .
-		"<div class='appContainer card'>
+                        $gitDiv .
+                        "<div class='appContainer card'>
                         <div class='card-body'>
                             <h4 class='cardHeader'>" . $lang["uiSettingHookLabel"] . "</h4>
                             <div class='togglebutton'>
@@ -493,10 +294,10 @@ function makeSettingsBody($defaults) {
                                             <input id='plexDvrEndOffsetMinutes' class='appInput form-control' type='number' min='1' max='30' value='" . $_SESSION['plexDvrEndOffsetMinutes'] . "' />
                                         </label>
                                     </div>
-    
+
                                 </div>
                             </div>
-    
+
                         </div>
                     </div>
                 </div>
@@ -874,10 +675,6 @@ function makeSettingsBody($defaults) {
             </div>
         </div>
     </div>
-</div>";
-
-	return $string;
-}
-
-
-?>
+</div>
+</body>
+</html>

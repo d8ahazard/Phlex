@@ -1,0 +1,261 @@
+<body>
+
+  <!--<nav class="navbar fixed-top navbar-dark bg-transparent">-->
+    <!---->
+    <!--<button class="navbar-toggler btn-dark" type="button" data-toggle="offcanvas">-->
+      <!--<span class="navbar-toggler-icon"></span>-->
+    <!--</button>-->
+
+    <!--<div class="navbar-collapse offcanvas-collapse bg-white shadow">-->
+
+      <!--<button type="button" id="dismissNav" class="btn btn-link text-dark" data-toggle="offcanvas">-->
+        <!--<i class="fas fa-times fa-lg"></i>-->
+      <!--</button>-->
+
+      <!--<div class="d-flex justify-content-center align-items-center">-->
+        <!--<img src="./php/homeBase/assets/images/homebase-logo-invert.svg" alt="Place Logo" width="40" height="80">-->
+      <!--</div>-->
+
+      <!--<div class="list-group list-group-flush mb-3">-->
+        <!--<a href="./" title="Home" class="list-group-item list-group-item-action active">-->
+          <!--Home-->
+        <!--</a>-->
+        <!--&lt;!&ndash; This needs to have a setting &ndash;&gt;-->
+        <!--<a href="./ombi" title="Ombi" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">Request Content <i class="fas fa-fw fa-external-link-alt"></i></a>-->
+        <!--<a href="./recentlyadded" title="Recently Added" class="list-group-item list-group-item-action">Recently Added</a>-->
+      <!--</div>-->
+
+      <!--<div class="list-group list-group-flush mb-3">-->
+        <!--<a href="http://app.plex.tv/web/app" title="Plex Web" target="_blank" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">Watch Now <i class="fas fa-fw fa-external-link-alt"></i></a>-->
+      <!--</div>-->
+
+      <!--<div class="container">-->
+        <!--<a href="https://www.paypal.me/tylerforesthauser" title="Donate" target="_blank" class="btn btn-dark btn-block">DONATE</a>-->
+      <!--</div>-->
+      <!---->
+    <!--</div>-->
+    <!---->
+  <!--</nav>-->
+
+  <header class="jumbotron jumbotron-fluid bg-dark text-white text-center">
+    
+    <div class="container">
+      <img src="./php/homeBase/assets/images/homebase-logo.svg" alt="Homebase Logo" width="160" height="160">
+      <h1 class="display-4 mt-0">Homebase (for Plex)</h1>
+      <p>Welcome to your Homebase for Plex. See what's recently been added to Plex, request new content and check out various stats about this Plex Media Server.</p>
+    </div>
+    
+  </header>
+
+  <main role="main" class="container">
+
+    <div class="row">
+
+      <div class="col-sm-6 col-lg-6 mb-4">
+
+        <div class="card h-100 text-center shadow">
+          <h4 class="card-header px-2">Request Content</h4>
+          <div class="card-body">
+            <p class="card-text">
+              <img src="./php/homeBase/assets/images/ombi-logo.svg" alt="Ombi Logo" width="160" height="124">
+            </p>
+            <p class="card-text">Is there a movie or TV show you've been hankering to watch but it's not currently on Plex? Request it here!</p>
+          </div><!-- card-body -->
+          <div class="card-footer bg-transparent border-top-0">
+            <!-- This needs to have a setting -->
+            <a class="btn btn-dark" href="./ombi" title="Ombi" role="button" target="_blank">Ombi <i class="fas fa-fw fa-external-link-alt" style="vertical-align: baseline;"></i></a>
+          </div>
+        </div><!-- card -->
+
+      </div><!-- col-sm-6 col-lg-6 -->
+
+      <div class="col-sm-6 col-lg-6 mb-4">
+
+        <div class="card h-100 text-center shadow">
+          <h4 class="card-header px-2">Recently Added</h4>
+          <div class="card-body">
+            <p class="card-text">
+              <img src="./php/homeBase/assets/images/clock.svg" alt="Recently Added" width="160" height="124">
+            </p>
+            <p class="card-text">Have you lost track of all the new content being added to Plex? Check out what's new in the last week.</p>
+          </div><!-- card-body -->
+          <div class="card-footer bg-transparent border-top-0">
+            <a class="btn btn-dark" href="./recentlyadded" title="What's New in Plex" role="button">Recently Added</a>
+          </div>
+        </div><!-- card -->
+
+      </div><!-- col-sm-6 col-lg-6 -->
+
+    </div><!-- row -->
+
+    <div class="row">
+
+      <div class="col-sm-12 col-lg-4 mb-4">
+
+        <div class="card h-100 bg-dark text-white shadow">
+          <h4 class="card-header text-center px-2">Statistics</h4>
+          
+          <ul id="serverInformation" class="list-group list-group-flush">
+
+            <!-- Check if Plex Server is online -->
+            <li id="serverStatus" class="list-group-item d-flex justify-content-between align-items-center list-group-item-info">
+              Server Status: Loading...
+            </li>
+
+            <!-- Check Current Activity -->
+            <li id="currentActivity" class="list-group-item d-flex justify-content-between align-items-center bg-dark">
+              <span class="d-flex align-items-center">
+                Current Activity <button type="button" id="getCurrentActivity" title="Refresh Current Activity" onclick="getCurrentActivityViaPlex()" class="btn btn-sm btn-link text-muted py-0"><i class="fas fa-fw fa-sync-alt fa-spin"></i></button>
+              </span>
+              <span id="currentActivityStreamCount">Loading...</span>
+            </li>
+
+          </ul>
+
+        </div><!-- card -->
+
+      </div><!-- col-sm-12 col-lg-4 -->
+
+      <div class="col-sm-12 col-lg-4 mb-4">
+
+        <div class="card h-100 shadow">
+          
+          <div class="card-body rounded-top pb-0 bg-dark text-white">
+            <h4 class="text-center">Top Content Ratings</h4>
+            <ul class="nav nav-tabs nav-justified" id="contentRatingTabs" role="tablist">
+              <li class="nav-item">
+                <span>Loading...</span>
+              </li>
+            </ul>
+          </div>
+          
+          <div class="tab-content bg-dark rounded-bottom" id="contentRatingTabContent">
+            <div class="tab-pane rounded-bottom active bg-white">
+              <ul class="list-group list-group-flush"></ul>
+            </div>
+          </div>
+
+        </div><!-- card -->
+
+      </div><!-- col-sm-12 col-lg-4 -->
+      
+      <div class="col-sm-12 col-lg-4 mb-4">
+
+        <div class="card h-100 shadow">
+          
+          <div class="card-body rounded-top pb-0 bg-dark text-white">
+            <h4 class="text-center">Top Genres</h4>
+            <ul class="nav nav-tabs nav-justified" id="genreTabs" role="tablist">
+              <li class="nav-item">
+                <span>Loading...</span>
+              </li>
+            </ul>
+          </div>
+          
+          <div class="tab-content bg-dark rounded-bottom" id="genreTabContent">
+            <div class="tab-pane rounded-bottom active bg-white">
+              <ul class="list-group list-group-flush"></ul>
+            </div>
+          </div>
+
+        </div><!-- card -->
+
+      </div><!-- col-sm-12 col-lg-4 -->
+      
+    </div>
+    
+    <div class="row">
+
+      <div class="col-md-6 col-lg-4 mb-4">
+
+        <div class="card h-100 bg-dark text-white shadow">
+          <h4 class="card-header text-center px-2">Most Popular Movies</h4>
+
+          <ul id="popMovies" class="list-group list-group-flush"></ul>
+
+          <div class="card-footer bg-dark border-top-0 p-2">
+            <div class="input-group input-group-sm">
+              <div class="input-group-prepend">
+                <label for="setPopMovieRange" class="input-group-text">in the last</label>
+              </div>
+              <select id="setPopMovieRange" class="form-control form-control-sm" onchange="getPopularMovies(this.value, '5')">
+                <option value="30" selected>1 Month</option>
+                <option value="90">3 Months</option>
+                <option value="180">6 Months</option>
+                <option value="365">1 Year</option>
+                <option value="730">2 Years</option>
+              </select>
+            </div>
+          </div>
+
+        </div><!-- card -->
+
+      </div><!-- col-md-6 col-lg-4 -->
+
+      <div class="col-md-6 col-lg-4 mb-4">
+
+        <div class="card h-100 bg-dark text-white shadow ">
+          <h4 class="card-header text-center px-2">Most Popular TV Shows</h4>
+
+          <ul id="popTvShows" class="list-group list-group-flush"></ul>
+
+          <div class="card-footer bg-dark border-top-0 p-2">
+            <div class="input-group input-group-sm">
+              <div class="input-group-prepend">
+                <label for="setPopTvRange" class="input-group-text">in the last</label>
+              </div>
+              <select id="setPopTvRange" class="form-control form-control-sm" onchange="getPopularTvShows(this.value, '5')">
+                <option value="30" selected>1 Month</option>
+                <option value="90">3 Months</option>
+                <option value="180">6 Months</option>
+                <option value="365">1 Year</option>
+                <option value="730">2 Years</option>
+              </select>
+            </div>
+          </div>
+
+        </div><!-- card -->
+
+      </div><!-- col-md-6 col-lg-4 -->
+      
+       <div class="col-sm-12 col-lg-4 mb-4">
+
+        <div class="card h-100 bg-dark text-white shadow">
+          <h4 class="card-header text-center px-2">Top Platforms</h4>
+          
+          <ul id="topPlatforms" class="list-group list-group-flush"></ul>
+
+          <div class="card-footer bg-dark border-top-0 p-2">
+            <div class="input-group input-group-sm">
+              <div class="input-group-prepend">
+                <label for="setPlatformRange" class="input-group-text">in the last</label>
+              </div>
+              <select id="setPlatformRange" class="form-control form-control-sm" onchange="getTopPlatforms(this.value, '5')">
+                <option value="30" selected>1 Month</option>
+                <option value="90">3 Months</option>
+                <option value="180">6 Months</option>
+                <option value="365">1 Year</option>
+                <option value="730">2 Years</option>
+              </select>
+            </div>
+          </div>
+
+        </div><!-- card -->
+
+      </div><!-- col-md-6 col-lg-4 -->
+
+    </div><!-- row -->
+
+  </main><!-- container -->
+
+  <div class="container">
+
+    <footer class="p-3 mb-4 bg-dark text-white rounded d-flex align-items-center shadow">
+      <small>Copyright &copy; <?= date("Y") ?> Tyler Forest-Hauser &#124; Site Development by <a href="https://tylerforesthauser.com/" title="Tyler Forest-Hauser - Is he an astronaut?">Tyler Forest-Hauser</a> &#124; Statistics and Recently Added by <a href="http://tautulli.com/" title="Tautulli - Monitoring for your Plex Media Server">Tautulli</a></small>
+    </footer>
+
+  </div><!-- container -->
+
+  <div class="modal-backdrop fade" data-toggle="offcanvas"></div>
+
+</body>

@@ -1025,6 +1025,17 @@ function setListeners() {
     	}
 	});
 
+    $("#baseFrame").click(function() {
+        console.log("CLICK");
+        if ($("#hamburger").hasClass("withCheese")) {
+            $("#hamburger").removeClass("withCheese");
+            console.log("Hiding Menu");
+            $("#sideMenu").animate({
+                left: '-350px'
+            }, 200);
+        }
+    });
+
 
 	var checkbox = $(':checkbox');
 	checkbox.change(function () {
