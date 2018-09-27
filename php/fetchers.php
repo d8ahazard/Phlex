@@ -14,7 +14,7 @@ use digitalhigh\Lidarr\Lidarr;
 use Kryptonit3\SickRage\SickRage;
 use Kryptonit3\Sonarr\Sonarr;
 use digitalhigh\Watcher\Watcher;
-use digitalhigh\Headphones\Headphones;
+use digitalhigh\Headphones\Ombi;
 use digitalhigh\multiCurl;
 
 function downloadMedia(array $data, array $fetchers) {
@@ -103,7 +103,7 @@ function downloadHeadphones(array $data) {
     $uri = $_SESSION['headphonesUri'] ?? false;
     $token = $_SESSION['headphonesToken'] ?? false;
     if (!$uri || !$token) return false;
-    $phones = new Headphones($uri,$token);
+    $phones = new Ombi($uri,$token);
     $type = $data['type'];
     $request = $data['title'];
 

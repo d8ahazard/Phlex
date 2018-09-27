@@ -210,6 +210,7 @@ echo '                            <div class="card-block">
 	<link rel="stylesheet" media="(max-width: 400px)" href="css/main_max_400.css">
 	<link rel="stylesheet" media="(max-width: 600px)" href="css/main_max_600.css">
 	<link rel="stylesheet" media="(min-width: 600px)" href="css/main_min_600.css">
+    <link rel="stylesheet" media="(min-width: 992px)" href="css/main_min_992.css">
 	<link rel="stylesheet" media="(min-width: 2000px)" href="css/main_min_2000.css">
     <link rel="stylesheet" href="./php/homeBase/assets/styles/custom.min.css">
     <script defer src="https://use.fontawesome.com/releases/v5.1.0/js/all.js" integrity="sha384-3LK/3kTpDE/Pkp8gTNp2gR/2gOiwQ6QaO7Td0zV76UFJVhqLl4Vl3KL1We6q6wR9" crossorigin="anonymous"></script>

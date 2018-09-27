@@ -739,7 +739,7 @@ function getPopularMovies (time_range = '30', stats_count = '5') {
       $('#popMovies').empty();
             
       $.each(home_stats, function(i, item) {
-        if (item.stat_id == 'popular_movies') {
+        if (item.stat_id === 'popular_movies') {
           $.each(item.rows, function(i, item) {
             $('#popMovies').append(
               '<li class="list-group-item d-flex justify-content-between align-items-center bg-dark">' +

@@ -25,15 +25,23 @@ body {
 	overflow: hidden;
 }
 
-.topBar {
+#body {
+	height: 100%;
 	width: 100%;
 	position: absolute;
+	top: 0;
+	left: 0;
+}
+
+.topBar {
+	width: 100%;
+	position: fixed;
 	height: 64px;
 	background: var(--theme-primary-75);
 	color: var(--theme-primary-inverse);
 	-webkit-box-shadow: 0 4px 5px 0 rgba(0,0,0,0.14), 0 1px 10px 0 rgba(0,0,0,0.12), 0 2px 4px -1px rgba(0,0,0,0.2);
 	box-shadow: 0 4px 5px 0 rgba(0,0,0,0.14), 0 1px 10px 0 rgba(0,0,0,0.12), 0 2px 4px -1px rgba(0,0,0,0.2);
-    z-index: 11;
+    z-index: 7;
 	margin: 0;
 	padding: 0;
 }
@@ -78,11 +86,11 @@ a, .barBtn, .barBtn > i, .clientBtn, .sendBtn, .appLabel, .btnAdd {
 	color: var(--theme-primary-75) !important;
 }
 
-a:hover:not(#executeButton), .drawer-item:hover .barIcon {
+a:hover:not(#executeButton) {
 	color: var(--theme-primary-75) !important;
 }
 
-.dd-selected, a:hover:not(#executeButton),  .btn-primary:hover, .drawer-item:hover, .btn-info {
+.dd-selected, a:hover:not(#executeButton),  .btn-primary:hover, .btn-info {
 	background-color: var(--theme-accent) !important;
 }
 
@@ -104,6 +112,18 @@ a:hover:not(#executeButton), .drawer-item:hover .barIcon {
 .fade {
 	display: none;
 }
+
+.appContainer {
+	display: flex;
+	justify-content: center;
+}
+
+.card .card-body {
+	height: auto !important;
+	padding: 18px !important;
+	margin: 15px !important;
+}
+
 
 .nav-item > .nav-link, .appContainer, .userGroup *, .form-control, .text-muted {
 	color: var(--theme-primary-shade2) !important;
@@ -140,6 +160,24 @@ a:hover:not(#executeButton), .drawer-item:hover .barIcon {
 	background-color: var(--theme-primary-inverse);
 }
 
+.gridBox {
+	display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-gap: 10px;
+    grid-auto-flow: dense;
+}
+
+#sectionLabel {
+	position: absolute;
+	top: 18px;
+	right: 6%;
+	text-align: center;
+}
+
+#sectionLabel h3 {
+	margin-bottom: 0 !important;
+}
+
 #sideMenu {
 	background-color: var(--theme-primary);
 	background: var(--theme-primary);
@@ -147,9 +185,10 @@ a:hover:not(#executeButton), .drawer-item:hover .barIcon {
 	height: 100%;
 	position: fixed;
 	top:0;
-	z-index: 12;
+	z-index: 9;
 	left: -350px;
 	word-break: break-word;
+	overflow-y: scroll;
 }
 
 .drawer-header {
@@ -169,7 +208,7 @@ a:hover:not(#executeButton), .drawer-item:hover .barIcon {
 
 .drawer-list {
 	margin-left: 25px;
-	display: none;
+
 }
 
 .settings-item.expanded {
@@ -190,7 +229,7 @@ a:hover:not(#executeButton), .drawer-item:hover .barIcon {
 
 #hamburger {
 	position: absolute;
-	z-index: 11;
+	z-index: 8;
 	top: 3px;
 	left: 3px;
 	color: var(--theme-primary-inverse);
@@ -201,7 +240,7 @@ a:hover:not(#executeButton), .drawer-item:hover .barIcon {
 .dd-full {
     right: 25px;
     position: fixed;
-    z-index: 11;
+    z-index: 8;
     top: -3px;
     font-size: 28px;
 }
@@ -228,14 +267,18 @@ a:hover:not(#executeButton), .drawer-item:hover .barIcon {
 .view-tab {
 	width: 100%;
 	height: 100%;
+	overflow: scroll;
+	padding-top: 25px;
+	margin: 0 auto;
 }
 
-.drawer-item.active > .barBtn {
+.drawer-item.active {
 	color: var(--theme-primary-inverse) !important;
-	border-bottom: 3px solid var(--theme-primary);
-	-webkit-box-sizing: border-box;
-	-moz-box-sizing: border-box;
-	box-sizing: border-box;
+	background-color: var(--theme-accent) !important;
+}
+
+.drawer-item.active i {
+	color: var(--theme-primary-inverse) !important;
 }
 
 html {
@@ -300,24 +343,9 @@ html {
 	transition: top .9s;
 }
 
-#results {
-	z-index: 0;
-	top: -5000px;
-	padding-top: 15px;
-	-webkit-transition: max-height 2s;
-	-moz-transition: max-height 2s;
-	-ms-transition: max-height 2s;
-	-o-transition: max-height 2s;
-	transition: max-height 2s;
-	-webkit-transition: top 1.25s;
-	-moz-transition: top 1.25s;
-	-o-transition: top 1.25s;
-	transition: top 1.25s;
-}
-
 .cardClose {
 	color: var(--theme-primary-inverse);
-	z-index: 10;
+	z-index: 6;
 	background: transparent;
 	border: none;
 	position: absolute;
@@ -327,7 +355,7 @@ html {
 
 .deviceDelete {
 	color: var(--theme-primary-inverse);
-	z-index: 10;
+	z-index: 6;
 	background: transparent;
 	border: none;
 	position: absolute;
@@ -339,7 +367,7 @@ html {
 	top: 3px;
 	position: absolute;
 	color: var(--theme-primary-inverse);
-	z-index: 10;
+	z-index: 6;
 	background: transparent;
 	border: none;
 	width: 25px;
@@ -392,7 +420,7 @@ html {
 	position: fixed;
 	top: 0;
 	left: 0;
-	z-index: -6;
+	z-index: 0;
 }
 
 .scrollContainer {
@@ -429,7 +457,7 @@ html {
 	width: 100%;
 	text-align: center;
 	top: 20px;
-	z-index: 15;
+	z-index: 8;
 }
 
 #stopBtnDiv {
@@ -515,12 +543,12 @@ html {
 	from {
 		left: 50%;
 		width: 0;
-		z-index: 100;
+		z-index: 11;
 	}
 	33.3333% {
 		left: 0;
 		width: 100%;
-		z-index: 10;
+		z-index: 2;
 	}
 	to {
 		left: 0;
@@ -595,7 +623,7 @@ p.card-subtitle {
 }
 
 .dropdown-menu, .dropdown-header, #clientWrapper {
-	z-index: 1000;
+	z-index: 8;
 	text-transform: uppercase;
 }
 
@@ -620,7 +648,7 @@ p.card-subtitle {
 	height: 58%;
 	top: 30px;
 	right: 12px;
-	z-index: 20;
+	z-index: 8;
 }
 
 #controlWrap {
@@ -644,7 +672,7 @@ p.card-subtitle {
 	height: 100%;
 	padding-right: 0;
 	padding-left: 0;
-	z-index: 13;
+	z-index: 6;
 }
 
 .statusWrapper {
@@ -676,7 +704,7 @@ p.card-subtitle {
 	background-position: center center;
 	background-size: cover;
 	pointer-events: none;
-	z-index: -5;
+	z-index: 4;
 }
 
 .coverImage {
@@ -695,17 +723,13 @@ p.card-subtitle {
 	position: fixed;
 	left: 0;
 	pointer-events: none;
-	z-index: -4;
+	z-index: 3;
 }
 
 .queryWrap {
 	margin-top: 20px;
 	width: 100%;
 
-}
-
-.ombiGroup {
-	display: none;
 }
 
 .card {
@@ -845,7 +869,7 @@ p.card-subtitle {
 }
 
 .nowPlayingFooter {
-	z-index: 10;
+	z-index: 7;
 	width: 100%;
 	height: 115px;
 	position: fixed;
@@ -1004,6 +1028,8 @@ select {
 
 .resultDiv, .bootstrap-dialog-message {
 	margin-bottom: 25px;
+	margin-left: 7px;
+	margin-right: 7px;
 	var(--theme-primary)-space: pre-wrap; /* css-3 */
 	var(--theme-primary)-space: -moz-pre-wrap; /* Mozilla, since 1999 */
 	var(--theme-primary)-space: -pre-wrap; /* Opera 4-6 */
@@ -1091,27 +1117,30 @@ span.toggle {
 	max-height: inherit;
 }
 
+
+
 #results {
-	z-index: 0;
-	position: fixed;
-	height: 100%;
-	top: 64px;
+	z-index: 6;
+	top: -5000px;
+	height: calc(100% - 42px);
 	left: 0;
 	width: 100%;
-	overflow: scroll;
+	overflow: hidden;
+	position: fixed;
+	-webkit-transition: max-height 2s;
+	-moz-transition: max-height 2s;
+	-ms-transition: max-height 2s;
+	-o-transition: max-height 2s;
+	transition: max-height 2s;
+	-webkit-transition: top 1.25s;
+	-moz-transition: top 1.25s;
+	-o-transition: top 1.25s;
+	transition: top 1.25s;
 }
+
 
 .settingPage {
-    width: 70%;
     margin: 0 auto;
-}
-
-#homeTab {
-	width: 100%;
-	height: 100%;
-	top: 0;
-	left: 0;
-	position: absolute;
 }
 
 .expandWrap {
@@ -1124,6 +1153,7 @@ span.toggle {
 
 .castArt {
 	display: none;
+	z-index: 5;
 	margin: 0;
 	overflow: hidden;
 	position: fixed;
@@ -1132,6 +1162,7 @@ span.toggle {
 	top: 0;
 	left: 0;
 }
+
 
 .hiddenCard, .hidden {
 	display: none;
@@ -1144,12 +1175,6 @@ span.toggle {
 
 .card-1:hover {
 	box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
-}
-
-.castArt, .castArt * {
-	pointer-events: none;
-	z-index: -4;
-	text-shadow: 1px 1px #000;
 }
 
 .ccWrapper, .background-container, .ccBackground {

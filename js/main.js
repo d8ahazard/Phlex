@@ -8,6 +8,8 @@ var cleanLogs=true, couchEnabled=false, lidarrEnabled=false, ombiEnabled=false, 
 	hookPause=false, hookStop=false, hookCustom=false, hookFetch=false, hookSplit = false, autoUpdate = false, masterUser = false,
 	noNewUsers=false, notifyUpdate=false, waiting=false, broadcastDevice="all";
 
+var caches = null;
+
 var forceUpdate = true;
 
 var scrolling = false;
@@ -130,7 +132,7 @@ function parseUpdates(data) {
 // Build the UI elements after document load
 function buildUiDeferred() {
 	$.material.init();
-
+	$(".drawer-list").slideUp(700,"easeOutBounce");
 	var messages = $('#messages').data('array');
 	var IPString = $('#publicAddress').val() + "/api.php?";
 	if (IPString.substring(0, 4) !== 'http') {
@@ -148,7 +150,7 @@ function buildUiDeferred() {
 	scaleElements();
 
 	setTimeout(function () {
-		$('#results').css({"top": "64px", "max-height": "100%", "overflow": "scroll"})
+		$('#results').css({"top": "64px", "max-height": "100%"})
 	}, 500);
 
 	$('.formpop').popover();
@@ -457,6 +459,17 @@ function setUiVariables(data) {
 	toggleGroups();
 }
 
+function toggleDrawer(expandDrawer) {
+    if (expandDrawer.hasClass("collapsed")) {
+        expandDrawer.removeClass("collapsed");
+        expandDrawer.slideDown(700,"easeOutBounce");
+    } else {
+        console.log("Collapse");
+        expandDrawer.addClass("collapsed");
+        expandDrawer.slideUp(700,"easeOutBounce");
+    }
+}
+
 function toggleGroups() {
 	var vars = {
 		"sonarr": sonarrEnabled,
@@ -616,7 +629,7 @@ function updateCommands(data, prepend) {
 				var style = bgImage ? "data-src='" + bgImage + "'" : "style='background-color:'";
 				var className = bgImage ? " filled" : "";
 				var outLine =
-					"<div class='resultDiv card noHeight"+className+"' id='" + timeStamp + "'>" +
+					"<div class='resultDiv card col-xl-5 col-lg-5-5 col-md-12 noHeight"+className+"' id='" + timeStamp + "'>" +
 					'<button id="CARDCLOSE' + i + '" class="cardClose"><span class="material-icons">close</span></button>' +
 					mediaDiv +
 					"<div class='cardColors'>" +
@@ -632,6 +645,7 @@ function updateCommands(data, prepend) {
 				setTimeout(function(){
 					var nh = $('.noHeight');
 					nh.slideDown();
+					nh.css("display", "");
 					nh.removeClass('noHeight');
 				},700);
 
@@ -1000,7 +1014,7 @@ function setListeners() {
     		$(this).removeClass("withCheese");
         	console.log("Hiding Menu");
             $("#sideMenu").animate({
-                left: '-350px'
+                left: '-352px'
             }, 200);
             y = 0;
         } else {
@@ -1020,7 +1034,7 @@ function setListeners() {
             $("#hamburger").removeClass("withCheese");
             console.log("Hiding Menu");
             $("#sideMenu").animate({
-                left: '-350px'
+                left: '-352x'
             }, 200);
     	}
 	});
@@ -1031,7 +1045,7 @@ function setListeners() {
             $("#hamburger").removeClass("withCheese");
             console.log("Hiding Menu");
             $("#sideMenu").animate({
-                left: '-350px'
+                left: '-352px'
             }, 200);
         }
     });
@@ -1086,16 +1100,18 @@ function setListeners() {
 		$.snackbar({content: "Logging out."});
 		sessionStorage.clear();
 		localStorage.clear();
-		var del = window.caches.delete('phlex');
-		del = caches.delete('phlex');
+		if (caches !== null) {
+            if (caches.hasOwnProperty('phlex')) del = caches.delete('phlex');
+        }
 		setCookie('PHPSESSID','',1);
 		setTimeout(
 			function () {
 				$('#mainWrap').css({"top": "-200px"});
 				bgs.fadeOut(1000);
 				$('.castArt').fadeOut(1000);
-			}, 500);
 
+			}, 500);
+        window.location.href = "?logout";
 
 	});
 
@@ -1227,33 +1243,54 @@ function setListeners() {
 
 	});
 
-	$(document).on('click', '.drawer-item', function () {
+	$(".drawer-item").on('click', function () {
 		console.log("Drawer item is clicked.");
-		if ($(this).hasClass("active")) {
+        var expandDrawer = $(".drawer-list");
+        var expanded = expandDrawer.hasClass("collapsed");
+        var linkVal = $(this).data("link");
+		var secLabel = $("#sectionLabel");
+        if ($(this).hasClass("active")) {
 			console.log("Active item, nothing to do.");
 		} else {
-			$('.drawer-item.active').removeClass('active');
-			var linkVal = $(this).data("link");
-			var currentTab = $('.view-tab.active');
-			var newTab = $("#" + linkVal);
-			console.log("Enabling " + linkVal + " tab.");
-			currentTab.addClass('fade');
-			currentTab.removeClass('active');
-			newTab.removeClass('fade');
-			newTab.addClass('active');
-            var expandDrawer = $(".drawer-list");
-			if (linkVal.includes("SettingsTab")) {
-				console.log("Expand");
-				if (expandDrawer.hasClass("collapsed")) {
-					expandDrawer.removeClass("collapsed");
-					expandDrawer.slideDown();
+        	// Handle switching content
+            if (linkVal !== "expandDrawer") {
+            	var label = "<h3>" + $(this).data("label") + "</h3>";
+
+				$('.drawer-item.active').removeClass('active');
+				$(this).addClass("active");
+                var currentTab = $('.view-tab.active');
+                var newTab = $("#" + linkVal);
+                console.log("Enabling " + linkVal + " tab.");
+                currentTab.addClass('fade');
+                currentTab.removeClass('active');
+                newTab.removeClass('fade');
+                newTab.addClass('active');
+                // Collapse settings group if another button is clicked
+                if (!linkVal.includes("SettingsTab")) {
+                	secLabel.css("top","18px");
+                    secLabel.html(label);
+                    console.log("Collapse");
+                    expandDrawer.addClass("collapsed");
+                    expandDrawer.slideUp(700,"easeOutBounce");
+                } else {
+                	label = label + "(Settings)";
+                	secLabel.html(label);
+                	secLabel.css("top", "4px");
 				}
-			} else {
-				console.log("Collapse");
-				expandDrawer.addClass("collapsed");
-				expandDrawer.slideUp();
+            } else {
+                // If clicking the main settings header
+				toggleDrawer(expandDrawer);
 			}
 		}
+		// Close the drawer if not toggling settings group
+        if (linkVal !== "expandDrawer") {
+            $('#hamburger').removeClass("withCheese");
+            console.log("Hiding Menu");
+            $("#sideMenu").animate({
+                left: '-350px'
+            }, 200);
+            y = 0;
+        }
 	});
 
 	$(document).on("click change", "#serverList",function () {

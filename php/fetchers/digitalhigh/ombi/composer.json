@@ -1,0 +1,23 @@
+{
+    "name": "digitalhigh/headphones",
+    "description": "PHP Headphones API Wrapper",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Jesse Szypulski",
+            "email": "jesse.szypulski@gmail.com"
+        },
+        {
+            "name": "Digitalhigh",
+            "email": "donate.to.digitalhigh@gmail.com"
+        }
+    ],
+    "require": {
+        "guzzlehttp/guzzle": "^6.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "digitalhigh\\Headphones\\": "src/"
+        }
+    }
+}

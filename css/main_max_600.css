@@ -29,6 +29,13 @@ input {
 	max-width: 70%;
 }
 
+.gridBox {
+	display: grid;
+	grid-template-columns: repeat(1, 1fr);
+	grid-gap: 10px;
+	grid-auto-flow: dense;
+}
+
 .dd-full {
 	display: none;
 }
