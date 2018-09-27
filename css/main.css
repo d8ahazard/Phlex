@@ -155,6 +155,12 @@ a:hover:not(#executeButton) {
 	display: none;
 }
 
+@media (max-width: 1200px) {
+	.col-lg-0 {
+		display: none;
+	}
+}
+
 .drawer-separator {
 	height:1px;
 	background-color: var(--theme-primary-inverse);
@@ -170,7 +176,9 @@ a:hover:not(#executeButton) {
 #sectionLabel {
 	position: absolute;
 	top: 18px;
+	width: 11%;
 	right: 6%;
+	padding: 0 10px;
 	text-align: center;
 }
 

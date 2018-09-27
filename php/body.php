@@ -156,7 +156,7 @@ function makeBody($defaults) {
         	
 			<div id="body">
 				<div class="topBar row justify-content-center">
-					<div id="sectionLabel" class="col-lg-0 col-xl-1">
+					<div id="sectionLabel" class="col-lg-0">
 						<h3>Home</h3>
 					</div>
 					<div class="btn btn-sm" id="hamburger">
