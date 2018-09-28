@@ -6,3 +6,8 @@ class InvalidException extends \Exception
 {
 
 }
+
+class MissingParamException extends \Exception
+{
+
+}

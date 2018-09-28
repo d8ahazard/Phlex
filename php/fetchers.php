@@ -4,8 +4,8 @@ require_once dirname(__FILE__) . '/webApp.php';
 require_once dirname(__FILE__) . '/fetchers/digitalhigh/watcher/src/Watcher.php';
 require_once dirname(__FILE__) . '/fetchers/digitalhigh/lidarr/src/Lidarr.php';
 require_once dirname(__FILE__) . '/fetchers/digitalhigh/headphones/src/Headphones.php';
-
 require_once dirname(__FILE__) . '/fetchers/digitalhigh/radarr/src/Radarr.php';
+require_once dirname(__FILE__) . '/fetchers/digitalhigh/ombi/src/Ombi.php';
 require_once dirname(__FILE__) . '/util.php';
 require_once dirname(__FILE__) . '/multiCurl.php';
 use Kryptonit3\CouchPotato\CouchPotato;
@@ -927,12 +927,10 @@ function testConnection($serviceName,$returnList=false) {
 
 		case "Ombi":
 			$ombiUri = $_SESSION['ombiUri'];
-			$ombiAuth = $_SESSION['ombiAuth'];
-			$authString = 'apikey:' . $ombiAuth;
+			$ombiAuth = $_SESSION['ombiToken'];
 			if (($ombiUri) && ($ombiAuth)) {
+				$ombi = new Ombi($ombiUri, $ombiAuth);
 				$url = $ombiUri;
-				$headers = [$authString];
-				$result = curlPost($url, false, false, $headers);
 				$msg = ((strpos($result, '"success": true') ? 'Connection to CouchPotato Successful!' : 'ERROR: Server not available.'));
 			} else {
 			    $msg = "ERROR: Missing server parameters.";
