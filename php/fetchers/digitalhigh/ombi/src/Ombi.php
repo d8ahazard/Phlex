@@ -20,7 +20,7 @@ class Ombi {
 	 *
 	 * @param  $settings - (optional) ({"enabled":"boolean","apiKey":"string","defaultProfileId":"string","username":"string","password":"string","ssl":"boolean","subDir":"string","ip":"string","port":"integer","id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postCouchPotatoprofile($settings = false) {
 		$uri = "CouchPotato/profile";
@@ -34,7 +34,7 @@ class Ombi {
 	 *
 	 * @param  $settings - (optional) ({"enabled":"boolean","apiKey":"string","defaultProfileId":"string","username":"string","password":"string","ssl":"boolean","subDir":"string","ip":"string","port":"integer","id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postCouchPotatoapikey($settings = false) {
 		$uri = "CouchPotato/apikey";
@@ -48,7 +48,7 @@ class Ombi {
 	 *
 	 * @param  $request - (optional) The request.({"enable":"boolean","servers":"array","id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postEmby($request = false) {
 		$uri = "Emby";
@@ -61,7 +61,7 @@ class Ombi {
 	 * Gets the emby users.
 	 *
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getEmbyusers() {
 		$uri = "Emby/users";
@@ -73,7 +73,7 @@ class Ombi {
 	 * Gets all users.
 	 *
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getIdentityUsers() {
 		$uri = "Identity/Users";
@@ -86,7 +86,7 @@ class Ombi {
 	 *
 	 * @param  $ui - (optional) The user.({"id":"string","userName":"string","alias":"string","claims":"array","emailAddress":"string","password":"string","lastLoggedIn":"string","hasLoggedIn":"boolean","userType":"string","movieRequestLimit":"integer","episodeRequestLimit":"integer","episodeRequestQuota":null,"movieRequestQuota":null,"musicRequestQuota":null,"musicRequestLimit":"integer","userQualityProfiles":null})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function putIdentity($ui = false) {
 		$uri = "Identity";
@@ -100,7 +100,7 @@ class Ombi {
 	 *
 	 * @param string $id - (required) ([])
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getIdentityUser($id) {
 		$uri = "Identity/User/$id";
@@ -113,7 +113,7 @@ class Ombi {
 	 *
 	 * @param  $ui - (optional) ({"currentPassword":"string","confirmNewPassword":"string","id":"string","userName":"string","alias":"string","claims":"array","emailAddress":"string","password":"string","lastLoggedIn":"string","hasLoggedIn":"boolean","userType":"string","movieRequestLimit":"integer","episodeRequestLimit":"integer","episodeRequestQuota":null,"movieRequestQuota":null,"musicRequestQuota":null,"musicRequestLimit":"integer","userQualityProfiles":null})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function putIdentitylocal($ui = false) {
 		$uri = "Identity/local";
@@ -127,7 +127,7 @@ class Ombi {
 	 *
 	 * @param string $userId - (required) The user.([])
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function deleteIdentity($userId) {
 		$uri = "Identity/$userId";
@@ -140,7 +140,7 @@ class Ombi {
 	 * Gets all available claims in the system.
 	 *
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getIdentityclaims() {
 		$uri = "Identity/claims";
@@ -153,7 +153,7 @@ class Ombi {
 	 *
 	 * @param  $user - (optional) ({"id":"string","userName":"string","alias":"string","claims":"array","emailAddress":"string","password":"string","lastLoggedIn":"string","hasLoggedIn":"boolean","userType":"string","movieRequestLimit":"integer","episodeRequestLimit":"integer","episodeRequestQuota":null,"movieRequestQuota":null,"musicRequestQuota":null,"musicRequestLimit":"integer","userQualityProfiles":null})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postIdentitywelcomeEmail($user = false) {
 		$uri = "Identity/welcomeEmail";
@@ -167,7 +167,7 @@ class Ombi {
 	 *
 	 * @param bool | string $userId - (required) ([])
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getIdentitynotificationpreferences($userId = false) {
 		if ($userId) {
@@ -184,7 +184,7 @@ class Ombi {
 	 *
 	 * @param  $preferences - (optional) ([])
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postIdentityNotificationPreferences($preferences = false) {
 		$uri = "Identity/NotificationPreferences";
@@ -198,7 +198,7 @@ class Ombi {
 	 *
 	 * @param int $tvdbid - (required) ([])
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getImagestv($tvdbid) {
 		$uri = "Images/tv/$tvdbid";
@@ -211,7 +211,7 @@ class Ombi {
 	 *
 	 * @param string $movieDbId - (required) ([])
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getImagespostermovie($movieDbId) {
 		$uri = "Images/poster/movie/$movieDbId";
@@ -224,7 +224,7 @@ class Ombi {
 	 *
 	 * @param int $tvdbid - (required) ([])
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getImagespostertv($tvdbid) {
 		$uri = "Images/poster/tv/$tvdbid";
@@ -237,7 +237,7 @@ class Ombi {
 	 *
 	 * @param string $movieDbId - (required) ([])
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getImagesbackgroundmovie($movieDbId) {
 		$uri = "Images/background/movie/$movieDbId";
@@ -250,7 +250,7 @@ class Ombi {
 	 *
 	 * @param int $tvdbid - (required) ([])
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getImagesbackgroundtv($tvdbid) {
 		$uri = "Images/background/tv/$tvdbid";
@@ -262,7 +262,7 @@ class Ombi {
 	 *
 	 *
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getImagesbackground() {
 		$uri = "Images/background";
@@ -275,7 +275,7 @@ class Ombi {
 	 *
 	 * @param  $cat - (optional) ({"value":"string","id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postIssuescategories($cat = false) {
 		$uri = "Issues/categories";
@@ -289,7 +289,7 @@ class Ombi {
 	 *
 	 * @param int $catId - (required) ([])
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function deleteIssuescategories($catId) {
 		$uri = "Issues/categories/$catId";
@@ -303,7 +303,7 @@ class Ombi {
 	 *
 	 * @param  $i - (optional) ({"title":"string","requestType":"string","providerId":"string","requestId":"integer","subject":"string","description":"string","issueCategoryId":"integer","issueCategory":null,"status":"string","resovledDate":"string","userReportedId":"string","userReported":null,"comments":"array","id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postIssues($i = false) {
 		$uri = "Issues";
@@ -319,7 +319,7 @@ class Ombi {
 	 * @param int $skip - (required) ([])
 	 * @param string $status - (required) ([])
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getIssues($take, $skip, $status) {
 		$uri = "Issues/$take/$skip/$status";
@@ -331,7 +331,7 @@ class Ombi {
 	 * Returns all the issues count
 	 *
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getIssuescount() {
 		$uri = "Issues/count";
@@ -344,7 +344,7 @@ class Ombi {
 	 *
 	 * @param int $id - (required) ([])
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getIssue($id) {
 		$uri = "Issues/$id";
@@ -357,7 +357,7 @@ class Ombi {
 	 *
 	 * @param int $id - (required) ([])
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getIssuescomments($id) {
 		$uri = "Issues/$id/comments";
@@ -370,7 +370,7 @@ class Ombi {
 	 *
 	 * @param  $comment - (optional) ({"comment":"string","issueId":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postIssuescomments($comment = false) {
 		$uri = "Issues/comments";
@@ -384,7 +384,7 @@ class Ombi {
 	 *
 	 * @param int $id - (required) ([])
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function deleteIssuescomments($id) {
 		$uri = "Issues/comments/$id";
@@ -398,7 +398,7 @@ class Ombi {
 	 *
 	 * @param  $model - (optional) ({"issueId":"integer","status":"string"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postIssuesstatus($model = false) {
 		$uri = "Issues/status";
@@ -411,7 +411,7 @@ class Ombi {
 	 * Runs the update job
 	 *
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postJobupdate() {
 		$uri = "Job/update";
@@ -424,7 +424,7 @@ class Ombi {
 	 * Runs the Plex User importer
 	 *
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postJobplexuserimporter() {
 		$uri = "Job/plexuserimporter";
@@ -437,7 +437,7 @@ class Ombi {
 	 * Runs the Emby User importer
 	 *
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postJobembyuserimporter() {
 		$uri = "Job/embyuserimporter";
@@ -450,7 +450,7 @@ class Ombi {
 	 * Runs the Plex Content Cacher
 	 *
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postJobplexcontentcacher() {
 		$uri = "Job/plexcontentcacher";
@@ -463,7 +463,7 @@ class Ombi {
 	 * Runs a smaller version of the content cacher
 	 *
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postJobplexrecentlyadded() {
 		$uri = "Job/plexrecentlyadded";
@@ -476,7 +476,7 @@ class Ombi {
 	 * Runs the Emby Content Cacher
 	 *
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postJobembycontentcacher() {
 		$uri = "Job/embycontentcacher";
@@ -489,7 +489,7 @@ class Ombi {
 	 * Runs the newsletter
 	 *
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postJobnewsletter() {
 		$uri = "Job/newsletter";
@@ -502,7 +502,7 @@ class Ombi {
 	 *
 	 *
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getLandingPage() {
 		$uri = "LandingPage";
@@ -515,7 +515,7 @@ class Ombi {
 	 *
 	 * @param  $settings - (optional) The settings.({"enabled":"boolean","apiKey":"string","defaultQualityProfile":"string","defaultRootPath":"string","albumFolder":"boolean","languageProfileId":"integer","metadataProfileId":"integer","addOnly":"boolean","ssl":"boolean","subDir":"string","ip":"string","port":"integer","id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postLidarrProfiles($settings = false) {
 		$uri = "Lidarr/Profiles";
@@ -529,7 +529,7 @@ class Ombi {
 	 *
 	 * @param  $settings - (optional) The settings.({"enabled":"boolean","apiKey":"string","defaultQualityProfile":"string","defaultRootPath":"string","albumFolder":"boolean","languageProfileId":"integer","metadataProfileId":"integer","addOnly":"boolean","ssl":"boolean","subDir":"string","ip":"string","port":"integer","id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postLidarrRootFolders($settings = false) {
 		$uri = "Lidarr/RootFolders";
@@ -543,7 +543,7 @@ class Ombi {
 	 *
 	 * @param  $settings - (optional) The settings.({"enabled":"boolean","apiKey":"string","defaultQualityProfile":"string","defaultRootPath":"string","albumFolder":"boolean","languageProfileId":"integer","metadataProfileId":"integer","addOnly":"boolean","ssl":"boolean","subDir":"string","ip":"string","port":"integer","id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postLidarrMetadata($settings = false) {
 		$uri = "Lidarr/Metadata";
@@ -557,7 +557,7 @@ class Ombi {
 	 *
 	 * @param  $settings - (optional) The settings.({"enabled":"boolean","apiKey":"string","defaultQualityProfile":"string","defaultRootPath":"string","albumFolder":"boolean","languageProfileId":"integer","metadataProfileId":"integer","addOnly":"boolean","ssl":"boolean","subDir":"string","ip":"string","port":"integer","id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postLidarrLangauges($settings = false) {
 		$uri = "Lidarr/Langauges";
@@ -571,7 +571,7 @@ class Ombi {
 	 *
 	 * @param  $l - (optional) ({"level":"string","description":"string","id":"integer","location":"string","stackTrace":"string","dateTime":"string"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postLogging($l = false) {
 		$uri = "Logging";
@@ -589,7 +589,7 @@ class Ombi {
 	 * @param int $statusType - (required) ([])
 	 * @param int $availabilityType - (required) ([])
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getrequestmusic($count, $position, $orderType, $statusType, $availabilityType) {
 		$uri = "request/music/$count/$position/$orderType/$statusType/$availabilityType";
@@ -601,7 +601,7 @@ class Ombi {
 	 * Gets the total amount of album requests.
 	 *
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getrequestmusictotal() {
 		$uri = "request/music/total";
@@ -614,7 +614,7 @@ class Ombi {
 	 *
 	 * @param  $album - (optional) The album.({"foreignAlbumId":"string"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postrequestmusic($album = false) {
 		$uri = "request/music";
@@ -628,7 +628,7 @@ class Ombi {
 	 *
 	 * @param string $searchTerm - (required) The search term.([])
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getrequestmusicsearch($searchTerm) {
 		$uri = "request/music/search/$searchTerm";
@@ -641,7 +641,7 @@ class Ombi {
 	 *
 	 * @param int $requestId - (required) The request identifier.([])
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function deleterequestmusic($requestId) {
 		$uri = "request/music/$requestId";
@@ -655,7 +655,7 @@ class Ombi {
 	 *
 	 * @param  $model - (optional) The albums's ID({"id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postrequestmusicapprove($model = false) {
 		$uri = "request/music/approve";
@@ -669,7 +669,7 @@ class Ombi {
 	 *
 	 * @param  $model - (optional) The album's ID({"id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postrequestmusicavailable($model = false) {
 		$uri = "request/music/available";
@@ -683,7 +683,7 @@ class Ombi {
 	 *
 	 * @param  $model - (optional) The album's ID({"id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postrequestmusicunavailable($model = false) {
 		$uri = "request/music/unavailable";
@@ -697,7 +697,7 @@ class Ombi {
 	 *
 	 * @param  $model - (optional) The album's ID({"id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function putrequestmusicdeny($model = false) {
 		$uri = "request/music/deny";
@@ -710,7 +710,7 @@ class Ombi {
 	 * Gets model containing remaining number of music requests.
 	 *
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getrequestmusicremaining() {
 		$uri = "request/music/remaining";
@@ -723,7 +723,7 @@ class Ombi {
 	 *
 	 * @param  $model - (optional) ({"subject":"string","body":"string","users":"array"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postNotificationsmassemail($model = false) {
 		$uri = "Notifications/massemail";
@@ -737,7 +737,7 @@ class Ombi {
 	 *
 	 * @param  $request - (optional) The request.({"login":"string","password":"string"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postPlex($request = false) {
 		$uri = "Plex";
@@ -751,7 +751,7 @@ class Ombi {
 	 *
 	 * @param  $settings - (optional) The settings.({"name":"string","plexAuthToken":"string","machineIdentifier":"string","episodeBatchSize":"integer","plexSelectedLibraries":"array","ssl":"boolean","subDir":"string","ip":"string","port":"integer","id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postPlexLibraries($settings = false) {
 		$uri = "Plex/Libraries";
@@ -765,7 +765,7 @@ class Ombi {
 	 *
 	 * @param string $machineId - (required) ([])
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getPlexLibraries($machineId) {
 		$uri = "Plex/Libraries/$machineId";
@@ -778,7 +778,7 @@ class Ombi {
 	 *
 	 * @param  $user - (optional) ({"username":"string","machineIdentifier":"string","libsSelected":"array"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postPlexuser($user = false) {
 		$uri = "Plex/user";
@@ -792,7 +792,7 @@ class Ombi {
 	 *
 	 * @param  $u - (optional) The u.({"login":"string","password":"string"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postPlexservers($u = false) {
 		$uri = "Plex/servers";
@@ -805,7 +805,7 @@ class Ombi {
 	 * Gets the plex friends.
 	 *
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getPlexfriends() {
 		$uri = "Plex/friends";
@@ -818,7 +818,7 @@ class Ombi {
 	 *
 	 * @param  $wizard - (optional) ({"wizard":"boolean","pin":null})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postPlexoauth($wizard = false) {
 		$uri = "Plex/oauth";
@@ -832,7 +832,7 @@ class Ombi {
 	 *
 	 * @param  $settings - (optional) The settings.({"enabled":"boolean","apiKey":"string","defaultQualityProfile":"string","defaultRootPath":"string","addOnly":"boolean","minimumAvailability":"string","ssl":"boolean","subDir":"string","ip":"string","port":"integer","id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postRadarrProfiles($settings = false) {
 		$uri = "Radarr/Profiles";
@@ -846,7 +846,7 @@ class Ombi {
 	 *
 	 * @param  $settings - (optional) The settings.({"enabled":"boolean","apiKey":"string","defaultQualityProfile":"string","defaultRootPath":"string","addOnly":"boolean","minimumAvailability":"string","ssl":"boolean","subDir":"string","ip":"string","port":"integer","id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postRadarrRootFolders($settings = false) {
 		$uri = "Radarr/RootFolders";
@@ -859,7 +859,7 @@ class Ombi {
 	 * Returns the recently added movies for the past 7 days
 	 *
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getRecentlyAddedmovies() {
 		$uri = "RecentlyAdded/movies";
@@ -871,7 +871,7 @@ class Ombi {
 	 * Returns the recently added tv shows for the past 7 days
 	 *
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getRecentlyAddedtv() {
 		$uri = "RecentlyAdded/tv";
@@ -883,7 +883,7 @@ class Ombi {
 	 * Returns the recently added tv shows for the past 7 days and groups them by season
 	 *
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getRecentlyAddedtvgrouped() {
 		$uri = "RecentlyAdded/tv/grouped";
@@ -900,7 +900,7 @@ class Ombi {
 	 * @param int $statusType - (required) ([])
 	 * @param int $availabilityType - (required) ([])
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getRequestmovie($count, $position, $orderType, $statusType, $availabilityType) {
 		$uri = "Request/movie/$count/$position/$orderType/$statusType/$availabilityType";
@@ -912,7 +912,7 @@ class Ombi {
 	 * Gets the total amount of movie requests.
 	 *
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getRequestmovietotal() {
 		$uri = "Request/movie/total";
@@ -925,7 +925,7 @@ class Ombi {
 	 *
 	 * @param  $model - (optional) The Movie's ID({"theMovieDbId":"integer","issueId":"integer","issues":"array","subscribed":"boolean","showSubscribe":"boolean","rootPathOverride":"integer","qualityOverride":"integer","imdbId":"string","overview":"string","posterPath":"string","releaseDate":"string","digitalReleaseDate":"string","status":"string","background":"string","released":"boolean","digitalRelease":"boolean","title":"string","approved":"boolean","markedAsApproved":"string","requestedDate":"string","available":"boolean","markedAsAvailable":"string","requestedUserId":"string","denied":"boolean","markedAsDenied":"string","deniedReason":"string","requestType":"string","requestedUser":null,"canApprove":"boolean","id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function putRequestmovie($model = false) {
 		$uri = "Request/movie";
@@ -939,7 +939,7 @@ class Ombi {
 	 *
 	 * @param string $searchTerm - (required) The search term.([])
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getRequestmoviesearch($searchTerm) {
 		$uri = "Request/movie/search/$searchTerm";
@@ -952,7 +952,7 @@ class Ombi {
 	 *
 	 * @param int $requestId - (required) The request identifier.([])
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function deleteRequestmovie($requestId) {
 		$uri = "Request/movie/$requestId";
@@ -966,7 +966,7 @@ class Ombi {
 	 *
 	 * @param  $model - (optional) The Movie's ID({"id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postRequestmovieapprove($model = false) {
 		$uri = "Request/movie/approve";
@@ -980,7 +980,7 @@ class Ombi {
 	 *
 	 * @param  $model - (optional) The Movie's ID({"id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postRequestmovieavailable($model = false) {
 		$uri = "Request/movie/available";
@@ -994,7 +994,7 @@ class Ombi {
 	 *
 	 * @param  $model - (optional) The Movie's ID({"id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postRequestmovieunavailable($model = false) {
 		$uri = "Request/movie/unavailable";
@@ -1008,7 +1008,7 @@ class Ombi {
 	 *
 	 * @param  $model - (optional) The Movie's ID({"id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function putRequestmoviedeny($model = false) {
 		$uri = "Request/movie/deny";
@@ -1021,7 +1021,7 @@ class Ombi {
 	 * Gets the total amount of TV requests.
 	 *
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getRequesttvtotal() {
 		$uri = "Request/tv/total";
@@ -1040,7 +1040,7 @@ class Ombi {
 	 * @param string $statusFilterType - (required) ([])
 	 * @param string $availabilityFilterType - (required) ([])
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getRequesttv($count, $position, $orderType, $statusFilterType, $availabilityFilterType, $statusType = false, $availabilityType = false) {
 		$uri = "Request/tv/$count/$position/$orderType/$statusFilterType/$availabilityFilterType";
@@ -1065,7 +1065,7 @@ class Ombi {
 	 * @param string $statusFilterType - (required) ([])
 	 * @param string $availabilityFilterType - (required) ([])
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getRequesttvlite($count, $position, $orderType, $statusFilterType, $availabilityFilterType, $statusType = false, $availabilityType = false) {
 		$uri = "Request/tvlite/$count/$position/$orderType/$statusFilterType/$availabilityFilterType";
@@ -1085,7 +1085,7 @@ class Ombi {
 	 *
 	 * @param  $model - (optional) The model.({"tvDbId":"integer","imdbId":"string","qualityOverride":"integer","rootFolder":"integer","overview":"string","title":"string","posterPath":"string","background":"string","releaseDate":"string","status":"string","totalSeasons":"integer","childRequests":"array","id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function putRequesttv($model = false) {
 		$uri = "Request/tv";
@@ -1098,7 +1098,7 @@ class Ombi {
 	 * Gets the tv requests without the whole object graph (Does not include seasons/episodes).
 	 *
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getRequeststvlite() {
 		$uri = "Request/tvlite";
@@ -1111,7 +1111,7 @@ class Ombi {
 	 *
 	 * @param int $requestId - (required) The request identifier.([])
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function deleteRequesttv($requestId) {
 		$uri = "Request/tv/$requestId";
@@ -1125,7 +1125,7 @@ class Ombi {
 	 *
 	 * @param string $searchTerm - (required) The search term.([])
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getRequesttvsearch($searchTerm) {
 		$uri = "Request/tv/search/$searchTerm";
@@ -1139,7 +1139,7 @@ class Ombi {
 	 * @param int $requestId - (required) ([])
 	 * @param int $rootFolderId - (required) ([])
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function putRequesttvroot($requestId, $rootFolderId) {
 		$uri = "Request/tv/root/$requestId/$rootFolderId";
@@ -1154,7 +1154,7 @@ class Ombi {
 	 * @param int $requestId - (required) ([])
 	 * @param int $qualityId - (required) ([])
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function putRequesttvquality($requestId, $qualityId) {
 		$uri = "Request/tv/quality/$requestId/$qualityId";
@@ -1168,7 +1168,7 @@ class Ombi {
 	 *
 	 * @param  $child - (optional) The model.({"parentRequest":null,"parentRequestId":"integer","issueId":"integer","seriesType":"string","subscribed":"boolean","showSubscribe":"boolean","issues":"array","seasonRequests":"array","title":"string","approved":"boolean","markedAsApproved":"string","requestedDate":"string","available":"boolean","markedAsAvailable":"string","requestedUserId":"string","denied":"boolean","markedAsDenied":"string","deniedReason":"string","requestType":"string","requestedUser":null,"canApprove":"boolean","id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function putRequesttvchild($child = false) {
 		$uri = "Request/tv/child";
@@ -1182,7 +1182,7 @@ class Ombi {
 	 *
 	 * @param  $model - (optional) This is the child request's ID({"id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function putRequesttvdeny($model = false) {
 		$uri = "Request/tv/deny";
@@ -1196,7 +1196,7 @@ class Ombi {
 	 *
 	 * @param  $model - (optional) The Movie's ID({"id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postRequesttvavailable($model = false) {
 		$uri = "Request/tv/available";
@@ -1210,7 +1210,7 @@ class Ombi {
 	 *
 	 * @param  $model - (optional) The Movie's ID({"id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postRequesttvunavailable($model = false) {
 		$uri = "Request/tv/unavailable";
@@ -1224,7 +1224,7 @@ class Ombi {
 	 *
 	 * @param  $model - (optional) This is the child request's ID({"id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postRequesttvapprove($model = false) {
 		$uri = "Request/tv/approve";
@@ -1238,7 +1238,7 @@ class Ombi {
 	 *
 	 * @param int $requestId - (required) The model.([])
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function deleteRequesttvchild($requestId) {
 		$uri = "Request/tv/child/$requestId";
@@ -1252,7 +1252,7 @@ class Ombi {
 	 *
 	 * @param int $requestId - (required) The Request Id([])
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getRequesttvchild($requestId) {
 		$uri = "Request/tv/$requestId/child";
@@ -1264,7 +1264,7 @@ class Ombi {
 	 * Gets the count of total requests
 	 *
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getRequestcount() {
 		$uri = "Request/count";
@@ -1277,7 +1277,7 @@ class Ombi {
 	 *
 	 * @param string $userId
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getRequestuserhasrequest($userId) {
 		$uri = "Request/userhasrequest?userId=$userId";
@@ -1290,7 +1290,7 @@ class Ombi {
 	 *
 	 * @param int $requestId - (required) ([])
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postRequestmoviesubscribe($requestId) {
 		$uri = "Request/movie/subscribe/$requestId";
@@ -1304,7 +1304,7 @@ class Ombi {
 	 *
 	 * @param int $requestId - (required) ([])
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postRequesttvsubscribe($requestId) {
 		$uri = "Request/tv/subscribe/$requestId";
@@ -1318,7 +1318,7 @@ class Ombi {
 	 *
 	 * @param int $requestId - (required) ([])
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postRequestmovieunsubscribe($requestId) {
 		$uri = "Request/movie/unsubscribe/$requestId";
@@ -1332,7 +1332,7 @@ class Ombi {
 	 *
 	 * @param int $requestId - (required) ([])
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postRequesttvunsubscribe($requestId) {
 		$uri = "Request/tv/unsubscribe/$requestId";
@@ -1345,7 +1345,7 @@ class Ombi {
 	 * Gets model containing remaining number of movie requests.
 	 *
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getRequestmovieremaining() {
 		$uri = "Request/movie/remaining";
@@ -1357,7 +1357,7 @@ class Ombi {
 	 * Gets model containing remaining number of tv requests.
 	 *
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getRequesttvremaining() {
 		$uri = "Request/tv/remaining";
@@ -1370,7 +1370,7 @@ class Ombi {
 	 *
 	 * @param string $searchTerm - (required) The search term.([])
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getSearchmovie($searchTerm) {
 		$uri = "Search/movie/$searchTerm";
@@ -1383,7 +1383,7 @@ class Ombi {
 	 *
 	 * @param int $theMovieDbId - (required) The movie database identifier.([])
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getSearchmovieinfo($theMovieDbId) {
 		$uri = "Search/movie/info/$theMovieDbId";
@@ -1396,7 +1396,7 @@ class Ombi {
 	 *
 	 * @param int $theMovieDbId - (required) ID of the movie([])
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getSearchmoviesimilar($theMovieDbId) {
 		$uri = "Search/movie/$theMovieDbId/similar";
@@ -1408,7 +1408,7 @@ class Ombi {
 	 * Returns Popular Movies
 	 *
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getSearchmoviepopular() {
 		$uri = "Search/movie/popular";
@@ -1420,7 +1420,7 @@ class Ombi {
 	 * Retuns Now Playing Movies
 	 *
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getSearchmovienowplaying() {
 		$uri = "Search/movie/nowplaying";
@@ -1432,7 +1432,7 @@ class Ombi {
 	 * Returns top rated movies.
 	 *
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getSearchmovietoprated() {
 		$uri = "Search/movie/toprated";
@@ -1444,7 +1444,7 @@ class Ombi {
 	 * Returns Upcoming movies.
 	 *
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getSearchmovieupcoming() {
 		$uri = "Search/movie/upcoming";
@@ -1457,7 +1457,7 @@ class Ombi {
 	 *
 	 * @param string $searchTerm - (required) The search term.([])
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getSearchtv($searchTerm) {
 		$uri = "Search/tv/$searchTerm";
@@ -1470,7 +1470,7 @@ class Ombi {
 	 *
 	 * @param int $tvdbId - (required) The TVDB identifier.([])
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getSearchtvinfo($tvdbId) {
 		$uri = "Search/tv/info/$tvdbId";
@@ -1482,7 +1482,7 @@ class Ombi {
 	 * Returns Popular Tv Shows
 	 *
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getSearchtvpopular() {
 		$uri = "Search/tv/popular";
@@ -1494,7 +1494,7 @@ class Ombi {
 	 * Returns most Anticiplateds tv shows.
 	 *
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getSearchtvanticipated() {
 		$uri = "Search/tv/anticipated";
@@ -1506,7 +1506,7 @@ class Ombi {
 	 * Returns Most watched shows.
 	 *
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getSearchtvmostwatched() {
 		$uri = "Search/tv/mostwatched";
@@ -1518,7 +1518,7 @@ class Ombi {
 	 * Returns trending shows
 	 *
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getSearchtvtrending() {
 		$uri = "Search/tv/trending";
@@ -1531,7 +1531,7 @@ class Ombi {
 	 *
 	 * @param string $searchTerm - (required) ([])
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getSearchmusicartist($searchTerm) {
 		$uri = "Search/music/artist/$searchTerm";
@@ -1544,7 +1544,7 @@ class Ombi {
 	 *
 	 * @param string $searchTerm - (required) ([])
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getSearchmusicalbum($searchTerm) {
 		$uri = "Search/music/album/$searchTerm";
@@ -1557,7 +1557,7 @@ class Ombi {
 	 *
 	 * @param string $foreignArtistId - (required) ([])
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getSearchmusicartistalbum($foreignArtistId) {
 		$uri = "Search/music/artist/album/$foreignArtistId";
@@ -1570,7 +1570,7 @@ class Ombi {
 	 *
 	 * @param  $ombi - (optional) The ombi.({"baseUrl":"string","collectAnalyticData":"boolean","wizard":"boolean","apiKey":"string","ignoreCertificateErrors":"boolean","doNotSendNotificationsForAutoApprove":"boolean","hideRequestsUsers":"boolean","id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postSettingsombi($ombi = false) {
 		$uri = "Settings/ombi";
@@ -1583,7 +1583,7 @@ class Ombi {
 	 *
 	 *
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getSettingsabout() {
 		$uri = "Settings/about";
@@ -1595,7 +1595,7 @@ class Ombi {
 	 *
 	 *
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postSettingsombiresetApi() {
 		$uri = "Settings/ombi/resetApi";
@@ -1609,7 +1609,7 @@ class Ombi {
 	 *
 	 * @param  $plex - (optional) The plex.({"enable":"boolean","installId":"string","servers":"array","id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postSettingsplex($plex = false) {
 		$uri = "Settings/plex";
@@ -1622,7 +1622,7 @@ class Ombi {
 	 *
 	 *
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getSettingsclientid() {
 		$uri = "Settings/clientid";
@@ -1635,7 +1635,7 @@ class Ombi {
 	 *
 	 * @param  $emby - (optional) The emby.({"enable":"boolean","servers":"array","id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postSettingsemby($emby = false) {
 		$uri = "Settings/emby";
@@ -1649,7 +1649,7 @@ class Ombi {
 	 *
 	 * @param  $settings - (optional) The settings.({"enabled":"boolean","noticeEnabled":"boolean","noticeText":"string","timeLimit":"boolean","startDateTime":"string","endDateTime":"string","expired":"boolean","id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postSettingslandingpage($settings = false) {
 		$uri = "Settings/landingpage";
@@ -1663,7 +1663,7 @@ class Ombi {
 	 *
 	 * @param  $settings - (optional) The settings.({"applicationName":"string","applicationUrl":"string","customCssLink":"string","enableCustomDonations":"boolean","customDonationUrl":"string","customDonationMessage":"string","logo":"string","presetThemeName":"string","presetThemeContent":"string","recentlyAddedPage":"boolean","presetThemeVersion":"string","presetThemeDisplayName":"string","hasPresetTheme":"boolean","id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postSettingscustomization($settings = false) {
 		$uri = "Settings/customization";
@@ -1676,7 +1676,7 @@ class Ombi {
 	 * Get's the preset themes available
 	 *
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getSettingsthemes() {
 		$uri = "Settings/themes";
@@ -1689,7 +1689,7 @@ class Ombi {
 	 *
 	 * @param string $url
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getSettingsthemecontent($url) {
 		$uri = "Settings/themecontent?url=$url";
@@ -1702,7 +1702,7 @@ class Ombi {
 	 *
 	 * @param  $settings - (optional) The settings.({"enabled":"boolean","apiKey":"string","qualityProfile":"string","seasonFolders":"boolean","rootPath":"string","qualityProfileAnime":"string","rootPathAnime":"string","addOnly":"boolean","ssl":"boolean","subDir":"string","ip":"string","port":"integer","id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postSettingssonarr($settings = false) {
 		$uri = "Settings/sonarr";
@@ -1716,7 +1716,7 @@ class Ombi {
 	 *
 	 * @param  $settings - (optional) The settings.({"enabled":"boolean","apiKey":"string","defaultQualityProfile":"string","defaultRootPath":"string","addOnly":"boolean","minimumAvailability":"string","ssl":"boolean","subDir":"string","ip":"string","port":"integer","id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postSettingsradarr($settings = false) {
 		$uri = "Settings/radarr";
@@ -1730,7 +1730,7 @@ class Ombi {
 	 *
 	 * @param  $settings - (optional) The settings.({"enabled":"boolean","apiKey":"string","defaultQualityProfile":"string","defaultRootPath":"string","albumFolder":"boolean","languageProfileId":"integer","metadataProfileId":"integer","addOnly":"boolean","ssl":"boolean","subDir":"string","ip":"string","port":"integer","id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postSettingslidarr($settings = false) {
 		$uri = "Settings/lidarr";
@@ -1743,7 +1743,7 @@ class Ombi {
 	 * Gets the Lidarr Settings.
 	 *
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getSettingslidarrenabled() {
 		$uri = "Settings/lidarrenabled";
@@ -1756,7 +1756,7 @@ class Ombi {
 	 *
 	 * @param  $settings - (optional) The settings.({"allowNoPassword":"boolean","requireDigit":"boolean","requiredLength":"integer","requireLowercase":"boolean","requireNonAlphanumeric":"boolean","requireUppercase":"boolean","enableOAuth":"boolean","id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postSettingsauthentication($settings = false) {
 		$uri = "Settings/authentication";
@@ -1770,7 +1770,7 @@ class Ombi {
 	 *
 	 * @param  $settings - (optional) The settings.({"autoUpdateEnabled":"boolean","username":"string","password":"string","processName":"string","useScript":"boolean","scriptLocation":"string","windowsServiceName":"string","windowsService":"boolean","testMode":"boolean","id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postSettingsUpdate($settings = false) {
 		$uri = "Settings/Update";
@@ -1784,7 +1784,7 @@ class Ombi {
 	 *
 	 * @param  $settings - (optional) The settings.({"importPlexAdmin":"boolean","importPlexUsers":"boolean","importEmbyUsers":"boolean","movieRequestLimit":"integer","episodeRequestLimit":"integer","defaultRoles":"array","bannedPlexUserIds":"array","bannedEmbyUserIds":"array","id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postSettingsUserManagement($settings = false) {
 		$uri = "Settings/UserManagement";
@@ -1798,7 +1798,7 @@ class Ombi {
 	 *
 	 * @param  $settings - (optional) The settings.({"enabled":"boolean","apiKey":"string","defaultProfileId":"string","username":"string","password":"string","ssl":"boolean","subDir":"string","ip":"string","port":"integer","id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postSettingsCouchPotato($settings = false) {
 		$uri = "Settings/CouchPotato";
@@ -1812,7 +1812,7 @@ class Ombi {
 	 *
 	 * @param  $settings - (optional) The settings.({"enabled":"boolean","apiKey":"string","movies":"boolean","tvShows":"boolean","id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postSettingsDogNzb($settings = false) {
 		$uri = "Settings/DogNzb";
@@ -1826,7 +1826,7 @@ class Ombi {
 	 *
 	 * @param  $settings - (optional) The settings.({"enabled":"boolean","apiKey":"string","qualityProfile":"string","qualities":"array","ssl":"boolean","subDir":"string","ip":"string","port":"integer","id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postSettingsSickRage($settings = false) {
 		$uri = "Settings/SickRage";
@@ -1840,7 +1840,7 @@ class Ombi {
 	 *
 	 * @param  $settings - (optional) The settings.({"embyContentSync":"string","sonarrSync":"string","radarrSync":"string","plexContentSync":"string","plexRecentlyAddedSync":"string","couchPotatoSync":"string","automaticUpdater":"string","userImporter":"string","sickRageSync":"string","refreshMetadata":"string","newsletter":"string","lidarrArtistSync":"string","id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postSettingsjobs($settings = false) {
 		$uri = "Settings/jobs";
@@ -1854,7 +1854,7 @@ class Ombi {
 	 *
 	 * @param  $body - (optional) ({"expression":"string"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postSettingstestcron($body = false) {
 		$uri = "Settings/testcron";
@@ -1868,7 +1868,7 @@ class Ombi {
 	 *
 	 * @param  $settings - (optional) The settings.({"enabled":"boolean","enableInProgress":"boolean","id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postSettingsIssues($settings = false) {
 		$uri = "Settings/Issues";
@@ -1881,7 +1881,7 @@ class Ombi {
 	 *
 	 *
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getSettingsissuesenabled() {
 		$uri = "Settings/issuesenabled";
@@ -1894,7 +1894,7 @@ class Ombi {
 	 *
 	 * @param  $model - (optional) The model.({"notificationTemplates":"array","enabled":"boolean","host":"string","password":"string","port":"integer","senderName":"string","senderAddress":"string","username":"string","authentication":"boolean","adminEmail":"string","disableTLS":"boolean","disableCertificateChecking":"boolean","id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postSettingsnotificationsemail($model = false) {
 		$uri = "Settings/notifications/email";
@@ -1907,7 +1907,7 @@ class Ombi {
 	 * Gets the Email Notification Settings.
 	 *
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getSettingsnotificationsemailenabled() {
 		$uri = "Settings/notifications/email/enabled";
@@ -1920,7 +1920,7 @@ class Ombi {
 	 *
 	 * @param  $model - (optional) The model.({"notificationTemplates":"array","enabled":"boolean","webhookUrl":"string","username":"string","id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postSettingsnotificationsdiscord($model = false) {
 		$uri = "Settings/notifications/discord";
@@ -1934,7 +1934,7 @@ class Ombi {
 	 *
 	 * @param  $model - (optional) The model.({"notificationTemplates":"array","enabled":"boolean","botApi":"string","chatId":"string","parseMode":"string","id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postSettingsnotificationstelegram($model = false) {
 		$uri = "Settings/notifications/telegram";
@@ -1948,7 +1948,7 @@ class Ombi {
 	 *
 	 * @param  $model - (optional) The model.({"notificationTemplates":"array","enabled":"boolean","accessToken":"string","channelTag":"string","id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postSettingsnotificationspushbullet($model = false) {
 		$uri = "Settings/notifications/pushbullet";
@@ -1962,7 +1962,7 @@ class Ombi {
 	 *
 	 * @param  $model - (optional) The model.({"notificationTemplates":"array","enabled":"boolean","accessToken":"string","userToken":"string","priority":"integer","sound":"string","id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postSettingsnotificationspushover($model = false) {
 		$uri = "Settings/notifications/pushover";
@@ -1976,7 +1976,7 @@ class Ombi {
 	 *
 	 * @param  $model - (optional) The model.({"notificationTemplates":"array","enabled":"boolean","webhookUrl":"string","channel":"string","username":"string","iconEmoji":"string","iconUrl":"string","id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postSettingsnotificationsslack($model = false) {
 		$uri = "Settings/notifications/slack";
@@ -1990,7 +1990,7 @@ class Ombi {
 	 *
 	 * @param  $model - (optional) The model.({"notificationTemplates":"array","webhookUrl":"string","channel":"string","username":"string","iconUrl":"string","enabled":"boolean","id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postSettingsnotificationsmattermost($model = false) {
 		$uri = "Settings/notifications/mattermost";
@@ -2004,7 +2004,7 @@ class Ombi {
 	 *
 	 * @param  $model - (optional) The model.({"notificationTemplates":"array","id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postSettingsnotificationsmobile($model = false) {
 		$uri = "Settings/notifications/mobile";
@@ -2018,7 +2018,7 @@ class Ombi {
 	 *
 	 * @param  $model - (optional) The model.({"notificationTemplate":null,"disableTv":"boolean","disableMovies":"boolean","disableMusic":"boolean","enabled":"boolean","externalEmails":"array","id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postSettingsnotificationsnewsletter($model = false) {
 		$uri = "Settings/notifications/newsletter";
@@ -2032,7 +2032,7 @@ class Ombi {
 	 *
 	 * @param  $settings - (optional) The settings.({"enabled":"boolean","apiKey":"string","qualityProfile":"string","seasonFolders":"boolean","rootPath":"string","qualityProfileAnime":"string","rootPathAnime":"string","addOnly":"boolean","ssl":"boolean","subDir":"string","ip":"string","port":"integer","id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postSonarrProfiles($settings = false) {
 		$uri = "Sonarr/Profiles";
@@ -2046,7 +2046,7 @@ class Ombi {
 	 *
 	 * @param  $settings - (optional) The settings.({"enabled":"boolean","apiKey":"string","qualityProfile":"string","seasonFolders":"boolean","rootPath":"string","qualityProfileAnime":"string","rootPathAnime":"string","addOnly":"boolean","ssl":"boolean","subDir":"string","ip":"string","port":"integer","id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postSonarrRootFolders($settings = false) {
 		$uri = "Sonarr/RootFolders";
@@ -2061,7 +2061,7 @@ class Ombi {
 	 * @param bool | string $from - (optional) ([])
 	 * @param bool | string $to - (optional) ([])
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getStats($from = false, $to = false) {
 		$uri = "Stats";
@@ -2078,7 +2078,7 @@ class Ombi {
 	 * Gets the status of Ombi.
 	 *
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getStatus() {
 		$uri = "Status";
@@ -2090,7 +2090,7 @@ class Ombi {
 	 * Returns information about this ombi instance
 	 *
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getStatusinfo() {
 		$uri = "Status/info";
@@ -2103,7 +2103,7 @@ class Ombi {
 	 *
 	 * @param  $settings - (optional) The settings.({"enabled":"boolean","webhookUrl":"string","username":"string","id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postTesterdiscord($settings = false) {
 		$uri = "Tester/discord";
@@ -2117,7 +2117,7 @@ class Ombi {
 	 *
 	 * @param  $settings - (optional) The settings.({"enabled":"boolean","accessToken":"string","channelTag":"string","id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postTesterpushbullet($settings = false) {
 		$uri = "Tester/pushbullet";
@@ -2131,7 +2131,7 @@ class Ombi {
 	 *
 	 * @param  $settings - (optional) The settings.({"enabled":"boolean","accessToken":"string","userToken":"string","priority":"integer","sound":"string","id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postTesterpushover($settings = false) {
 		$uri = "Tester/pushover";
@@ -2145,7 +2145,7 @@ class Ombi {
 	 *
 	 * @param  $settings - (optional) The settings.({"webhookUrl":"string","channel":"string","username":"string","iconUrl":"string","enabled":"boolean","id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postTestermattermost($settings = false) {
 		$uri = "Tester/mattermost";
@@ -2159,7 +2159,7 @@ class Ombi {
 	 *
 	 * @param  $settings - (optional) The settings.({"enabled":"boolean","webhookUrl":"string","channel":"string","username":"string","iconEmoji":"string","iconUrl":"string","id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postTesterslack($settings = false) {
 		$uri = "Tester/slack";
@@ -2173,7 +2173,7 @@ class Ombi {
 	 *
 	 * @param  $settings - (optional) The settings.({"enabled":"boolean","host":"string","password":"string","port":"integer","senderName":"string","senderAddress":"string","username":"string","authentication":"boolean","adminEmail":"string","disableTLS":"boolean","disableCertificateChecking":"boolean","id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postTesteremail($settings = false) {
 		$uri = "Tester/email";
@@ -2187,7 +2187,7 @@ class Ombi {
 	 *
 	 * @param  $settings - (optional) ({"name":"string","plexAuthToken":"string","machineIdentifier":"string","episodeBatchSize":"integer","plexSelectedLibraries":"array","ssl":"boolean","subDir":"string","ip":"string","port":"integer","id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postTesterplex($settings = false) {
 		$uri = "Tester/plex";
@@ -2201,7 +2201,7 @@ class Ombi {
 	 *
 	 * @param  $settings - (optional) ({"name":"string","apiKey":"string","administratorId":"string","enableEpisodeSearching":"boolean","ssl":"boolean","subDir":"string","ip":"string","port":"integer","id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postTesteremby($settings = false) {
 		$uri = "Tester/emby";
@@ -2215,7 +2215,7 @@ class Ombi {
 	 *
 	 * @param  $settings - (optional) ({"enabled":"boolean","apiKey":"string","defaultQualityProfile":"string","defaultRootPath":"string","addOnly":"boolean","minimumAvailability":"string","ssl":"boolean","subDir":"string","ip":"string","port":"integer","id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postTesterradarr($settings = false) {
 		$uri = "Tester/radarr";
@@ -2229,7 +2229,7 @@ class Ombi {
 	 *
 	 * @param  $settings - (optional) ({"enabled":"boolean","apiKey":"string","qualityProfile":"string","seasonFolders":"boolean","rootPath":"string","qualityProfileAnime":"string","rootPathAnime":"string","addOnly":"boolean","ssl":"boolean","subDir":"string","ip":"string","port":"integer","id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postTestersonarr($settings = false) {
 		$uri = "Tester/sonarr";
@@ -2243,7 +2243,7 @@ class Ombi {
 	 *
 	 * @param  $settings - (optional) ({"enabled":"boolean","apiKey":"string","defaultProfileId":"string","username":"string","password":"string","ssl":"boolean","subDir":"string","ip":"string","port":"integer","id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postTestercouchpotato($settings = false) {
 		$uri = "Tester/couchpotato";
@@ -2257,7 +2257,7 @@ class Ombi {
 	 *
 	 * @param  $settings - (optional) The settings.({"enabled":"boolean","botApi":"string","chatId":"string","parseMode":"string","id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postTestertelegram($settings = false) {
 		$uri = "Tester/telegram";
@@ -2271,7 +2271,7 @@ class Ombi {
 	 *
 	 * @param  $settings - (optional) The settings.({"enabled":"boolean","apiKey":"string","qualityProfile":"string","qualities":"array","ssl":"boolean","subDir":"string","ip":"string","port":"integer","id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postTestersickrage($settings = false) {
 		$uri = "Tester/sickrage";
@@ -2285,7 +2285,7 @@ class Ombi {
 	 *
 	 * @param  $settings - (optional) ({"notificationTemplate":null,"disableTv":"boolean","disableMovies":"boolean","disableMusic":"boolean","enabled":"boolean","externalEmails":"array","id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postTesternewsletter($settings = false) {
 		$uri = "Tester/newsletter";
@@ -2299,7 +2299,7 @@ class Ombi {
 	 *
 	 * @param  $settings - (optional) ({"userId":"string","settings":null})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postTestermobile($settings = false) {
 		$uri = "Tester/mobile";
@@ -2313,7 +2313,7 @@ class Ombi {
 	 *
 	 * @param  $settings - (optional) ({"enabled":"boolean","apiKey":"string","defaultQualityProfile":"string","defaultRootPath":"string","albumFolder":"boolean","languageProfileId":"integer","metadataProfileId":"integer","addOnly":"boolean","ssl":"boolean","subDir":"string","ip":"string","port":"integer","id":"integer"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postTesterlidarr($settings = false) {
 		$uri = "Tester/lidarr";
@@ -2327,7 +2327,7 @@ class Ombi {
 	 *
 	 * @param  $model - (optional) The model.({"username":"string","password":"string","rememberMe":"boolean","usePlexAdminAccount":"boolean","usePlexOAuth":"boolean","plexTvPin":null})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postToken($model = false) {
 		$uri = "Token";
@@ -2341,7 +2341,7 @@ class Ombi {
 	 *
 	 * @param int $pinId - (required) ([])
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getToken($pinId) {
 		$uri = "Token/$pinId";
@@ -2354,7 +2354,7 @@ class Ombi {
 	 *
 	 * @param  $token - (optional) The model.({"token":"string","userename":"string"})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postTokenrefresh($token = false) {
 		$uri = "Token/refresh";
@@ -2368,7 +2368,7 @@ class Ombi {
 	 *
 	 * @param  $model - (optional) ({"username":"string","password":"string","rememberMe":"boolean","usePlexAdminAccount":"boolean","usePlexOAuth":"boolean","plexTvPin":null})
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function postTokenrequirePassword($model = false) {
 		$uri = "Token/requirePassword";
@@ -2382,7 +2382,7 @@ class Ombi {
 	 *
 	 * @param string $branch - (required) ([])
 	 *
-	 * @return string
+	 * @return array
 	 */
 	function getUpdate($branch) {
 		$uri = "Update/$branch";
@@ -2398,13 +2398,14 @@ class Ombi {
 	 * @param bool | array $body - A JSON array of key/values to submit on POST/PUT
 	 * @return bool|\Psr\Http\Message\ResponseInterface
 	 */
-	protected function _request(string $uri, string $type = "get", $body = false) {
+	protected function _request(string $uri, $body, $type) {
 		$client = new Client();
 		$url = $this->url . "/api/v1/$uri";
 		write_log("URL is $url");
 		$options = [];
-		$options['headers'] = ['Authorization' => 'Bearer ' . $this->apiKey];
+		$options['headers'] = ['apiKey' => $this->apiKey];
 		if ($body) $options['body'] = json_encode($body);
+		write_log("Options for $type: ".json_encode($options));
 		switch ($type) {
 			case "get":
 				return $client->get($url, $options);
@@ -2428,19 +2429,17 @@ class Ombi {
 	 * @param string $uri
 	 * @param bool | array $body - A JSON array of key/values to submit on POST/PUT
 	 * @param string $type
-	 * @return string json encoded response
+	 * @return array - A response
 	 */
-	protected function processRequest(string $uri, $body = false, string $type = "get") {
+	protected function processRequest($uri, $body = false, $type = "get") {
 		try {
 			$response = $this->_request($uri, $body, $type);
 		} catch (\Exception $e) {
-			return json_encode(array(
-				'error' => array(
+			return ['error' => array(
 					'msg' => $e->getMessage(),
-					'code' => $e->getCode(),
-				),
-			));
+					'code' => $e->getCode())
+			];
 		}
-		return $response->getBody()->getContents();
+		return json_decode($response->getBody()->getContents(),true);
 	}
 }

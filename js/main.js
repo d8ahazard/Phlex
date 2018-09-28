@@ -1008,46 +1008,18 @@ function setListeners() {
 		loopMessages();
 	});
 
-	var y = 0;
-    $("#hamburger").click(function () {
-    	if ($(this).hasClass("withCheese")) {
-    		$(this).removeClass("withCheese");
-        	console.log("Hiding Menu");
-            $("#sideMenu").animate({
-                left: '-352px'
-            }, 200);
-            y = 0;
-        } else {
-    		setTimeout(function() {$("#hamburger").addClass("withCheese");}, 0.1);
-
-    		console.log("Showing Menu");
-        	$("#sideMenu").animate({
-            left: '0px'
-        }, 200);
-        y = 1;
-    }
+	$("#hamburger").click(function () {
+    	openDrawer();
     });
 
     $("#body").click(function() {
     	console.log("CLICK");
-    	if ($("#hamburger").hasClass("withCheese")) {
-            $("#hamburger").removeClass("withCheese");
-            console.log("Hiding Menu");
-            $("#sideMenu").animate({
-                left: '-352x'
-            }, 200);
-    	}
+    	closeDrawer();
 	});
 
     $("#baseFrame").click(function() {
         console.log("CLICK");
-        if ($("#hamburger").hasClass("withCheese")) {
-            $("#hamburger").removeClass("withCheese");
-            console.log("Hiding Menu");
-            $("#sideMenu").animate({
-                left: '-352px'
-            }, 200);
-        }
+        closeDrawer();
     });
 
 
@@ -1246,7 +1218,6 @@ function setListeners() {
 	$(".drawer-item").on('click', function () {
 		console.log("Drawer item is clicked.");
         var expandDrawer = $(".drawer-list");
-        var expanded = expandDrawer.hasClass("collapsed");
         var linkVal = $(this).data("link");
 		var secLabel = $("#sectionLabel");
         if ($(this).hasClass("active")) {
@@ -1278,18 +1249,15 @@ function setListeners() {
                 	secLabel.css("top", "4px");
 				}
             } else {
+            	var drawerTarget = $(this).data("target");
+            	expandDrawer = $('#' + drawerTarget + "Drawer");
                 // If clicking the main settings header
 				toggleDrawer(expandDrawer);
 			}
 		}
 		// Close the drawer if not toggling settings group
         if (linkVal !== "expandDrawer") {
-            $('#hamburger').removeClass("withCheese");
-            console.log("Hiding Menu");
-            $("#sideMenu").animate({
-                left: '-350px'
-            }, 200);
-            y = 0;
+            closeDrawer();
         }
 	});
 
@@ -1507,6 +1475,24 @@ function clearLoadBar() {
 	if (waiting) {
 		$('.load-bar').hide();
 	}
+}
+
+function closeDrawer() {
+	var drawer = $('#sideMenu');
+	if (drawer.css("left") === '0px') {
+        drawer.animate({
+            left: '-352px'
+        }, 200);
+	}
+}
+
+function openDrawer() {
+    var drawer = $('#sideMenu');
+    if (drawer.css("left") === '-352px') {
+        drawer.animate({
+            left: '0'
+        }, 200);
+    }
 }
 
 function setCookie(key, value, days) {

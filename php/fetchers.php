@@ -930,8 +930,9 @@ function testConnection($serviceName,$returnList=false) {
 			$ombiAuth = $_SESSION['ombiToken'];
 			if (($ombiUri) && ($ombiAuth)) {
 				$ombi = new Ombi($ombiUri, $ombiAuth);
-				$url = $ombiUri;
-				$msg = ((strpos($result, '"success": true') ? 'Connection to CouchPotato Successful!' : 'ERROR: Server not available.'));
+				$result = $ombi->getIdentityUsers();
+				write_log("Ombi test result: ".json_encode($result));
+				$msg = (isset($result[0]['userName']) ? "Connection to $serviceName successful!" : 'ERROR: Server not available.');
 			} else {
 			    $msg = "ERROR: Missing server parameters.";
             }

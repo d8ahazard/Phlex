@@ -105,8 +105,9 @@ function makeBody($defaults) {
 	                    </div>
 	                </div>
             	</div>
-            	<div class="drawer-separator"></div>
             	
+            	<div class="drawer-separator"></div>
+            	            	
             	<div class="drawer-item nav-item nav-link btn dd-menu">
 	                <div class="btn btn-sm dropdown-toggle barBtn" data-position="left" id="client" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 	                	<span class="barBtn"><i class="material-icons barIcon">cast</i></span>
@@ -116,17 +117,34 @@ function makeBody($defaults) {
                 <div class="drawer-item btn active" data-link="homeTab" data-label="Home">
                 	<span class="barBtn"><i class="material-icons barIcon">home</i></span>Home
                 </div>
+                <div class="drawer-item btn" data-link="expandDrawer" data-target="Stats">
+                	<span class="barBtn"><i class="material-icons barIcon">show_chart</i></span>Stats
+                </div>
+                <div class="drawer-list collapsed" id="StatsDrawer">
+	                <div class="drawer-item btn" data-link="recentStats" data-target="Stats">
+	                    <span class="barBtn"><i class="material-icons barIcon">watch_later</i></span>Recent
+	                </div>
+	                <div class="drawer-item btn" data-link="popularStats" data-target="Stats">
+	                    <span class="barBtn"><i class="material-icons barIcon">grade</i></span>Popular
+	                </div>
+	                <div class="drawer-item btn" data-link="userStats" data-target="Stats">
+	                    <span class="barBtn"><i class="material-icons barIcon">account_circle</i></span>User
+	                </div>
+	                <div class="drawer-item btn" data-link="lbraryStats" data-target="Stats">
+	                    <span class="barBtn"><i class="material-icons barIcon">local_library</i></span>Library
+	                </div>
+				</div>
                 <div class="drawer-item btn" data-link="voiceTab" data-label="Voice">
-                	<span class="barBtn"><i class="material-icons barIcon">list</i></span>Voice
+                	<span class="barBtn"><i class="material-icons barIcon">list</i></span>Commands
                 </div>
                 <div class="drawer-item btn" data-link="logTab" data-label="Logs">
                 	<span class="barBtn"><i class="material-icons barIcon">bug_report</i></span>Logs
                 </div>
-                <div class="drawer-item btn" data-link="expandDrawer">
+                <div class="drawer-item btn" data-link="expandDrawer" data-target="Settings">
                 	<span class="barBtn"><i class="material-icons barIcon">settings</i></span>Settings
                 </div>
                 
-                <div class="drawer-list collapsed">
+                <div class="drawer-list collapsed" id="SettingsDrawer">
                 	<div class="drawer-wrap">
 	                	<div class="drawer-item btn" data-link="generalSettingsTab" data-label="General">
                 			<span class="barBtn"><i class="material-icons barIcon">build</i></span>General
@@ -468,8 +486,7 @@ function makeBody($defaults) {
 			            </div>
 		            </div>
 		            <div class="view-tab fade settingPage col-md-9 col-lg-10 col-xl-8" id="ombiSettingsTab">
-		            <div class="gridBox">
-			                
+		            <div class="gridBox">			                
 			                <div class="appContainer card ombiGroup">
 								<div class="card-body">
 								    <h4 class="cardHeader">Ombi</h4>
@@ -481,12 +498,12 @@ function makeBody($defaults) {
 								    <div class="form-group" id="ombiGroup">
 								        <div class="form-group">
 								            <label for="ombiUrl" class="appLabel">Ombi URI:
-								                <input id="ombiUrl" class="appInput form-control ombiUrl appParam" type="text"  value="' . $_SESSION["ombiIP"] . '" />
+								                <input id="ombiUri" class="appInput form-control ombiUrl appParam" type="text"  value="' . $_SESSION["ombiUri"] . '" />
 								            </label>
 								        </div>
 								        <div class="form-group">
 								            <label for="ombiAuth" class="appLabel">Ombi ' . $lang['uiSettingFetcherToken'] . ':
-								                <input id="ombiAuth" class="appInput form-control Ombi appParam" type="text" value="' . $_SESSION["ombiAuth"] . '"/>
+								                <input id="ombiToken" class="appInput form-control Ombi appParam" type="text" value="' . $_SESSION["ombiToken"] . '"/>
 								            </label>
 								        </div>
 								        <div class="text-center">

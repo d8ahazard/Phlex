@@ -194,7 +194,7 @@ a:hover:not(#executeButton) {
 	position: fixed;
 	top:0;
 	z-index: 9;
-	left: -350px;
+	left: -352px;
 	word-break: break-word;
 	overflow-y: scroll;
 }
