@@ -37,11 +37,11 @@ input {
 	grid-auto-flow: dense;
 }
 
-.dd-full {
+#client.main {
 	display: none;
 }
 
-.dd-menu {
+#client.side {
 	display: block;
 }
 

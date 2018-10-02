@@ -1,42 +1,72 @@
 <?php
 
-namespace digitalhigh\Headphones;
-
 use GuzzleHttp\Client;
+use Guzzle\Common\Exception\MultiTransferException;
 
 class Ombi {
 	protected $url;
 	protected $apiKey;
 
 	public function __construct($url, $apiKey) {
-		$this->url = rtrim($url, '/\\'); // Example: http://127.0.0.1:8989 (no trailing forward-backward slashes)
+		$this->url = rtrim($url, "/"); // Example: http://127.0.0.1:8989 (no trailing forward-backward slashes)
 		$this->apiKey = $apiKey;
 	}
 
-
 	/**
-	 * postCouchPotatoprofile
+	 * postCouchPotatoProfile
 	 *
 	 *
-	 * @param  $settings - (optional) ({"enabled":"boolean","apiKey":"string","defaultProfileId":"string","username":"string","password":"string","ssl":"boolean","subDir":"string","ip":"string","port":"integer","id":"integer"})
+	 * @param bool | array $settings - (optional)
+	 * {
+	 *     "enabled": "bool",
+	 *     "apiKey": "string",
+	 *     "defaultProfileId": "string",
+	 *     "username": "string",
+	 *     "password": "string",
+	 *     "ssl": "bool",
+	 *     "subDir": "string",
+	 *     "ip": "string",
+	 *     "port": "int",
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
+	 * {
+	 *     "list": "array - []",
+	 *     "success": "bool"
+	 * }
 	 */
-	function postCouchPotatoprofile($settings = false) {
+	function postCouchPotatoProfile($settings=false) {
 		$uri = "CouchPotato/profile";
 		$method = "post";
 		return $this->processRequest($uri, $settings, $method);
 	}
 
 	/**
-	 * postCouchPotatoapikey
+	 * postCouchPotatoApikey
 	 *
 	 *
-	 * @param  $settings - (optional) ({"enabled":"boolean","apiKey":"string","defaultProfileId":"string","username":"string","password":"string","ssl":"boolean","subDir":"string","ip":"string","port":"integer","id":"integer"})
+	 * @param bool | array $settings - (optional)
+	 * {
+	 *     "enabled": "bool",
+	 *     "apiKey": "string",
+	 *     "defaultProfileId": "string",
+	 *     "username": "string",
+	 *     "password": "string",
+	 *     "ssl": "bool",
+	 *     "subDir": "string",
+	 *     "ip": "string",
+	 *     "port": "int",
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
+	 * {
+	 *     "success": "bool",
+	 *     "api_key": "string"
+	 * }
 	 */
-	function postCouchPotatoapikey($settings = false) {
+	function postCouchPotatoApikey($settings=false) {
 		$uri = "CouchPotato/apikey";
 		$method = "post";
 		return $this->processRequest($uri, $settings, $method);
@@ -46,24 +76,34 @@ class Ombi {
 	 * postEmby
 	 * Signs into the Emby Api
 	 *
-	 * @param  $request - (optional) The request.({"enable":"boolean","servers":"array","id":"integer"})
+	 * @param bool | array $request - (optional) The request.
+	 * {
+	 *     "enable": "bool",
+	 *     "servers": "array - []",
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
+	 * {
+	 *     "enable": "bool",
+	 *     "servers": "array - []",
+	 *     "id": "int"
+	 * }
 	 */
-	function postEmby($request = false) {
+	function postEmby($request=false) {
 		$uri = "Emby";
 		$method = "post";
 		return $this->processRequest($uri, $request, $method);
 	}
 
 	/**
-	 * getEmbyusers
+	 * getEmbyUsers
 	 * Gets the emby users.
 	 *
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function getEmbyusers() {
+	function getEmbyUsers() {
 		$uri = "Emby/users";
 		return $this->processRequest($uri);
 	}
@@ -73,7 +113,7 @@ class Ombi {
 	 * Gets all users.
 	 *
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
 	function getIdentityUsers() {
 		$uri = "Identity/Users";
@@ -84,11 +124,33 @@ class Ombi {
 	 * putIdentity
 	 * Updates the user.
 	 *
-	 * @param  $ui - (optional) The user.({"id":"string","userName":"string","alias":"string","claims":"array","emailAddress":"string","password":"string","lastLoggedIn":"string","hasLoggedIn":"boolean","userType":"string","movieRequestLimit":"integer","episodeRequestLimit":"integer","episodeRequestQuota":null,"movieRequestQuota":null,"musicRequestQuota":null,"musicRequestLimit":"integer","userQualityProfiles":null})
+	 * @param bool | array $ui - (optional) The user.
+	 * {
+	 *     "id": "string",
+	 *     "userName": "string",
+	 *     "alias": "string",
+	 *     "claims": "array - []",
+	 *     "emailAddress": "string",
+	 *     "password": "string",
+	 *     "lastLoggedIn": "string",
+	 *     "hasLoggedIn": "bool",
+	 *     "userType": "string",
+	 *     "movieRequestLimit": "int",
+	 *     "episodeRequestLimit": "int",
+	 *     "episodeRequestQuota": null,
+	 *     "movieRequestQuota": null,
+	 *     "musicRequestQuota": null,
+	 *     "musicRequestLimit": "int",
+	 *     "userQualityProfiles": null
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
+	 * {
+	 *     "errors": "array - []",
+	 *     "successful": "bool"
+	 * }
 	 */
-	function putIdentity($ui = false) {
+	function putIdentity($ui=false) {
 		$uri = "Identity";
 		$method = "put";
 		return $this->processRequest($uri, $ui, $method);
@@ -98,9 +160,27 @@ class Ombi {
 	 * getIdentityUser
 	 * Gets the user by the user id.
 	 *
-	 * @param string $id - (required) ([])
+	 * @param string $id - (required)
 	 *
-	 * @return array
+	 * @return string (application/json)
+	 * {
+	 *     "id": "string",
+	 *     "userName": "string",
+	 *     "alias": "string",
+	 *     "claims": "array - []",
+	 *     "emailAddress": "string",
+	 *     "password": "string",
+	 *     "lastLoggedIn": "string",
+	 *     "hasLoggedIn": "bool",
+	 *     "userType": "string",
+	 *     "movieRequestLimit": "int",
+	 *     "episodeRequestLimit": "int",
+	 *     "episodeRequestQuota": null,
+	 *     "movieRequestQuota": null,
+	 *     "musicRequestQuota": null,
+	 *     "musicRequestLimit": "int",
+	 *     "userQualityProfiles": null
+	 * }
 	 */
 	function getIdentityUser($id) {
 		$uri = "Identity/User/$id";
@@ -108,14 +188,38 @@ class Ombi {
 	}
 
 	/**
-	 * putIdentitylocal
+	 * putIdentityLocal
 	 * This is for the local user to change their details.
 	 *
-	 * @param  $ui - (optional) ({"currentPassword":"string","confirmNewPassword":"string","id":"string","userName":"string","alias":"string","claims":"array","emailAddress":"string","password":"string","lastLoggedIn":"string","hasLoggedIn":"boolean","userType":"string","movieRequestLimit":"integer","episodeRequestLimit":"integer","episodeRequestQuota":null,"movieRequestQuota":null,"musicRequestQuota":null,"musicRequestLimit":"integer","userQualityProfiles":null})
+	 * @param bool | array $ui - (optional)
+	 * {
+	 *     "currentPassword": "string",
+	 *     "confirmNewPassword": "string",
+	 *     "id": "string",
+	 *     "userName": "string",
+	 *     "alias": "string",
+	 *     "claims": "array - []",
+	 *     "emailAddress": "string",
+	 *     "password": "string",
+	 *     "lastLoggedIn": "string",
+	 *     "hasLoggedIn": "bool",
+	 *     "userType": "string",
+	 *     "movieRequestLimit": "int",
+	 *     "episodeRequestLimit": "int",
+	 *     "episodeRequestQuota": null,
+	 *     "movieRequestQuota": null,
+	 *     "musicRequestQuota": null,
+	 *     "musicRequestLimit": "int",
+	 *     "userQualityProfiles": null
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
+	 * {
+	 *     "errors": "array - []",
+	 *     "successful": "bool"
+	 * }
 	 */
-	function putIdentitylocal($ui = false) {
+	function putIdentityLocal($ui=false) {
 		$uri = "Identity/local";
 		$method = "put";
 		return $this->processRequest($uri, $ui, $method);
@@ -125,9 +229,13 @@ class Ombi {
 	 * deleteIdentity
 	 * Deletes the user.
 	 *
-	 * @param string $userId - (required) The user.([])
+	 * @param string $userId - (required) The user.
 	 *
-	 * @return array
+	 * @return string (application/json)
+	 * {
+	 *     "errors": "array - []",
+	 *     "successful": "bool"
+	 * }
 	 */
 	function deleteIdentity($userId) {
 		$uri = "Identity/$userId";
@@ -136,45 +244,71 @@ class Ombi {
 	}
 
 	/**
-	 * getIdentityclaims
+	 * getIdentityClaims
 	 * Gets all available claims in the system.
 	 *
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function getIdentityclaims() {
+	function getIdentityClaims() {
 		$uri = "Identity/claims";
 		return $this->processRequest($uri);
 	}
 
 	/**
-	 * postIdentitywelcomeEmail
+	 * postIdentityWelcomeEmail
 	 *
 	 *
-	 * @param  $user - (optional) ({"id":"string","userName":"string","alias":"string","claims":"array","emailAddress":"string","password":"string","lastLoggedIn":"string","hasLoggedIn":"boolean","userType":"string","movieRequestLimit":"integer","episodeRequestLimit":"integer","episodeRequestQuota":null,"movieRequestQuota":null,"musicRequestQuota":null,"musicRequestLimit":"integer","userQualityProfiles":null})
+	 * @param bool | array $user - (optional)
+	 * {
+	 *     "id": "string",
+	 *     "userName": "string",
+	 *     "alias": "string",
+	 *     "claims": "array - []",
+	 *     "emailAddress": "string",
+	 *     "password": "string",
+	 *     "lastLoggedIn": "string",
+	 *     "hasLoggedIn": "bool",
+	 *     "userType": "string",
+	 *     "movieRequestLimit": "int",
+	 *     "episodeRequestLimit": "int",
+	 *     "episodeRequestQuota": null,
+	 *     "movieRequestQuota": null,
+	 *     "musicRequestQuota": null,
+	 *     "musicRequestLimit": "int",
+	 *     "userQualityProfiles": null
+	 * }
 	 *
-	 * @return array
+	 * @return string
 	 */
-	function postIdentitywelcomeEmail($user = false) {
+	function postIdentityWelcomeEmail($user=false) {
 		$uri = "Identity/welcomeEmail";
 		$method = "post";
 		return $this->processRequest($uri, $user, $method);
 	}
 
 	/**
-	 * getIdentitynotificationpreferences
+	 * getIdentityNotificationpreferences
 	 *
 	 *
-	 * @param bool | string $userId - (required) ([])
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function getIdentitynotificationpreferences($userId = false) {
-		if ($userId) {
-			$uri = "Identity/notificationpreferences/$userId";
-		} else {
-			$uri = "Identity/notificationpreferences";
-		}
+	function getIdentityNotificationpreferences() {
+		$uri = "Identity/notificationpreferences";
+		return $this->processRequest($uri);
+	}
+
+	/**
+	 * getIdentityNotificationpreferences
+	 *
+	 *
+	 * @param string $userId - (required)
+	 *
+	 * @return string (application/json)
+	 */
+	function getIdentityNotificationpreference($userId) {
+		$uri = "Identity/notificationpreferences/$userId";
 		return $this->processRequest($uri);
 	}
 
@@ -182,116 +316,120 @@ class Ombi {
 	 * postIdentityNotificationPreferences
 	 *
 	 *
-	 * @param  $preferences - (optional) ([])
+	 * @param bool | array $preferences - (optional)
 	 *
-	 * @return array
+	 * @return string
 	 */
-	function postIdentityNotificationPreferences($preferences = false) {
+	function postIdentityNotificationPreferences($preferences=false) {
 		$uri = "Identity/NotificationPreferences";
 		$method = "post";
 		return $this->processRequest($uri, $preferences, $method);
 	}
 
 	/**
-	 * getImagestv
+	 * getImagesTv
 	 *
 	 *
-	 * @param int $tvdbid - (required) ([])
+	 * @param int $tvdbid - (required)
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function getImagestv($tvdbid) {
+	function getImagesTv($tvdbid) {
 		$uri = "Images/tv/$tvdbid";
 		return $this->processRequest($uri);
 	}
 
 	/**
-	 * getImagespostermovie
+	 * getImagesPosterMovie
 	 *
 	 *
-	 * @param string $movieDbId - (required) ([])
+	 * @param string $movieDbId - (required)
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function getImagespostermovie($movieDbId) {
+	function getImagesPosterMovie($movieDbId) {
 		$uri = "Images/poster/movie/$movieDbId";
 		return $this->processRequest($uri);
 	}
 
 	/**
-	 * getImagespostertv
+	 * getImagesPosterTv
 	 *
 	 *
-	 * @param int $tvdbid - (required) ([])
+	 * @param int $tvdbid - (required)
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function getImagespostertv($tvdbid) {
+	function getImagesPosterTv($tvdbid) {
 		$uri = "Images/poster/tv/$tvdbid";
 		return $this->processRequest($uri);
 	}
 
 	/**
-	 * getImagesbackgroundmovie
+	 * getImagesBackgroundMovie
 	 *
 	 *
-	 * @param string $movieDbId - (required) ([])
+	 * @param string $movieDbId - (required)
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function getImagesbackgroundmovie($movieDbId) {
+	function getImagesBackgroundMovie($movieDbId) {
 		$uri = "Images/background/movie/$movieDbId";
 		return $this->processRequest($uri);
 	}
 
 	/**
-	 * getImagesbackgroundtv
+	 * getImagesBackgroundTv
 	 *
 	 *
-	 * @param int $tvdbid - (required) ([])
+	 * @param int $tvdbid - (required)
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function getImagesbackgroundtv($tvdbid) {
+	function getImagesBackgroundTv($tvdbid) {
 		$uri = "Images/background/tv/$tvdbid";
 		return $this->processRequest($uri);
 	}
 
 	/**
-	 * getImagesbackground
+	 * getImagesBackground
 	 *
 	 *
 	 *
-	 * @return array
+	 * @return string
 	 */
-	function getImagesbackground() {
+	function getImagesBackground() {
 		$uri = "Images/background";
 		return $this->processRequest($uri);
 	}
 
 	/**
-	 * postIssuescategories
+	 * postIssuesCategories
 	 * Creates a new category
 	 *
-	 * @param  $cat - (optional) ({"value":"string","id":"integer"})
+	 * @param bool | array $cat - (optional)
+	 * {
+	 *     "value": "string",
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function postIssuescategories($cat = false) {
+	function postIssuesCategories($cat=false) {
 		$uri = "Issues/categories";
 		$method = "post";
 		return $this->processRequest($uri, $cat, $method);
 	}
 
 	/**
-	 * deleteIssuescategories
+	 * deleteIssuesCategories
 	 * Deletes a Category
 	 *
-	 * @param int $catId - (required) ([])
+	 * @param int $catId - (required)
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function deleteIssuescategories($catId) {
+	function deleteIssuesCategories($catId) {
 		$uri = "Issues/categories/$catId";
 		$method = "delete";
 		return $this->processRequest($uri, $catId, $method);
@@ -301,25 +439,41 @@ class Ombi {
 	 * postIssues
 	 * Create Movie Issue
 	 *
-	 * @param  $i - (optional) ({"title":"string","requestType":"string","providerId":"string","requestId":"integer","subject":"string","description":"string","issueCategoryId":"integer","issueCategory":null,"status":"string","resovledDate":"string","userReportedId":"string","userReported":null,"comments":"array","id":"integer"})
+	 * @param bool | array $i - (optional)
+	 * {
+	 *     "title": "string",
+	 *     "requestType": "string",
+	 *     "providerId": "string",
+	 *     "requestId": "int",
+	 *     "subject": "string",
+	 *     "description": "string",
+	 *     "issueCategoryId": "int",
+	 *     "issueCategory": null,
+	 *     "status": "string",
+	 *     "resovledDate": "string",
+	 *     "userReportedId": "string",
+	 *     "userReported": null,
+	 *     "comments": "array - []",
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function postIssues($i = false) {
+	function postIssues($i=false) {
 		$uri = "Issues";
 		$method = "post";
 		return $this->processRequest($uri, $i, $method);
 	}
 
 	/**
-	 * getAllIssues
+	 * getIssues
 	 * Returns all the issues
 	 *
-	 * @param int $take - (required) ([])
-	 * @param int $skip - (required) ([])
-	 * @param string $status - (required) ([])
+	 * @param int $take - (required)
+	 * @param int $skip - (required)
+	 * @param string $status - (required)  'Pending | InProgress | Resolved'
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
 	function getIssues($take, $skip, $status) {
 		$uri = "Issues/$take/$skip/$status";
@@ -327,24 +481,45 @@ class Ombi {
 	}
 
 	/**
-	 * getIssuescount
+	 * getIssuesCount
 	 * Returns all the issues count
 	 *
 	 *
-	 * @return array
+	 * @return string (application/json)
+	 * {
+	 *     "pending": "int",
+	 *     "inProgress": "int",
+	 *     "resolved": "int"
+	 * }
 	 */
-	function getIssuescount() {
+	function getIssuesCount() {
 		$uri = "Issues/count";
 		return $this->processRequest($uri);
 	}
 
 	/**
-	 * getIssue
+	 * getIssues
 	 * Returns the issue by Id
 	 *
-	 * @param int $id - (required) ([])
+	 * @param int $id - (required)
 	 *
-	 * @return array
+	 * @return string (application/json)
+	 * {
+	 *     "title": "string",
+	 *     "requestType": "string",
+	 *     "providerId": "string",
+	 *     "requestId": "int",
+	 *     "subject": "string",
+	 *     "description": "string",
+	 *     "issueCategoryId": "int",
+	 *     "issueCategory": null,
+	 *     "status": "string",
+	 *     "resovledDate": "string",
+	 *     "userReportedId": "string",
+	 *     "userReported": null,
+	 *     "comments": "array - []",
+	 *     "id": "int"
+	 * }
 	 */
 	function getIssue($id) {
 		$uri = "Issues/$id";
@@ -352,146 +527,163 @@ class Ombi {
 	}
 
 	/**
-	 * getIssuescomments
+	 * getIssuesComments
 	 * Get's all the issue comments by id
 	 *
-	 * @param int $id - (required) ([])
+	 * @param int $id - (required)
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function getIssuescomments($id) {
+	function getIssuesComments($id) {
 		$uri = "Issues/$id/comments";
 		return $this->processRequest($uri);
 	}
 
 	/**
-	 * postIssuescomments
+	 * postIssuesComments
 	 * Adds a comment on an issue
 	 *
-	 * @param  $comment - (optional) ({"comment":"string","issueId":"integer"})
+	 * @param bool | array $comment - (optional)
+	 * {
+	 *     "comment": "string",
+	 *     "issueId": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
+	 * {
+	 *     "userId": "string",
+	 *     "comment": "string",
+	 *     "issuesId": "int",
+	 *     "date": "string",
+	 *     "issues": null,
+	 *     "user": null,
+	 *     "id": "int"
+	 * }
 	 */
-	function postIssuescomments($comment = false) {
+	function postIssuesComments($comment=false) {
 		$uri = "Issues/comments";
 		$method = "post";
 		return $this->processRequest($uri, $comment, $method);
 	}
 
 	/**
-	 * deleteIssuescomments
+	 * deleteIssuesComments
 	 * Deletes a comment on a issue
 	 *
-	 * @param int $id - (required) ([])
+	 * @param int $id - (required)
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function deleteIssuescomments($id) {
+	function deleteIssuesComments($id) {
 		$uri = "Issues/comments/$id";
 		$method = "delete";
 		return $this->processRequest($uri, $id, $method);
 	}
 
 	/**
-	 * postIssuesstatus
+	 * postIssuesStatus
 	 *
 	 *
-	 * @param  $model - (optional) ({"issueId":"integer","status":"string"})
+	 * @param bool | array $model - (optional)
+	 * {
+	 *     "issueId": "int",
+	 *     "status": "string"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function postIssuesstatus($model = false) {
+	function postIssuesStatus($model=false) {
 		$uri = "Issues/status";
 		$method = "post";
 		return $this->processRequest($uri, $model, $method);
 	}
 
 	/**
-	 * postJobupdate
+	 * postJobUpdate
 	 * Runs the update job
 	 *
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function postJobupdate() {
+	function postJobUpdate() {
 		$uri = "Job/update";
 		$method = "post";
 		return $this->processRequest($uri, false, $method);
 	}
 
 	/**
-	 * postJobplexuserimporter
+	 * postJobPlexuserimporter
 	 * Runs the Plex User importer
 	 *
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function postJobplexuserimporter() {
+	function postJobPlexuserimporter() {
 		$uri = "Job/plexuserimporter";
 		$method = "post";
 		return $this->processRequest($uri, false, $method);
 	}
 
 	/**
-	 * postJobembyuserimporter
+	 * postJobEmbyuserimporter
 	 * Runs the Emby User importer
 	 *
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function postJobembyuserimporter() {
+	function postJobEmbyuserimporter() {
 		$uri = "Job/embyuserimporter";
 		$method = "post";
 		return $this->processRequest($uri, false, $method);
 	}
 
 	/**
-	 * postJobplexcontentcacher
+	 * postJobPlexcontentcacher
 	 * Runs the Plex Content Cacher
 	 *
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function postJobplexcontentcacher() {
+	function postJobPlexcontentcacher() {
 		$uri = "Job/plexcontentcacher";
 		$method = "post";
 		return $this->processRequest($uri, false, $method);
 	}
 
 	/**
-	 * postJobplexrecentlyadded
+	 * postJobPlexrecentlyadded
 	 * Runs a smaller version of the content cacher
 	 *
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function postJobplexrecentlyadded() {
+	function postJobPlexrecentlyadded() {
 		$uri = "Job/plexrecentlyadded";
 		$method = "post";
 		return $this->processRequest($uri, false, $method);
 	}
 
 	/**
-	 * postJobembycontentcacher
+	 * postJobEmbycontentcacher
 	 * Runs the Emby Content Cacher
 	 *
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function postJobembycontentcacher() {
+	function postJobEmbycontentcacher() {
 		$uri = "Job/embycontentcacher";
 		$method = "post";
 		return $this->processRequest($uri, false, $method);
 	}
 
 	/**
-	 * postJobnewsletter
+	 * postJobNewsletter
 	 * Runs the newsletter
 	 *
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function postJobnewsletter() {
+	function postJobNewsletter() {
 		$uri = "Job/newsletter";
 		$method = "post";
 		return $this->processRequest($uri, false, $method);
@@ -502,7 +694,15 @@ class Ombi {
 	 *
 	 *
 	 *
-	 * @return array
+	 * @return string (application/json)
+	 * {
+	 *     "serversAvailable": "int",
+	 *     "serversUnavailable": "int",
+	 *     "partiallyDown": "bool",
+	 *     "completelyDown": "bool",
+	 *     "fullyAvailable": "bool",
+	 *     "totalServers": "int"
+	 * }
 	 */
 	function getLandingPage() {
 		$uri = "LandingPage";
@@ -513,11 +713,26 @@ class Ombi {
 	 * postLidarrProfiles
 	 * Gets the Lidarr profiles.
 	 *
-	 * @param  $settings - (optional) The settings.({"enabled":"boolean","apiKey":"string","defaultQualityProfile":"string","defaultRootPath":"string","albumFolder":"boolean","languageProfileId":"integer","metadataProfileId":"integer","addOnly":"boolean","ssl":"boolean","subDir":"string","ip":"string","port":"integer","id":"integer"})
+	 * @param bool | array $settings - (optional) The settings.
+	 * {
+	 *     "enabled": "bool",
+	 *     "apiKey": "string",
+	 *     "defaultQualityProfile": "string",
+	 *     "defaultRootPath": "string",
+	 *     "albumFolder": "bool",
+	 *     "languageProfileId": "int",
+	 *     "metadataProfileId": "int",
+	 *     "addOnly": "bool",
+	 *     "ssl": "bool",
+	 *     "subDir": "string",
+	 *     "ip": "string",
+	 *     "port": "int",
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function postLidarrProfiles($settings = false) {
+	function postLidarrProfiles($settings=false) {
 		$uri = "Lidarr/Profiles";
 		$method = "post";
 		return $this->processRequest($uri, $settings, $method);
@@ -527,11 +742,26 @@ class Ombi {
 	 * postLidarrRootFolders
 	 * Gets the Lidarr root folders.
 	 *
-	 * @param  $settings - (optional) The settings.({"enabled":"boolean","apiKey":"string","defaultQualityProfile":"string","defaultRootPath":"string","albumFolder":"boolean","languageProfileId":"integer","metadataProfileId":"integer","addOnly":"boolean","ssl":"boolean","subDir":"string","ip":"string","port":"integer","id":"integer"})
+	 * @param bool | array $settings - (optional) The settings.
+	 * {
+	 *     "enabled": "bool",
+	 *     "apiKey": "string",
+	 *     "defaultQualityProfile": "string",
+	 *     "defaultRootPath": "string",
+	 *     "albumFolder": "bool",
+	 *     "languageProfileId": "int",
+	 *     "metadataProfileId": "int",
+	 *     "addOnly": "bool",
+	 *     "ssl": "bool",
+	 *     "subDir": "string",
+	 *     "ip": "string",
+	 *     "port": "int",
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function postLidarrRootFolders($settings = false) {
+	function postLidarrRootFolders($settings=false) {
 		$uri = "Lidarr/RootFolders";
 		$method = "post";
 		return $this->processRequest($uri, $settings, $method);
@@ -541,11 +771,26 @@ class Ombi {
 	 * postLidarrMetadata
 	 * Gets the Lidarr metadata profiles.
 	 *
-	 * @param  $settings - (optional) The settings.({"enabled":"boolean","apiKey":"string","defaultQualityProfile":"string","defaultRootPath":"string","albumFolder":"boolean","languageProfileId":"integer","metadataProfileId":"integer","addOnly":"boolean","ssl":"boolean","subDir":"string","ip":"string","port":"integer","id":"integer"})
+	 * @param bool | array $settings - (optional) The settings.
+	 * {
+	 *     "enabled": "bool",
+	 *     "apiKey": "string",
+	 *     "defaultQualityProfile": "string",
+	 *     "defaultRootPath": "string",
+	 *     "albumFolder": "bool",
+	 *     "languageProfileId": "int",
+	 *     "metadataProfileId": "int",
+	 *     "addOnly": "bool",
+	 *     "ssl": "bool",
+	 *     "subDir": "string",
+	 *     "ip": "string",
+	 *     "port": "int",
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function postLidarrMetadata($settings = false) {
+	function postLidarrMetadata($settings=false) {
 		$uri = "Lidarr/Metadata";
 		$method = "post";
 		return $this->processRequest($uri, $settings, $method);
@@ -555,11 +800,26 @@ class Ombi {
 	 * postLidarrLangauges
 	 * Gets the Lidarr Langauge profiles.
 	 *
-	 * @param  $settings - (optional) The settings.({"enabled":"boolean","apiKey":"string","defaultQualityProfile":"string","defaultRootPath":"string","albumFolder":"boolean","languageProfileId":"integer","metadataProfileId":"integer","addOnly":"boolean","ssl":"boolean","subDir":"string","ip":"string","port":"integer","id":"integer"})
+	 * @param bool | array $settings - (optional) The settings.
+	 * {
+	 *     "enabled": "bool",
+	 *     "apiKey": "string",
+	 *     "defaultQualityProfile": "string",
+	 *     "defaultRootPath": "string",
+	 *     "albumFolder": "bool",
+	 *     "languageProfileId": "int",
+	 *     "metadataProfileId": "int",
+	 *     "addOnly": "bool",
+	 *     "ssl": "bool",
+	 *     "subDir": "string",
+	 *     "ip": "string",
+	 *     "port": "int",
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function postLidarrLangauges($settings = false) {
+	function postLidarrLangauges($settings=false) {
 		$uri = "Lidarr/Langauges";
 		$method = "post";
 		return $this->processRequest($uri, $settings, $method);
@@ -569,163 +829,231 @@ class Ombi {
 	 * postLogging
 	 *
 	 *
-	 * @param  $l - (optional) ({"level":"string","description":"string","id":"integer","location":"string","stackTrace":"string","dateTime":"string"})
+	 * @param bool | array $l - (optional)
+	 * {
+	 *     "level": "string",
+	 *     "description": "string",
+	 *     "id": "int",
+	 *     "location": "string",
+	 *     "stackTrace": "string",
+	 *     "dateTime": "string"
+	 * }
 	 *
-	 * @return array
+	 * @return string
 	 */
-	function postLogging($l = false) {
+	function postLogging($l=false) {
 		$uri = "Logging";
 		$method = "post";
 		return $this->processRequest($uri, $l, $method);
 	}
 
 	/**
-	 * getrequestmusic
+	 * getRequestMusic
 	 * Gets album requests.
 	 *
-	 * @param int $count - (required) The count of items you want to return.([])
-	 * @param int $position - (required) The position.([])
-	 * @param int $orderType - (required) The way we want to order.([])
-	 * @param int $statusType - (required) ([])
-	 * @param int $availabilityType - (required) ([])
+	 * @param int $count - (required) The count of items you want to return.
+	 * @param int $position - (required) The position.
+	 * @param int $orderType - (required) The way we want to order.
+	 * @param int $statusType - (required)
+	 * @param int $availabilityType - (required)
 	 *
-	 * @return array
+	 * @return string (application/json)
+	 * {
+	 *     "collection": "array - []",
+	 *     "total": "int"
+	 * }
 	 */
-	function getrequestmusic($count, $position, $orderType, $statusType, $availabilityType) {
+	function getRequestMusic($count, $position, $orderType, $statusType, $availabilityType) {
 		$uri = "request/music/$count/$position/$orderType/$statusType/$availabilityType";
 		return $this->processRequest($uri);
 	}
 
 	/**
-	 * getrequestmusictotal
+	 * getRequestMusicTotal
 	 * Gets the total amount of album requests.
 	 *
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function getrequestmusictotal() {
+	function getRequestMusicTotal() {
 		$uri = "request/music/total";
 		return $this->processRequest($uri);
 	}
 
 	/**
-	 * postrequestmusic
+	 * postRequestMusic
 	 * Requests a album.
 	 *
-	 * @param  $album - (optional) The album.({"foreignAlbumId":"string"})
+	 * @param bool | array $album - (optional) The album.
+	 * {
+	 *     "foreignAlbumId": "string"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
+	 * {
+	 *     "result": "bool",
+	 *     "message": "string",
+	 *     "isError": "bool",
+	 *     "errorMessage": "string"
+	 * }
 	 */
-	function postrequestmusic($album = false) {
+	function postRequestMusic($album=false) {
 		$uri = "request/music";
 		$method = "post";
 		return $this->processRequest($uri, $album, $method);
 	}
 
 	/**
-	 * getrequestmusicsearch
+	 * getRequestMusicSearch
 	 * Searches for a specific album request
 	 *
-	 * @param string $searchTerm - (required) The search term.([])
+	 * @param string $searchTerm - (required) The search term.
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function getrequestmusicsearch($searchTerm) {
+	function getRequestMusicSearch($searchTerm) {
 		$uri = "request/music/search/$searchTerm";
 		return $this->processRequest($uri);
 	}
 
 	/**
-	 * deleterequestmusic
+	 * deleteRequestMusic
 	 * Deletes the specified album request.
 	 *
-	 * @param int $requestId - (required) The request identifier.([])
+	 * @param int $requestId - (required) The request identifier.
 	 *
-	 * @return array
+	 * @return string
 	 */
-	function deleterequestmusic($requestId) {
+	function deleteRequestMusic($requestId) {
 		$uri = "request/music/$requestId";
 		$method = "delete";
 		return $this->processRequest($uri, $requestId, $method);
 	}
 
 	/**
-	 * postrequestmusicapprove
+	 * postRequestMusicApprove
 	 * Approves the specified album request.
 	 *
-	 * @param  $model - (optional) The albums's ID({"id":"integer"})
+	 * @param bool | array $model - (optional) The albums's ID
+	 * {
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
+	 * {
+	 *     "result": "bool",
+	 *     "message": "string",
+	 *     "isError": "bool",
+	 *     "errorMessage": "string"
+	 * }
 	 */
-	function postrequestmusicapprove($model = false) {
+	function postRequestMusicApprove($model=false) {
 		$uri = "request/music/approve";
 		$method = "post";
 		return $this->processRequest($uri, $model, $method);
 	}
 
 	/**
-	 * postrequestmusicavailable
+	 * postRequestMusicAvailable
 	 * Set's the specified album as available
 	 *
-	 * @param  $model - (optional) The album's ID({"id":"integer"})
+	 * @param bool | array $model - (optional) The album's ID
+	 * {
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
+	 * {
+	 *     "result": "bool",
+	 *     "message": "string",
+	 *     "isError": "bool",
+	 *     "errorMessage": "string"
+	 * }
 	 */
-	function postrequestmusicavailable($model = false) {
+	function postRequestMusicAvailable($model=false) {
 		$uri = "request/music/available";
 		$method = "post";
 		return $this->processRequest($uri, $model, $method);
 	}
 
 	/**
-	 * postrequestmusicunavailable
+	 * postRequestMusicUnavailable
 	 * Set's the specified album as unavailable
 	 *
-	 * @param  $model - (optional) The album's ID({"id":"integer"})
+	 * @param bool | array $model - (optional) The album's ID
+	 * {
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
+	 * {
+	 *     "result": "bool",
+	 *     "message": "string",
+	 *     "isError": "bool",
+	 *     "errorMessage": "string"
+	 * }
 	 */
-	function postrequestmusicunavailable($model = false) {
+	function postRequestMusicUnavailable($model=false) {
 		$uri = "request/music/unavailable";
 		$method = "post";
 		return $this->processRequest($uri, $model, $method);
 	}
 
 	/**
-	 * putrequestmusicdeny
+	 * putRequestMusicDeny
 	 * Denies the specified album request.
 	 *
-	 * @param  $model - (optional) The album's ID({"id":"integer"})
+	 * @param bool | array $model - (optional) The album's ID
+	 * {
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
+	 * {
+	 *     "result": "bool",
+	 *     "message": "string",
+	 *     "isError": "bool",
+	 *     "errorMessage": "string"
+	 * }
 	 */
-	function putrequestmusicdeny($model = false) {
+	function putRequestMusicDeny($model=false) {
 		$uri = "request/music/deny";
 		$method = "put";
 		return $this->processRequest($uri, $model, $method);
 	}
 
 	/**
-	 * getrequestmusicremaining
+	 * getRequestMusicRemaining
 	 * Gets model containing remaining number of music requests.
 	 *
 	 *
-	 * @return array
+	 * @return string (application/json)
+	 * {
+	 *     "hasLimit": "bool",
+	 *     "limit": "int",
+	 *     "remaining": "int",
+	 *     "nextRequest": "string"
+	 * }
 	 */
-	function getrequestmusicremaining() {
+	function getRequestMusicRemaining() {
 		$uri = "request/music/remaining";
 		return $this->processRequest($uri);
 	}
 
 	/**
-	 * postNotificationsmassemail
+	 * postNotificationsMassemail
 	 *
 	 *
-	 * @param  $model - (optional) ({"subject":"string","body":"string","users":"array"})
+	 * @param bool | array $model - (optional)
+	 * {
+	 *     "subject": "string",
+	 *     "body": "string",
+	 *     "users": "array - []"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function postNotificationsmassemail($model = false) {
+	function postNotificationsMassemail($model=false) {
 		$uri = "Notifications/massemail";
 		$method = "post";
 		return $this->processRequest($uri, $model, $method);
@@ -735,11 +1063,18 @@ class Ombi {
 	 * postPlex
 	 * Signs into the Plex API.
 	 *
-	 * @param  $request - (optional) The request.({"login":"string","password":"string"})
+	 * @param bool | array $request - (optional) The request.
+	 * {
+	 *     "login": "string",
+	 *     "password": "string"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
+	 * {
+	 *     "user": null
+	 * }
 	 */
-	function postPlex($request = false) {
+	function postPlex($request=false) {
 		$uri = "Plex";
 		$method = "post";
 		return $this->processRequest($uri, $request, $method);
@@ -749,11 +1084,28 @@ class Ombi {
 	 * postPlexLibraries
 	 * Gets the plex libraries.
 	 *
-	 * @param  $settings - (optional) The settings.({"name":"string","plexAuthToken":"string","machineIdentifier":"string","episodeBatchSize":"integer","plexSelectedLibraries":"array","ssl":"boolean","subDir":"string","ip":"string","port":"integer","id":"integer"})
+	 * @param bool | array $settings - (optional) The settings.
+	 * {
+	 *     "name": "string",
+	 *     "plexAuthToken": "string",
+	 *     "machineIdentifier": "string",
+	 *     "episodeBatchSize": "int",
+	 *     "plexSelectedLibraries": "array - []",
+	 *     "ssl": "bool",
+	 *     "subDir": "string",
+	 *     "ip": "string",
+	 *     "port": "int",
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
+	 * {
+	 *     "data": null,
+	 *     "successful": "bool",
+	 *     "message": "string"
+	 * }
 	 */
-	function postPlexLibraries($settings = false) {
+	function postPlexLibraries($settings=false) {
 		$uri = "Plex/Libraries";
 		$method = "post";
 		return $this->processRequest($uri, $settings, $method);
@@ -763,9 +1115,14 @@ class Ombi {
 	 * getPlexLibraries
 	 *
 	 *
-	 * @param string $machineId - (required) ([])
+	 * @param string $machineId - (required)
 	 *
-	 * @return array
+	 * @return string (application/json)
+	 * {
+	 *     "data": "array - []",
+	 *     "successful": "bool",
+	 *     "message": "string"
+	 * }
 	 */
 	function getPlexLibraries($machineId) {
 		$uri = "Plex/Libraries/$machineId";
@@ -773,54 +1130,72 @@ class Ombi {
 	}
 
 	/**
-	 * postPlexuser
+	 * postPlexUser
 	 *
 	 *
-	 * @param  $user - (optional) ({"username":"string","machineIdentifier":"string","libsSelected":"array"})
+	 * @param bool | array $user - (optional)
+	 * {
+	 *     "username": "string",
+	 *     "machineIdentifier": "string",
+	 *     "libsSelected": "array - []"
+	 * }
 	 *
-	 * @return array
+	 * @return string
 	 */
-	function postPlexuser($user = false) {
+	function postPlexUser($user=false) {
 		$uri = "Plex/user";
 		$method = "post";
 		return $this->processRequest($uri, $user, $method);
 	}
 
 	/**
-	 * postPlexservers
+	 * postPlexServers
 	 * Gets the plex servers.
 	 *
-	 * @param  $u - (optional) The u.({"login":"string","password":"string"})
+	 * @param bool | array $u - (optional) The u.
+	 * {
+	 *     "login": "string",
+	 *     "password": "string"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
+	 * {
+	 *     "success": "bool",
+	 *     "message": "string",
+	 *     "servers": null
+	 * }
 	 */
-	function postPlexservers($u = false) {
+	function postPlexServers($u=false) {
 		$uri = "Plex/servers";
 		$method = "post";
 		return $this->processRequest($uri, $u, $method);
 	}
 
 	/**
-	 * getPlexfriends
+	 * getPlexFriends
 	 * Gets the plex friends.
 	 *
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function getPlexfriends() {
+	function getPlexFriends() {
 		$uri = "Plex/friends";
 		return $this->processRequest($uri);
 	}
 
 	/**
-	 * postPlexoauth
+	 * postPlexOauth
 	 *
 	 *
-	 * @param  $wizard - (optional) ({"wizard":"boolean","pin":null})
+	 * @param bool | array $wizard - (optional)
+	 * {
+	 *     "wizard": "bool",
+	 *     "pin": null
+	 * }
 	 *
-	 * @return array
+	 * @return string
 	 */
-	function postPlexoauth($wizard = false) {
+	function postPlexOauth($wizard=false) {
 		$uri = "Plex/oauth";
 		$method = "post";
 		return $this->processRequest($uri, $wizard, $method);
@@ -830,11 +1205,24 @@ class Ombi {
 	 * postRadarrProfiles
 	 * Gets the Radarr profiles.
 	 *
-	 * @param  $settings - (optional) The settings.({"enabled":"boolean","apiKey":"string","defaultQualityProfile":"string","defaultRootPath":"string","addOnly":"boolean","minimumAvailability":"string","ssl":"boolean","subDir":"string","ip":"string","port":"integer","id":"integer"})
+	 * @param bool | array $settings - (optional) The settings.
+	 * {
+	 *     "enabled": "bool",
+	 *     "apiKey": "string",
+	 *     "defaultQualityProfile": "string",
+	 *     "defaultRootPath": "string",
+	 *     "addOnly": "bool",
+	 *     "minimumAvailability": "string",
+	 *     "ssl": "bool",
+	 *     "subDir": "string",
+	 *     "ip": "string",
+	 *     "port": "int",
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function postRadarrProfiles($settings = false) {
+	function postRadarrProfiles($settings=false) {
 		$uri = "Radarr/Profiles";
 		$method = "post";
 		return $this->processRequest($uri, $settings, $method);
@@ -844,921 +1232,1382 @@ class Ombi {
 	 * postRadarrRootFolders
 	 * Gets the Radarr root folders.
 	 *
-	 * @param  $settings - (optional) The settings.({"enabled":"boolean","apiKey":"string","defaultQualityProfile":"string","defaultRootPath":"string","addOnly":"boolean","minimumAvailability":"string","ssl":"boolean","subDir":"string","ip":"string","port":"integer","id":"integer"})
+	 * @param bool | array $settings - (optional) The settings.
+	 * {
+	 *     "enabled": "bool",
+	 *     "apiKey": "string",
+	 *     "defaultQualityProfile": "string",
+	 *     "defaultRootPath": "string",
+	 *     "addOnly": "bool",
+	 *     "minimumAvailability": "string",
+	 *     "ssl": "bool",
+	 *     "subDir": "string",
+	 *     "ip": "string",
+	 *     "port": "int",
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function postRadarrRootFolders($settings = false) {
+	function postRadarrRootFolders($settings=false) {
 		$uri = "Radarr/RootFolders";
 		$method = "post";
 		return $this->processRequest($uri, $settings, $method);
 	}
 
 	/**
-	 * getRecentlyAddedmovies
+	 * getRecentlyAddedMovies
 	 * Returns the recently added movies for the past 7 days
 	 *
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function getRecentlyAddedmovies() {
+	function getRecentlyAddedMovies() {
 		$uri = "RecentlyAdded/movies";
 		return $this->processRequest($uri);
 	}
 
 	/**
-	 * getRecentlyAddedtv
+	 * getRecentlyAddedTv
 	 * Returns the recently added tv shows for the past 7 days
 	 *
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function getRecentlyAddedtv() {
+	function getRecentlyAddedTv() {
 		$uri = "RecentlyAdded/tv";
 		return $this->processRequest($uri);
 	}
 
 	/**
-	 * getRecentlyAddedtvgrouped
+	 * getRecentlyAddedTvGrouped
 	 * Returns the recently added tv shows for the past 7 days and groups them by season
 	 *
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function getRecentlyAddedtvgrouped() {
+	function getRecentlyAddedTvGrouped() {
 		$uri = "RecentlyAdded/tv/grouped";
 		return $this->processRequest($uri);
 	}
 
 	/**
-	 * getRequestmovie
+	 * getRequestMovie
 	 * Gets movie requests.
 	 *
-	 * @param int $count - (required) The count of items you want to return.([])
-	 * @param int $position - (required) The position.([])
-	 * @param int $orderType - (required) The way we want to order.([])
-	 * @param int $statusType - (required) ([])
-	 * @param int $availabilityType - (required) ([])
+	 * @param int $count - (required) The count of items you want to return.
+	 * @param int $position - (required) The position.
+	 * @param int $orderType - (required) The way we want to order.
+	 * @param int $statusType - (required)
+	 * @param int $availabilityType - (required)
 	 *
-	 * @return array
+	 * @return string (application/json)
+	 * {
+	 *     "collection": "array - []",
+	 *     "total": "int"
+	 * }
 	 */
-	function getRequestmovie($count, $position, $orderType, $statusType, $availabilityType) {
+	function getRequestMovie($count, $position, $orderType, $statusType, $availabilityType) {
 		$uri = "Request/movie/$count/$position/$orderType/$statusType/$availabilityType";
 		return $this->processRequest($uri);
 	}
 
 	/**
-	 * getRequestmovietotal
+	 * getRequestMovieTotal
 	 * Gets the total amount of movie requests.
 	 *
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function getRequestmovietotal() {
+	function getRequestMovieTotal() {
 		$uri = "Request/movie/total";
 		return $this->processRequest($uri);
 	}
 
 	/**
-	 * putRequestmovie
+	 * putRequestMovie
 	 * Updates the specified movie request.
 	 *
-	 * @param  $model - (optional) The Movie's ID({"theMovieDbId":"integer","issueId":"integer","issues":"array","subscribed":"boolean","showSubscribe":"boolean","rootPathOverride":"integer","qualityOverride":"integer","imdbId":"string","overview":"string","posterPath":"string","releaseDate":"string","digitalReleaseDate":"string","status":"string","background":"string","released":"boolean","digitalRelease":"boolean","title":"string","approved":"boolean","markedAsApproved":"string","requestedDate":"string","available":"boolean","markedAsAvailable":"string","requestedUserId":"string","denied":"boolean","markedAsDenied":"string","deniedReason":"string","requestType":"string","requestedUser":null,"canApprove":"boolean","id":"integer"})
+	 * @param bool | array $model - (optional) The Movie's ID
+	 * {
+	 *     "theMovieDbId": "int",
+	 *     "issueId": "int",
+	 *     "issues": "array - []",
+	 *     "subscribed": "bool",
+	 *     "showSubscribe": "bool",
+	 *     "rootPathOverride": "int",
+	 *     "qualityOverride": "int",
+	 *     "imdbId": "string",
+	 *     "overview": "string",
+	 *     "posterPath": "string",
+	 *     "releaseDate": "string",
+	 *     "digitalReleaseDate": "string",
+	 *     "status": "string",
+	 *     "background": "string",
+	 *     "released": "bool",
+	 *     "digitalRelease": "bool",
+	 *     "title": "string",
+	 *     "approved": "bool",
+	 *     "markedAsApproved": "string",
+	 *     "requestedDate": "string",
+	 *     "available": "bool",
+	 *     "markedAsAvailable": "string",
+	 *     "requestedUserId": "string",
+	 *     "denied": "bool",
+	 *     "markedAsDenied": "string",
+	 *     "deniedReason": "string",
+	 *     "requestType": "string",
+	 *     "requestedUser": null,
+	 *     "canApprove": "bool",
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
+	 * {
+	 *     "theMovieDbId": "int",
+	 *     "issueId": "int",
+	 *     "issues": "array - []",
+	 *     "subscribed": "bool",
+	 *     "showSubscribe": "bool",
+	 *     "rootPathOverride": "int",
+	 *     "qualityOverride": "int",
+	 *     "imdbId": "string",
+	 *     "overview": "string",
+	 *     "posterPath": "string",
+	 *     "releaseDate": "string",
+	 *     "digitalReleaseDate": "string",
+	 *     "status": "string",
+	 *     "background": "string",
+	 *     "released": "bool",
+	 *     "digitalRelease": "bool",
+	 *     "title": "string",
+	 *     "approved": "bool",
+	 *     "markedAsApproved": "string",
+	 *     "requestedDate": "string",
+	 *     "available": "bool",
+	 *     "markedAsAvailable": "string",
+	 *     "requestedUserId": "string",
+	 *     "denied": "bool",
+	 *     "markedAsDenied": "string",
+	 *     "deniedReason": "string",
+	 *     "requestType": "string",
+	 *     "requestedUser": null,
+	 *     "canApprove": "bool",
+	 *     "id": "int"
+	 * }
 	 */
-	function putRequestmovie($model = false) {
+	function putRequestMovie($model=false) {
 		$uri = "Request/movie";
 		$method = "put";
 		return $this->processRequest($uri, $model, $method);
 	}
 
 	/**
-	 * getRequestmoviesearch
+	 * getRequestMovieSearch
 	 * Searches for a specific movie request
 	 *
-	 * @param string $searchTerm - (required) The search term.([])
+	 * @param string $searchTerm - (required) The search term.
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function getRequestmoviesearch($searchTerm) {
+	function getRequestMovieSearch($searchTerm) {
 		$uri = "Request/movie/search/$searchTerm";
 		return $this->processRequest($uri);
 	}
 
 	/**
-	 * deleteRequestmovie
+	 * deleteRequestMovie
 	 * Deletes the specified movie request.
 	 *
-	 * @param int $requestId - (required) The request identifier.([])
+	 * @param int $requestId - (required) The request identifier.
 	 *
-	 * @return array
+	 * @return string
 	 */
-	function deleteRequestmovie($requestId) {
+	function deleteRequestMovie($requestId) {
 		$uri = "Request/movie/$requestId";
 		$method = "delete";
 		return $this->processRequest($uri, $requestId, $method);
 	}
 
 	/**
-	 * postRequestmovieapprove
+	 * postRequestMovieApprove
 	 * Approves the specified movie request.
 	 *
-	 * @param  $model - (optional) The Movie's ID({"id":"integer"})
+	 * @param bool | array $model - (optional) The Movie's ID
+	 * {
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
+	 * {
+	 *     "result": "bool",
+	 *     "message": "string",
+	 *     "isError": "bool",
+	 *     "errorMessage": "string"
+	 * }
 	 */
-	function postRequestmovieapprove($model = false) {
+	function postRequestMovieApprove($model=false) {
 		$uri = "Request/movie/approve";
 		$method = "post";
 		return $this->processRequest($uri, $model, $method);
 	}
 
 	/**
-	 * postRequestmovieavailable
+	 * postRequestMovieAvailable
 	 * Set's the specified Movie as available
 	 *
-	 * @param  $model - (optional) The Movie's ID({"id":"integer"})
+	 * @param bool | array $model - (optional) The Movie's ID
+	 * {
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
+	 * {
+	 *     "result": "bool",
+	 *     "message": "string",
+	 *     "isError": "bool",
+	 *     "errorMessage": "string"
+	 * }
 	 */
-	function postRequestmovieavailable($model = false) {
+	function postRequestMovieAvailable($model=false) {
 		$uri = "Request/movie/available";
 		$method = "post";
 		return $this->processRequest($uri, $model, $method);
 	}
 
 	/**
-	 * postRequestmovieunavailable
+	 * postRequestMovieUnavailable
 	 * Set's the specified Movie as unavailable
 	 *
-	 * @param  $model - (optional) The Movie's ID({"id":"integer"})
+	 * @param bool | array $model - (optional) The Movie's ID
+	 * {
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
+	 * {
+	 *     "result": "bool",
+	 *     "message": "string",
+	 *     "isError": "bool",
+	 *     "errorMessage": "string"
+	 * }
 	 */
-	function postRequestmovieunavailable($model = false) {
+	function postRequestMovieUnavailable($model=false) {
 		$uri = "Request/movie/unavailable";
 		$method = "post";
 		return $this->processRequest($uri, $model, $method);
 	}
 
 	/**
-	 * putRequestmoviedeny
+	 * putRequestMovieDeny
 	 * Denies the specified movie request.
 	 *
-	 * @param  $model - (optional) The Movie's ID({"id":"integer"})
+	 * @param bool | array $model - (optional) The Movie's ID
+	 * {
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
+	 * {
+	 *     "result": "bool",
+	 *     "message": "string",
+	 *     "isError": "bool",
+	 *     "errorMessage": "string"
+	 * }
 	 */
-	function putRequestmoviedeny($model = false) {
+	function putRequestMovieDeny($model=false) {
 		$uri = "Request/movie/deny";
 		$method = "put";
 		return $this->processRequest($uri, $model, $method);
 	}
 
 	/**
-	 * getRequesttvtotal
+	 * getRequestTvTotal
 	 * Gets the total amount of TV requests.
 	 *
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function getRequesttvtotal() {
+	function getRequestTvTotal() {
 		$uri = "Request/tv/total";
 		return $this->processRequest($uri);
 	}
 
 	/**
-	 * getRequesttv
+	 * getRequestTv
 	 * Gets the tv requests.
 	 *
-	 * @param int $count - (required) The count of items you want to return.([])
-	 * @param int $position - (required) The position.([])
-	 * @param int $orderType - (required) ([])
-	 * @param bool | int $statusType - (optional) ([])
-	 * @param bool | int $availabilityType - (optional) ([])
-	 * @param string $statusFilterType - (required) ([])
-	 * @param string $availabilityFilterType - (required) ([])
+	 * @param int $count - (required) The count of items you want to return.
+	 * @param int $position - (required) The position.
+	 * @param int $orderType - (required)
+	 * @param string $statusFilterType - (required)
+	 * @param string $availabilityFilterType - (required)
+	 * @param bool | int $statusType - (optional)
+	 * @param bool | int $availabilityType - (optional)
 	 *
-	 * @return array
+	 * @return string (application/json)
+	 * {
+	 *     "collection": "array - []",
+	 *     "total": "int"
+	 * }
 	 */
-	function getRequesttv($count, $position, $orderType, $statusFilterType, $availabilityFilterType, $statusType = false, $availabilityType = false) {
-		$uri = "Request/tv/$count/$position/$orderType/$statusFilterType/$availabilityFilterType";
-		if ($statusType) {
-			$uri .= "?statusType=$statusType";
-		}
-		if ($availabilityType) {
-			$uri .= "?availabilityType=$availabilityType";
-		}
+	function getRequestTv($count, $position, $orderType, $statusFilterType, $availabilityFilterType, $statusType=false, $availabilityType=false) {
+		$uri = "Request/tv/$count/$position/$orderType/$statusFilterType/$availabilityFilterType?$statusType&$availabilityType";
 		return $this->processRequest($uri);
 	}
 
 	/**
-	 * getRequesttvlite
+	 * getRequestTvlite
 	 * Gets the tv requests lite.
 	 *
-	 * @param int $count - (required) The count of items you want to return.([])
-	 * @param int $position - (required) The position.([])
-	 * @param int $orderType - (required) ([])
-	 * @param bool | int $statusType - (optional) ([])
-	 * @param bool | int $availabilityType - (optional) ([])
-	 * @param string $statusFilterType - (required) ([])
-	 * @param string $availabilityFilterType - (required) ([])
+	 * @param int $count - (required) The count of items you want to return.
+	 * @param int $position - (required) The position.
+	 * @param int $orderType - (required)
+	 * @param string $statusFilterType - (required)
+	 * @param string $availabilityFilterType - (required)
+	 * @param bool | int $statusType - (optional)
+	 * @param bool | int $availabilityType - (optional)
 	 *
-	 * @return array
+	 * @return string (application/json)
+	 * {
+	 *     "collection": "array - []",
+	 *     "total": "int"
+	 * }
 	 */
-	function getRequesttvlite($count, $position, $orderType, $statusFilterType, $availabilityFilterType, $statusType = false, $availabilityType = false) {
-		$uri = "Request/tvlite/$count/$position/$orderType/$statusFilterType/$availabilityFilterType";
-		if ($statusType) {
-			$uri .= "?statusType=$statusType";
-		}
-		if ($availabilityType) {
-			$uri .= "?availabilityType=$availabilityType";
-		}
-
+	function getRequestTvlite($count, $position, $orderType, $statusFilterType, $availabilityFilterType, $statusType=false, $availabilityType=false) {
+		$uri = "Request/tvlite/$count/$position/$orderType/$statusFilterType/$availabilityFilterType?$statusType&$availabilityType";
 		return $this->processRequest($uri);
 	}
 
 	/**
-	 * putRequesttv
+	 * putRequestTv
 	 * Updates the a specific tv request
 	 *
-	 * @param  $model - (optional) The model.({"tvDbId":"integer","imdbId":"string","qualityOverride":"integer","rootFolder":"integer","overview":"string","title":"string","posterPath":"string","background":"string","releaseDate":"string","status":"string","totalSeasons":"integer","childRequests":"array","id":"integer"})
+	 * @param bool | array $model - (optional) The model.
+	 * {
+	 *     "tvDbId": "int",
+	 *     "imdbId": "string",
+	 *     "qualityOverride": "int",
+	 *     "rootFolder": "int",
+	 *     "overview": "string",
+	 *     "title": "string",
+	 *     "posterPath": "string",
+	 *     "background": "string",
+	 *     "releaseDate": "string",
+	 *     "status": "string",
+	 *     "totalSeasons": "int",
+	 *     "childRequests": "array - []",
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
+	 * {
+	 *     "tvDbId": "int",
+	 *     "imdbId": "string",
+	 *     "qualityOverride": "int",
+	 *     "rootFolder": "int",
+	 *     "overview": "string",
+	 *     "title": "string",
+	 *     "posterPath": "string",
+	 *     "background": "string",
+	 *     "releaseDate": "string",
+	 *     "status": "string",
+	 *     "totalSeasons": "int",
+	 *     "childRequests": "array - []",
+	 *     "id": "int"
+	 * }
 	 */
-	function putRequesttv($model = false) {
+	function putRequestTv($model=false) {
 		$uri = "Request/tv";
 		$method = "put";
 		return $this->processRequest($uri, $model, $method);
 	}
 
 	/**
-	 * getRequesttvlite
+	 * getRequestsTvlite
 	 * Gets the tv requests without the whole object graph (Does not include seasons/episodes).
 	 *
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function getRequeststvlite() {
+	function getRequestsTvlite() {
 		$uri = "Request/tvlite";
 		return $this->processRequest($uri);
 	}
 
 	/**
-	 * deleteRequesttv
+	 * deleteRequestTv
 	 * Deletes the a specific tv request
 	 *
-	 * @param int $requestId - (required) The request identifier.([])
+	 * @param int $requestId - (required) The request identifier.
 	 *
-	 * @return array
+	 * @return string
 	 */
-	function deleteRequesttv($requestId) {
+	function deleteRequestTv($requestId) {
 		$uri = "Request/tv/$requestId";
 		$method = "delete";
 		return $this->processRequest($uri, $requestId, $method);
 	}
 
 	/**
-	 * getRequesttvsearch
+	 * getRequestTvSearch
 	 * Searches for a specific tv request
 	 *
-	 * @param string $searchTerm - (required) The search term.([])
+	 * @param string $searchTerm - (required) The search term.
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function getRequesttvsearch($searchTerm) {
+	function getRequestTvSearch($searchTerm) {
 		$uri = "Request/tv/search/$searchTerm";
 		return $this->processRequest($uri);
 	}
 
 	/**
-	 * putRequesttvroot
+	 * putRequestTvRoot
 	 * Updates the root path for this tv show
 	 *
-	 * @param int $requestId - (required) ([])
-	 * @param int $rootFolderId - (required) ([])
+	 * @param int $requestId - (required)
+	 * @param int $rootFolderId - (required)
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function putRequesttvroot($requestId, $rootFolderId) {
+	function putRequestTvRoot($requestId, $rootFolderId) {
 		$uri = "Request/tv/root/$requestId/$rootFolderId";
 		$method = "put";
 		return $this->processRequest($uri, $requestId, $method);
 	}
 
 	/**
-	 * putRequesttvquality
+	 * putRequestTvQuality
 	 * Updates the quality profile for this tv show
 	 *
-	 * @param int $requestId - (required) ([])
-	 * @param int $qualityId - (required) ([])
+	 * @param int $requestId - (required)
+	 * @param int $qualityId - (required)
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function putRequesttvquality($requestId, $qualityId) {
+	function putRequestTvQuality($requestId, $qualityId) {
 		$uri = "Request/tv/quality/$requestId/$qualityId";
 		$method = "put";
 		return $this->processRequest($uri, $requestId, $method);
 	}
 
 	/**
-	 * putRequesttvchild
+	 * putRequestTvChild
 	 * Updates the a specific child request
 	 *
-	 * @param  $child - (optional) The model.({"parentRequest":null,"parentRequestId":"integer","issueId":"integer","seriesType":"string","subscribed":"boolean","showSubscribe":"boolean","issues":"array","seasonRequests":"array","title":"string","approved":"boolean","markedAsApproved":"string","requestedDate":"string","available":"boolean","markedAsAvailable":"string","requestedUserId":"string","denied":"boolean","markedAsDenied":"string","deniedReason":"string","requestType":"string","requestedUser":null,"canApprove":"boolean","id":"integer"})
+	 * @param bool | array $child - (optional) The model.
+	 * {
+	 *     "parentRequest": null,
+	 *     "parentRequestId": "int",
+	 *     "issueId": "int",
+	 *     "seriesType": "string",
+	 *     "subscribed": "bool",
+	 *     "showSubscribe": "bool",
+	 *     "issues": "array - []",
+	 *     "seasonRequests": "array - []",
+	 *     "title": "string",
+	 *     "approved": "bool",
+	 *     "markedAsApproved": "string",
+	 *     "requestedDate": "string",
+	 *     "available": "bool",
+	 *     "markedAsAvailable": "string",
+	 *     "requestedUserId": "string",
+	 *     "denied": "bool",
+	 *     "markedAsDenied": "string",
+	 *     "deniedReason": "string",
+	 *     "requestType": "string",
+	 *     "requestedUser": null,
+	 *     "canApprove": "bool",
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
+	 * {
+	 *     "parentRequest": null,
+	 *     "parentRequestId": "int",
+	 *     "issueId": "int",
+	 *     "seriesType": "string",
+	 *     "subscribed": "bool",
+	 *     "showSubscribe": "bool",
+	 *     "issues": "array - []",
+	 *     "seasonRequests": "array - []",
+	 *     "title": "string",
+	 *     "approved": "bool",
+	 *     "markedAsApproved": "string",
+	 *     "requestedDate": "string",
+	 *     "available": "bool",
+	 *     "markedAsAvailable": "string",
+	 *     "requestedUserId": "string",
+	 *     "denied": "bool",
+	 *     "markedAsDenied": "string",
+	 *     "deniedReason": "string",
+	 *     "requestType": "string",
+	 *     "requestedUser": null,
+	 *     "canApprove": "bool",
+	 *     "id": "int"
+	 * }
 	 */
-	function putRequesttvchild($child = false) {
+	function putRequestTvChild($child=false) {
 		$uri = "Request/tv/child";
 		$method = "put";
 		return $this->processRequest($uri, $child, $method);
 	}
 
 	/**
-	 * putRequesttvdeny
+	 * putRequestTvDeny
 	 * Denies the a specific child request
 	 *
-	 * @param  $model - (optional) This is the child request's ID({"id":"integer"})
+	 * @param bool | array $model - (optional) This is the child request's ID
+	 * {
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
+	 * {
+	 *     "result": "bool",
+	 *     "message": "string",
+	 *     "isError": "bool",
+	 *     "errorMessage": "string"
+	 * }
 	 */
-	function putRequesttvdeny($model = false) {
+	function putRequestTvDeny($model=false) {
 		$uri = "Request/tv/deny";
 		$method = "put";
 		return $this->processRequest($uri, $model, $method);
 	}
 
 	/**
-	 * postRequesttvavailable
+	 * postRequestTvAvailable
 	 * Set's the specified tv child as available
 	 *
-	 * @param  $model - (optional) The Movie's ID({"id":"integer"})
+	 * @param bool | array $model - (optional) The Movie's ID
+	 * {
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
+	 * {
+	 *     "result": "bool",
+	 *     "message": "string",
+	 *     "isError": "bool",
+	 *     "errorMessage": "string"
+	 * }
 	 */
-	function postRequesttvavailable($model = false) {
+	function postRequestTvAvailable($model=false) {
 		$uri = "Request/tv/available";
 		$method = "post";
 		return $this->processRequest($uri, $model, $method);
 	}
 
 	/**
-	 * postRequesttvunavailable
+	 * postRequestTvUnavailable
 	 * Set's the specified tv child as unavailable
 	 *
-	 * @param  $model - (optional) The Movie's ID({"id":"integer"})
+	 * @param bool | array $model - (optional) The Movie's ID
+	 * {
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
+	 * {
+	 *     "result": "bool",
+	 *     "message": "string",
+	 *     "isError": "bool",
+	 *     "errorMessage": "string"
+	 * }
 	 */
-	function postRequesttvunavailable($model = false) {
+	function postRequestTvUnavailable($model=false) {
 		$uri = "Request/tv/unavailable";
 		$method = "post";
 		return $this->processRequest($uri, $model, $method);
 	}
 
 	/**
-	 * postRequesttvapprove
+	 * postRequestTvApprove
 	 * Updates the a specific child request
 	 *
-	 * @param  $model - (optional) This is the child request's ID({"id":"integer"})
+	 * @param bool | array $model - (optional) This is the child request's ID
+	 * {
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
+	 * {
+	 *     "result": "bool",
+	 *     "message": "string",
+	 *     "isError": "bool",
+	 *     "errorMessage": "string"
+	 * }
 	 */
-	function postRequesttvapprove($model = false) {
+	function postRequestTvApprove($model=false) {
 		$uri = "Request/tv/approve";
 		$method = "post";
 		return $this->processRequest($uri, $model, $method);
 	}
 
 	/**
-	 * deleteRequesttvchild
+	 * deleteRequestTvChild
 	 * Deletes the a specific tv request
 	 *
-	 * @param int $requestId - (required) The model.([])
+	 * @param int $requestId - (required) The model.
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function deleteRequesttvchild($requestId) {
+	function deleteRequestTvChild($requestId) {
 		$uri = "Request/tv/child/$requestId";
 		$method = "delete";
 		return $this->processRequest($uri, $requestId, $method);
 	}
 
 	/**
-	 * getRequesttvchild
+	 * getRequestTvChild
 	 * Retuns all children requests for the request id
 	 *
-	 * @param int $requestId - (required) The Request Id([])
+	 * @param int $requestId - (required) The Request Id
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function getRequesttvchild($requestId) {
+	function getRequestTvChild($requestId) {
 		$uri = "Request/tv/$requestId/child";
 		return $this->processRequest($uri);
 	}
 
 	/**
-	 * getRequestcount
+	 * getRequestCount
 	 * Gets the count of total requests
 	 *
 	 *
-	 * @return array
+	 * @return string (application/json)
+	 * {
+	 *     "pending": "int",
+	 *     "approved": "int",
+	 *     "available": "int"
+	 * }
 	 */
-	function getRequestcount() {
+	function getRequestCount() {
 		$uri = "Request/count";
 		return $this->processRequest($uri);
 	}
 
+	function postRequestMovie($tmdbId) {
+		$uri = "Request/Movie";
+		$method = "post";
+		$body = ["theMovieDbId"=>$tmdbId];
+
+		return $this->processRequest($uri, $body, $method);
+	}
+
 	/**
-	 * getRequestuserhasrequest
+	 * getRequestUserhasrequest
 	 * Checks if the passed in user has a request
 	 *
-	 * @param string $userId
+	 * @param bool | string $userId - (optional)
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function getRequestuserhasrequest($userId) {
-		$uri = "Request/userhasrequest?userId=$userId";
+	function getRequestUserhasrequest($userId=false) {
+		$uri = "Request/userhasrequest?$userId";
 		return $this->processRequest($uri);
 	}
 
 	/**
-	 * postRequestmoviesubscribe
+	 * postRequestMovieSubscribe
 	 * Subscribes for notifications to a movie request
 	 *
-	 * @param int $requestId - (required) ([])
+	 * @param int $requestId - (required)
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function postRequestmoviesubscribe($requestId) {
+	function postRequestMovieSubscribe($requestId) {
 		$uri = "Request/movie/subscribe/$requestId";
 		$method = "post";
 		return $this->processRequest($uri, $requestId, $method);
 	}
 
+	function postRequestTv($tvdbId, $seasons) {
+		$uri = "Request/TV";
+		$method = "post";
+		foreach($seasons as &$season) {
+			$season = ['seasonNumber'=>$season['seasonNumber'], 'episodes'=>[]];
+		}
+		$body = [
+			"firstSeason"=>false,
+			"latestSeason"=>false,
+			"requestAll"=>true,
+			"tvDbId"=>intval($tvdbId),
+			"seasons"=>$seasons
+		];
+
+		return $this->processRequest($uri,$body,$method);
+	}
+
 	/**
-	 * postRequesttvsubscribe
+	 * postRequestTvSubscribe
 	 * Subscribes for notifications to a TV request
 	 *
-	 * @param int $requestId - (required) ([])
+	 * @param int $requestId - (required)
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function postRequesttvsubscribe($requestId) {
+	function postRequestTvSubscribe($requestId) {
 		$uri = "Request/tv/subscribe/$requestId";
 		$method = "post";
 		return $this->processRequest($uri, $requestId, $method);
 	}
 
 	/**
-	 * postRequestmovieunsubscribe
+	 * postRequestMovieUnsubscribe
 	 * UnSubscribes for notifications to a movie request
 	 *
-	 * @param int $requestId - (required) ([])
+	 * @param int $requestId - (required)
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function postRequestmovieunsubscribe($requestId) {
+	function postRequestMovieUnsubscribe($requestId) {
 		$uri = "Request/movie/unsubscribe/$requestId";
 		$method = "post";
 		return $this->processRequest($uri, $requestId, $method);
 	}
 
 	/**
-	 * postRequesttvunsubscribe
+	 * postRequestTvUnsubscribe
 	 * UnSubscribes for notifications to a TV request
 	 *
-	 * @param int $requestId - (required) ([])
+	 * @param int $requestId - (required)
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function postRequesttvunsubscribe($requestId) {
+	function postRequestTvUnsubscribe($requestId) {
 		$uri = "Request/tv/unsubscribe/$requestId";
 		$method = "post";
 		return $this->processRequest($uri, $requestId, $method);
 	}
 
 	/**
-	 * getRequestmovieremaining
+	 * getRequestMovieRemaining
 	 * Gets model containing remaining number of movie requests.
 	 *
 	 *
-	 * @return array
+	 * @return string (application/json)
+	 * {
+	 *     "hasLimit": "bool",
+	 *     "limit": "int",
+	 *     "remaining": "int",
+	 *     "nextRequest": "string"
+	 * }
 	 */
-	function getRequestmovieremaining() {
+	function getRequestMovieRemaining() {
 		$uri = "Request/movie/remaining";
 		return $this->processRequest($uri);
 	}
 
 	/**
-	 * getRequesttvremaining
+	 * getRequestTvRemaining
 	 * Gets model containing remaining number of tv requests.
 	 *
 	 *
-	 * @return array
+	 * @return string (application/json)
+	 * {
+	 *     "hasLimit": "bool",
+	 *     "limit": "int",
+	 *     "remaining": "int",
+	 *     "nextRequest": "string"
+	 * }
 	 */
-	function getRequesttvremaining() {
+	function getRequestTvRemaining() {
 		$uri = "Request/tv/remaining";
 		return $this->processRequest($uri);
 	}
 
 	/**
-	 * getSearchmovie
+	 * getSearchMovie
 	 * Searches for a movie.
 	 *
-	 * @param string $searchTerm - (required) The search term.([])
+	 * @param string $searchTerm - (required) The search term.
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function getSearchmovie($searchTerm) {
+	function getSearchMovie($searchTerm) {
 		$uri = "Search/movie/$searchTerm";
 		return $this->processRequest($uri);
 	}
 
+	function getSearchMulti($searchTerm) {
+		$uri = [];
+		$searchTerm = urlencode($searchTerm);
+		$uri["movie"] = ["uri"=>"Search/movie/$searchTerm"];
+		$uri["tv"] = ["uri"=>"Search/tv/$searchTerm"];
+		return $this->processRequests($uri);
+	}
+
 	/**
-	 * getSearchmovieinfo
+	 * getSearchMovieInfo
 	 * Gets extra information on the movie e.g. IMDBId
 	 *
-	 * @param int $theMovieDbId - (required) The movie database identifier.([])
+	 * @param int $theMovieDbId - (required) The movie database identifier.
 	 *
-	 * @return array
+	 * @return string (application/json)
+	 * {
+	 *     "adult": "bool",
+	 *     "backdropPath": "string",
+	 *     "genreIds": "array - []",
+	 *     "originalLanguage": "string",
+	 *     "originalTitle": "string",
+	 *     "overview": "string",
+	 *     "popularity": "number",
+	 *     "posterPath": "string",
+	 *     "releaseDate": "string",
+	 *     "title": "string",
+	 *     "video": "bool",
+	 *     "voteAverage": "number",
+	 *     "voteCount": "int",
+	 *     "alreadyInCp": "bool",
+	 *     "trailer": "string",
+	 *     "homepage": "string",
+	 *     "rootPathOverride": "int",
+	 *     "qualityOverride": "int",
+	 *     "type": "string",
+	 *     "releaseDates": null,
+	 *     "digitalReleaseDate": "string",
+	 *     "id": "int",
+	 *     "approved": "bool",
+	 *     "requested": "bool",
+	 *     "requestId": "int",
+	 *     "available": "bool",
+	 *     "plexUrl": "string",
+	 *     "embyUrl": "string",
+	 *     "quality": "string",
+	 *     "imdbId": "string",
+	 *     "theTvDbId": "string",
+	 *     "theMovieDbId": "string",
+	 *     "subscribed": "bool",
+	 *     "showSubscribe": "bool"
+	 * }
 	 */
-	function getSearchmovieinfo($theMovieDbId) {
+	function getSearchMovieInfo($theMovieDbId) {
 		$uri = "Search/movie/info/$theMovieDbId";
 		return $this->processRequest($uri);
 	}
 
 	/**
-	 * getSearchmoviesimilar
+	 * getSearchMovieSimilar
 	 * Returns similar movies to the movie id passed in
 	 *
-	 * @param int $theMovieDbId - (required) ID of the movie([])
+	 * @param int $theMovieDbId - (required) ID of the movie
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function getSearchmoviesimilar($theMovieDbId) {
+	function getSearchMovieSimilar($theMovieDbId) {
 		$uri = "Search/movie/$theMovieDbId/similar";
 		return $this->processRequest($uri);
 	}
 
 	/**
-	 * getSearchmoviepopular
+	 * getSearchMoviePopular
 	 * Returns Popular Movies
 	 *
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function getSearchmoviepopular() {
+	function getSearchMoviePopular() {
 		$uri = "Search/movie/popular";
 		return $this->processRequest($uri);
 	}
 
 	/**
-	 * getSearchmovienowplaying
+	 * getSearchMovieNowplaying
 	 * Retuns Now Playing Movies
 	 *
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function getSearchmovienowplaying() {
+	function getSearchMovieNowplaying() {
 		$uri = "Search/movie/nowplaying";
 		return $this->processRequest($uri);
 	}
 
 	/**
-	 * getSearchmovietoprated
+	 * getSearchMovieToprated
 	 * Returns top rated movies.
 	 *
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function getSearchmovietoprated() {
+	function getSearchMovieToprated() {
 		$uri = "Search/movie/toprated";
 		return $this->processRequest($uri);
 	}
 
 	/**
-	 * getSearchmovieupcoming
+	 * getSearchMovieUpcoming
 	 * Returns Upcoming movies.
 	 *
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function getSearchmovieupcoming() {
+	function getSearchMovieUpcoming() {
 		$uri = "Search/movie/upcoming";
 		return $this->processRequest($uri);
 	}
 
 	/**
-	 * getSearchtv
+	 * getSearchTv
 	 * Searches for a Tv Show.
 	 *
-	 * @param string $searchTerm - (required) The search term.([])
+	 * @param string $searchTerm - (required) The search term.
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function getSearchtv($searchTerm) {
+	function getSearchTv($searchTerm) {
 		$uri = "Search/tv/$searchTerm";
 		return $this->processRequest($uri);
 	}
 
 	/**
-	 * getSearchtvinfo
+	 * getSearchTvInfo
 	 * Gets extra show information.
 	 *
-	 * @param int $tvdbId - (required) The TVDB identifier.([])
+	 * @param int $tvdbId - (required) The TVDB identifier.
 	 *
-	 * @return array
+	 * @return string (application/json)
+	 * {
+	 *     "title": "string",
+	 *     "aliases": "array - []",
+	 *     "banner": "string",
+	 *     "seriesId": "int",
+	 *     "status": "string",
+	 *     "firstAired": "string",
+	 *     "network": "string",
+	 *     "networkId": "string",
+	 *     "runtime": "string",
+	 *     "genre": "array - []",
+	 *     "overview": "string",
+	 *     "lastUpdated": "int",
+	 *     "airsDayOfWeek": "string",
+	 *     "airsTime": "string",
+	 *     "rating": "string",
+	 *     "siteRating": "int",
+	 *     "trailer": "string",
+	 *     "homepage": "string",
+	 *     "seasonRequests": "array - []",
+	 *     "requestAll": "bool",
+	 *     "firstSeason": "bool",
+	 *     "latestSeason": "bool",
+	 *     "fullyAvailable": "bool",
+	 *     "partlyAvailable": "bool",
+	 *     "type": "string",
+	 *     "id": "int",
+	 *     "approved": "bool",
+	 *     "requested": "bool",
+	 *     "requestId": "int",
+	 *     "available": "bool",
+	 *     "plexUrl": "string",
+	 *     "embyUrl": "string",
+	 *     "quality": "string",
+	 *     "imdbId": "string",
+	 *     "theTvDbId": "string",
+	 *     "theMovieDbId": "string",
+	 *     "subscribed": "bool",
+	 *     "showSubscribe": "bool"
+	 * }
 	 */
-	function getSearchtvinfo($tvdbId) {
+	function getSearchTvInfo($tvdbId) {
 		$uri = "Search/tv/info/$tvdbId";
 		return $this->processRequest($uri);
 	}
 
 	/**
-	 * getSearchtvpopular
+	 * getSearchTvPopular
 	 * Returns Popular Tv Shows
 	 *
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function getSearchtvpopular() {
+	function getSearchTvPopular() {
 		$uri = "Search/tv/popular";
 		return $this->processRequest($uri);
 	}
 
 	/**
-	 * getSearchtvanticipated
+	 * getSearchTvAnticipated
 	 * Returns most Anticiplateds tv shows.
 	 *
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function getSearchtvanticipated() {
+	function getSearchTvAnticipated() {
 		$uri = "Search/tv/anticipated";
 		return $this->processRequest($uri);
 	}
 
 	/**
-	 * getSearchtvmostwatched
+	 * getSearchTvMostwatched
 	 * Returns Most watched shows.
 	 *
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function getSearchtvmostwatched() {
+	function getSearchTvMostwatched() {
 		$uri = "Search/tv/mostwatched";
 		return $this->processRequest($uri);
 	}
 
 	/**
-	 * getSearchtvtrending
+	 * getSearchTvTrending
 	 * Returns trending shows
 	 *
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function getSearchtvtrending() {
+	function getSearchTvTrending() {
 		$uri = "Search/tv/trending";
 		return $this->processRequest($uri);
 	}
 
 	/**
-	 * getSearchmusicartist
+	 * getSearchMusicArtist
 	 * Returns the artist information we searched for
 	 *
-	 * @param string $searchTerm - (required) ([])
+	 * @param string $searchTerm - (required)
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function getSearchmusicartist($searchTerm) {
+	function getSearchMusicArtist($searchTerm) {
 		$uri = "Search/music/artist/$searchTerm";
 		return $this->processRequest($uri);
 	}
 
 	/**
-	 * getSearchmusicalbum
+	 * getSearchMusicAlbum
 	 * Returns the album information we searched for
 	 *
-	 * @param string $searchTerm - (required) ([])
+	 * @param string $searchTerm - (required)
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function getSearchmusicalbum($searchTerm) {
+	function getSearchMusicAlbum($searchTerm) {
 		$uri = "Search/music/album/$searchTerm";
 		return $this->processRequest($uri);
 	}
 
 	/**
-	 * getSearchmusicartistalbum
+	 * getSearchMusicArtistAlbum
 	 * Returns all albums for the artist using the ForeignArtistId
 	 *
-	 * @param string $foreignArtistId - (required) ([])
+	 * @param string $foreignArtistId - (required)
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function getSearchmusicartistalbum($foreignArtistId) {
+	function getSearchMusicArtistAlbum($foreignArtistId) {
 		$uri = "Search/music/artist/album/$foreignArtistId";
 		return $this->processRequest($uri);
 	}
 
 	/**
-	 * postSettingsombi
+	 * postSettingsOmbi
 	 * Save the Ombi settings.
 	 *
-	 * @param  $ombi - (optional) The ombi.({"baseUrl":"string","collectAnalyticData":"boolean","wizard":"boolean","apiKey":"string","ignoreCertificateErrors":"boolean","doNotSendNotificationsForAutoApprove":"boolean","hideRequestsUsers":"boolean","id":"integer"})
+	 * @param bool | array $ombi - (optional) The ombi.
+	 * {
+	 *     "baseUrl": "string",
+	 *     "collectAnalyticData": "bool",
+	 *     "wizard": "bool",
+	 *     "apiKey": "string",
+	 *     "ignoreCertificateErrors": "bool",
+	 *     "doNotSendNotificationsForAutoApprove": "bool",
+	 *     "hideRequestsUsers": "bool",
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function postSettingsombi($ombi = false) {
+	function postSettingsOmbi($ombi=false) {
 		$uri = "Settings/ombi";
 		$method = "post";
 		return $this->processRequest($uri, $ombi, $method);
 	}
 
 	/**
-	 * getSettingsabout
+	 * getSettingsAbout
 	 *
 	 *
 	 *
-	 * @return array
+	 * @return string (application/json)
+	 * {
+	 *     "version": "string",
+	 *     "branch": "string",
+	 *     "frameworkDescription": "string",
+	 *     "osArchitecture": "string",
+	 *     "osDescription": "string",
+	 *     "processArchitecture": "string",
+	 *     "applicationBasePath": "string"
+	 * }
 	 */
-	function getSettingsabout() {
+	function getSettingsAbout() {
 		$uri = "Settings/about";
 		return $this->processRequest($uri);
 	}
 
 	/**
-	 * postSettingsombiresetApi
+	 * postSettingsOmbiResetApi
 	 *
 	 *
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function postSettingsombiresetApi() {
+	function postSettingsOmbiResetApi() {
 		$uri = "Settings/ombi/resetApi";
 		$method = "post";
 		return $this->processRequest($uri, false, $method);
 	}
 
 	/**
-	 * postSettingsplex
+	 * postSettingsPlex
 	 * Save the Plex settings.
 	 *
-	 * @param  $plex - (optional) The plex.({"enable":"boolean","installId":"string","servers":"array","id":"integer"})
+	 * @param bool | array $plex - (optional) The plex.
+	 * {
+	 *     "enable": "bool",
+	 *     "installId": "string",
+	 *     "servers": "array - []",
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function postSettingsplex($plex = false) {
+	function postSettingsPlex($plex=false) {
 		$uri = "Settings/plex";
 		$method = "post";
 		return $this->processRequest($uri, $plex, $method);
 	}
 
 	/**
-	 * getSettingsclientid
+	 * getSettingsClientid
 	 *
 	 *
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function getSettingsclientid() {
+	function getSettingsClientid() {
 		$uri = "Settings/clientid";
 		return $this->processRequest($uri);
 	}
 
 	/**
-	 * postSettingsemby
+	 * postSettingsEmby
 	 * Save the Emby settings.
 	 *
-	 * @param  $emby - (optional) The emby.({"enable":"boolean","servers":"array","id":"integer"})
+	 * @param bool | array $emby - (optional) The emby.
+	 * {
+	 *     "enable": "bool",
+	 *     "servers": "array - []",
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function postSettingsemby($emby = false) {
+	function postSettingsEmby($emby=false) {
 		$uri = "Settings/emby";
 		$method = "post";
 		return $this->processRequest($uri, $emby, $method);
 	}
 
 	/**
-	 * postSettingslandingpage
+	 * postSettingsLandingpage
 	 * Save the Landing Page settings.
 	 *
-	 * @param  $settings - (optional) The settings.({"enabled":"boolean","noticeEnabled":"boolean","noticeText":"string","timeLimit":"boolean","startDateTime":"string","endDateTime":"string","expired":"boolean","id":"integer"})
+	 * @param bool | array $settings - (optional) The settings.
+	 * {
+	 *     "enabled": "bool",
+	 *     "noticeEnabled": "bool",
+	 *     "noticeText": "string",
+	 *     "timeLimit": "bool",
+	 *     "startDateTime": "string",
+	 *     "endDateTime": "string",
+	 *     "expired": "bool",
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function postSettingslandingpage($settings = false) {
+	function postSettingsLandingpage($settings=false) {
 		$uri = "Settings/landingpage";
 		$method = "post";
 		return $this->processRequest($uri, $settings, $method);
 	}
 
 	/**
-	 * postSettingscustomization
+	 * postSettingsCustomization
 	 * Save the Customization settings.
 	 *
-	 * @param  $settings - (optional) The settings.({"applicationName":"string","applicationUrl":"string","customCssLink":"string","enableCustomDonations":"boolean","customDonationUrl":"string","customDonationMessage":"string","logo":"string","presetThemeName":"string","presetThemeContent":"string","recentlyAddedPage":"boolean","presetThemeVersion":"string","presetThemeDisplayName":"string","hasPresetTheme":"boolean","id":"integer"})
+	 * @param bool | array $settings - (optional) The settings.
+	 * {
+	 *     "applicationName": "string",
+	 *     "applicationUrl": "string",
+	 *     "customCssLink": "string",
+	 *     "enableCustomDonations": "bool",
+	 *     "customDonationUrl": "string",
+	 *     "customDonationMessage": "string",
+	 *     "logo": "string",
+	 *     "presetThemeName": "string",
+	 *     "presetThemeContent": "string",
+	 *     "recentlyAddedPage": "bool",
+	 *     "presetThemeVersion": "string",
+	 *     "presetThemeDisplayName": "string",
+	 *     "hasPresetTheme": "bool",
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function postSettingscustomization($settings = false) {
+	function postSettingsCustomization($settings=false) {
 		$uri = "Settings/customization";
 		$method = "post";
 		return $this->processRequest($uri, $settings, $method);
 	}
 
 	/**
-	 * getSettingsthemes
+	 * getSettingsThemes
 	 * Get's the preset themes available
 	 *
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function getSettingsthemes() {
+	function getSettingsThemes() {
 		$uri = "Settings/themes";
 		return $this->processRequest($uri);
 	}
 
 	/**
-	 * getSettingsthemecontent
+	 * getSettingsThemecontent
 	 * Gets the content of the theme available
 	 *
-	 * @param string $url
+	 * @param bool | string $url - (optional)
 	 *
-	 * @return array
+	 * @return string
 	 */
-	function getSettingsthemecontent($url) {
-		$uri = "Settings/themecontent?url=$url";
+	function getSettingsThemecontent($url=false) {
+		$uri = "Settings/themecontent?$url";
 		return $this->processRequest($uri);
 	}
 
 	/**
-	 * postSettingssonarr
+	 * postSettingsSonarr
 	 * Save the Sonarr settings.
 	 *
-	 * @param  $settings - (optional) The settings.({"enabled":"boolean","apiKey":"string","qualityProfile":"string","seasonFolders":"boolean","rootPath":"string","qualityProfileAnime":"string","rootPathAnime":"string","addOnly":"boolean","ssl":"boolean","subDir":"string","ip":"string","port":"integer","id":"integer"})
+	 * @param bool | array $settings - (optional) The settings.
+	 * {
+	 *     "enabled": "bool",
+	 *     "apiKey": "string",
+	 *     "qualityProfile": "string",
+	 *     "seasonFolders": "bool",
+	 *     "rootPath": "string",
+	 *     "qualityProfileAnime": "string",
+	 *     "rootPathAnime": "string",
+	 *     "addOnly": "bool",
+	 *     "ssl": "bool",
+	 *     "subDir": "string",
+	 *     "ip": "string",
+	 *     "port": "int",
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function postSettingssonarr($settings = false) {
+	function postSettingsSonarr($settings=false) {
 		$uri = "Settings/sonarr";
 		$method = "post";
 		return $this->processRequest($uri, $settings, $method);
 	}
 
 	/**
-	 * postSettingsradarr
+	 * postSettingsRadarr
 	 * Save the Radarr settings.
 	 *
-	 * @param  $settings - (optional) The settings.({"enabled":"boolean","apiKey":"string","defaultQualityProfile":"string","defaultRootPath":"string","addOnly":"boolean","minimumAvailability":"string","ssl":"boolean","subDir":"string","ip":"string","port":"integer","id":"integer"})
+	 * @param bool | array $settings - (optional) The settings.
+	 * {
+	 *     "enabled": "bool",
+	 *     "apiKey": "string",
+	 *     "defaultQualityProfile": "string",
+	 *     "defaultRootPath": "string",
+	 *     "addOnly": "bool",
+	 *     "minimumAvailability": "string",
+	 *     "ssl": "bool",
+	 *     "subDir": "string",
+	 *     "ip": "string",
+	 *     "port": "int",
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function postSettingsradarr($settings = false) {
+	function postSettingsRadarr($settings=false) {
 		$uri = "Settings/radarr";
 		$method = "post";
 		return $this->processRequest($uri, $settings, $method);
 	}
 
 	/**
-	 * postSettingslidarr
+	 * postSettingsLidarr
 	 * Save the Lidarr settings.
 	 *
-	 * @param  $settings - (optional) The settings.({"enabled":"boolean","apiKey":"string","defaultQualityProfile":"string","defaultRootPath":"string","albumFolder":"boolean","languageProfileId":"integer","metadataProfileId":"integer","addOnly":"boolean","ssl":"boolean","subDir":"string","ip":"string","port":"integer","id":"integer"})
+	 * @param bool | array $settings - (optional) The settings.
+	 * {
+	 *     "enabled": "bool",
+	 *     "apiKey": "string",
+	 *     "defaultQualityProfile": "string",
+	 *     "defaultRootPath": "string",
+	 *     "albumFolder": "bool",
+	 *     "languageProfileId": "int",
+	 *     "metadataProfileId": "int",
+	 *     "addOnly": "bool",
+	 *     "ssl": "bool",
+	 *     "subDir": "string",
+	 *     "ip": "string",
+	 *     "port": "int",
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function postSettingslidarr($settings = false) {
+	function postSettingsLidarr($settings=false) {
 		$uri = "Settings/lidarr";
 		$method = "post";
 		return $this->processRequest($uri, $settings, $method);
 	}
 
 	/**
-	 * getSettingslidarrenabled
+	 * getSettingsLidarrenabled
 	 * Gets the Lidarr Settings.
 	 *
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function getSettingslidarrenabled() {
+	function getSettingsLidarrenabled() {
 		$uri = "Settings/lidarrenabled";
 		return $this->processRequest($uri);
 	}
 
 	/**
-	 * postSettingsauthentication
+	 * postSettingsAuthentication
 	 * Save the Authentication settings.
 	 *
-	 * @param  $settings - (optional) The settings.({"allowNoPassword":"boolean","requireDigit":"boolean","requiredLength":"integer","requireLowercase":"boolean","requireNonAlphanumeric":"boolean","requireUppercase":"boolean","enableOAuth":"boolean","id":"integer"})
+	 * @param bool | array $settings - (optional) The settings.
+	 * {
+	 *     "allowNoPassword": "bool",
+	 *     "requireDigit": "bool",
+	 *     "requiredLength": "int",
+	 *     "requireLowercase": "bool",
+	 *     "requireNonAlphanumeric": "bool",
+	 *     "requireUppercase": "bool",
+	 *     "enableOAuth": "bool",
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function postSettingsauthentication($settings = false) {
+	function postSettingsAuthentication($settings=false) {
 		$uri = "Settings/authentication";
 		$method = "post";
 		return $this->processRequest($uri, $settings, $method);
@@ -1768,11 +2617,23 @@ class Ombi {
 	 * postSettingsUpdate
 	 * Save the Update settings.
 	 *
-	 * @param  $settings - (optional) The settings.({"autoUpdateEnabled":"boolean","username":"string","password":"string","processName":"string","useScript":"boolean","scriptLocation":"string","windowsServiceName":"string","windowsService":"boolean","testMode":"boolean","id":"integer"})
+	 * @param bool | array $settings - (optional) The settings.
+	 * {
+	 *     "autoUpdateEnabled": "bool",
+	 *     "username": "string",
+	 *     "password": "string",
+	 *     "processName": "string",
+	 *     "useScript": "bool",
+	 *     "scriptLocation": "string",
+	 *     "windowsServiceName": "string",
+	 *     "windowsService": "bool",
+	 *     "testMode": "bool",
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function postSettingsUpdate($settings = false) {
+	function postSettingsUpdate($settings=false) {
 		$uri = "Settings/Update";
 		$method = "post";
 		return $this->processRequest($uri, $settings, $method);
@@ -1782,11 +2643,22 @@ class Ombi {
 	 * postSettingsUserManagement
 	 * Save the UserManagement settings.
 	 *
-	 * @param  $settings - (optional) The settings.({"importPlexAdmin":"boolean","importPlexUsers":"boolean","importEmbyUsers":"boolean","movieRequestLimit":"integer","episodeRequestLimit":"integer","defaultRoles":"array","bannedPlexUserIds":"array","bannedEmbyUserIds":"array","id":"integer"})
+	 * @param bool | array $settings - (optional) The settings.
+	 * {
+	 *     "importPlexAdmin": "bool",
+	 *     "importPlexUsers": "bool",
+	 *     "importEmbyUsers": "bool",
+	 *     "movieRequestLimit": "int",
+	 *     "episodeRequestLimit": "int",
+	 *     "defaultRoles": "array - []",
+	 *     "bannedPlexUserIds": "array - []",
+	 *     "bannedEmbyUserIds": "array - []",
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function postSettingsUserManagement($settings = false) {
+	function postSettingsUserManagement($settings=false) {
 		$uri = "Settings/UserManagement";
 		$method = "post";
 		return $this->processRequest($uri, $settings, $method);
@@ -1796,11 +2668,23 @@ class Ombi {
 	 * postSettingsCouchPotato
 	 * Save the CouchPotatoSettings settings.
 	 *
-	 * @param  $settings - (optional) The settings.({"enabled":"boolean","apiKey":"string","defaultProfileId":"string","username":"string","password":"string","ssl":"boolean","subDir":"string","ip":"string","port":"integer","id":"integer"})
+	 * @param bool | array $settings - (optional) The settings.
+	 * {
+	 *     "enabled": "bool",
+	 *     "apiKey": "string",
+	 *     "defaultProfileId": "string",
+	 *     "username": "string",
+	 *     "password": "string",
+	 *     "ssl": "bool",
+	 *     "subDir": "string",
+	 *     "ip": "string",
+	 *     "port": "int",
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function postSettingsCouchPotato($settings = false) {
+	function postSettingsCouchPotato($settings=false) {
 		$uri = "Settings/CouchPotato";
 		$method = "post";
 		return $this->processRequest($uri, $settings, $method);
@@ -1810,11 +2694,18 @@ class Ombi {
 	 * postSettingsDogNzb
 	 * Save the DogNzbSettings settings.
 	 *
-	 * @param  $settings - (optional) The settings.({"enabled":"boolean","apiKey":"string","movies":"boolean","tvShows":"boolean","id":"integer"})
+	 * @param bool | array $settings - (optional) The settings.
+	 * {
+	 *     "enabled": "bool",
+	 *     "apiKey": "string",
+	 *     "movies": "bool",
+	 *     "tvShows": "bool",
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function postSettingsDogNzb($settings = false) {
+	function postSettingsDogNzb($settings=false) {
 		$uri = "Settings/DogNzb";
 		$method = "post";
 		return $this->processRequest($uri, $settings, $method);
@@ -1824,39 +2715,77 @@ class Ombi {
 	 * postSettingsSickRage
 	 * Save the SickRage settings.
 	 *
-	 * @param  $settings - (optional) The settings.({"enabled":"boolean","apiKey":"string","qualityProfile":"string","qualities":"array","ssl":"boolean","subDir":"string","ip":"string","port":"integer","id":"integer"})
+	 * @param bool | array $settings - (optional) The settings.
+	 * {
+	 *     "enabled": "bool",
+	 *     "apiKey": "string",
+	 *     "qualityProfile": "string",
+	 *     "qualities": "array - []",
+	 *     "ssl": "bool",
+	 *     "subDir": "string",
+	 *     "ip": "string",
+	 *     "port": "int",
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function postSettingsSickRage($settings = false) {
+	function postSettingsSickRage($settings=false) {
 		$uri = "Settings/SickRage";
 		$method = "post";
 		return $this->processRequest($uri, $settings, $method);
 	}
 
 	/**
-	 * postSettingsjobs
+	 * postSettingsJobs
 	 * Save the JobSettings settings.
 	 *
-	 * @param  $settings - (optional) The settings.({"embyContentSync":"string","sonarrSync":"string","radarrSync":"string","plexContentSync":"string","plexRecentlyAddedSync":"string","couchPotatoSync":"string","automaticUpdater":"string","userImporter":"string","sickRageSync":"string","refreshMetadata":"string","newsletter":"string","lidarrArtistSync":"string","id":"integer"})
+	 * @param bool | array $settings - (optional) The settings.
+	 * {
+	 *     "embyContentSync": "string",
+	 *     "sonarrSync": "string",
+	 *     "radarrSync": "string",
+	 *     "plexContentSync": "string",
+	 *     "plexRecentlyAddedSync": "string",
+	 *     "couchPotatoSync": "string",
+	 *     "automaticUpdater": "string",
+	 *     "userImporter": "string",
+	 *     "sickRageSync": "string",
+	 *     "refreshMetadata": "string",
+	 *     "newsletter": "string",
+	 *     "lidarrArtistSync": "string",
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
+	 * {
+	 *     "result": "bool",
+	 *     "message": "string"
+	 * }
 	 */
-	function postSettingsjobs($settings = false) {
+	function postSettingsJobs($settings=false) {
 		$uri = "Settings/jobs";
 		$method = "post";
 		return $this->processRequest($uri, $settings, $method);
 	}
 
 	/**
-	 * postSettingstestcron
+	 * postSettingsTestcron
 	 *
 	 *
-	 * @param  $body - (optional) ({"expression":"string"})
+	 * @param bool | array $body - (optional)
+	 * {
+	 *     "expression": "string"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
+	 * {
+	 *     "success": "bool",
+	 *     "message": "string",
+	 *     "schedule": "array - []"
+	 * }
 	 */
-	function postSettingstestcron($body = false) {
+	function postSettingsTestcron($body=false) {
 		$uri = "Settings/testcron";
 		$method = "post";
 		return $this->processRequest($uri, $body, $method);
@@ -1866,161 +2795,244 @@ class Ombi {
 	 * postSettingsIssues
 	 * Save the Issues settings.
 	 *
-	 * @param  $settings - (optional) The settings.({"enabled":"boolean","enableInProgress":"boolean","id":"integer"})
+	 * @param bool | array $settings - (optional) The settings.
+	 * {
+	 *     "enabled": "bool",
+	 *     "enableInProgress": "bool",
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function postSettingsIssues($settings = false) {
+	function postSettingsIssues($settings=false) {
 		$uri = "Settings/Issues";
 		$method = "post";
 		return $this->processRequest($uri, $settings, $method);
 	}
 
 	/**
-	 * getSettingsissuesenabled
+	 * getSettingsIssuesenabled
 	 *
 	 *
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function getSettingsissuesenabled() {
+	function getSettingsIssuesenabled() {
 		$uri = "Settings/issuesenabled";
 		return $this->processRequest($uri);
 	}
 
 	/**
-	 * postSettingsnotificationsemail
+	 * postSettingsNotificationsEmail
 	 * Saves the email notification settings.
 	 *
-	 * @param  $model - (optional) The model.({"notificationTemplates":"array","enabled":"boolean","host":"string","password":"string","port":"integer","senderName":"string","senderAddress":"string","username":"string","authentication":"boolean","adminEmail":"string","disableTLS":"boolean","disableCertificateChecking":"boolean","id":"integer"})
+	 * @param bool | array $model - (optional) The model.
+	 * {
+	 *     "notificationTemplates": "array - []",
+	 *     "enabled": "bool",
+	 *     "host": "string",
+	 *     "password": "string",
+	 *     "port": "int",
+	 *     "senderName": "string",
+	 *     "senderAddress": "string",
+	 *     "username": "string",
+	 *     "authentication": "bool",
+	 *     "adminEmail": "string",
+	 *     "disableTLS": "bool",
+	 *     "disableCertificateChecking": "bool",
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function postSettingsnotificationsemail($model = false) {
+	function postSettingsNotificationsEmail($model=false) {
 		$uri = "Settings/notifications/email";
 		$method = "post";
 		return $this->processRequest($uri, $model, $method);
 	}
 
 	/**
-	 * getSettingsnotificationsemailenabled
+	 * getSettingsNotificationsEmailEnabled
 	 * Gets the Email Notification Settings.
 	 *
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function getSettingsnotificationsemailenabled() {
+	function getSettingsNotificationsEmailEnabled() {
 		$uri = "Settings/notifications/email/enabled";
 		return $this->processRequest($uri);
 	}
 
 	/**
-	 * postSettingsnotificationsdiscord
+	 * postSettingsNotificationsDiscord
 	 * Saves the discord notification settings.
 	 *
-	 * @param  $model - (optional) The model.({"notificationTemplates":"array","enabled":"boolean","webhookUrl":"string","username":"string","id":"integer"})
+	 * @param bool | array $model - (optional) The model.
+	 * {
+	 *     "notificationTemplates": "array - []",
+	 *     "enabled": "bool",
+	 *     "webhookUrl": "string",
+	 *     "username": "string",
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function postSettingsnotificationsdiscord($model = false) {
+	function postSettingsNotificationsDiscord($model=false) {
 		$uri = "Settings/notifications/discord";
 		$method = "post";
 		return $this->processRequest($uri, $model, $method);
 	}
 
 	/**
-	 * postSettingsnotificationstelegram
+	 * postSettingsNotificationsTelegram
 	 * Saves the telegram notification settings.
 	 *
-	 * @param  $model - (optional) The model.({"notificationTemplates":"array","enabled":"boolean","botApi":"string","chatId":"string","parseMode":"string","id":"integer"})
+	 * @param bool | array $model - (optional) The model.
+	 * {
+	 *     "notificationTemplates": "array - []",
+	 *     "enabled": "bool",
+	 *     "botApi": "string",
+	 *     "chatId": "string",
+	 *     "parseMode": "string",
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function postSettingsnotificationstelegram($model = false) {
+	function postSettingsNotificationsTelegram($model=false) {
 		$uri = "Settings/notifications/telegram";
 		$method = "post";
 		return $this->processRequest($uri, $model, $method);
 	}
 
 	/**
-	 * postSettingsnotificationspushbullet
+	 * postSettingsNotificationsPushbullet
 	 * Saves the pushbullet notification settings.
 	 *
-	 * @param  $model - (optional) The model.({"notificationTemplates":"array","enabled":"boolean","accessToken":"string","channelTag":"string","id":"integer"})
+	 * @param bool | array $model - (optional) The model.
+	 * {
+	 *     "notificationTemplates": "array - []",
+	 *     "enabled": "bool",
+	 *     "accessToken": "string",
+	 *     "channelTag": "string",
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function postSettingsnotificationspushbullet($model = false) {
+	function postSettingsNotificationsPushbullet($model=false) {
 		$uri = "Settings/notifications/pushbullet";
 		$method = "post";
 		return $this->processRequest($uri, $model, $method);
 	}
 
 	/**
-	 * postSettingsnotificationspushover
+	 * postSettingsNotificationsPushover
 	 * Saves the pushover notification settings.
 	 *
-	 * @param  $model - (optional) The model.({"notificationTemplates":"array","enabled":"boolean","accessToken":"string","userToken":"string","priority":"integer","sound":"string","id":"integer"})
+	 * @param bool | array $model - (optional) The model.
+	 * {
+	 *     "notificationTemplates": "array - []",
+	 *     "enabled": "bool",
+	 *     "accessToken": "string",
+	 *     "userToken": "string",
+	 *     "priority": "int",
+	 *     "sound": "string",
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function postSettingsnotificationspushover($model = false) {
+	function postSettingsNotificationsPushover($model=false) {
 		$uri = "Settings/notifications/pushover";
 		$method = "post";
 		return $this->processRequest($uri, $model, $method);
 	}
 
 	/**
-	 * postSettingsnotificationsslack
+	 * postSettingsNotificationsSlack
 	 * Saves the slack notification settings.
 	 *
-	 * @param  $model - (optional) The model.({"notificationTemplates":"array","enabled":"boolean","webhookUrl":"string","channel":"string","username":"string","iconEmoji":"string","iconUrl":"string","id":"integer"})
+	 * @param bool | array $model - (optional) The model.
+	 * {
+	 *     "notificationTemplates": "array - []",
+	 *     "enabled": "bool",
+	 *     "webhookUrl": "string",
+	 *     "channel": "string",
+	 *     "username": "string",
+	 *     "iconEmoji": "string",
+	 *     "iconUrl": "string",
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function postSettingsnotificationsslack($model = false) {
+	function postSettingsNotificationsSlack($model=false) {
 		$uri = "Settings/notifications/slack";
 		$method = "post";
 		return $this->processRequest($uri, $model, $method);
 	}
 
 	/**
-	 * postSettingsnotificationsmattermost
+	 * postSettingsNotificationsMattermost
 	 * Saves the Mattermost notification settings.
 	 *
-	 * @param  $model - (optional) The model.({"notificationTemplates":"array","webhookUrl":"string","channel":"string","username":"string","iconUrl":"string","enabled":"boolean","id":"integer"})
+	 * @param bool | array $model - (optional) The model.
+	 * {
+	 *     "notificationTemplates": "array - []",
+	 *     "webhookUrl": "string",
+	 *     "channel": "string",
+	 *     "username": "string",
+	 *     "iconUrl": "string",
+	 *     "enabled": "bool",
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function postSettingsnotificationsmattermost($model = false) {
+	function postSettingsNotificationsMattermost($model=false) {
 		$uri = "Settings/notifications/mattermost";
 		$method = "post";
 		return $this->processRequest($uri, $model, $method);
 	}
 
 	/**
-	 * postSettingsnotificationsmobile
+	 * postSettingsNotificationsMobile
 	 * Saves the Mobile notification settings.
 	 *
-	 * @param  $model - (optional) The model.({"notificationTemplates":"array","id":"integer"})
+	 * @param bool | array $model - (optional) The model.
+	 * {
+	 *     "notificationTemplates": "array - []",
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function postSettingsnotificationsmobile($model = false) {
+	function postSettingsNotificationsMobile($model=false) {
 		$uri = "Settings/notifications/mobile";
 		$method = "post";
 		return $this->processRequest($uri, $model, $method);
 	}
 
 	/**
-	 * postSettingsnotificationsnewsletter
+	 * postSettingsNotificationsNewsletter
 	 * Saves the Newsletter notification settings.
 	 *
-	 * @param  $model - (optional) The model.({"notificationTemplate":null,"disableTv":"boolean","disableMovies":"boolean","disableMusic":"boolean","enabled":"boolean","externalEmails":"array","id":"integer"})
+	 * @param bool | array $model - (optional) The model.
+	 * {
+	 *     "notificationTemplate": null,
+	 *     "disableTv": "bool",
+	 *     "disableMovies": "bool",
+	 *     "disableMusic": "bool",
+	 *     "enabled": "bool",
+	 *     "externalEmails": "array - []",
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function postSettingsnotificationsnewsletter($model = false) {
+	function postSettingsNotificationsNewsletter($model=false) {
 		$uri = "Settings/notifications/newsletter";
 		$method = "post";
 		return $this->processRequest($uri, $model, $method);
@@ -2030,11 +3042,26 @@ class Ombi {
 	 * postSonarrProfiles
 	 * Gets the Sonarr profiles.
 	 *
-	 * @param  $settings - (optional) The settings.({"enabled":"boolean","apiKey":"string","qualityProfile":"string","seasonFolders":"boolean","rootPath":"string","qualityProfileAnime":"string","rootPathAnime":"string","addOnly":"boolean","ssl":"boolean","subDir":"string","ip":"string","port":"integer","id":"integer"})
+	 * @param bool | array $settings - (optional) The settings.
+	 * {
+	 *     "enabled": "bool",
+	 *     "apiKey": "string",
+	 *     "qualityProfile": "string",
+	 *     "seasonFolders": "bool",
+	 *     "rootPath": "string",
+	 *     "qualityProfileAnime": "string",
+	 *     "rootPathAnime": "string",
+	 *     "addOnly": "bool",
+	 *     "ssl": "bool",
+	 *     "subDir": "string",
+	 *     "ip": "string",
+	 *     "port": "int",
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function postSonarrProfiles($settings = false) {
+	function postSonarrProfiles($settings=false) {
 		$uri = "Sonarr/Profiles";
 		$method = "post";
 		return $this->processRequest($uri, $settings, $method);
@@ -2044,11 +3071,26 @@ class Ombi {
 	 * postSonarrRootFolders
 	 * Gets the Sonarr root folders.
 	 *
-	 * @param  $settings - (optional) The settings.({"enabled":"boolean","apiKey":"string","qualityProfile":"string","seasonFolders":"boolean","rootPath":"string","qualityProfileAnime":"string","rootPathAnime":"string","addOnly":"boolean","ssl":"boolean","subDir":"string","ip":"string","port":"integer","id":"integer"})
+	 * @param bool | array $settings - (optional) The settings.
+	 * {
+	 *     "enabled": "bool",
+	 *     "apiKey": "string",
+	 *     "qualityProfile": "string",
+	 *     "seasonFolders": "bool",
+	 *     "rootPath": "string",
+	 *     "qualityProfileAnime": "string",
+	 *     "rootPathAnime": "string",
+	 *     "addOnly": "bool",
+	 *     "ssl": "bool",
+	 *     "subDir": "string",
+	 *     "ip": "string",
+	 *     "port": "int",
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function postSonarrRootFolders($settings = false) {
+	function postSonarrRootFolders($settings=false) {
 		$uri = "Sonarr/RootFolders";
 		$method = "post";
 		return $this->processRequest($uri, $settings, $method);
@@ -2058,18 +3100,24 @@ class Ombi {
 	 * getStats
 	 *
 	 *
-	 * @param bool | string $from - (optional) ([])
-	 * @param bool | string $to - (optional) ([])
+	 * @param bool | string $from - (optional)
+	 * @param bool | string $to - (optional)
 	 *
-	 * @return array
+	 * @return string (application/json)
+	 * {
+	 *     "totalRequests": "int",
+	 *     "totalMovieRequests": "int",
+	 *     "totalTvRequests": "int",
+	 *     "totalIssues": "int",
+	 *     "completedRequestsMovies": "int",
+	 *     "completedRequestsTv": "int",
+	 *     "completedRequests": "int",
+	 *     "mostRequestedUserMovie": null,
+	 *     "mostRequestedUserTv": null
+	 * }
 	 */
-	function getStats($from = false, $to = false) {
-		$uri = "Stats";
-		$queries = [];
-		if ($from) $queries['from'] = $from;
-		if ($to) $queries['to'] = $to;
-		$queryString = (count($queries)) ? "?" . http_build_query($queries) : "";
-		$uri .= $queryString;
+	function getStats($from=false, $to=false) {
+		$uri = "Stats?$from&$to";
 		return $this->processRequest($uri);
 	}
 
@@ -2078,7 +3126,7 @@ class Ombi {
 	 * Gets the status of Ombi.
 	 *
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
 	function getStatus() {
 		$uri = "Status";
@@ -2086,236 +3134,396 @@ class Ombi {
 	}
 
 	/**
-	 * getStatusinfo
+	 * getStatusInfo
 	 * Returns information about this ombi instance
 	 *
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function getStatusinfo() {
+	function getStatusInfo() {
 		$uri = "Status/info";
 		return $this->processRequest($uri);
 	}
 
 	/**
-	 * postTesterdiscord
+	 * postTesterDiscord
 	 * Sends a test message to discord using the provided settings
 	 *
-	 * @param  $settings - (optional) The settings.({"enabled":"boolean","webhookUrl":"string","username":"string","id":"integer"})
+	 * @param bool | array $settings - (optional) The settings.
+	 * {
+	 *     "enabled": "bool",
+	 *     "webhookUrl": "string",
+	 *     "username": "string",
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function postTesterdiscord($settings = false) {
+	function postTesterDiscord($settings=false) {
 		$uri = "Tester/discord";
 		$method = "post";
 		return $this->processRequest($uri, $settings, $method);
 	}
 
 	/**
-	 * postTesterpushbullet
+	 * postTesterPushbullet
 	 * Sends a test message to Pushbullet using the provided settings
 	 *
-	 * @param  $settings - (optional) The settings.({"enabled":"boolean","accessToken":"string","channelTag":"string","id":"integer"})
+	 * @param bool | array $settings - (optional) The settings.
+	 * {
+	 *     "enabled": "bool",
+	 *     "accessToken": "string",
+	 *     "channelTag": "string",
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function postTesterpushbullet($settings = false) {
+	function postTesterPushbullet($settings=false) {
 		$uri = "Tester/pushbullet";
 		$method = "post";
 		return $this->processRequest($uri, $settings, $method);
 	}
 
 	/**
-	 * postTesterpushover
+	 * postTesterPushover
 	 * Sends a test message to Pushover using the provided settings
 	 *
-	 * @param  $settings - (optional) The settings.({"enabled":"boolean","accessToken":"string","userToken":"string","priority":"integer","sound":"string","id":"integer"})
+	 * @param bool | array $settings - (optional) The settings.
+	 * {
+	 *     "enabled": "bool",
+	 *     "accessToken": "string",
+	 *     "userToken": "string",
+	 *     "priority": "int",
+	 *     "sound": "string",
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function postTesterpushover($settings = false) {
+	function postTesterPushover($settings=false) {
 		$uri = "Tester/pushover";
 		$method = "post";
 		return $this->processRequest($uri, $settings, $method);
 	}
 
 	/**
-	 * postTestermattermost
+	 * postTesterMattermost
 	 * Sends a test message to mattermost using the provided settings
 	 *
-	 * @param  $settings - (optional) The settings.({"webhookUrl":"string","channel":"string","username":"string","iconUrl":"string","enabled":"boolean","id":"integer"})
+	 * @param bool | array $settings - (optional) The settings.
+	 * {
+	 *     "webhookUrl": "string",
+	 *     "channel": "string",
+	 *     "username": "string",
+	 *     "iconUrl": "string",
+	 *     "enabled": "bool",
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function postTestermattermost($settings = false) {
+	function postTesterMattermost($settings=false) {
 		$uri = "Tester/mattermost";
 		$method = "post";
 		return $this->processRequest($uri, $settings, $method);
 	}
 
 	/**
-	 * postTesterslack
+	 * postTesterSlack
 	 * Sends a test message to Slack using the provided settings
 	 *
-	 * @param  $settings - (optional) The settings.({"enabled":"boolean","webhookUrl":"string","channel":"string","username":"string","iconEmoji":"string","iconUrl":"string","id":"integer"})
+	 * @param bool | array $settings - (optional) The settings.
+	 * {
+	 *     "enabled": "bool",
+	 *     "webhookUrl": "string",
+	 *     "channel": "string",
+	 *     "username": "string",
+	 *     "iconEmoji": "string",
+	 *     "iconUrl": "string",
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function postTesterslack($settings = false) {
+	function postTesterSlack($settings=false) {
 		$uri = "Tester/slack";
 		$method = "post";
 		return $this->processRequest($uri, $settings, $method);
 	}
 
 	/**
-	 * postTesteremail
+	 * postTesterEmail
 	 * Sends a test message via email to the admin email using the provided settings
 	 *
-	 * @param  $settings - (optional) The settings.({"enabled":"boolean","host":"string","password":"string","port":"integer","senderName":"string","senderAddress":"string","username":"string","authentication":"boolean","adminEmail":"string","disableTLS":"boolean","disableCertificateChecking":"boolean","id":"integer"})
+	 * @param bool | array $settings - (optional) The settings.
+	 * {
+	 *     "enabled": "bool",
+	 *     "host": "string",
+	 *     "password": "string",
+	 *     "port": "int",
+	 *     "senderName": "string",
+	 *     "senderAddress": "string",
+	 *     "username": "string",
+	 *     "authentication": "bool",
+	 *     "adminEmail": "string",
+	 *     "disableTLS": "bool",
+	 *     "disableCertificateChecking": "bool",
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function postTesteremail($settings = false) {
+	function postTesterEmail($settings=false) {
 		$uri = "Tester/email";
 		$method = "post";
 		return $this->processRequest($uri, $settings, $method);
 	}
 
 	/**
-	 * postTesterplex
+	 * postTesterPlex
 	 * Checks if we can connect to Plex with the provided settings
 	 *
-	 * @param  $settings - (optional) ({"name":"string","plexAuthToken":"string","machineIdentifier":"string","episodeBatchSize":"integer","plexSelectedLibraries":"array","ssl":"boolean","subDir":"string","ip":"string","port":"integer","id":"integer"})
+	 * @param bool | array $settings - (optional)
+	 * {
+	 *     "name": "string",
+	 *     "plexAuthToken": "string",
+	 *     "machineIdentifier": "string",
+	 *     "episodeBatchSize": "int",
+	 *     "plexSelectedLibraries": "array - []",
+	 *     "ssl": "bool",
+	 *     "subDir": "string",
+	 *     "ip": "string",
+	 *     "port": "int",
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function postTesterplex($settings = false) {
+	function postTesterPlex($settings=false) {
 		$uri = "Tester/plex";
 		$method = "post";
 		return $this->processRequest($uri, $settings, $method);
 	}
 
 	/**
-	 * postTesteremby
+	 * postTesterEmby
 	 * Checks if we can connect to Emby with the provided settings
 	 *
-	 * @param  $settings - (optional) ({"name":"string","apiKey":"string","administratorId":"string","enableEpisodeSearching":"boolean","ssl":"boolean","subDir":"string","ip":"string","port":"integer","id":"integer"})
+	 * @param bool | array $settings - (optional)
+	 * {
+	 *     "name": "string",
+	 *     "apiKey": "string",
+	 *     "administratorId": "string",
+	 *     "enableEpisodeSearching": "bool",
+	 *     "ssl": "bool",
+	 *     "subDir": "string",
+	 *     "ip": "string",
+	 *     "port": "int",
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function postTesteremby($settings = false) {
+	function postTesterEmby($settings=false) {
 		$uri = "Tester/emby";
 		$method = "post";
 		return $this->processRequest($uri, $settings, $method);
 	}
 
 	/**
-	 * postTesterradarr
+	 * postTesterRadarr
 	 * Checks if we can connect to Radarr with the provided settings
 	 *
-	 * @param  $settings - (optional) ({"enabled":"boolean","apiKey":"string","defaultQualityProfile":"string","defaultRootPath":"string","addOnly":"boolean","minimumAvailability":"string","ssl":"boolean","subDir":"string","ip":"string","port":"integer","id":"integer"})
+	 * @param bool | array $settings - (optional)
+	 * {
+	 *     "enabled": "bool",
+	 *     "apiKey": "string",
+	 *     "defaultQualityProfile": "string",
+	 *     "defaultRootPath": "string",
+	 *     "addOnly": "bool",
+	 *     "minimumAvailability": "string",
+	 *     "ssl": "bool",
+	 *     "subDir": "string",
+	 *     "ip": "string",
+	 *     "port": "int",
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function postTesterradarr($settings = false) {
+	function postTesterRadarr($settings=false) {
 		$uri = "Tester/radarr";
 		$method = "post";
 		return $this->processRequest($uri, $settings, $method);
 	}
 
 	/**
-	 * postTestersonarr
+	 * postTesterSonarr
 	 * Checks if we can connect to Sonarr with the provided settings
 	 *
-	 * @param  $settings - (optional) ({"enabled":"boolean","apiKey":"string","qualityProfile":"string","seasonFolders":"boolean","rootPath":"string","qualityProfileAnime":"string","rootPathAnime":"string","addOnly":"boolean","ssl":"boolean","subDir":"string","ip":"string","port":"integer","id":"integer"})
+	 * @param bool | array $settings - (optional)
+	 * {
+	 *     "enabled": "bool",
+	 *     "apiKey": "string",
+	 *     "qualityProfile": "string",
+	 *     "seasonFolders": "bool",
+	 *     "rootPath": "string",
+	 *     "qualityProfileAnime": "string",
+	 *     "rootPathAnime": "string",
+	 *     "addOnly": "bool",
+	 *     "ssl": "bool",
+	 *     "subDir": "string",
+	 *     "ip": "string",
+	 *     "port": "int",
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function postTestersonarr($settings = false) {
+	function postTesterSonarr($settings=false) {
 		$uri = "Tester/sonarr";
 		$method = "post";
 		return $this->processRequest($uri, $settings, $method);
 	}
 
 	/**
-	 * postTestercouchpotato
+	 * postTesterCouchpotato
 	 * Checks if we can connect to Sonarr with the provided settings
 	 *
-	 * @param  $settings - (optional) ({"enabled":"boolean","apiKey":"string","defaultProfileId":"string","username":"string","password":"string","ssl":"boolean","subDir":"string","ip":"string","port":"integer","id":"integer"})
+	 * @param bool | array $settings - (optional)
+	 * {
+	 *     "enabled": "bool",
+	 *     "apiKey": "string",
+	 *     "defaultProfileId": "string",
+	 *     "username": "string",
+	 *     "password": "string",
+	 *     "ssl": "bool",
+	 *     "subDir": "string",
+	 *     "ip": "string",
+	 *     "port": "int",
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function postTestercouchpotato($settings = false) {
+	function postTesterCouchpotato($settings=false) {
 		$uri = "Tester/couchpotato";
 		$method = "post";
 		return $this->processRequest($uri, $settings, $method);
 	}
 
 	/**
-	 * postTestertelegram
+	 * postTesterTelegram
 	 * Sends a test message to Telegram using the provided settings
 	 *
-	 * @param  $settings - (optional) The settings.({"enabled":"boolean","botApi":"string","chatId":"string","parseMode":"string","id":"integer"})
+	 * @param bool | array $settings - (optional) The settings.
+	 * {
+	 *     "enabled": "bool",
+	 *     "botApi": "string",
+	 *     "chatId": "string",
+	 *     "parseMode": "string",
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function postTestertelegram($settings = false) {
+	function postTesterTelegram($settings=false) {
 		$uri = "Tester/telegram";
 		$method = "post";
 		return $this->processRequest($uri, $settings, $method);
 	}
 
 	/**
-	 * postTestersickrage
+	 * postTesterSickrage
 	 * Sends a test message to Slack using the provided settings
 	 *
-	 * @param  $settings - (optional) The settings.({"enabled":"boolean","apiKey":"string","qualityProfile":"string","qualities":"array","ssl":"boolean","subDir":"string","ip":"string","port":"integer","id":"integer"})
+	 * @param bool | array $settings - (optional) The settings.
+	 * {
+	 *     "enabled": "bool",
+	 *     "apiKey": "string",
+	 *     "qualityProfile": "string",
+	 *     "qualities": "array - []",
+	 *     "ssl": "bool",
+	 *     "subDir": "string",
+	 *     "ip": "string",
+	 *     "port": "int",
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function postTestersickrage($settings = false) {
+	function postTesterSickrage($settings=false) {
 		$uri = "Tester/sickrage";
 		$method = "post";
 		return $this->processRequest($uri, $settings, $method);
 	}
 
 	/**
-	 * postTesternewsletter
+	 * postTesterNewsletter
 	 *
 	 *
-	 * @param  $settings - (optional) ({"notificationTemplate":null,"disableTv":"boolean","disableMovies":"boolean","disableMusic":"boolean","enabled":"boolean","externalEmails":"array","id":"integer"})
+	 * @param bool | array $settings - (optional)
+	 * {
+	 *     "notificationTemplate": null,
+	 *     "disableTv": "bool",
+	 *     "disableMovies": "bool",
+	 *     "disableMusic": "bool",
+	 *     "enabled": "bool",
+	 *     "externalEmails": "array - []",
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function postTesternewsletter($settings = false) {
+	function postTesterNewsletter($settings=false) {
 		$uri = "Tester/newsletter";
 		$method = "post";
 		return $this->processRequest($uri, $settings, $method);
 	}
 
 	/**
-	 * postTestermobile
+	 * postTesterMobile
 	 *
 	 *
-	 * @param  $settings - (optional) ({"userId":"string","settings":null})
+	 * @param bool | array $settings - (optional)
+	 * {
+	 *     "userId": "string",
+	 *     "settings": null
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function postTestermobile($settings = false) {
+	function postTesterMobile($settings=false) {
 		$uri = "Tester/mobile";
 		$method = "post";
 		return $this->processRequest($uri, $settings, $method);
 	}
 
 	/**
-	 * postTesterlidarr
+	 * postTesterLidarr
 	 *
 	 *
-	 * @param  $settings - (optional) ({"enabled":"boolean","apiKey":"string","defaultQualityProfile":"string","defaultRootPath":"string","albumFolder":"boolean","languageProfileId":"integer","metadataProfileId":"integer","addOnly":"boolean","ssl":"boolean","subDir":"string","ip":"string","port":"integer","id":"integer"})
+	 * @param bool | array $settings - (optional)
+	 * {
+	 *     "enabled": "bool",
+	 *     "apiKey": "string",
+	 *     "defaultQualityProfile": "string",
+	 *     "defaultRootPath": "string",
+	 *     "albumFolder": "bool",
+	 *     "languageProfileId": "int",
+	 *     "metadataProfileId": "int",
+	 *     "addOnly": "bool",
+	 *     "ssl": "bool",
+	 *     "subDir": "string",
+	 *     "ip": "string",
+	 *     "port": "int",
+	 *     "id": "int"
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function postTesterlidarr($settings = false) {
+	function postTesterLidarr($settings=false) {
 		$uri = "Tester/lidarr";
 		$method = "post";
 		return $this->processRequest($uri, $settings, $method);
@@ -2325,11 +3533,19 @@ class Ombi {
 	 * postToken
 	 * Gets the token.
 	 *
-	 * @param  $model - (optional) The model.({"username":"string","password":"string","rememberMe":"boolean","usePlexAdminAccount":"boolean","usePlexOAuth":"boolean","plexTvPin":null})
+	 * @param bool | array $model - (optional) The model.
+	 * {
+	 *     "username": "string",
+	 *     "password": "string",
+	 *     "rememberMe": "bool",
+	 *     "usePlexAdminAccount": "bool",
+	 *     "usePlexOAuth": "bool",
+	 *     "plexTvPin": null
+	 * }
 	 *
-	 * @return array
+	 * @return string
 	 */
-	function postToken($model = false) {
+	function postToken($model=false) {
 		$uri = "Token";
 		$method = "post";
 		return $this->processRequest($uri, $model, $method);
@@ -2339,9 +3555,9 @@ class Ombi {
 	 * getToken
 	 *
 	 *
-	 * @param int $pinId - (required) ([])
+	 * @param int $pinId - (required)
 	 *
-	 * @return array
+	 * @return string
 	 */
 	function getToken($pinId) {
 		$uri = "Token/$pinId";
@@ -2349,28 +3565,40 @@ class Ombi {
 	}
 
 	/**
-	 * postTokenrefresh
+	 * postTokenRefresh
 	 * Refreshes the token.
 	 *
-	 * @param  $token - (optional) The model.({"token":"string","userename":"string"})
+	 * @param bool | array $token - (optional) The model.
+	 * {
+	 *     "token": "string",
+	 *     "userename": "string"
+	 * }
 	 *
-	 * @return array
+	 * @return string
 	 */
-	function postTokenrefresh($token = false) {
+	function postTokenRefresh($token=false) {
 		$uri = "Token/refresh";
 		$method = "post";
 		return $this->processRequest($uri, $token, $method);
 	}
 
 	/**
-	 * postTokenrequirePassword
+	 * postTokenRequirePassword
 	 *
 	 *
-	 * @param  $model - (optional) ({"username":"string","password":"string","rememberMe":"boolean","usePlexAdminAccount":"boolean","usePlexOAuth":"boolean","plexTvPin":null})
+	 * @param bool | array $model - (optional)
+	 * {
+	 *     "username": "string",
+	 *     "password": "string",
+	 *     "rememberMe": "bool",
+	 *     "usePlexAdminAccount": "bool",
+	 *     "usePlexOAuth": "bool",
+	 *     "plexTvPin": null
+	 * }
 	 *
-	 * @return array
+	 * @return string (application/json)
 	 */
-	function postTokenrequirePassword($model = false) {
+	function postTokenRequirePassword($model=false) {
 		$uri = "Token/requirePassword";
 		$method = "post";
 		return $this->processRequest($uri, $model, $method);
@@ -2380,15 +3608,21 @@ class Ombi {
 	 * getUpdate
 	 *
 	 *
-	 * @param string $branch - (required) ([])
+	 * @param string $branch - (required)
 	 *
-	 * @return array
+	 * @return string (application/json)
+	 * {
+	 *     "updateVersionString": "string",
+	 *     "updateVersion": "int",
+	 *     "updateDate": "string",
+	 *     "changeLogs": "array - []",
+	 *     "downloads": "array - []"
+	 * }
 	 */
 	function getUpdate($branch) {
 		$uri = "Update/$branch";
 		return $this->processRequest($uri);
 	}
-
 
 	/**
 	 * Process requests with Guzzle
@@ -2404,7 +3638,7 @@ class Ombi {
 		write_log("URL is $url");
 		$options = [];
 		$options['headers'] = ['apiKey' => $this->apiKey];
-		if ($body) $options['body'] = json_encode($body);
+		if ($body) $options['json'] = $body;
 		write_log("Options for $type: ".json_encode($options));
 		switch ($type) {
 			case "get":
@@ -2429,17 +3663,60 @@ class Ombi {
 	 * @param string $uri
 	 * @param bool | array $body - A JSON array of key/values to submit on POST/PUT
 	 * @param string $type
-	 * @return array - A response
+	 * @return string - A JSON response
 	 */
 	protected function processRequest($uri, $body = false, $type = "get") {
 		try {
 			$response = $this->_request($uri, $body, $type);
 		} catch (\Exception $e) {
-			return ['error' => array(
-					'msg' => $e->getMessage(),
-					'code' => $e->getCode())
-			];
+			return json_encode(['error' => array(
+				'msg' => $e->getMessage(),
+				'code' => $e->getCode())
+			]);
 		}
-		return json_decode($response->getBody()->getContents(),true);
+		return $response->getBody()->getContents();
+	}
+
+
+	protected function processRequests($uris) {
+		$response = [];
+		try {
+			$response = $this->_multiRequest($uris);
+		} catch (\Exception $e) {
+
+		}
+		return $response;
+	}
+
+
+
+	protected function _multiRequest($uris) {
+		$responses = [];
+		$options = [];
+		$results = [];
+		$options['headers'] = ['apiKey' => $this->apiKey];
+
+		$base = $this->url . "/api/v1/";
+		write_log("We have ". count($uris). " uris in request...");
+		$newClient = new  \GuzzleHttp\Client(['base_uri' => $base]);
+		$requestArr = [];
+		foreach($uris as $name => $data){
+			$uri = $data['uri'];
+			$requestArr[$name] = $newClient->getAsync($uri, $options);
+		}
+
+		try {
+			$responses = \GuzzleHttp\Promise\unwrap($requestArr);
+		} catch (Throwable $e) {
+			write_log("I threw up: $e","ERROR");
+		}
+
+		foreach($responses as $name=>$response) {
+			$res = $response->getBody()->getContents();
+			write_log("REs: ".json_encode($res));
+			$results[$name] = $res;
+		}
+		return $results;
 	}
 }
+

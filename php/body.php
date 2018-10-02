@@ -69,11 +69,11 @@ function makeBody($defaults) {
 					</div>
 				</div>      
 			</div>
-		    <div class="dd-full btn btn-sm dropdown-toggle" data-position="right" href="javascript:void(0)" id="client" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-	            <div class="ddLabel"></div><br>
-	                <i class="material-icons barIcon clientBtn">cast</i>
-	            </div>	                
-	        </div>
+		    <div class="btn btn-sm navIcon main" data-position="right" href="javascript:void(0)" id="client">
+	            <span class="material-icons">cast</span>
+	            <div class="ddLabel"></div>
+            </div>	                
+        	
 			<div class="modal fade" id="jsonModal">
 				<div class="modal-dialog" role="document">
 					<div class="modal-content">
@@ -90,7 +90,7 @@ function makeBody($defaults) {
 					</div>
 				</div>
 			</div>
-			<div class="dropdown-menu" id="plexClient" aria-labelledby="dropdownMenuLink">
+			<div id="plexClient">
                 <div id="clientWrapper">
                     <a class="dropdown-item client-item" data-id="rescan"><b>rescan devices</b></a>
                 </div>
@@ -109,7 +109,7 @@ function makeBody($defaults) {
             	<div class="drawer-separator"></div>
             	            	
             	<div class="drawer-item nav-item nav-link btn dd-menu">
-	                <div class="btn btn-sm dropdown-toggle barBtn" data-position="left" id="client" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+	                <div class="btn btn-sm dropdown-toggle barBtn side" data-position="left" id="client">
 	                	<span class="barBtn"><i class="material-icons barIcon">cast</i></span>
 	                    <div class="ddLabel"></div>
 	                </div>
@@ -177,7 +177,7 @@ function makeBody($defaults) {
 					<div id="sectionLabel" class="col-lg-0">
 						<h3>Home</h3>
 					</div>
-					<div class="btn btn-sm" id="hamburger">
+					<div class="btn btn-sm navIcon" id="hamburger">
 						<span class="material-icons">menu</span>
 					</div>
 					<div class="wrapper col-sm-9 col-lg-8" id="mainWrap">
@@ -271,6 +271,7 @@ function makeBody($defaults) {
 			
 			                </div>
 			            </div>
+			            ' . $gitDiv . '
 			            <div class="appContainer card">
 			                <div class="card-body">
 			                    <h4 class="cardHeader">'.$lang['uiSettingAccountLinking'].'</h4>
@@ -311,7 +312,6 @@ function makeBody($defaults) {
 			                    </div>
 			                </div>
 			            </div>
-			            ' . $gitDiv . '
 			            <div class="appContainer card">
 			                <div class="card-body">
 			                    <h4 class="cardHeader">' . $lang['uiSettingHookLabel'] . '</h4>

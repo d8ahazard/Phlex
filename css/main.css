@@ -235,24 +235,35 @@ a:hover:not(#executeButton) {
 	width: 100% !important;
 }
 
-#hamburger {
-	position: absolute;
+.navIcon {
+	position: fixed;
 	z-index: 8;
-	top: 3px;
-	left: 3px;
-	color: var(--theme-primary-inverse);
-	font-size: 28px;
-	cursor: pointer;
-}
-
-.dd-full {
-    right: 25px;
-    position: fixed;
-    z-index: 8;
-    top: -3px;
+	top: -5px;
+	height: 54px;
+	width: 54px;
     font-size: 28px;
+    cursor: pointer;
+    color: var(--theme-primary-inverse);
+    text-align: center;
+    padding: 0;
 }
 
+.navIcon > span {
+	top: 8px;
+	position: relative;
+	left: -5px;
+	color: var(--theme-accent);
+
+
+}
+
+#hamburger {
+	left: 9px;
+}
+
+#client {
+    right: 9px;
+}
 
 .searchWrap {
     width: 100%;
@@ -630,7 +641,16 @@ p.card-subtitle {
 	color: var(--theme-primary) !important;
 }
 
-.dropdown-menu, .dropdown-header, #clientWrapper {
+#plexClient {
+	position: fixed;
+	top: 64px;
+	right:0;
+	max-width: 250px;
+	display: none;
+	background: var(--theme-primary);
+}
+
+#plexClient, .dropdown-header, #clientWrapper {
 	z-index: 8;
 	text-transform: uppercase;
 }
@@ -782,12 +802,11 @@ p.card-subtitle {
 	padding-right: 0;
 }
 
-#client {
-	text-align: center;
-	padding: 0;
-}
 
 .ddLabel {
+	position: fixed;
+	left: 2px;
+	top: 5px;
 	font-size: 7px;
 	display: inline-block;
 	color: var(--theme-primary-inverse-75);

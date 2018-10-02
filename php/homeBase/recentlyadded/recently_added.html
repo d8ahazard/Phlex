@@ -1,50 +1,9 @@
-% if data:
-<%
-  import datetime
-  import plexpy
-  from plexpy.helpers import grouper, get_img_service
 
-  from datetime import datetime
-  start_date = datetime.strptime(parameters['start_date'], '%Y-%m-%d')
-  end_date = datetime.strptime(parameters['end_date'], '%Y-%m-%d')
-  start_date_string = start_date.strftime('%x')
-  end_date_string = end_date.strftime('%x')
-
-  recently_added = data['recently_added']
-  if plexpy.CONFIG.NEWSLETTER_SELF_HOSTED and plexpy.CONFIG.HTTP_BASE_URL:
-    base_url = plexpy.CONFIG.HTTP_BASE_URL + plexpy.HTTP_ROOT + 'newsletter/'
-  elif preview:
-    base_url = 'newsletter/'
-  else:
-    base_url = ''
-
-  service = get_img_service(include_self=True)
-  if service == 'self-hosted' and plexpy.CONFIG.HTTP_BASE_URL:
-    base_url_image = plexpy.CONFIG.HTTP_BASE_URL + plexpy.HTTP_ROOT + 'image/'
-  elif preview and service and service != 'self-hosted':
-    base_url_image = 'image/'
-  else:
-    base_url_image = ''
-%>
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <title>Recently Added | Homebase</title>
-
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.2/css/bootstrap.min.css" integrity="sha384-Smlep5jCw/wG7hdkwQ/Z5nLIefveQRIY9nfy6xoR1uRYBtpZgI6339F5dgvm/e9B" crossorigin="anonymous">
-  
   <link rel="stylesheet" href="../assets/styles/custom.min.css">
 
   <script defer src="https://use.fontawesome.com/releases/v5.1.0/js/all.js" integrity="sha384-3LK/3kTpDE/Pkp8gTNp2gR/2gOiwQ6QaO7Td0zV76UFJVhqLl4Vl3KL1We6q6wR9" crossorigin="anonymous"></script>
 
-</head>
 
-<body>
-  
   <nav class="navbar fixed-top navbar-dark bg-transparent">
     
     <button class="navbar-toggler btn-dark" type="button" data-toggle="offcanvas">
@@ -327,7 +286,3 @@
 
     });
   </script>
-
-</body>
-</html>
-% endif

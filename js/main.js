@@ -1094,7 +1094,6 @@ function setListeners() {
 		var value, regUrl;
 		if ($(this).hasClass("copyInput")) {
 			value = $(this).val();
-			
 			copyString(value);
 		}
 
@@ -1126,6 +1125,7 @@ function setListeners() {
 
 			},"json");
 		}
+
 		if ($(this).hasClass("resetInput")) {
 			appName = $(this).data('value');
 			if (confirm('Are you sure you want to clear settings for ' + appName + '?')) {
@@ -1201,6 +1201,7 @@ function setListeners() {
 		} else {
 			console.log("Rescanning devices.");
 		}
+		$("#plexClient").slideToggle();
 		updateDevice('Client', clientId);
 	});
 
@@ -1330,24 +1331,23 @@ function setListeners() {
 		}
 	});
 
-	var client = $('.dropdown-toggle');
+	var client = $('#client');
 
 	client.click(function () {
-		var pos = client.position();
-		var width = client.outerWidth();
+		var pos = $(this).position();
+		var width = $(this).outerWidth();
 		var side = $(this).data("position");
 		//show the menu directly over the placeholder
 		var string3 = "";
 		var pc = $("#plexClient");
 		if (side === "left") {
-			pc.css({left: 0 + 'px'});
+		    console.log("Going left");
+			pc.css("left", '0px');
 		} else {
-            pc.css({right: (pos.right - width) + 'px'});
+            pc.css("right", '0px');
+            console.log("Going right");
 		}
-		pc.css({
-			position: "absolute",
-			top: pos.bottom + "px"
-		});
+		pc.slideToggle();
 	});
 
 
@@ -1484,6 +1484,9 @@ function closeDrawer() {
             left: '-352px'
         }, 200);
 	}
+	var clientWrap = $('#plexClient');
+	if (clientWrap.is(':visible')) clientWrap.slideToggle();
+
 }
 
 function openDrawer() {
