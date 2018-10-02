@@ -711,25 +711,26 @@ function scaleSlider() {
 	}
 }
 
+function chk_scroll(e) {
+	var npFooter = $('.nowPlayingFooter');
+	var el = $(e.currentTarget);
+    var $el = $(el);
+    if (npFooter.hasClass("playing")) {
+    	var sh = el[0].scrollHeight;
+    	var st = $el.scrollTop();
+    	var oH = $el.outerHeight();
+    	console.log("Checking", sh, $el.scrollTop(), $el.outerHeight());
 
-
-setInterval(function () {
-	if (userScrolled) {
-		var pos = window.scrollY;
-		var divHeight = $(".queryBtnWrap").height();
-		var npFooter = $('.nowPlayingFooter');
-		if (npFooter.hasClass("playing")) {
-			if (pos >= divHeight) {
-				npFooter.slideUp();
-				npFooter.addClass('reHide');
-			} else {
-				npFooter.slideDown();
-				npFooter.removeClass('reHide');
-			}
-		}
-		userScrolled = false;
-	}
-}, 50);
+        if (sh - $el.scrollTop() - $el.outerHeight() < 1) {
+			console.log("bottom");
+			npFooter.slideUp();
+			npFooter.addClass('reHide');
+		} else {
+        	npFooter.slideDown();
+			npFooter.removeClass('reHide');
+    	}
+    }
+}
 
 function recurseJSON(json) {
 	return '<pre class="prettyprint">' + JSON.stringify(json, undefined, 2) + '</pre>';
@@ -1004,7 +1005,10 @@ function setListeners() {
 	// });
 	//
 
-	$('#alertModal').on('hidden.bs.modal', function () {
+    $('.view-tab').on('scroll', chk_scroll);
+
+
+    $('#alertModal').on('hidden.bs.modal', function () {
 		loopMessages();
 	});
 
