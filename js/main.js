@@ -398,12 +398,16 @@ function parseServerData(data) {
 
 function setUiVariables(data) {
 	console.log("Setting UI Variables: ",data);
-	for (var propertyName in data) {
-		var value = data[propertyName];
+    for (var propertyName in data) {
+        var value = data[propertyName];
         if(window[propertyName] !== value) {
             window[propertyName] = value;
         }
-		if (data.hasOwnProperty(propertyName)) switch (propertyName) {
+    }
+
+	for (var propertyName in data) {
+		var value = data[propertyName];
+        if (data.hasOwnProperty(propertyName)) switch (propertyName) {
 			case 'sonarrEnabled':
 			case 'sickEnabled':
 			case 'couchEnabled':
@@ -1032,16 +1036,13 @@ function setListeners() {
     	openDrawer();
     });
 
-    $("#body").click(function() {
-    	console.log("CLICK");
-    	closeDrawer();
-	});
-
-    $("#baseFrame").click(function() {
-        console.log("CLICK");
-        closeDrawer();
+    $('html').on('click', function(e) {
+        if(!$(e.target).hasClass('drawer-item') )
+        {
+        	console.log("Closing drawer.");
+            closeDrawer();
+        }
     });
-
 
 	var checkbox = $(':checkbox');
 	checkbox.change(function () {
@@ -1258,13 +1259,10 @@ function setListeners() {
                 currentTab.removeClass('active');
                 newTab.removeClass('fade');
                 newTab.addClass('active');
-                // Collapse settings group if another button is clicked
+                // Change label if it's a setting group
                 if (!linkVal.includes("SettingsTab")) {
                 	secLabel.css("top","18px");
                     secLabel.html(label);
-                    console.log("Collapse");
-                    expandDrawer.addClass("collapsed");
-                    expandDrawer.slideUp(700,"easeOutBounce");
                 } else {
                 	label = label + "(Settings)";
                 	secLabel.html(label);
@@ -1278,6 +1276,7 @@ function setListeners() {
                 } else {
                     frame.attr('src',"");
                 }
+                console.log("Collapse");
             } else {
             	var drawerTarget = $(this).data("target");
             	expandDrawer = $('#' + drawerTarget + "Drawer");
@@ -1508,7 +1507,7 @@ function addAppGroup(key) {
     if (apps.indexOf(key) > -1) {
         console.log("Trying to add group for " + key);
         var urlString = key + "Uri";
-        var tokenString = key + "Auth";
+        var tokenString = key + "Token";
         var frameString = key + "Frame";
         var divString = "#" + key + "Div";
         var url = false;
