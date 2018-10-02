@@ -23,6 +23,7 @@ function makeBody($defaults) {
 	$ombiAddress = $_SESSION['ombiUri'] ?? "./ombi";
 	$homeBase = file_get_contents(dirname(__FILE__) . "/homeBase/index.html");
 	$homeBase = str_replace("<OMBI_URL>", $ombiAddress, $homeBase);
+	$recentPage = file_get_contents(dirname(__FILE__) . "/homeBase/recentlyadded/recently_added.html");
 
 	$gitDiv = $useGit ? '<div class="appContainer card updateDiv'.$hidden.'">
 			        <div class="card-body">
@@ -119,11 +120,16 @@ function makeBody($defaults) {
                 <div class="drawer-item btn active" data-link="homeTab" data-label="Home">
                 	<span class="barBtn"><i class="material-icons barIcon">home</i></span>Home
                 </div>
+                <div class="drawer-item btn" data-link="expandDrawer" data-target="Appz">
+                	<span class="barBtn"><i class="material-icons barIcon">show_chart</i></span>Apps
+                </div>
+                <div class="drawer-list collapsed" id="AppzDrawer">
+                </div>
                 <div class="drawer-item btn" data-link="expandDrawer" data-target="Stats">
                 	<span class="barBtn"><i class="material-icons barIcon">show_chart</i></span>Stats
                 </div>
                 <div class="drawer-list collapsed" id="StatsDrawer">
-	                <div class="drawer-item btn" data-link="recentStats" data-target="Stats">
+	                <div class="drawer-item btn" id="recent" data-link="recentStats" data-label="Recents">
 	                    <span class="barBtn"><i class="material-icons barIcon">watch_later</i></span>Recent
 	                </div>
 	                <div class="drawer-item btn" data-link="popularStats" data-target="Stats">
@@ -210,6 +216,9 @@ function makeBody($defaults) {
 			        <div class="view-tab active" id="homeTab">
 			            '. $homeBase. '
 			        </div>
+			        <div class="view-tab fade" id="recentStats">
+			        	'. $recentPage. '
+					</div>
 			        <div class="view-tab fade col-md-9 col-lg-10 col-xl-8" id="voiceTab">
 			            <div id="resultsInner"  class="queryWrap row justify-content-around">
 			            </div>
@@ -219,7 +228,6 @@ function makeBody($defaults) {
 			            <div class="appContainer card">
 			                <div class="card-body">
 			                    <h4 class="cardHeader">' . $lang['uiSettingGeneral'] . '</h4>
-			
 			                    <div class="form-group">
 			                        <label class="appLabel" for="appLanguage">' . $lang['uiSettingLanguage'] . '</label>
 			                        <select class="form-control custom-select" id="appLanguage">
@@ -270,7 +278,6 @@ function makeBody($defaults) {
 			                        </label>
 			                        <span class="bmd-help">' . $lang['uiSettingForceSSLHint'] . '</span>
 			                    </div>
-			
 			                </div>
 			            </div>
 			            ' . $gitDiv . '

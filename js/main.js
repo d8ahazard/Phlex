@@ -399,6 +399,10 @@ function parseServerData(data) {
 function setUiVariables(data) {
 	console.log("Setting UI Variables: ",data);
 	for (var propertyName in data) {
+		var value = data[propertyName];
+        if(window[propertyName] !== value) {
+            window[propertyName] = value;
+        }
 		if (data.hasOwnProperty(propertyName)) switch (propertyName) {
 			case 'sonarrEnabled':
 			case 'sickEnabled':
@@ -422,7 +426,7 @@ function setUiVariables(data) {
 			case 'autoUpdate':
 			case 'notifyUpdate':
 			case 'broadcastDevice':
-				var value = data[propertyName];
+				value = data[propertyName];
                 try {
                     value = JSON.parse(value);
                 } catch (SyntaxError) {
@@ -456,7 +460,7 @@ function setUiVariables(data) {
 				$('#' + propertyName).html(list);
 		}
 	}
-	toggleGroups();
+    toggleGroups();
 }
 
 function toggleDrawer(expandDrawer) {
@@ -504,8 +508,10 @@ function toggleGroups() {
 			}
             if (key === 'autoUpdate') value = !value;
 			if (value) {
+				addAppGroup(key);
 				group.show();
 			} else {
+				removeAppGroup(key);
 				group.hide();
 			}
 		}
@@ -688,6 +694,7 @@ function updateCommands(data, prepend) {
 $(window).on('resize', function () {
 	// TODO: Make sure this isn't needed anymore
 	scaleSlider();
+	setBackground();
 });
 
 // Show/hide the now playing footer when scrolling
@@ -730,6 +737,15 @@ function chk_scroll(e) {
 			npFooter.removeClass('reHide');
     	}
     }
+}
+
+function capitalize(str) {
+    strVal = '';
+    str = str.split(' ');
+    for (var chr = 0; chr < str.length; chr++) {
+        strVal += str[chr].substring(0, 1).toUpperCase() + str[chr].substring(1, str[chr].length) + ' '
+    }
+    return strVal
 }
 
 function recurseJSON(json) {
@@ -1091,6 +1107,10 @@ function setListeners() {
 
 	});
 
+	$("#recentBtn").on('click', function() {
+		$("#recent").click();
+	});
+
 	$(".btn").on('click', function () {
         apiToken = $('#apiTokenData').data('token');
 
@@ -1209,7 +1229,7 @@ function setListeners() {
 		updateDevice('Client', clientId);
 	});
 
-	$(".drawer-item").on('click', function () {
+	$(document).on('click', '.drawer-item', function () {
 		console.log("Drawer item is clicked.");
         var expandDrawer = $(".drawer-list");
         var linkVal = $(this).data("link");
@@ -1220,8 +1240,16 @@ function setListeners() {
         	// Handle switching content
             if (linkVal !== "expandDrawer") {
             	var label = "<h3>" + $(this).data("label") + "</h3>";
-
-				$('.drawer-item.active').removeClass('active');
+				var activeItem = $('.drawer-item.active');
+                if (typeof $(this).data('src') !== 'undefined') {
+                	var frameSrc = $(this).data('src');
+                	console.log("We have a source URL for the frame: ",frameSrc);
+                	var frameTarget = $('#' + $(this).data('frame'));
+                	if (frameTarget.attr('src') !== frameSrc) {
+                        frameTarget.attr('src', frameSrc);
+                    }
+				}
+				activeItem.removeClass('active');
 				$(this).addClass("active");
                 var currentTab = $('.view-tab.active');
                 var newTab = $("#" + linkVal);
@@ -1472,6 +1500,82 @@ function setListeners() {
 	});
 }
 
+
+function addAppGroup(key) {
+    var container = $("#results");
+    var appDrawer = $("#AppzDrawer");
+    var apps = ["sonarr", "sick", "couch", "radarr", "ombi", "headphones", "lidarr", "watcher"];
+    if (apps.indexOf(key) > -1) {
+        console.log("Trying to add group for " + key);
+        var urlString = key + "Uri";
+        var tokenString = key + "Auth";
+        var frameString = key + "Frame";
+        var divString = "#" + key + "Div";
+        var url = false;
+        var token = false;
+        if (window.hasOwnProperty(urlString)) {
+            console.log("We have urlstring");
+            url = window[urlString];
+        }
+        if (window.hasOwnProperty(tokenString)) {
+            console.log("We have tokenstring");
+            token = window[tokenString];
+        }
+
+        if (token && url) {
+            console.log("We've got the goods for " + key);
+            var btnDiv = $('<div>', {
+                class: 'drawer-item btn',
+                id: key + "Btn"
+            });
+
+            var btnSpan = $('<span>', {
+            	class: 'barBtn',
+				id: key + "Span"
+			});
+
+            var btnIcon = $('<i>', {
+            	class: 'material-icons barIcon',
+				text: 'account_circle'
+			});
+			btnSpan.append(btnIcon);
+			btnDiv.append(btnSpan);
+			btnDiv.append(capitalize(key));
+            appDrawer.append(btnDiv);
+
+            btnDiv = $("#" + key + "Btn");
+            btnDiv.attr('data-src', url);
+            btnDiv.attr('data-token', token);
+            btnDiv.attr('data-frame', frameString);
+            btnDiv.attr('data-link', key + "Div");
+            btnDiv.attr('data-label', capitalize(key));
+
+            $('<div>', {
+            	class: 'view-tab fade framediv',
+				id: key + "Div"
+			}).appendTo(container);
+
+            var newDiv = $(divString);
+            newDiv.attr("data-uri", url);
+            newDiv.attr("data-token", token);
+            newDiv.attr("data-target", frameString);
+            newDiv.attr("data-label", capitalize(key));
+
+            $('<iframe>', {
+                src: '',
+                id:  frameString,
+				class: 'appFrame',
+                frameborder: 0,
+                scrolling: 'yes'
+            }).appendTo(newDiv);
+        }
+    }
+}
+
+function removeAppGroup($key) {
+
+}
+
 function clearLoadBar() {
 	if (waiting) {
 		$('.load-bar').hide();
@@ -1533,3 +1637,5 @@ function copyString(data) {
     document.body.removeChild(dummy);
     $.snackbar({content: "Successfully copied data."});
 }
+
+

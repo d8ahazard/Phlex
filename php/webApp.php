@@ -783,11 +783,12 @@ function webAddress() {
 
 
 function fetchBackground() {
-
-    $path = "https://img.phlexchat.com?new=true";
     $elem = '';
     $code = 'var elem = document.createElement("img");'.PHP_EOL.
-        'elem.setAttribute("src", "'.$path.'");'.PHP_EOL.
+	    'var w = window.innerWidth;'.PHP_EOL.
+		'var h = window.innerHeight;'.PHP_EOL.
+	    'var url = "https://img.phlexchat.com?new=true&height=" + h + "&width=" + w + "&v=" + (Math.floor(Math.random() * (1084)));'.PHP_EOL.
+        'elem.setAttribute("src", url);'.PHP_EOL.
         'elem.className += "fade-in bg bgLoaded";'.PHP_EOL.
         $elem .
         'document.getElementById("bgwrap").appendChild(elem);'.PHP_EOL;

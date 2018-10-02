@@ -103,7 +103,8 @@ $(function ($) {
 		staticCount++;
 		if (staticCount >= 42 && !ov) {
 			ov=true;
-			$('#ov').attr('src', 'https://img.phlexchat.com?cage=true');
+			var url = "https://img.phlexchat.com?cage=true&height=" + $(window).height() + "&width=" + $(window).width() + "&v=" + (Math.floor(Math.random() * (1084))) + cv;
+			$('#ov').attr('src', url);
 		}
 	});
 
