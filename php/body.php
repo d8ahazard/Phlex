@@ -20,7 +20,9 @@ function makeBody($defaults) {
 
 	$rev = checkRevision(true);
 	$revString = $rev ? "Revision: $rev" : "";
+	$ombiAddress = $_SESSION['ombiUri'] ?? "./ombi";
 	$homeBase = file_get_contents(dirname(__FILE__) . "/homeBase/index.html");
+	$homeBase = str_replace("<OMBI_URL>", $ombiAddress, $homeBase);
 
 	$gitDiv = $useGit ? '<div class="appContainer card updateDiv'.$hidden.'">
 			        <div class="card-body">
