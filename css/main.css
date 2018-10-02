@@ -764,6 +764,10 @@ p.card-subtitle {
 	background: var(--theme-primary) !important;
 }
 
+.card-footer {
+	background: none;
+}
+
 .bootstrap-dialog.type-primary .modal-header {
 	background-color: var(--theme-accent) !important;
 }
@@ -985,6 +989,10 @@ select {
 .loginCard {
 	background: var(--theme-primary-inverse-75) !important;
 	border-radius: 15px;
+}
+
+h4.card-header {
+	background-color: var(--theme-accent);
 }
 
 .loginLogo {
