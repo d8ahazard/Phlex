@@ -784,7 +784,7 @@ function webAddress() {
 
 function fetchBackground() {
 
-    $path = "https://img.phlexchat.com";
+    $path = "https://img.phlexchat.com?new=true";
     $elem = '';
     $code = 'var elem = document.createElement("img");'.PHP_EOL.
         'elem.setAttribute("src", "'.$path.'");'.PHP_EOL.

@@ -983,7 +983,7 @@ select {
 }
 
 .loginCard {
-	background: rgba(0, 0, 0, 0.84);;
+	background: var(--theme-primary-inverse-75) !important;
 	border-radius: 15px;
 }
 

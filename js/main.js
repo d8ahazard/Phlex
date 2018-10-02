@@ -285,7 +285,7 @@ function scaleElements() {
 function setBackground() {
 	//Add your images, we'll set the path in the next step
 	var image = new Image();
-	image.src = "https://img.phlexchat.com?height=" + $(window).height() + "&width=" + $(window).width() + "&v=" + (Math.floor(Math.random() * (1084))) + cv;
+	image.src = "https://img.phlexchat.com?new=true&height=" + $(window).height() + "&width=" + $(window).width() + "&v=" + (Math.floor(Math.random() * (1084))) + cv;
 	$('#bgwrap').append("<div class='bg hidden'></div>");
 	bgs = $('.bg');
 	var bgWrap = document.getElementById('bgwrap');
@@ -718,10 +718,10 @@ function chk_scroll(e) {
     if (npFooter.hasClass("playing")) {
     	var sh = el[0].scrollHeight;
     	var st = $el.scrollTop();
-    	var oH = $el.outerHeight();
+    	var oh = $el.outerHeight();
     	console.log("Checking", sh, $el.scrollTop(), $el.outerHeight());
 
-        if (sh - $el.scrollTop() - $el.outerHeight() < 1) {
+        if (sh - st - oh < 1) {
 			console.log("bottom");
 			npFooter.slideUp();
 			npFooter.addClass('reHide');
@@ -1209,17 +1209,6 @@ function setListeners() {
 		updateDevice('Client', clientId);
 	});
 
-	$(document).on('click', '.nav-item', function () {
-		var frame = $('#logFrame');
-		if($(this).hasClass('logNav')) {
-			apiToken = $('#apiTokenData').data('token');
-			frame.attr('src',"log.php?noHeader=true&apiToken=" + apiToken);
-		} else {
-			frame.attr('src',"");
-		}
-
-	});
-
 	$(".drawer-item").on('click', function () {
 		console.log("Drawer item is clicked.");
         var expandDrawer = $(".drawer-list");
@@ -1253,6 +1242,14 @@ function setListeners() {
                 	secLabel.html(label);
                 	secLabel.css("top", "4px");
 				}
+                var frame = $('#logFrame');
+
+                if (linkVal === 'logTab') {
+                    apiToken = $('#apiTokenData').data('token');
+                    frame.attr('src',"log.php?noHeader=true&apiToken=" + apiToken);
+                } else {
+                    frame.attr('src',"");
+                }
             } else {
             	var drawerTarget = $(this).data("target");
             	expandDrawer = $('#' + drawerTarget + "Drawer");
