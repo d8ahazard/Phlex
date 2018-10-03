@@ -21,3 +21,4 @@
 php/cacert.pem
 logCustom.php
 minify.php
+sftp-config.json
