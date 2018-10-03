@@ -67,7 +67,7 @@ body {
 	background: var(--theme-primary-75) !important;
 }
 
-a, .barBtn, .barBtn > i, .clientBtn, .sendBtn, .appLabel, .btnAdd {
+.barBtn, .clientBtn, .appLabel, .btnAdd {
 	color: var(--theme-accent) !important;
 }
 

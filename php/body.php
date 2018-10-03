@@ -73,7 +73,7 @@ function makeBody($defaults) {
 				</div>      
 			</div>
 		    <div class="btn btn-sm navIcon main" data-position="right" href="javascript:void(0)" id="client">
-	            <span class="material-icons">cast</span>
+	            <span class="material-icons colorItem">cast</span>
 	            <div class="ddLabel"></div>
             </div>	                
         	
@@ -113,70 +113,70 @@ function makeBody($defaults) {
             	            	
             	<div class="drawer-item nav-item nav-link btn dd-menu">
 	                <div class="btn btn-sm dropdown-toggle barBtn side" data-position="left" id="client">
-	                	<span class="barBtn"><i class="material-icons barIcon">cast</i></span>
+	                	<span class="barBtn"><i class="material-icons colorItem barIcon">cast</i></span>
 	                    <div class="ddLabel"></div>
 	                </div>
                 </div>
                 <div class="drawer-item btn active" data-link="homeTab" data-label="Home">
-                	<span class="barBtn"><i class="material-icons barIcon">home</i></span>Home
+                	<span class="barBtn"><i class="material-icons colorItem barIcon">home</i></span>Home
                 </div>
                 <div class="drawer-item btn" data-link="expandDrawer" data-target="Appz">
-                	<span class="barBtn"><i class="material-icons barIcon">show_chart</i></span>Apps
+                	<span class="barBtn"><i class="material-icons colorItem barIcon">apps</i></span>Apps
                 </div>
                 <div class="drawer-list collapsed" id="AppzDrawer">
                 </div>
                 <div class="drawer-item btn" data-link="expandDrawer" data-target="Stats">
-                	<span class="barBtn"><i class="material-icons barIcon">show_chart</i></span>Stats
+                	<span class="barBtn"><i class="material-icons colorItem barIcon">show_chart</i></span>Stats
                 </div>
                 <div class="drawer-list collapsed" id="StatsDrawer">
 	                <div class="drawer-item btn" id="recent" data-link="recentStats" data-label="Recents">
-	                    <span class="barBtn"><i class="material-icons barIcon">watch_later</i></span>Recent
+	                    <span class="barBtn"><i class="material-icons colorItem barIcon">watch_later</i></span>Recent
 	                </div>
 	                <div class="drawer-item btn" data-link="popularStats" data-target="Stats">
-	                    <span class="barBtn"><i class="material-icons barIcon">grade</i></span>Popular
+	                    <span class="barBtn"><i class="material-icons colorItem barIcon">grade</i></span>Popular
 	                </div>
 	                <div class="drawer-item btn" data-link="userStats" data-target="Stats">
-	                    <span class="barBtn"><i class="material-icons barIcon">account_circle</i></span>User
+	                    <span class="barBtn"><i class="material-icons colorItem barIcon">account_circle</i></span>User
 	                </div>
 	                <div class="drawer-item btn" data-link="lbraryStats" data-target="Stats">
-	                    <span class="barBtn"><i class="material-icons barIcon">local_library</i></span>Library
+	                    <span class="barBtn"><i class="material-icons colorItem barIcon">local_library</i></span>Library
 	                </div>
 				</div>
                 <div class="drawer-item btn" data-link="voiceTab" data-label="Voice">
-                	<span class="barBtn"><i class="material-icons barIcon">list</i></span>Commands
+                	<span class="barBtn"><i class="material-icons colorItem barIcon">list</i></span>Commands
                 </div>
                 <div class="drawer-item btn" data-link="logTab" data-label="Logs">
-                	<span class="barBtn"><i class="material-icons barIcon">bug_report</i></span>Logs
+                	<span class="barBtn"><i class="material-icons colorItem barIcon">bug_report</i></span>Logs
                 </div>
                 <div class="drawer-item btn" data-link="expandDrawer" data-target="Settings">
-                	<span class="barBtn"><i class="material-icons barIcon">settings</i></span>Settings
+                	<span class="barBtn"><i class="material-icons colorItem barIcon">settings</i></span>Settings
                 </div>
                 
                 <div class="drawer-list collapsed" id="SettingsDrawer">
                 	<div class="drawer-wrap">
 	                	<div class="drawer-item btn" data-link="generalSettingsTab" data-label="General">
-                			<span class="barBtn"><i class="material-icons barIcon">build</i></span>General
+                			<span class="barBtn"><i class="material-icons colorItem barIcon">build</i></span>General
                 		</div>
 	                    <div class="drawer-item btn" data-link="plexSettingsTab" data-label="Plex">
-	                        <span class="barBtn"><i class="material-icons barIcon">label_important</i></span>Plex
+	                        <span class="barBtn"><i class="material-icons colorItem barIcon">label_important</i></span>Plex
 	                    </div>
 	                     <div class="drawer-item btn" data-link="ombiSettingsTab" data-label="Ombi">
-	                        <span class="barBtn"><i class="material-icons barIcon">search</i></span>Ombi
+	                        <span class="barBtn"><i class="material-icons colorItem barIcon">search</i></span>Ombi
 	                    </div>
 	                    <div class="drawer-item btn" data-link="movieFetcherSettingsTab" data-label="Movies">
-	                        <span class="barBtn"><i class="material-icons barIcon">movie</i></span>Movies
+	                        <span class="barBtn"><i class="material-icons colorItem barIcon">movie</i></span>Movies
 	                    </div>
 	                    <div class="drawer-item btn" data-link="showFetcherSettingsTab" data-label="Shows">
-	                        <span class="barBtn"><i class="material-icons barIcon">live_tv</i></span>Shows
+	                        <span class="barBtn"><i class="material-icons colorItem barIcon">live_tv</i></span>Shows
 	                    </div>
 	                    <div class="drawer-item btn" data-link="musicFetcherSettingsTab" data-label="Music">
-	                        <span class="barBtn"><i class="material-icons barIcon">music_note</i></span>Music
+	                        <span class="barBtn"><i class="material-icons colorItem barIcon">music_note</i></span>Music
 	                    </div>
 	                </div>       
 				</div>
 				<div class="drawer-separator"></div>
 				<div class="drawer-item btn" id="logout">
-                    <span class="barBtn"><i class="material-icons barIcon">exit_to_app</i></span>Log Out
+                    <span class="barBtn"><i class="material-icons colorItem barIcon">exit_to_app</i></span>Log Out
                 </div>   
 			</div>
         	
@@ -186,7 +186,7 @@ function makeBody($defaults) {
 						<h3>Home</h3>
 					</div>
 					<div class="btn btn-sm navIcon" id="hamburger">
-						<span class="material-icons">menu</span>
+						<span class="material-icons colorItem">menu</span>
 					</div>
 					<div class="wrapper col-sm-9 col-lg-8" id="mainWrap">
 		                <div class="searchWrap" id="queryCard">
@@ -203,7 +203,7 @@ function makeBody($defaults) {
 													<div class="bar"></div>
 													<div class="bar"></div>
 												</div>
-						                        <a class="material-icons sendBtn" id="executeButton">message</a>
+						                        <a class="material-icons colorItem sendBtn colorItem" id="executeButton">message</a>
 					                        </div>
 					                    </div>					                   
 					                </div>
@@ -293,7 +293,7 @@ function makeBody($defaults) {
 			                    </div>
 			                    <div class="text-center">
 			                        <label for="sel1">' . $lang['uiSettingCopyIFTTT'] . '</label><br>
-			                        <button id="sayURL" class="copyInput btn btn-raised btn-primary btn-70" type="button"><i class="material-icons">message</i></button>
+			                        <button id="sayURL" class="copyInput btn btn-raised btn-primary btn-70" type="button"><i class="material-icons colorItem">message</i></button>
 			                    </div>
 			                </div>
 			            </div>
@@ -313,10 +313,10 @@ function makeBody($defaults) {
 			                    </div>
 			                    <div class="fetchNotify">
 			                        <button id="copyBroadcast" class="hookLnk btn btn-raised btn-warn btn-100" title="Copy WebHook Notification URL">
-			                            <i class="material-icons">assignment</i>
+			                            <i class="material-icons colorItem">assignment</i>
 			                        </button>
 			                        <button id="testBroadcast" value="broadcast" class="testInput btn btn-info btn-raised btn-100" title="Test WebHook Notification">
-			                            <i class="material-icons">send</i>
+			                            <i class="material-icons colorItem">send</i>
 			                        </button>
 			                    </div>
 			                </div>
@@ -790,7 +790,7 @@ function makeBody($defaults) {
 									</div>
 								</div>
 								<a class="logbutton" href="log.php?apiToken=$apiToken" target="_blank">
-									<span class="material-icons">open_in_browser</span>
+									<span class="material-icons colorItem">open_in_browser</span>
 								</a>
 							</div>
 						</div>
@@ -811,10 +811,10 @@ function makeBody($defaults) {
 							</div>
 							<div id="controlWrap">
 								<div id="controlBar">
-									<button class="controlBtn btn btn-default" id="previousBtn"><span class="material-icons mat-md">skip_previous</span></button>
-									<button class="controlBtn btn btn-default" id="playBtn"><span class="material-icons mat-lg">play_circle_filled</span></button>
-									<button class="controlBtn btn btn-default" id="pauseBtn"><span class="material-icons mat-lg">pause_circle_filled</span></button>
-									<button class="controlBtn btn btn-default" id="nextBtn"><span class="material-icons mat-md">skip_next</span></button>
+									<button class="controlBtn btn btn-default" id="previousBtn"><span class="material-icons colorItem mat-md">skip_previous</span></button>
+									<button class="controlBtn btn btn-default" id="playBtn"><span class="material-icons colorItem mat-lg">play_circle_filled</span></button>
+									<button class="controlBtn btn btn-default" id="pauseBtn"><span class="material-icons colorItem mat-lg">pause_circle_filled</span></button>
+									<button class="controlBtn btn btn-default" id="nextBtn"><span class="material-icons colorItem mat-md">skip_next</span></button>
 								</div>
 							</div>
 							<div class="scrollContainer">
@@ -824,7 +824,7 @@ function makeBody($defaults) {
 							<div class="volumeBar"></div>
 						</div>
 						<div id="stopBtnDiv">
-							<button class="controlBtn btn btn-default" id="stopBtn"><span class="material-icons">close</span></button>
+							<button class="controlBtn btn btn-default" id="stopBtn"><span class="material-icons colorItem">close</span></button>
 							<div id="volumeWrap">
 								<input id="volumeSlider" type="text" data-slider-min="0" data-slider-max="100" data-slider-id="volume" data-slider-orientation="vertical" data-slider-tooltip="hide"></input>
 							</div>

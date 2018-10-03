@@ -73,6 +73,7 @@ checkUpdate();
 	</style>
 
 		<link rel="stylesheet" href="css/loader_main.css">
+        <link rel="stylesheet" href="css/font-muximux.css">
 		<link href="./css/lib/dist/critical.css" rel="stylesheet">
 
 

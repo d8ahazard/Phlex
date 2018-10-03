@@ -8,6 +8,7 @@ var cleanLogs=true, couchEnabled=false, lidarrEnabled=false, ombiEnabled=false, 
 	hookPause=false, hookStop=false, hookCustom=false, hookFetch=false, hookSplit = false, autoUpdate = false, masterUser = false,
 	noNewUsers=false, notifyUpdate=false, waiting=false, broadcastDevice="all";
 
+var appColor = "var(--theme-accent)";
 var caches = null;
 
 var forceUpdate = true;
@@ -248,6 +249,8 @@ function updateDevices(newDevices) {
         }
 		devices = JSON.stringify(newDevices);
 	}
+    colorItems(appColor,$('.dd-selected'));
+
 }
 
 function updateDevice(type, id) {
@@ -1037,11 +1040,11 @@ function setListeners() {
     });
 
     $('html').on('click', function(e) {
-        if(!$(e.target).hasClass('drawer-item') )
-        {
-        	console.log("Closing drawer.");
-            closeDrawer();
-        }
+    	console.log("Got a thing", e);
+        if(!$(e.target).hasClass('drawer-item')) {
+			console.log("Closing drawer.");
+			closeDrawer();
+		}
     });
 
 	var checkbox = $(':checkbox');
@@ -1226,7 +1229,7 @@ function setListeners() {
 		} else {
 			console.log("Rescanning devices.");
 		}
-		$("#plexClient").slideToggle();
+		//$("#plexClient").slideToggle();
 		updateDevice('Client', clientId);
 	});
 
@@ -1250,6 +1253,12 @@ function setListeners() {
                         frameTarget.attr('src', frameSrc);
                     }
 				}
+				var color = "var(--theme-accent)";
+                if (typeof $(this).data('color') !== 'undefined') {
+                	color = $(this).data('color');
+				}
+				appColor = color;
+				colorItems(color, $(this));
 				activeItem.removeClass('active');
 				$(this).addClass("active");
                 var currentTab = $('.view-tab.active');
@@ -1368,14 +1377,21 @@ function setListeners() {
 		//show the menu directly over the placeholder
 		var string3 = "";
 		var pc = $("#plexClient");
-		if (side === "left") {
-		    console.log("Going left");
-			pc.css("left", '0px');
-		} else {
-            pc.css("right", '0px');
-            console.log("Going right");
-		}
-		pc.slideToggle();
+		if (!pc.hasClass('open')) {
+            if (side === "left") {
+                console.log("Going left");
+                pc.css("left", '0px');
+            } else {
+                pc.css("right", '0px');
+                console.log("Going right");
+            }
+            pc.slideToggle();
+            setTimeout(function () {
+                pc.addClass('open');
+            }, 200);
+
+
+        }
 	});
 
 
@@ -1470,7 +1486,18 @@ function setListeners() {
 		}
 
 		if ($(this).hasClass('appToggle') && id !== 'autoUpdate') {
+			if (value) {
+				addAppGroup(id);
+            } else {
+				removeAppGroup(id);
+			}
 			id = id + "Enabled";
+		}
+
+		if (id.indexOf('Uri') > -1) {
+			console.log("IP Address changed for " + id);
+			var app = id.replace("Uri","");
+			$('#' + app +'Btn').data('src',value);
 		}
 
 		apiToken = $('#apiTokenData').data('token');
@@ -1504,24 +1531,41 @@ function addAppGroup(key) {
     var container = $("#results");
     var appDrawer = $("#AppzDrawer");
     var apps = ["sonarr", "sick", "couch", "radarr", "ombi", "headphones", "lidarr", "watcher"];
+    var colors = {
+        "sonarr": "#36c6f4",
+    	"sick": "#2674b2",
+    	"lidarr": "#00a65b",
+    	"radarr": "#ffc230",
+        "couch": "#e6521d",
+    	"ombi": "#a7401c"
+	};
+
+    var icons = {
+    	"sonarr": "muximux-sonarr",
+		"radarr": "muximux-radarr",
+		"sick": "muximux-sick",
+		"couch": "muximux-couch",
+		"ombi": "muximux-plex",
+		"headphones": "muximux-headphones3"
+	};
     if (apps.indexOf(key) > -1) {
+    	var color = "var(--theme-accent)";
+    	if (colors.hasOwnProperty(key)) {
+    		color = colors[key];
+		}
         console.log("Trying to add group for " + key);
         var urlString = key + "Uri";
-        var tokenString = key + "Token";
         var frameString = key + "Frame";
         var divString = "#" + key + "Div";
         var url = false;
-        var token = false;
         if (window.hasOwnProperty(urlString)) {
             console.log("We have urlstring");
             url = window[urlString];
-        }
-        if (window.hasOwnProperty(tokenString)) {
-            console.log("We have tokenstring");
-            token = window[tokenString];
-        }
+        } else {
+        	url = "http://localhost";
+		}
 
-        if (token && url) {
+        if (url) {
             console.log("We've got the goods for " + key);
             var btnDiv = $('<div>', {
                 class: 'drawer-item btn',
@@ -1534,8 +1578,7 @@ function addAppGroup(key) {
 			});
 
             var btnIcon = $('<i>', {
-            	class: 'material-icons barIcon',
-				text: 'account_circle'
+            	class: 'colorItem barIcon ' + icons[key] + ' material-icons'
 			});
 			btnSpan.append(btnIcon);
 			btnDiv.append(btnSpan);
@@ -1548,6 +1591,7 @@ function addAppGroup(key) {
             btnDiv.attr('data-frame', frameString);
             btnDiv.attr('data-link', key + "Div");
             btnDiv.attr('data-label', capitalize(key));
+            btnDiv.attr('data-color', color);
 
             $('<div>', {
             	class: 'view-tab fade framediv',
@@ -1571,7 +1615,11 @@ function addAppGroup(key) {
     }
 }
 
-function removeAppGroup($key) {
+function removeAppGroup(key) {
+    var divString = "#" + key + "Div";
+    var btnString = "#" + key + "Btn";
+    $(divString).remove();
+    $(btnString).remove();
 
 }
 
@@ -1584,12 +1632,18 @@ function clearLoadBar() {
 function closeDrawer() {
 	var drawer = $('#sideMenu');
 	if (drawer.css("left") === '0px') {
+		console.log("Drawer");
         drawer.animate({
             left: '-352px'
         }, 200);
 	}
-	var clientWrap = $('#plexClient');
-	if (clientWrap.is(':visible')) clientWrap.slideToggle();
+    console.log("Clients");
+    var clientWrap = $('#plexClient');
+    if (clientWrap.hasClass('open')) {
+    	clientWrap.slideToggle();
+    	clientWrap.removeClass('open');
+    }
+    //if (clientWrap.is(':visible')) clientWrap.slideToggle();
 
 }
 
@@ -1635,6 +1689,18 @@ function copyString(data) {
     document.execCommand("copy");
     document.body.removeChild(dummy);
     $.snackbar({content: "Successfully copied data."});
+}
+
+
+function colorItems(color, element) {
+	var items = ['.colorItem', '.dropdown-item'];
+    for (var i = 0, l = items.length; i < l; i++) {
+		$(items[i]).attr('style', 'color: ' + color);
+	}
+    $('.drawer-item').attr('style','');
+	element.attr('style', 'background-color: ' + color + " !important");
+    $('.dd-selected').attr('style', 'background-color: ' + color + " !important");
+
 }
 
 
