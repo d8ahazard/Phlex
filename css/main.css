@@ -25,12 +25,25 @@ body {
 	overflow: hidden;
 }
 
+#cardWrap .resultDiv {
+	width: 100% !important;
+	max-width: 100%;
+}
+
+#cardWrap {
+	top: 25%;
+}
+
 #body {
 	height: 100%;
 	width: 100%;
 	position: absolute;
 	top: 0;
 	left: 0;
+}
+
+#cardModalBody {
+	height: 100%;
 }
 
 .topBar {
@@ -91,7 +104,7 @@ a:hover:not(#executeButton) {
 }
 
 .dd-selected, a:hover:not(#executeButton),  .btn-primary:hover, .btn-info {
-	background-color: var(--theme-accent) !important;
+	background-color: var(--theme-primary-inverse-50) !important;
 }
 
 .form-control-sm {
@@ -114,7 +127,6 @@ a:hover:not(#executeButton) {
 }
 
 .appContainer {
-	display: flex;
 	justify-content: center;
 }
 
@@ -169,8 +181,16 @@ a:hover:not(#executeButton) {
 .gridBox {
 	display: grid;
     grid-template-columns: repeat(2, 1fr);
-    grid-gap: 10px;
+    grid-gap: 25px;
     grid-auto-flow: dense;
+}
+
+.gridBox-1 {
+	display: grid;
+	grid-template-columns: repeat(1, 1fr);
+	grid-gap: 10px;
+	grid-auto-flow: dense;
+	margin: 0 auto;
 }
 
 #sectionLabel {
@@ -958,6 +978,11 @@ input[type=checkbox] {
 
 .appLabel {
 	width: 100%;
+	text-align: center;
+}
+
+.appLabel-short {
+	width: 50%;
 	text-align: center;
 }
 

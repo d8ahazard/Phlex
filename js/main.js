@@ -4,7 +4,8 @@ var apiToken, appName, bgs, bgWrap, cv, dvr, token, newToken, deviceID, resultDu
 	volumeSlider;
 
 var cleanLogs=true, couchEnabled=false, lidarrEnabled=false, ombiEnabled=false, sickEnabled=false, sonarrEnabled=false, radarrEnabled=false,
-	headphonesEnabled=false, watcherEnabled=false, dvrEnabled=false, hook=false, hookPlay=false, polling=false, pollcount=false,
+	headphonesEnabled=false, watcherEnabled=false, delugeEnabled=false, downloadstationEnabled=false, sabnzbdEnabled=false, utorrentEnabled=false,
+	transmissionEnabled=false, dvrEnabled=false, hook=false, hookPlay=false, polling=false, pollcount=false,
 	hookPause=false, hookStop=false, hookCustom=false, hookFetch=false, hookSplit = false, autoUpdate = false, masterUser = false,
 	noNewUsers=false, notifyUpdate=false, waiting=false, broadcastDevice="all";
 
@@ -82,16 +83,13 @@ function installUpdate() {
 
 function parseUpdates(data) {
 	var tmp = "";
-	console.log("Got some data: ",data);
 	var revision = data['revision'];
     var html = '<div class="cardHeader">Current revision: ' + revision + '</div>';
 	if (data.hasOwnProperty('commits')) {
 		if(data['commits'].length > 0) {
             html += "<br><div class='cardHeader'>Missing updates:</div>";
-            console.log("We've got some commit messages");
             for (var i = 0, l = data['commits'].length; i < l; i++) {
                 var commit = data['commits'][i];
-                console.log("Commit: ", commit);
                 var short = commit['shortHead'];
                 var date = commit['date'];
                 var subject = commit['subject'];
@@ -211,9 +209,7 @@ function deviceHtml(type, deviceData) {
                 string = "<option data-type='" + type + "' value='" + id + "'" + selected + ">" + name + "</option>";
             }
             if (device.hasOwnProperty('Product')) {
-            	console.log("Device type present.");
             	if (device["Product"] !== 'Cast' && type==="Broadcast") {
-            		console.log("Skip this baby.");
             		skip = true;
 				}
 			}
@@ -345,6 +341,7 @@ function parseServerData(data) {
 	var force = (forceUpdate !== false);
     if (force) {
         buildUiDeferred();
+        buildSettingsPages(data);
     }
 
     if (data.hasOwnProperty('userData') && data.userData) {
@@ -401,12 +398,6 @@ function parseServerData(data) {
 
 function setUiVariables(data) {
 	console.log("Setting UI Variables: ",data);
-    for (var propertyName in data) {
-        var value = data[propertyName];
-        if(window[propertyName] !== value) {
-            window[propertyName] = value;
-        }
-    }
 
 	for (var propertyName in data) {
 		var value = data[propertyName];
@@ -419,6 +410,11 @@ function setUiVariables(data) {
 			case 'headphonesEnabled':
 			case 'lidarrEnabled':
 			case 'watcherEnabled':
+			case 'delugeEnabled':
+			case 'downloadstationEnabled':
+			case 'sabnzbdEnabled':
+			case 'transmissionEnabled':
+			case 'utorrentEnabled':
 			case 'hook':
 			case 'hookPlay':
 			case 'hookPause':
@@ -465,6 +461,9 @@ function setUiVariables(data) {
 			case 'sickList':
 				var list = data[propertyName];
 				$('#' + propertyName).html(list);
+				break;
+			default:
+				window[propertyName] = value;
 		}
 	}
     toggleGroups();
@@ -490,6 +489,11 @@ function toggleGroups() {
 		"ombi": ombiEnabled,
 		"watcher": watcherEnabled,
 		"headphones": headphonesEnabled,
+		"downloadstation": downloadstationEnabled,
+		"deluge": delugeEnabled,
+		"transmission": transmissionEnabled,
+		"utorrent": utorrentEnabled,
+		"sabnzbd": sabnzbdEnabled,
 		"lidarr": lidarrEnabled,
 		"hookPlay": hookPlay,
 		"hookPause": hookPause,
@@ -652,6 +656,7 @@ function updateCommands(data, prepend) {
 
 				if (prepend) {
 					$('#resultsInner').prepend(outLine);
+					displayCardModal(outLine);
 				} else {
 					$('#resultsInner').append(outLine);
 				}
@@ -725,6 +730,19 @@ function scaleSlider() {
 	}
 }
 
+function displayCardModal(card) {
+	if ($('#voiceTab').hasClass('active')) {
+		console.log("No need to show a modal, we're on teh voice tab.");
+	} else {
+		console.log("Displaying card modal.");
+		var cardModal = $('#cardModal');
+		var cardModalBody = $('#cardWrap');
+		cardModalBody.html("");
+		cardModalBody.append(card);
+		cardModal.modal('show');
+	}
+}
+
 function chk_scroll(e) {
 	var npFooter = $('.nowPlayingFooter');
 	var el = $(e.currentTarget);
@@ -781,8 +799,7 @@ function buildCards(value, i) {
 				description = ((card.hasOwnProperty('formattedText')) ? card.formattedText : ((card.hasOwnProperty('description')) ? card.description : ''));
 			}
 			if (cardArray.length >= 2) {
-                		card = cardArray[Math.floor(Math.random()*cardArray.length)];
-				console.log("Multiple cards, picked card: ",card);
+				card = cardArray[Math.floor(Math.random()*cardArray.length)];
 			}
 			if (card !== undefined) {
 				if (card.hasOwnProperty('image')) {
@@ -1035,14 +1052,17 @@ function setListeners() {
 		loopMessages();
 	});
 
+    $('#cardModalBody').on('click', function() {
+    	console.log("You clicked me...");
+    	$('#cardModal').modal('hide');
+	});
+
 	$("#hamburger").click(function () {
     	openDrawer();
     });
 
     $('html').on('click', function(e) {
-    	console.log("Got a thing", e);
-        if(!$(e.target).hasClass('drawer-item')) {
-			console.log("Closing drawer.");
+    	if(!$(e.target).hasClass('drawer-item')) {
 			closeDrawer();
 		}
     });
@@ -1060,8 +1080,9 @@ function setListeners() {
 			label.css("color", "#A1A1A1");
 		}
 		if ($(this).hasClass('appToggle')) {
-			var appName = $(this).data('app');
-			var group = $('#'+appName+'Group');
+			var appName = $(this).attr('id');
+			var group = $(document.getElementById(appName + 'Group'));
+			//var group = $('#'+appName+'Group');
 			console.log("Toggling ",appName, group);
 			if (checked) {
 				group.show();
@@ -1486,6 +1507,29 @@ function setListeners() {
 		}
 
 		if ($(this).hasClass('appToggle') && id !== 'autoUpdate') {
+
+			var label = $("label[for='" + $(this).attr('id') + "']");
+			var checked = ($(this).is(':checked'));
+			if ($(this).data('app') === 'autoUpdate') {
+				checked = !checked;
+			}
+			if (checked) {
+				label.css("color", "#003792");
+			} else {
+				label.css("color", "#A1A1A1");
+			}
+
+			var appName = $(this).attr('id');
+			var group = $(document.getElementById(appName + 'Group'));
+			//var group = $('#'+appName+'Group');
+			console.log("Toggling ",appName, group);
+			if (checked) {
+				group.show();
+			} else {
+				group.hide();
+			}
+
+			window[appName] = checked;
 			if (value) {
 				addAppGroup(id);
             } else {
@@ -1530,14 +1574,19 @@ function setListeners() {
 function addAppGroup(key) {
     var container = $("#results");
     var appDrawer = $("#AppzDrawer");
-    var apps = ["sonarr", "sick", "couch", "radarr", "ombi", "headphones", "lidarr", "watcher"];
+    var apps = ["sonarr", "sick", "couch", "radarr", "ombi", "headphones", "lidarr", "watcher", "deluge", "downloadstation", "nzbhydra", "sabnzbd", "utorrent", "transmission"];
     var colors = {
         "sonarr": "#36c6f4",
     	"sick": "#2674b2",
+		"downloadstation": "#3c6daf",
+		"deluge": "#304663",
     	"lidarr": "#00a65b",
+		"utorrent": "#76b83f",
     	"radarr": "#ffc230",
+		"sabnzbd": "#c99907",
         "couch": "#e6521d",
-    	"ombi": "#a7401c"
+    	"ombi": "#a7401c",
+		"transmission": "#b90900"
 	};
 
     var icons = {
@@ -1545,8 +1594,13 @@ function addAppGroup(key) {
 		"radarr": "muximux-radarr",
 		"sick": "muximux-sick",
 		"couch": "muximux-couch",
-		"ombi": "muximux-plex",
-		"headphones": "muximux-headphones3"
+		"ombi": "muximux-ombi",
+		"headphones": "muximux-headphones3",
+		"utorrent": "muximux-utorrent",
+		"sabnzbd": "muximux-sabnzbd",
+		"downloadstation": "muximux-synology",
+		"nzbhydra": "muximux-nzbhydra",
+		"transmission": "muximux-transmission"
 	};
     if (apps.indexOf(key) > -1) {
     	var color = "var(--theme-accent)";
@@ -1564,6 +1618,10 @@ function addAppGroup(key) {
         } else {
         	url = "http://localhost";
 		}
+		var label = capitalize(key);
+        if (window.hasOwnProperty(key + "Label")) {
+            label = window[key + "Label"];
+        }
 
         if (url) {
             console.log("We've got the goods for " + key);
@@ -1582,7 +1640,7 @@ function addAppGroup(key) {
 			});
 			btnSpan.append(btnIcon);
 			btnDiv.append(btnSpan);
-			btnDiv.append(capitalize(key));
+			btnDiv.append(label);
             appDrawer.append(btnDiv);
 
             btnDiv = $("#" + key + "Btn");
@@ -1590,7 +1648,7 @@ function addAppGroup(key) {
             btnDiv.attr('data-token', token);
             btnDiv.attr('data-frame', frameString);
             btnDiv.attr('data-link', key + "Div");
-            btnDiv.attr('data-label', capitalize(key));
+            btnDiv.attr('data-label', label);
             btnDiv.attr('data-color', color);
 
             $('<div>', {
@@ -1602,7 +1660,7 @@ function addAppGroup(key) {
             newDiv.attr("data-uri", url);
             newDiv.attr("data-token", token);
             newDiv.attr("data-target", frameString);
-            newDiv.attr("data-label", capitalize(key));
+            newDiv.attr("data-label", label);
 
             $('<iframe>', {
                 src: '',
@@ -1620,6 +1678,284 @@ function removeAppGroup(key) {
     var btnString = "#" + key + "Btn";
     $(divString).remove();
     $(btnString).remove();
+}
+
+function buildSettingsPages(userData) {
+	if (userData.hasOwnProperty('userData')) {
+		userData = userData['userData'];
+	}
+	console.log("BUILDING PAGES.");
+	var sections = {
+		ombi: {
+			icon: 'search',
+			items: ['ombi']
+		},
+		movies: {
+			icon: 'movie',
+			items: ['couch', 'radarr', 'watcher']
+		},
+		shows: {
+			icon: 'live_tv',
+			items: ['sick', 'sonarr']
+		},
+		music: {
+			icon: 'music_note',
+			items: ['headphones','lidarr']
+		},
+		download: {
+			icon: 'cloud_download',
+			items: ['deluge', 'downloadstation', "nzbhydra", 'sabnzbd', 'transmission', 'utorrent']
+		}
+	};
+
+	var itemList = {
+		ombi: {
+			Token: "Token",
+			Label: "Ombi",
+			Profile: false,
+			Search: true
+		},
+        couch: {
+            Token: "Token",
+			Label: "Couchpotato",
+            Profile: true,
+			Search: true
+        },
+        radarr: {
+            Token: "Token",
+			Label: "Radarr",
+            Profile: true,
+			Search: true
+        },
+		watcher: {
+			Token: "Token",
+			Label: "Watcher",
+			Profile: true,
+			Search: true
+		},
+		sick: {
+			Token: "Token",
+			Label: "Sickbeard/Sickrage",
+			Profile: true,
+			Search: true
+		},
+		sonarr: {
+			Token: "Token",
+			Label: "Sonarr",
+			Profile: true,
+			Search: true
+		},
+		headphones: {
+			Token: "Token",
+			Label: "Headphones",
+			Profile: false,
+			Search: true
+		},
+		lidarr: {
+			Token: "Token",
+			Label: "Lidarr",
+			Profile: true,
+			Search: true
+		}
+	};
+	var drawer = $('#SettingsDrawer');
+	var container = $('#results');
+
+	$.each(sections, function (key, data) {
+		console.log("Creating item for " + key);
+		// Create drawer items
+        var btnDiv = $('<div>', {
+            class: 'drawer-item btn',
+            id: key + "SettingBtn"
+        });
+        btnDiv.data('link', key + "SettingsTab");
+        btnDiv.data('label', capitalize(key));
+
+        var btnSpan = $('<span>', {
+            class: 'barBtn',
+            id: key + "Span"
+        });
+
+        var btnIcon = $('<i>', {
+            class: 'colorItem barIcon material-icons',
+			text: data.icon
+        });
+        btnSpan.append(btnIcon);
+        btnDiv.append(btnSpan);
+        btnDiv.append(capitalize(key));
+        console.log("Appending: ",btnDiv);
+        drawer.append(btnDiv);
+
+        // Create settings items (Wheeee!)
+		var tabDiv = $('<div>', {
+			class: 'view-tab fade settingPage col-md-9 col-lg-10 col-xl-8',
+			id: key + "SettingsTab"
+		});
+
+		var items = data.items;
+		itemClass = "gridBox";
+		if (items.length <= 1) {
+			var itemClass = "gridBox-1 col-xl-8 col-lg-10 col-sm-12";
+		}
+		var gB = $('<div>', {
+			class: itemClass
+		});
+
+        for (var itemKey in items) {
+        	itemKey = items[itemKey];
+			var label = capitalize(itemKey);
+			var auth = false;
+			var list = false;
+			var search = false;
+			if (itemList.hasOwnProperty(itemKey)) {
+                auth = itemList[itemKey].Token;
+				label = itemList[itemKey].Label;
+				list = itemList[itemKey].List;
+				search = itemList[itemKey].Search;
+			}
+			var options = {
+				Token: {
+					label: "Token",
+					value: auth,
+					default: ""
+				},
+				Label: {
+					label: "Label",
+					value: label,
+					default: label
+                },
+				List: {
+					label: "Quality Profile",
+					value: list
+                },
+				Search: {
+					label: "Use in searches",
+					value: search
+                },
+				Uri: {
+					label: "Uri",
+					value: true
+                },
+				Newtab: {
+					label: "Open in new tab",
+					value: true
+                }
+			};
+			var aC = $('<div>',{
+				class: 'appContainer card'
+			});
+
+			var cB = $('<div>', {
+				class: 'card-body'
+			});
+
+
+			var h = $('<h4>', {
+				class: 'cardheader',
+				text: label
+			});
+
+			var tB = $('<div>', {
+				class: 'togglebutton'
+			});
+
+			var tBl = $('<label>',{
+				class: 'appLabel checkLabel',
+				text: 'Enable'
+			});
+			tBl.attr('for', itemKey);
+
+			var checked = false;
+			if (userData.hasOwnProperty(itemKey + 'Enabled')) {
+                checked = userData[itemKey + 'Enabled']
+            }
+			var iUrl = $('<input>', {
+				id: itemKey,
+				type: 'checkbox',
+				class: 'appInput appToggle',
+				checked: checked
+			});
+			// Well, this just generates the header and toggle, we still need the settings body...
+			tBl.append(iUrl);
+            iUrl.data('app',itemKey);
+            tB.append(tBl);
+			cB.append(h);
+			cB.append(tB);
+			
+			// Okay, now build the form-group that holds the actual settings...
+			// Parent form group
+			var pFg = $('<div>', {
+				class: 'form-group',
+				id: itemKey + "Group"
+			});
+			
+			var settings = {
+				Uri: 'text',
+				Token: 'text',
+				Label: 'text',
+				List: 'select',
+				Newtab: 'checkbox',
+				Search: 'checkbox'
+			};
+			
+			$.each(settings, function(sKey, sType) {
+				if (options[sKey]['value']) {
+					var itemLabel = options[sKey]['label'];
+                    var itemString = itemKey + sKey;
+
+                    var classString = "appLabel"
+
+                    if (sType === 'checkbox') {
+                    	classString = classString + " appLabel-short";
+					} else {
+                        var fG = $('<div>', {
+                            class: 'form-group'
+                        });
+					}
+                    var sL = $('<label>', {
+                        class: classString,
+                        text: itemLabel + ":"
+                    });
+                    sL.attr('for', itemString);
+                    var sI;
+					var itemValue = "";
+					if (userData.hasOwnProperty(itemString)) {
+                        itemValue = userData[itemString];
+					}
+                    if (sType !== 'select') {
+                        sI = $('<input>', {
+                            id: itemString,
+                            class: 'appInput form-control appParam ' + itemString,
+                            type: sType,
+                            value: itemValue
+                        });
+                    } else {
+                        sI = $('<select>', {
+                            id: itemString,
+                            class: 'form-control profileList ' + itemString
+                        });
+                    }
+                    sL.append(sI);
+                    if (sType === 'checkbox') {
+                    	pFg.append(sL);
+					} else {
+                        fG.append(sL);
+                        pFg.append(fG);
+                    }
+
+                }
+                
+			});
+			cB.append(pFg);
+            aC.append(cB);
+            gB.append(aC);
+            tabDiv.append(gB);
+
+		};
+        container.append(tabDiv);
+        toggleGroups();
+	});
+
 
 }
 

@@ -22,7 +22,7 @@ function makeBody($defaults) {
 	$revString = $rev ? "Revision: $rev" : "";
 	$ombiAddress = $_SESSION['ombiUri'] ?? "./ombi";
 	$homeBase = file_get_contents(dirname(__FILE__) . "/homeBase/index.html");
-	$homeBase = str_replace("<OMBI_URL>", $ombiAddress, $homeBase);
+	$homeBase = str_replace('<OMBI_URL>', $ombiAddress, $homeBase);
 	$recentPage = file_get_contents(dirname(__FILE__) . "/homeBase/recentlyadded/recently_added.html");
 
 	$gitDiv = $useGit ? '<div class="appContainer card updateDiv'.$hidden.'">
@@ -93,6 +93,14 @@ function makeBody($defaults) {
 					</div>
 				</div>
 			</div>
+			
+			<div class="modal" id="cardModal">
+				<div class="row justify-content-center" role="document" id="cardModalBody">
+					<div id="cardWrap" class="col-xl-4 col-lg-6 col-md-6 col-sm-12">
+					
+					</div>
+				</div>
+			</div>
 			<div id="plexClient">
                 <div id="clientWrapper">
                     <a class="dropdown-item client-item" data-id="rescan"><b>rescan devices</b></a>
@@ -153,26 +161,13 @@ function makeBody($defaults) {
                 </div>
                 
                 <div class="drawer-list collapsed" id="SettingsDrawer">
-                	<div class="drawer-wrap">
-	                	<div class="drawer-item btn" data-link="generalSettingsTab" data-label="General">
-                			<span class="barBtn"><i class="material-icons colorItem barIcon">build</i></span>General
-                		</div>
-	                    <div class="drawer-item btn" data-link="plexSettingsTab" data-label="Plex">
-	                        <span class="barBtn"><i class="material-icons colorItem barIcon">label_important</i></span>Plex
-	                    </div>
-	                     <div class="drawer-item btn" data-link="ombiSettingsTab" data-label="Ombi">
-	                        <span class="barBtn"><i class="material-icons colorItem barIcon">search</i></span>Ombi
-	                    </div>
-	                    <div class="drawer-item btn" data-link="movieFetcherSettingsTab" data-label="Movies">
-	                        <span class="barBtn"><i class="material-icons colorItem barIcon">movie</i></span>Movies
-	                    </div>
-	                    <div class="drawer-item btn" data-link="showFetcherSettingsTab" data-label="Shows">
-	                        <span class="barBtn"><i class="material-icons colorItem barIcon">live_tv</i></span>Shows
-	                    </div>
-	                    <div class="drawer-item btn" data-link="musicFetcherSettingsTab" data-label="Music">
-	                        <span class="barBtn"><i class="material-icons colorItem barIcon">music_note</i></span>Music
-	                    </div>
-	                </div>       
+                	
+                    <div class="drawer-item btn" data-link="generalSettingsTab" data-label="General">
+                        <span class="barBtn"><i class="material-icons colorItem barIcon">build</i></span>General
+                    </div>
+                    <div class="drawer-item btn" data-link="plexSettingsTab" data-label="Plex">
+                        <span class="barBtn"><i class="material-icons colorItem barIcon">label_important</i></span>Plex
+                    </div> 
 				</div>
 				<div class="drawer-separator"></div>
 				<div class="drawer-item btn" id="logout">
@@ -494,282 +489,7 @@ function makeBody($defaults) {
 		                    </div>		                
 			            </div>
 		            </div>
-		            <div class="view-tab fade settingPage col-md-9 col-lg-10 col-xl-8" id="ombiSettingsTab">
-		            <div class="gridBox">			                
-			                <div class="appContainer card ombiGroup">
-								<div class="card-body">
-								    <h4 class="cardHeader">Ombi</h4>
-								    <div class="togglebutton">
-								        <label for="ombi" class="appLabel checkLabel">' . $lang['uiSettingEnable'] . '
-								            <input id="ombi" type="checkbox" data-app="ombi" class="appInput appToggle"/>
-								        </label>
-								    </div>
-								    <div class="form-group" id="ombiGroup">
-								        <div class="form-group">
-								            <label for="ombiUrl" class="appLabel">Ombi URI:
-								                <input id="ombiUri" class="appInput form-control ombiUrl appParam" type="text"  value="' . $_SESSION["ombiUri"] . '" />
-								            </label>
-								        </div>
-								        <div class="form-group">
-								            <label for="ombiAuth" class="appLabel">Ombi ' . $lang['uiSettingFetcherToken'] . ':
-								                <input id="ombiToken" class="appInput form-control Ombi appParam" type="text" value="' . $_SESSION["ombiToken"] . '"/>
-								            </label>
-								        </div>
-								        <div class="text-center">
-								            <div class="form-group btn-group">
-								                <button value="Ombi" class="testInput btn btn-raised btn-info btn-100" type="button">' . $lang['uiSettingBtnTest'] . '</button>
-								                <button id="resetOmbi" value="Ombi" class="resetInput btn btn-raised btn-danger btn-100" type="button">' . $lang['uiSettingBtnReset'] . '</button>
-								            </div>
-								        </div>
-								    </div>
-								</div>
-		                    </div>
-	                    </div>
-					</div>
-		            <div class="view-tab fade settingPage col-md-9 col-lg-10 col-xl-8" id="movieFetcherSettingsTab">
-			            <div class="gridBox" id="fetcherBody">
-			                <div class="appContainer card">
-			                    <div class="card-body">
-			                        <h4 class="cardHeader">CouchPotato</h4>
-			                        <div class="togglebutton">
-			                            <label for="couch" class="appLabel checkLabel">' . $lang['uiSettingEnable'] . '
-			                                <input id="couch" type="checkbox" data-app="couch" class="appInput appToggle"/>
-			                            </label>
-			                        </div>
-			                        <div class="form-group" id="couchGroup">
-			                            <div class="form-group">
-			                                <label for="couchUri" class="appLabel">Couchpotato URI:
-			                                    <input id="couchUri" class="appInput form-control CouchPotato appParam" type="text" value="' . $_SESSION["couchUri"] . '"/>
-			                                </label>
-			                            </div>
-			                            <div class="form-group">
-			                                <label for="couchToken" class="appLabel">Couchpotato ' . $lang['uiSettingFetcherToken'] . ':
-			                                    <input id="couchToken" class="appInput form-control CouchPotato appParam" type="text" value="' . $_SESSION["couchToken"] . '"/>
-			                                </label>
-			                            </div>
-			                            <div class="form-group">
-			                                <label class="appLabel" for="couchProfile">' . $lang['uiSettingFetcherQualityProfile'] . ':</label>
-			                                <select class="form-control profileList" id="couchProfile">
-			                                    ' . fetchList("couch") . '
-			                                </select>
-			                            </div>
-			                            <div class="text-center">
-			                                <div class="form-group btn-group">
-			                                    <button value="Couch" class="testInput btn btn-raised btn-info">' . $lang['uiSettingBtnTest'] . '</button>
-			                                    <button id="resetCouch" value="Couch" class="resetInput btn btn-raised btn-danger btn-100">' . $lang['uiSettingBtnReset'] . '</button>
-			                                </div>
-			                            </div>
-			                        </div>
-			                    </div>
-			                </div>
-			                <div class="appContainer card">
-			                    <div class="card-body">
-			                        <h4 class="cardHeader">Radarr</h4>
-			                        <div class="togglebutton">
-			                            <label for="radarr" class="appLabel checkLabel">' . $lang['uiSettingEnable'] . '
-			                                <input id="radarr" type="checkbox" data-app="radarr" class="appInput appToggle"/>
-			                            </label>
-			                        </div>
-			                        <div class="form-group" id="radarrGroup">
-			                            <div class="form-group">
-			                                <label for="radarrUri" class="appLabel">Radarr URI:
-			                                    <input id="radarrUri" class="appInput form-control Radarr appParam" type="text" value="' . $_SESSION["radarrUri"] . '"/>
-			                                </label>
-			                            </div>
-			                            <div class="form-group">
-			                                <label for="radarrToken" class="appLabel">Radarr ' . $lang['uiSettingFetcherToken'] . ':
-			                                    <input id="radarrToken" class="appInput form-control Radarr appParam" type="text" value="' . $_SESSION["radarrToken"] . '"/>
-			                                </label>
-			                            </div>
-			                            <div class="form-group">
-			                                <label class="appLabel" for="radarrProfile">' . $lang['uiSettingFetcherQualityProfile'] . ':</label>
-			                                <select class="form-control profileList" id="radarrProfile">
-			                                    ' . fetchList("radarr") . '
-			                                </select>
-			                            </div>
-			                            <div class="text-center">
-			                                <div class="form-group btn-group">
-			                                    <button value="Radarr" class="testInput btn btn-raised btn-info btn-100" type="button">' . $lang['uiSettingBtnTest'] . '</button>
-			                                    <button id="resetRadarr" value="Radarr" class="resetInput btn btn-raised btn-danger btn-100" type="button">' . $lang['uiSettingBtnReset'] . '</button>
-			                                </div>
-			                            </div>
-			                        </div>
-			                    </div>
-			                </div>
-			                <div class="appContainer card">
-			                    <div class="card-body">
-			                        <h4 class="cardHeader">Watcher</h4>
-			                        <div class="togglebutton">
-			                            <label for="watcher" class="appLabel checkLabel">' . $lang['uiSettingEnable'] . '
-			                                <input id="watcher" type="checkbox" data-app="watcher" class="appInput appToggle"/>
-			                            </label>
-			                        </div>
-			                        <div class="form-group" id="watcherGroup">
-			                            <div class="form-group">
-			                                <label for="watcherUri" class="appLabel">Watcher URI:
-			                                    <input id="watcherUri" class="appInput form-control Watcher appParam" type="text" value="' . $_SESSION["watcherUri"] . '"/>
-			                                </label>
-			                            </div>
-			                            <div class="form-group">
-			                                <label for="watcherToken" class="appLabel">Watcher ' . $lang['uiSettingFetcherToken'] . ':
-			                                    <input id="watcherToken" class="appInput form-control Watcher appParam" type="text" value="' . $_SESSION["watcherToken"] . '"/>
-			                                </label>
-			                            </div>
-			                            <div class="form-group">
-			                                <label class="appLabel" for="watcherProfile">' . $lang['uiSettingFetcherQualityProfile'] . ':</label>
-			                                <select class="form-control profileList" id="watcherProfile">
-			                                    ' . fetchList("watcher") . '
-			                                </select>
-			                            </div>
-			                            <div class="text-center">
-			                                <div class="form-group btn-group">
-			                                    <button value="Watcher" class="testInput btn btn-raised btn-info btn-100" type="button">' . $lang['uiSettingBtnTest'] . '</button>
-			                                    <button id="resetWatcher" value="Watcher" class="resetInput btn btn-raised btn-danger btn-100" type="button">' . $lang['uiSettingBtnReset'] . '</button>
-			                                </div>
-			                            </div>
-			                        </div>
-			                    </div>
-			                </div>
-			            </div>
-			        </div>
-		            <div class="view-tab fade settingPage col-md-9 col-lg-10 col-xl-8" id="showFetcherSettingsTab">
-			            <div class="gridBox" id="fetcherBody">
-			                <div class="appContainer card">
-			                    <div class="card-body">
-			                        <h4 class="cardHeader">Sickbeard/SickRage</h4>
-			                        <div class="togglebutton">
-			                            <label for="sick" class="appLabel checkLabel">' . $lang['uiSettingEnable'] . '
-			                                <input id="sick" type="checkbox" data-app="sick" class="appInput appToggle"/>
-			                            </label>
-			                        </div>
-			                        <div class="form-group" id="sickGroup">
-			                            <div class="form-group">
-			                                <label for="sickUri" class="appLabel">Sick URI:
-			                                    <input id="sickUri" class="appInput form-control Sick appParam" type="text" value="' . $_SESSION["sickUri"] . '"/>
-			                                </label>
-			                            </div>
-			                            <div class="form-group">
-			                                <label for="sickToken" class="appLabel">Sick ' . $lang['uiSettingFetcherToken'] . ':
-			                                    <input id="sickToken" class="appInput form-control Sick appParam" type="text" value="' . $_SESSION["sickToken"] . '"/>
-			                                </label>
-			                            </div>
-			                            <div class="form-group">
-			                                <label class="appLabel" for="sickProfile">' . $lang['uiSettingFetcherQualityProfile'] . ':</label>
-			                                <select class="form-control profileList" id="sickProfile">
-			                                    ' . fetchList("sick") . '
-			                                </select>
-			                            </div>
-			                            <div class="text-center">
-			                                <div class="form-group btn-group">
-			                                    <button value="Sick" class="testInput btn btn-raised btn-info btn-100" type="button">' . $lang['uiSettingBtnTest'] . '</button>
-			                                    <button id="resetSick" value="Sick" class="resetInput btn btn-raised btn-danger btn-100" type="button">' . $lang['uiSettingBtnReset'] . '</button>
-			                                </div>
-			                            </div>
-			                        </div>
-			                    </div>
-			                </div>
-			                <div class="appContainer card">
-			                    <div class="card-body">
-			                        <h4 class="cardHeader">Sonarr</h4>
-			                        <div class="togglebutton">
-			                            <label for="sonarr" class="appLabel checkLabel">' . $lang['uiSettingEnable'] . '
-			                                <input id="sonarr" type="checkbox" data-app="sonarr" class="appInput appToggle"/>
-			                            </label>
-			                        </div>
-			                        <div class="form-group" id="sonarrGroup">
-			                            <div class="form-group">
-			                                <label for="sonarrUri" class="appLabel">Sonarr URI:
-			                                    <input id="sonarrUri" class="appInput form-control Sonarr appParam" type="text" value="' . $_SESSION["sonarrUri"] . '"/>
-			                                </label>
-			                            </div>
-			                            <div class="form-group">
-			                                <label for="sonarrToken" class="appLabel">Sonarr ' . $lang['uiSettingFetcherToken'] . ':
-			                                    <input id="sonarrToken" class="appInput form-control Sonarr appParam" type="text" value="' . $_SESSION["sonarrToken"] . '"/>
-			                                </label>
-			                            </div>
-			                            <div class="form-group">
-			                                <label class="appLabel" for="sonarrProfile">' . $lang['uiSettingFetcherQualityProfile'] . ':</label>
-			                                <select class="form-control profileList" id="sonarrProfile">
-			                                    ' . fetchList("sonarr") . '
-			                                </select>
-			                            </div>
-			                            <div class="text-center">
-			                                <div class="form-group btn-group">
-			                                    <button value="Sonarr" class="testInput btn btn-raised btn-info btn-100" type="button">' . $lang['uiSettingBtnTest'] . '</button>
-			                                    <button id="resetSonarr" value="Sonarr" class="resetInput btn btn-raised btn-danger btn-100" type="button">' . $lang['uiSettingBtnReset'] . '</button>
-			                                </div>
-			                            </div>
-			                        </div>
-			                    </div>
-			                </div>
-			            </div>
-			        </div>
-		            <div class="view-tab fade settingPage col-md-9 col-lg-10 col-xl-8" id="musicFetcherSettingsTab">
-						<div class="gridBox" id="fetcherBody">
-							<div class="appContainer card">
-								<div class="card-body">
-									<h4 class="cardHeader">Headphones</h4>
-									<div class="togglebutton">
-										<label for="headphones" class="appLabel checkLabel">' . $lang['uiSettingEnable'] . '
-											<input id="headphones" data-app="headphones" type="checkbox" class="appInput appToggle"/>
-										</label>
-									</div>
-									<div class="form-group" id="headphonesGroup">
-										<div class="form-group">
-											<label for="headphonesUri" class="appLabel">Headphones URI:
-												<input id="headphonesUri" class="appInput form-control Headphones appParam" type="text" value="' . $_SESSION["headphonesUri"] . '"/>
-											</label>
-										</div>
-										<div class="form-group">
-											<label for="headphonesToken" class="appLabel">Headphones ' . $lang['uiSettingFetcherToken'] . ':
-												<input id="headphonesToken" class="appInput form-control Headphones appParam" type="text" value="' . $_SESSION["headphonesToken"] . '"/>
-											</label>
-										</div>
-										<div class="text-center">
-											<div class="form-group btn-group">
-												<button value="Headphones" class="testInput btn btn-raised btn-info btn-100" type="button">' . $lang['uiSettingBtnTest'] . '</button>
-												<button id="resetHeadphones" value="Headphones" class="resetInput btn btn-raised btn-danger btn-100" type="button">' . $lang['uiSettingBtnReset'] . '</button>
-											</div>
-										</div>
-									</div>
-								</div>
-							</div>
-							<div class="appContainer card">
-								<div class="card-body">
-									<h4 class="cardHeader">Lidarr</h4>
-									<div class="togglebutton">
-										<label for="lidarr" class="appLabel checkLabel">' . $lang['uiSettingEnable'] . '
-											<input id="lidarr" type="checkbox" data-app="lidarr" class="appInput appToggle"/>
-										</label>
-									</div>
-									<div class="form-group" id="lidarrGroup">
-										<div class="form-group">
-											<label for="lidarrUri" class="appLabel">Lidarr URI:
-												<input id="lidarrUri" class="appInput form-control Lidarr appParam" type="text" value="' . $_SESSION["lidarrUri"] . '"/>
-											</label>
-										</div>
-										<div class="form-group">
-											<label for="lidarrToken" class="appLabel">Lidarr ' . $lang['uiSettingFetcherToken'] . ':
-												<input id="lidarrToken" class="appInput form-control Lidarr appParam" type="text" value="' . $_SESSION["lidarrToken"] . '"/>
-											</label>
-										</div>
-										<div class="form-group">
-											<label class="appLabel" for="lidarrProfile">' . $lang['uiSettingFetcherQualityProfile'] . ':
-											<select class="form-control profileList" id="lidarrProfile">
-												
-											</select></label>
-										</div>
-										<div class="text-center">
-											<div class="form-group btn-group">
-												<button value="Lidarr" class="testInput btn btn-raised btn-info btn-100" type="button">' . $lang['uiSettingBtnTest'] . '</button>
-												<button id="resetLidarr" value="Lidarr" class="resetInput btn btn-raised btn-danger btn-100" type="button">' . $lang['uiSettingBtnReset'] . '</button>
-											</div>
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
+		       
 					<div class="view-tab settingPage col-sm-9 col-lg-8 fade'. $hidden.'" id="logTab">
 						<div class="modal-header">
 							<div class="form-group" id="logGroup">
@@ -830,11 +550,12 @@ function makeBody($defaults) {
 							</div>
 						</div>
 					</div>
-						        <div id="metaTags">
+				        <div id="metaTags">
 					    <meta id="apiTokenData" data-token="' . $_SESSION["apiToken"] . '"/>
 					    <meta id="strings" data-array="' . urlencode(json_encode($lang['javaStrings'])) . '"/>
 					    '. makeMetaTags() . '
-					</div>';
+					</div>
+					';
 
 
     return [$bodyText,$_SESSION['darkTheme']];
