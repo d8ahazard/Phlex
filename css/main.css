@@ -1037,6 +1037,11 @@ select {
 	text-shadow: none !important;
 }
 
+.userWrap {
+	width: 100%;
+	padding: 10px 0;
+}
+
 #userLabel, #passLabel {
 	position: relative;
 	top: 0;
@@ -1076,10 +1081,7 @@ h4.card-header {
 }
 
 .avatar {
-	float: left;
 	border-radius: 36px;
-	margin-right:10px;
-	margin-bottom:15px;
 }
 
 .no-gutters {

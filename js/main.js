@@ -279,8 +279,11 @@ function buildUiDeferred() {
 	scaleElements();
 
 	setTimeout(function () {
-		$('#results').css({"top": "64px", "max-height": "100%"})
-	}, 500);
+		$('#results').css({"top": "64px", "max-height": "100%"});
+        $('.userWrap').show();
+        $('.avatar').show();
+
+    }, 500);
 
 	$('.formpop').popover();
 

@@ -105,10 +105,12 @@ function makeBody($defaults) {
                 </div>
   		    </div>
 			<div id="sideMenu">
-            	<div class="drawer-header">
-	                <div class="userWrap row justify-content-center">
-	                    <img class="avatar col-xs-3" src="' . $_SESSION['plexAvatar'] . '"/>
-	                    <div class="col-xs-9">
+            	<div class="drawer-header container">
+	                <div class="userWrap row justify-content-around">
+	                	<div class="col-4">
+	                    	<img class="avatar" src="' . $_SESSION['plexAvatar'] . '"/>
+	                    </div>
+	                    <div class="col-8">
 		                    <p class="userHeader">' . ucfirst($_SESSION['plexUserName']) . '</p>
 		                    <p>' . $_SESSION['plexEmail'] . '</p>
 	                    </div>
