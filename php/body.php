@@ -126,6 +126,10 @@ function makeBody($defaults) {
                 <div class="drawer-item btn active" data-link="homeTab" data-label="Home">
                 	<span class="barBtn"><i class="material-icons colorItem barIcon">home</i></span>Home
                 </div>
+                <div class="drawer-item btn" data-link="voiceTab" data-label="Voice">
+                	<span class="barBtn"><i class="material-icons colorItem barIcon">list</i></span>Commands
+                </div>
+                <div class="drawer-separator"></div>
                 <div class="drawer-item btn" data-link="expandDrawer" data-target="Appz">
                 	<span class="barBtn"><i class="material-icons colorItem barIcon">apps</i></span>Apps
                 </div>
@@ -148,12 +152,6 @@ function makeBody($defaults) {
 	                    <span class="barBtn"><i class="material-icons colorItem barIcon">local_library</i></span>Library
 	                </div>
 				</div>
-                <div class="drawer-item btn" data-link="voiceTab" data-label="Voice">
-                	<span class="barBtn"><i class="material-icons colorItem barIcon">list</i></span>Commands
-                </div>
-                <div class="drawer-item btn" data-link="logTab" data-label="Logs">
-                	<span class="barBtn"><i class="material-icons colorItem barIcon">bug_report</i></span>Logs
-                </div>
                 <div class="drawer-item btn" data-link="expandDrawer" data-target="Settings">
                 	<span class="barBtn"><i class="material-icons colorItem barIcon">settings</i></span>Settings
                 </div>
@@ -168,6 +166,9 @@ function makeBody($defaults) {
                     </div> 
 				</div>
 				<div class="drawer-separator"></div>
+				<div class="drawer-item btn" data-link="logTab" data-label="Logs">
+                	<span class="barBtn"><i class="material-icons colorItem barIcon">bug_report</i></span>Logs
+                </div>
 				<div class="drawer-item btn" id="logout">
                     <span class="barBtn"><i class="material-icons colorItem barIcon">exit_to_app</i></span>Log Out
                 </div>   
