@@ -20,6 +20,15 @@ var devices = "foo";
 var staticCount = 0;
 var javaStrings;
 
+var SETTING_KEYTYPES = {
+    Uri: 'text',
+    Token: 'text',
+    Label: 'text',
+    List: 'select',
+    Newtab: 'checkbox',
+    Search: 'checkbox'
+};
+
 var SETTINGS_SECTIONS = {
     ombi: {
         icon: 'search',
@@ -1725,7 +1734,8 @@ function addAppGroup(key) {
         } else {
         	url = "http://localhost";
 		}
-		var label = APP_DEFAULTS[key]["Label"];
+		var label = capitalize(key);
+        if (APP_DEFAULTS.hasOwnProperty(key)) label = APP_DEFAULTS[key]["Label"];
         if (window.hasOwnProperty(key + "Label")) {
         	if (window[key + "Label"] !== "") {
                 label = window[key + "Label"];
@@ -1852,7 +1862,7 @@ function buildSettingsPages(userData) {
 				list = APP_DEFAULTS[itemKey].List;
 				search = APP_DEFAULTS[itemKey].Search;
 			}
-			var options = {
+			var SETTINGS_INPUTS = {
 				Token: {
 					label: "Token",
 					value: auth,
@@ -1880,6 +1890,7 @@ function buildSettingsPages(userData) {
 					value: true
                 }
 			};
+
 			var aC = $('<div>',{
 				class: 'appContainer card'
 			});
@@ -1887,7 +1898,6 @@ function buildSettingsPages(userData) {
 			var cB = $('<div>', {
 				class: 'card-body'
 			});
-
 
 			var h = $('<h4>', {
 				class: 'cardheader',
@@ -1902,47 +1912,41 @@ function buildSettingsPages(userData) {
 				class: 'appLabel checkLabel',
 				text: 'Enable'
 			});
+
 			tBl.attr('for', itemKey);
 
 			var checked = false;
 			if (userData.hasOwnProperty(itemKey + 'Enabled')) {
                 checked = userData[itemKey + 'Enabled']
             }
+
 			var iUrl = $('<input>', {
 				id: itemKey,
 				type: 'checkbox',
 				class: 'appInput appToggle',
 				checked: checked
 			});
+
 			// Well, this just generates the header and toggle, we still need the settings body...
 			tBl.append(iUrl);
             iUrl.data('app',itemKey);
             tB.append(tBl);
 			cB.append(h);
 			cB.append(tB);
-			
+
 			// Okay, now build the form-group that holds the actual settings...
 			// Parent form group
 			var pFg = $('<div>', {
 				class: 'form-group',
 				id: itemKey + "Group"
 			});
-			
-			var settings = {
-				Uri: 'text',
-				Token: 'text',
-				Label: 'text',
-				List: 'select',
-				Newtab: 'checkbox',
-				Search: 'checkbox'
-			};
-			
-			$.each(settings, function(sKey, sType) {
-				if (options[sKey]['value']) {
-					var itemLabel = options[sKey]['label'];
+
+			$.each(SETTING_KEYTYPES, function(sKey, sType) {
+				if (SETTINGS_INPUTS[sKey]['value']) {
+					var itemLabel = SETTINGS_INPUTS[sKey]['label'];
                     var itemString = itemKey + sKey;
 
-                    var classString = "appLabel"
+                    var classString = "appLabel";
 
                     if (sType === 'checkbox') {
                     	classString = classString + " appLabel-short";
@@ -1961,6 +1965,7 @@ function buildSettingsPages(userData) {
 					if (userData.hasOwnProperty(itemString)) {
                         itemValue = userData[itemString];
 					}
+
                     if (sType !== 'select') {
                         sI = $('<input>', {
                             id: itemString,
@@ -1981,16 +1986,14 @@ function buildSettingsPages(userData) {
                         fG.append(sL);
                         pFg.append(fG);
                     }
-
                 }
-                
 			});
 			cB.append(pFg);
             aC.append(cB);
             gB.append(aC);
             tabDiv.append(gB);
 
-		};
+		}
         container.append(tabDiv);
         toggleGroups();
 	});
