@@ -216,12 +216,12 @@ function makeBody($defaults) {
 					</div>
 					<div class="col-1 col-md-1 col-lg-2" id="rightGrp">
 						<div class="row testGrp">
-							<div class="col-md-0 col-lg-8 col-xl-9">
+							<div class="col-md-0 col-lg-8 col-xl-8">
 								<div id="sectionLabel">
 									<h3>Home</h3>
 								</div>
 							</div>
-							<div class="col-sm-12 col-md-12 col-lg-4 col-xl-3 center-block">
+							<div class="col-sm-12 col-md-12 col-lg-4 col-xl-4 center-block">
 								<div class="btn btn-sm navIcon main clientBtn center-block" data-position="right" id="client">
 	            					<span class="material-icons colorItem">cast</span>
 	            					<div class="ddLabel"></div>
