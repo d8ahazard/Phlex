@@ -20,6 +20,10 @@ html, body {
 	width: 100%;
 }
 
+
+
+
+
 body {
 	position: fixed;
 	overflow: hidden;
@@ -46,7 +50,7 @@ body {
 	height: 100%;
 }
 
-.topBar {
+#topBar {
 	width: 100%;
 	position: fixed;
 	height: 64px;
@@ -55,8 +59,11 @@ body {
 	-webkit-box-shadow: 0 4px 5px 0 rgba(0,0,0,0.14), 0 1px 10px 0 rgba(0,0,0,0.12), 0 2px 4px -1px rgba(0,0,0,0.2);
 	box-shadow: 0 4px 5px 0 rgba(0,0,0,0.14), 0 1px 10px 0 rgba(0,0,0,0.12), 0 2px 4px -1px rgba(0,0,0,0.2);
     z-index: 7;
-	margin: 0;
-	padding: 0;
+}
+
+
+.testGrp, #leftGrp, #rightGrp {
+	height: 100%;
 }
 
 .card, .dropdown-menu {
@@ -173,6 +180,32 @@ a:hover:not(#executeButton) {
 	}
 }
 
+@media (max-width: 992px) {
+	.col-md-0 {
+		display: none;
+	}
+}
+
+@media (max-width: 768px) {
+	.col-sm-0 {
+		display: none;
+	}
+}
+
+@media (max-width: 576px) {
+	.col-0 {
+		display: none;
+	}
+}
+
+#sendBtn {
+	display: block;
+}
+
+#smallSendBtn {
+	display: none;
+}
+
 .drawer-separator {
 	height:1px;
 	background-color: var(--theme-primary-inverse);
@@ -194,16 +227,17 @@ a:hover:not(#executeButton) {
 }
 
 #sectionLabel {
-	position: absolute;
-	top: 18px;
-	width: 11%;
-	right: 6%;
-	padding: 0 10px;
+	margin-top: 15px;
+	width: 100%;
 	text-align: center;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 
 #sectionLabel h3 {
 	margin-bottom: 0 !important;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 
 #sideMenu {
@@ -256,34 +290,29 @@ a:hover:not(#executeButton) {
 }
 
 .navIcon {
-	position: fixed;
 	z-index: 8;
-	top: -5px;
 	height: 54px;
 	width: 54px;
-    font-size: 28px;
     cursor: pointer;
     color: var(--theme-primary-inverse);
     text-align: center;
-    padding: 0;
-}
-
-.navIcon > span {
-	top: 8px;
-	position: relative;
-	left: -5px;
-	color: var(--theme-accent);
-
-
+	margin: 5px 1px;
 }
 
 #hamburger {
-	left: 9px;
+	font-size: 28px;
 }
 
-#client {
-    right: 9px;
+#client, #smallSendBtn {
+	font-size: 26px;
 }
+
+.navIcon > span {
+	color: var(--theme-accent);
+	margin-top: 10px;
+	margin-left: -6px;
+}
+
 
 .searchWrap {
     width: 100%;
@@ -372,14 +401,6 @@ html {
 	width: 100%;
 	background-size: 100% 100%;
 	background: no-repeat center center;
-}
-
-#mainwrap {
-	top: -200px;
-	-webkit-transition: top .9s;
-	-moz-transition: top .9s;
-	-o-transition: top .9s;
-	transition: top .9s;
 }
 
 .cardClose {
@@ -826,14 +847,23 @@ p.card-subtitle {
 	padding-right: 0;
 }
 
-
 .ddLabel {
-	position: fixed;
-	left: 2px;
-	top: 5px;
-	font-size: 7px;
-	display: inline-block;
+	position: absolute;
+	left:50%;
+	-webkit-transform: translate(-50%, -50%);
+	-moz-transform: translate(-50%, -50%);
+	transform: translate(-50%, -50%);
+	top: 8px;
+	width: 54px;
+	font-size: 9px;
+	display: block;
 	color: var(--theme-primary-inverse-75);
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+#refresh {
+	display: none;
 }
 
 .clientMenu {
@@ -957,12 +987,6 @@ pre.prettyprint {
 	max-width: 64px;
 }
 
-.clientBtn {
-	top: 5px;
-	left: 14px;
-	position: absolute;
-}
-
 .searchPick {
 	position: absolute;
 	width: 100%;
@@ -970,6 +994,10 @@ pre.prettyprint {
 	left: 0;
 	margin: 5px !important;
 	height: 30px !important;
+}
+
+.center-block {
+    float:none;
 }
 
 input[type=checkbox] {

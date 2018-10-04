@@ -45,13 +45,12 @@ input {
 	display: block;
 }
 
-.sendBtn {
-	line-height: 34px;
-	cursor: pointer;
-	position: fixed;
-	z-index: 11;
-	top: 18px;
-	right: 18px;
+#sendBtn {
+	display: none;
+}
+
+#smallSendBtn {
+	display: block;
 }
 
 #actionLabel {

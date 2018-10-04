@@ -339,6 +339,9 @@ function drawerClick(element) {
                 if (frameTarget.attr('src') !== frameSrc) {
                     frameTarget.attr('src', frameSrc);
                 }
+                $('#refresh').show();
+            } else {
+                $('#refresh').hide();
             }
             var color = "var(--theme-accent)";
             if (typeof element.data('color') !== 'undefined') {
@@ -357,12 +360,12 @@ function drawerClick(element) {
             newTab.addClass('active');
             // Change label if it's a setting group
             if (!linkVal.includes("SettingsTab")) {
-                secLabel.css("top","18px");
+                secLabel.css("margin-top","15px");
                 secLabel.html(label);
             } else {
                 label = label + "(Settings)";
                 secLabel.html(label);
-                secLabel.css("top", "4px");
+                secLabel.css("margin-top", "4px");
             }
             var frame = $('#logFrame');
 
@@ -1494,6 +1497,13 @@ function setListeners() {
 		});
 	});
 
+	$(document).on('click', '#refresh', function () {
+	    console.log("Refreshing tab.");
+	    var frame = $('.framediv.active').find('iframe');
+        $(frame,window.parent.document).attr('src',$(frame,window.parent.document).attr('src'));
+        // #TODO: Add an animation to rotate the icon here.
+    });
+
 	$(".profileList").change(function () {
 		var service = $(this).attr('id');
 		var index = $(this).find('option:selected').data('index');
@@ -1514,7 +1524,7 @@ function setListeners() {
 	});
 
 	// This handles sending and parsing our result for the web UI.
-	$("#executeButton").click(function () {
+	$(".sendBtn").click(function () {
 		console.log("Execute clicked!");
 		$('.load-bar').show();
 		var command = $('#commandTest').val();
@@ -1533,14 +1543,11 @@ function setListeners() {
 		}
 	});
 
-	var client = $('#client');
+	var client = $('.clientBtn');
 
 	client.click(function () {
-		var pos = $(this).position();
-		var width = $(this).outerWidth();
 		var side = $(this).data("position");
 		//show the menu directly over the placeholder
-		var string3 = "";
 		var pc = $("#plexClient");
 		if (!pc.hasClass('open')) {
             if (side === "left") {
@@ -1573,7 +1580,7 @@ function setListeners() {
 
 	$('#commandTest').keypress(function (event) {
 		if (event.keyCode === 13) {
-			$('#executeButton').click();
+			$('.sendBtn').click();
 		}
 	});
 	$('#plexServerEnabled').change(function () {

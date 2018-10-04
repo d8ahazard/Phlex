@@ -56,6 +56,7 @@ function makeBody($defaults) {
 
 
 	$bodyText = '
+			
 			<div class="wrapperArt"></div>
 			<div class="castArt">
 				<div class="background-container">
@@ -72,10 +73,7 @@ function makeBody($defaults) {
 					</div>
 				</div>      
 			</div>
-		    <div class="btn btn-sm navIcon main" data-position="right" href="javascript:void(0)" id="client">
-	            <span class="material-icons colorItem">cast</span>
-	            <div class="ddLabel"></div>
-            </div>	                
+		                    
         	
 			<div class="modal fade" id="jsonModal">
 				<div class="modal-dialog" role="document">
@@ -175,16 +173,25 @@ function makeBody($defaults) {
                 </div>   
 			</div>
         	
-			<div id="body">
-				<div class="topBar row justify-content-center">
-					<div id="sectionLabel" class="col-lg-0">
-						<h3>Home</h3>
+			<div id="body" class="container">
+				<div id="topBar" class="row testGrp justify-content-between">
+					<div class="col-1 col-md-1 col-lg-2" id="leftGrp">
+						<div class="row testGrp">
+							<div class="col-12 col-md-6 col-lg-4 col-xl-3 center-block">
+								<div class="btn btn-sm navIcon center-block" id="hamburger">
+									<span class="material-icons colorItem">menu</span>
+								</div>
+							</div>
+							<div class="col-0 col-md-6 col-lg-4 col-xl-3 center-block">
+								<div class="btn btn-sm navIcon center-block" id="refresh">
+									<span class="material-icons colorItem spin">refresh</span>
+								</div>
+							</div>
+							<div class="col-md-0 col-lg-4 col-xl-6"></div>
+						</div>
 					</div>
-					<div class="btn btn-sm navIcon" id="hamburger">
-						<span class="material-icons colorItem">menu</span>
-					</div>
-					<div class="wrapper col-sm-9 col-lg-8" id="mainWrap">
-		                <div class="searchWrap" id="queryCard">
+					<div class="col-10 col-md-9 col-lg-8 wrapper">
+						<div class="searchWrap" id="queryCard">
 				            <div class="query">
 					            <div class="queryBg">
 					                <div class="btn-toolbar">
@@ -198,15 +205,33 @@ function makeBody($defaults) {
 													<div class="bar"></div>
 													<div class="bar"></div>
 												</div>
-						                        <a class="material-icons colorItem sendBtn colorItem" id="executeButton">message</a>
+						                        <a class="material-icons colorItem sendBtn" id="sendBtn">message</a>
 					                        </div>
 					                    </div>					                   
 					                </div>
 					            </div>
 				            </div>
 				        </div>
-			        </div>
-		        </div>
+					</div>
+					<div class="col-1 col-md-1 col-lg-2" id="rightGrp">
+						<div class="row testGrp">
+							<div class="col-md-0 col-lg-8 col-xl-9">
+								<div id="sectionLabel">
+									<h3>Home</h3>
+								</div>
+							</div>
+							<div class="col-sm-12 col-md-12 col-lg-4 col-xl-3 center-block">
+								<div class="btn btn-sm navIcon main clientBtn center-block" data-position="right" id="client">
+	            					<span class="material-icons colorItem">cast</span>
+	            					<div class="ddLabel"></div>
+            					</div>
+            					<div class="btn btn-sm navIcon center-block" id="smallSendBtn">
+            						<span class="material-icons colorItem">message</span>
+								</div>	
+							</div>
+						</div>
+					</div>
+				</div>
 		        <div id="results">	    
 			        <div class="view-tab active" id="homeTab">
 			            '. $homeBase. '
