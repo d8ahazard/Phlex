@@ -9,6 +9,8 @@ var cleanLogs=true, couchEnabled=false, lidarrEnabled=false, ombiEnabled=false, 
 	hookPause=false, hookStop=false, hookCustom=false, hookFetch=false, hookSplit = false, autoUpdate = false, masterUser = false,
 	noNewUsers=false, notifyUpdate=false, waiting=false, broadcastDevice="all";
 
+var clickCount = 0, clickTimer=null;
+
 var appColor = "var(--theme-accent)";
 var caches = null;
 
@@ -315,6 +317,73 @@ function buildUiDeferred() {
 		setTime();
 	}, 1000)
 
+}
+
+function drawerClick(element) {
+    clickCount = 0;
+    console.log("Drawer item is clicked.");
+    var expandDrawer = $(".drawer-list");
+    var linkVal = element.data("link");
+    var secLabel = $("#sectionLabel");
+    if (element.hasClass("active")) {
+        console.log("Active item, nothing to do.");
+    } else {
+        // Handle switching content
+        if (linkVal !== "expandDrawer") {
+            var label = "<h3>" + element.data("label") + "</h3>";
+            var activeItem = $('.drawer-item.active');
+            if (typeof element.data('src') !== 'undefined') {
+                var frameSrc = element.data('src');
+                console.log("We have a source URL for the frame: ",frameSrc);
+                var frameTarget = $('#' + element.data('frame'));
+                if (frameTarget.attr('src') !== frameSrc) {
+                    frameTarget.attr('src', frameSrc);
+                }
+            }
+            var color = "var(--theme-accent)";
+            if (typeof element.data('color') !== 'undefined') {
+                color = element.data('color');
+            }
+            appColor = color;
+            colorItems(color, element);
+            activeItem.removeClass('active');
+            element.addClass("active");
+            var currentTab = $('.view-tab.active');
+            var newTab = $("#" + linkVal);
+            console.log("Enabling " + linkVal + " tab.");
+            currentTab.addClass('fade');
+            currentTab.removeClass('active');
+            newTab.removeClass('fade');
+            newTab.addClass('active');
+            // Change label if it's a setting group
+            if (!linkVal.includes("SettingsTab")) {
+                secLabel.css("top","18px");
+                secLabel.html(label);
+            } else {
+                label = label + "(Settings)";
+                secLabel.html(label);
+                secLabel.css("top", "4px");
+            }
+            var frame = $('#logFrame');
+
+            if (linkVal === 'logTab') {
+                apiToken = $('#apiTokenData').data('token');
+                frame.attr('src',"log.php?noHeader=true&apiToken=" + apiToken);
+            } else {
+                frame.attr('src',"");
+            }
+            console.log("Collapse");
+        } else {
+            var drawerTarget = element.data("target");
+            expandDrawer = $('#' + drawerTarget + "Drawer");
+            // If clicking the main settings header
+            toggleDrawer(expandDrawer);
+        }
+    }
+    // Close the drawer if not toggling settings group
+    if (linkVal !== "expandDrawer") {
+        closeDrawer();
+    }
 }
 
 function deviceHtml(type, deviceData) {
@@ -1383,68 +1452,15 @@ function setListeners() {
 	});
 
 	$(document).on('click', '.drawer-item', function () {
-		console.log("Drawer item is clicked.");
-        var expandDrawer = $(".drawer-list");
-        var linkVal = $(this).data("link");
-		var secLabel = $("#sectionLabel");
-        if ($(this).hasClass("active")) {
-			console.log("Active item, nothing to do.");
-		} else {
-        	// Handle switching content
-            if (linkVal !== "expandDrawer") {
-            	var label = "<h3>" + $(this).data("label") + "</h3>";
-				var activeItem = $('.drawer-item.active');
-                if (typeof $(this).data('src') !== 'undefined') {
-                	var frameSrc = $(this).data('src');
-                	console.log("We have a source URL for the frame: ",frameSrc);
-                	var frameTarget = $('#' + $(this).data('frame'));
-                	if (frameTarget.attr('src') !== frameSrc) {
-                        frameTarget.attr('src', frameSrc);
-                    }
-				}
-				var color = "var(--theme-accent)";
-                if (typeof $(this).data('color') !== 'undefined') {
-                	color = $(this).data('color');
-				}
-				appColor = color;
-				colorItems(color, $(this));
-				activeItem.removeClass('active');
-				$(this).addClass("active");
-                var currentTab = $('.view-tab.active');
-                var newTab = $("#" + linkVal);
-                console.log("Enabling " + linkVal + " tab.");
-                currentTab.addClass('fade');
-                currentTab.removeClass('active');
-                newTab.removeClass('fade');
-                newTab.addClass('active');
-                // Change label if it's a setting group
-                if (!linkVal.includes("SettingsTab")) {
-                	secLabel.css("top","18px");
-                    secLabel.html(label);
-                } else {
-                	label = label + "(Settings)";
-                	secLabel.html(label);
-                	secLabel.css("top", "4px");
-				}
-                var frame = $('#logFrame');
-
-                if (linkVal === 'logTab') {
-                    apiToken = $('#apiTokenData').data('token');
-                    frame.attr('src',"log.php?noHeader=true&apiToken=" + apiToken);
-                } else {
-                    frame.attr('src',"");
-                }
-                console.log("Collapse");
-            } else {
-            	var drawerTarget = $(this).data("target");
-            	expandDrawer = $('#' + drawerTarget + "Drawer");
-                // If clicking the main settings header
-				toggleDrawer(expandDrawer);
-			}
-		}
-		// Close the drawer if not toggling settings group
-        if (linkVal !== "expandDrawer") {
-            closeDrawer();
+	    clickCount++;
+        if(clickCount === 1) {
+            clickTimer = setTimeout(drawerClick, 250, $(this));
+        } else {
+            clearTimeout(clickTimer);
+            clickCount = 0;
+            console.log("Reloading frame source.");
+            var frame = "#" + $(this).data('frame');
+            $(frame,window.parent.document).attr('src',$(frame,window.parent.document).attr('src'));
         }
 	});
 
