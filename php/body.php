@@ -509,7 +509,7 @@ function makeBody($defaults) {
 										</div>
 									</div>
 								</div>
-								<a class="logbutton" href="log.php?apiToken=$apiToken" target="_blank">
+								<a class="logbutton" href="log.php?apiToken='.$apiToken.'" target="_blank">
 									<span class="material-icons colorItem">open_in_browser</span>
 								</a>
 							</div>

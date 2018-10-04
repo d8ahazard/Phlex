@@ -20,6 +20,125 @@ var devices = "foo";
 var staticCount = 0;
 var javaStrings;
 
+var SETTINGS_SECTIONS = {
+    ombi: {
+        icon: 'search',
+        items: ['ombi']
+    },
+    movies: {
+        icon: 'movie',
+        items: ['couch', 'radarr', 'watcher']
+    },
+    shows: {
+        icon: 'live_tv',
+        items: ['sick', 'sonarr']
+    },
+    music: {
+        icon: 'music_note',
+        items: ['headphones','lidarr']
+    },
+    download: {
+        icon: 'cloud_download',
+        items: ['deluge', 'downloadstation', "nzbhydra", 'sabnzbd', 'transmission', 'utorrent']
+    }
+};
+
+var APP_DEFAULTS = {
+    ombi: {
+        Token: "Token",
+        Label: "Ombi",
+        Profile: false,
+        Search: true
+    },
+    couch: {
+        Token: "Token",
+        Label: "Couchpotato",
+        Profile: true,
+        Search: true
+    },
+    radarr: {
+        Token: "Token",
+        Label: "Radarr",
+        Profile: true,
+        Search: true
+    },
+    watcher: {
+        Token: "Token",
+        Label: "Watcher",
+        Profile: true,
+        Search: true
+    },
+    sick: {
+        Token: "Token",
+        Label: "Sickbeard/Sickrage",
+        Profile: true,
+        Search: true
+    },
+    sonarr: {
+        Token: "Token",
+        Label: "Sonarr",
+        Profile: true,
+        Search: true
+    },
+    headphones: {
+        Token: "Token",
+        Label: "Headphones",
+        Profile: false,
+        Search: true
+    },
+    lidarr: {
+        Token: "Token",
+        Label: "Lidarr",
+        Profile: true,
+        Search: true
+    }
+};
+
+var APP_TITLES = [
+    "sonarr",
+    "sick",
+    "couch",
+    "radarr",
+    "ombi",
+    "headphones",
+    "lidarr",
+    "watcher",
+    "deluge",
+    "downloadstation",
+    "nzbhydra",
+    "sabnzbd",
+    "utorrent",
+    "transmission"
+];
+
+var APP_COLORS = {
+    "sonarr": "#36c6f4",
+    "sick": "#2674b2",
+    "downloadstation": "#3c6daf",
+    "deluge": "#304663",
+    "lidarr": "#00a65b",
+    "utorrent": "#76b83f",
+    "radarr": "#ffc230",
+    "sabnzbd": "#c99907",
+    "couch": "#e6521d",
+    "ombi": "#a7401c",
+    "transmission": "#b90900"
+};
+
+var APP_ICONS = {
+    "sonarr": "muximux-sonarr",
+    "radarr": "muximux-radarr",
+    "sick": "muximux-sick",
+    "couch": "muximux-couch",
+    "ombi": "muximux-ombi",
+    "headphones": "muximux-headphones3",
+    "utorrent": "muximux-utorrent",
+    "sabnzbd": "muximux-sabnzbd",
+    "downloadstation": "muximux-synology",
+    "nzbhydra": "muximux-nzbhydra",
+    "transmission": "muximux-transmission"
+};
+
 $(function () {
 	// Set up variables
 	$(".select").dropdown({"optionClass": "withripple"});
@@ -1544,6 +1663,19 @@ function setListeners() {
 			$('#' + app +'Btn').data('src',value);
 		}
 
+        if (id.indexOf('Label') > -1) {
+        	var appLabel = id.replace("Label","");
+            var labelVal = value;
+            if (labelVal === "") {
+                labelVal = APP_DEFAULTS[appLabel]['Label'];
+            }
+            console.log("Label changed for " + appLabel + ", new value is " + labelVal);
+            var appBtn = $('#' + appLabel +'Btn');
+            appBtn[0].childNodes[1].nodeValue = labelVal;
+            appBtn.data('label', labelVal);
+        }
+
+
 		apiToken = $('#apiTokenData').data('token');
 		$.get('api.php?apiToken=' + apiToken, {id: id, value: value}, function (data) {
 			console.log("No, really...");
@@ -1574,38 +1706,13 @@ function setListeners() {
 function addAppGroup(key) {
     var container = $("#results");
     var appDrawer = $("#AppzDrawer");
-    var apps = ["sonarr", "sick", "couch", "radarr", "ombi", "headphones", "lidarr", "watcher", "deluge", "downloadstation", "nzbhydra", "sabnzbd", "utorrent", "transmission"];
-    var colors = {
-        "sonarr": "#36c6f4",
-    	"sick": "#2674b2",
-		"downloadstation": "#3c6daf",
-		"deluge": "#304663",
-    	"lidarr": "#00a65b",
-		"utorrent": "#76b83f",
-    	"radarr": "#ffc230",
-		"sabnzbd": "#c99907",
-        "couch": "#e6521d",
-    	"ombi": "#a7401c",
-		"transmission": "#b90900"
-	};
 
-    var icons = {
-    	"sonarr": "muximux-sonarr",
-		"radarr": "muximux-radarr",
-		"sick": "muximux-sick",
-		"couch": "muximux-couch",
-		"ombi": "muximux-ombi",
-		"headphones": "muximux-headphones3",
-		"utorrent": "muximux-utorrent",
-		"sabnzbd": "muximux-sabnzbd",
-		"downloadstation": "muximux-synology",
-		"nzbhydra": "muximux-nzbhydra",
-		"transmission": "muximux-transmission"
-	};
-    if (apps.indexOf(key) > -1) {
+
+
+    if (APP_TITLES.indexOf(key) > -1) {
     	var color = "var(--theme-accent)";
-    	if (colors.hasOwnProperty(key)) {
-    		color = colors[key];
+    	if (APP_COLORS.hasOwnProperty(key)) {
+    		color = APP_COLORS[key];
 		}
         console.log("Trying to add group for " + key);
         var urlString = key + "Uri";
@@ -1618,9 +1725,11 @@ function addAppGroup(key) {
         } else {
         	url = "http://localhost";
 		}
-		var label = capitalize(key);
+		var label = APP_DEFAULTS[key]["Label"];
         if (window.hasOwnProperty(key + "Label")) {
-            label = window[key + "Label"];
+        	if (window[key + "Label"] !== "") {
+                label = window[key + "Label"];
+            }
         }
 
         if (url) {
@@ -1636,7 +1745,7 @@ function addAppGroup(key) {
 			});
 
             var btnIcon = $('<i>', {
-            	class: 'colorItem barIcon ' + icons[key] + ' material-icons'
+            	class: 'colorItem barIcon ' + APP_ICONS[key] + ' material-icons'
 			});
 			btnSpan.append(btnIcon);
 			btnDiv.append(btnSpan);
@@ -1685,83 +1794,13 @@ function buildSettingsPages(userData) {
 		userData = userData['userData'];
 	}
 	console.log("BUILDING PAGES.");
-	var sections = {
-		ombi: {
-			icon: 'search',
-			items: ['ombi']
-		},
-		movies: {
-			icon: 'movie',
-			items: ['couch', 'radarr', 'watcher']
-		},
-		shows: {
-			icon: 'live_tv',
-			items: ['sick', 'sonarr']
-		},
-		music: {
-			icon: 'music_note',
-			items: ['headphones','lidarr']
-		},
-		download: {
-			icon: 'cloud_download',
-			items: ['deluge', 'downloadstation', "nzbhydra", 'sabnzbd', 'transmission', 'utorrent']
-		}
-	};
 
-	var itemList = {
-		ombi: {
-			Token: "Token",
-			Label: "Ombi",
-			Profile: false,
-			Search: true
-		},
-        couch: {
-            Token: "Token",
-			Label: "Couchpotato",
-            Profile: true,
-			Search: true
-        },
-        radarr: {
-            Token: "Token",
-			Label: "Radarr",
-            Profile: true,
-			Search: true
-        },
-		watcher: {
-			Token: "Token",
-			Label: "Watcher",
-			Profile: true,
-			Search: true
-		},
-		sick: {
-			Token: "Token",
-			Label: "Sickbeard/Sickrage",
-			Profile: true,
-			Search: true
-		},
-		sonarr: {
-			Token: "Token",
-			Label: "Sonarr",
-			Profile: true,
-			Search: true
-		},
-		headphones: {
-			Token: "Token",
-			Label: "Headphones",
-			Profile: false,
-			Search: true
-		},
-		lidarr: {
-			Token: "Token",
-			Label: "Lidarr",
-			Profile: true,
-			Search: true
-		}
-	};
+
+
 	var drawer = $('#SettingsDrawer');
 	var container = $('#results');
 
-	$.each(sections, function (key, data) {
+	$.each(SETTINGS_SECTIONS, function (key, data) {
 		console.log("Creating item for " + key);
 		// Create drawer items
         var btnDiv = $('<div>', {
@@ -1807,11 +1846,11 @@ function buildSettingsPages(userData) {
 			var auth = false;
 			var list = false;
 			var search = false;
-			if (itemList.hasOwnProperty(itemKey)) {
-                auth = itemList[itemKey].Token;
-				label = itemList[itemKey].Label;
-				list = itemList[itemKey].List;
-				search = itemList[itemKey].Search;
+			if (APP_DEFAULTS.hasOwnProperty(itemKey)) {
+                auth = APP_DEFAULTS[itemKey].Token;
+				label = APP_DEFAULTS[itemKey].Label;
+				list = APP_DEFAULTS[itemKey].List;
+				search = APP_DEFAULTS[itemKey].Search;
 			}
 			var options = {
 				Token: {

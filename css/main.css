@@ -941,7 +941,7 @@ pre.prettyprint {
 	background: var(--theme-primary);
 }
 
-.clicked {
+.clicked, .resultDiv a, footer a {
 	color: var(--theme-accent);
 }
 
