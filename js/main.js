@@ -9,6 +9,8 @@ var cleanLogs=true, couchEnabled=false, lidarrEnabled=false, ombiEnabled=false, 
 	hookPause=false, hookStop=false, hookCustom=false, hookFetch=false, hookSplit = false, autoUpdate = false, masterUser = false,
 	noNewUsers=false, notifyUpdate=false, waiting=false, broadcastDevice="all";
 
+var settingCache = [];
+
 var clickCount = 0, clickTimer=null;
 
 var appColor = "var(--theme-accent)";
@@ -584,9 +586,8 @@ function parseServerData(data) {
         buildSettingsPages(data);
     }
 
-    if (data.hasOwnProperty('userData') && data.userData) {
-        setUiVariables(data.userData);
-        delete data.userData;
+    if (data.hasOwnProperty('userData')) {
+        delete data['userData'];
     }
 
     if ($('#autoUpdate').is(':checked')) {
@@ -637,75 +638,80 @@ function parseServerData(data) {
 }
 
 function setUiVariables(data) {
-	console.log("Setting UI Variables: ",data);
-
+    console.log("Function fired: ",data);
 	for (var propertyName in data) {
 		var value = data[propertyName];
-        if (data.hasOwnProperty(propertyName)) switch (propertyName) {
-			case 'sonarrEnabled':
-			case 'sickEnabled':
-			case 'couchEnabled':
-			case 'radarrEnabled':
-			case 'ombiEnabled':
-			case 'headphonesEnabled':
-			case 'lidarrEnabled':
-			case 'watcherEnabled':
-			case 'delugeEnabled':
-			case 'downloadstationEnabled':
-			case 'sabnzbdEnabled':
-			case 'transmissionEnabled':
-			case 'utorrentEnabled':
-			case 'hook':
-			case 'hookPlay':
-			case 'hookPause':
-			case 'hookStop':
-			case 'hookFetch':
-			case 'hookCustom':
-			case 'hookSplit':
-			case 'dvrEnabled':
-			case 'noNewUsers':
-			case 'masterUser':
-			case 'cleanLogs':
-			case 'autoUpdate':
-			case 'notifyUpdate':
-			case 'broadcastDevice':
-				value = data[propertyName];
+        console.log("Updating setting property " + propertyName);
+        switch (propertyName) {
+            case 'sonarrEnabled':
+            case 'sickEnabled':
+            case 'couchEnabled':
+            case 'radarrEnabled':
+            case 'ombiEnabled':
+            case 'headphonesEnabled':
+            case 'lidarrEnabled':
+            case 'watcherEnabled':
+            case 'delugeEnabled':
+            case 'downloadstationEnabled':
+            case 'sabnzbdEnabled':
+            case 'transmissionEnabled':
+            case 'utorrentEnabled':
+            case 'hook':
+            case 'hookPlay':
+            case 'hookPause':
+            case 'hookStop':
+            case 'hookFetch':
+            case 'hookCustom':
+            case 'hookSplit':
+            case 'dvrEnabled':
+            case 'noNewUsers':
+            case 'masterUser':
+            case 'cleanLogs':
+            case 'autoUpdate':
+            case 'notifyUpdate':
+            case 'broadcastDevice':
+                value = data[propertyName];
                 try {
                     value = JSON.parse(value);
                 } catch (SyntaxError) {
-                	console.log("Syntax error parsing value.",data[propertyName]);
-				}
-				if (value === 'yes') value = true;
+                    console.log("Syntax error parsing value.",data[propertyName]);
+                }
+                if (value === 'yes') value = true;
                 if (value === 'no') value = false;
-				if(window[propertyName] !== value) {
-					window[propertyName] = value;
-				}
-				break;
-			case 'publicAddress':
-				value = data[propertyName];
-				if(window[propertyName] !== value) {
-					window[propertyName] = value;
-				}
-				break;
-			case 'quietStart':
-			case 'quietStop':
+                if(window[propertyName] !== value) {
+                    window[propertyName] = value;
+                }
+                break;
+            case 'publicAddress':
                 value = data[propertyName];
-				$('#'+ propertyName).val(value);
-				break;
-			case 'couchList':
-			case 'sonarrList':
-			case 'radarrList':
-			case 'lidarrList':
-			case 'watcherList':
-			case 'ombiList':
-			case 'sickList':
-				var list = data[propertyName];
-				$('#' + propertyName).html(list);
-				break;
-			default:
-				window[propertyName] = value;
-		}
-	}
+                if(window[propertyName] !== value) {
+                    window[propertyName] = value;
+                }
+                break;
+            case 'quietStart':
+            case 'quietStop':
+                value = data[propertyName];
+                $('#'+ propertyName).val(value);
+                break;
+            case 'couchList':
+            case 'sonarrList':
+            case 'radarrList':
+            case 'lidarrList':
+            case 'watcherList':
+            case 'ombiList':
+            case 'sickList':
+                var list = data[propertyName];
+                $('#' + propertyName).html(list);
+                break;
+            default:
+                window[propertyName] = value;
+        }
+        var force = (forceUpdate !== false);
+            if (!force) {
+                $.snackbar({content: "Value for " + propertyName + " has changed."});
+            }
+        }
+
     toggleGroups();
 }
 
@@ -750,7 +756,7 @@ function toggleGroups() {
 	for (var key in vars){
 		if (vars.hasOwnProperty(key)) {
 			var value = vars[key];
-			var element = $('#'+key);
+            var element = $('#'+key);
 			var group = (key === 'hookSplit' || key === 'autoUpdate') ? $('.'+key+'Group') : $('#'+key+'Group');
 			group = (value === 'masterUser') ?  $('.noNewUsersGroup') : group;
 
@@ -1590,7 +1596,7 @@ function setListeners() {
                 console.log("Going left");
                 pc.css("left", '0px');
             } else {
-                pc.css("right", '0px');
+                pc.css("right", '5px');
                 console.log("Going right");
             }
             pc.slideToggle();
@@ -1773,9 +1779,9 @@ function setListeners() {
 function addAppGroup(key) {
     var container = $("#results");
     var appDrawer = $("#AppzDrawer");
-
-
-
+    if($("#" + key + "Btn").length) {
+        return false;
+    }
     if (APP_TITLES.indexOf(key) > -1) {
     	var color = "var(--theme-accent)";
     	if (APP_COLORS.hasOwnProperty(key)) {
@@ -1851,10 +1857,10 @@ function addAppGroup(key) {
 }
 
 function removeAppGroup(key) {
-    var divString = "#" + key + "Div";
-    var btnString = "#" + key + "Btn";
-    $(divString).remove();
-    $(btnString).remove();
+    var divItem = $("#" + key + "Div");
+    var btnItem = $("#" + key + "Btn");
+    if(divItem.length) divItem.remove();
+    if(btnItem.length) btnItem.remove();
 }
 
 function buildSettingsPages(userData) {

@@ -100,7 +100,8 @@ function makeBody($defaults) {
 				</div>
 			</div>
 			<div id="plexClient">
-                <div id="clientWrapper">
+			 	<div class="popover-arrow"></div>
+				<div id="clientWrapper">
                     <a class="dropdown-item client-item" data-id="rescan"><b>rescan devices</b></a>
                 </div>
   		    </div>

@@ -13,7 +13,9 @@ use digitalhigh\multiCurl;
 use Kryptonit3\SickRage\SickRage;
 use Kryptonit3\Sonarr\Sonarr;
 
-if (!empty($_GET) || !(empty($_POST))) {
+if ((empty($_GET) && empty($_POST)) || defined('INCLUDED')) {
+
+} else {
 	analyzeRequest();
 }
 /**
@@ -300,15 +302,8 @@ function initialize() {
 }
 
 function setSessionData($rescan = true) {
-	$data = fetchUserData();
+	$data = fetchUserData($rescan);
 	if ($data) {
-		$userName = $data['plexUserName'];
-		write_log("Found session data for $userName, setting: " . json_encode($data), "INFO");
-		$dlist = $data['dlist'] ?? false;
-		$devices = json_decode(base64_decode($dlist), true);
-		if ($rescan || !$devices) $devices = scanDevices(true);
-		$_SESSION['deviceList'] = $devices;
-		if (isset($data['dlist'])) unset($data['dlist']);
 		foreach ($data as $key => $value) {
 			writeSession($key, $value);
 		}
@@ -352,10 +347,10 @@ function getUiData($force = false) {
 	$playerStatus = fetchPlayerStatus();
 	$devices = selectDevices(scanDevices(false));
 	$deviceText = json_encode($devices);
-	$userData = getSessionData();
-	foreach ($userData as $key => $value) {
+	$settingData = array_merge(fetchUserData(), fetchGeneralData());
+	foreach ($settingData as $key => $value) {
 		if (preg_match("/List/", $key) && $key !== 'deviceList') {
-			$userData["$key"] = fetchList(str_replace("List", "", $key));
+			$settingData[$key] = fetchList(str_replace("List", "", $key));
 		}
 	}
 	$commands = fetchCommands();
@@ -365,24 +360,29 @@ function getUiData($force = false) {
 
 	if ($force) {
 		$result['devices'] = $devices;
-		$result['userData'] = $userData;
+		$result['userData'] = $settingData;
 		$result['commands'] = $commands;
 		writeSessionArray([
 			'commands' => $commands,
 			'devices' => $deviceText
 		]);
 	} else {
-		$updated = $_SESSION['updated'] ?? false;
-		unset($_SESSION['updated']);
-		if (is_array($updated)) {
-			foreach ($updated as $key => $value) {
-				if (preg_match("/List/", $key)) {
-					$target = str_replace("List", "", $key);
-					write_log("Fetching a profile list for $target", "INFO", false, true);
-					$updated["$key"] = fetchList($target);
-				}
+		$updated = [];
+		foreach($settingData as $key => $value) {
+			$ogVal = $value;
+			if (is_array($value)) {
+				$value = json_encode($value);
 			}
+			$oldValue = $_SESSION['settings'][$key] ?? "<NODATA>..";
+			if ($oldValue !== $value) {
+				$updated[$key] = $ogVal;
+				$_SESSION['settings'][$key] = $value;
+			}
+		}
+
+		if (count($updated)) {
 			$result['userData'] = $updated;
+			writeSession('updated',false,true);
 		}
 		$deviceUpdated = $_SESSION['devices'] !== $deviceText;
 		if ($deviceUpdated) {
@@ -419,6 +419,15 @@ function getUiData($force = false) {
 	if ($messages) {
 		$result['messages'] = $_SESSION['messages'];
 		writeSession('messages', false);
+	}
+	$userData = $result['userData'] ?? [];
+	$result['userData'] = [];
+	foreach ($userData as $key => $value) {
+		if (preg_match("/List/", $key)) {
+			$target = str_replace("List", "", $key);
+			$value = fetchList($target);
+		}
+		$result['userData'][$key] = $value;
 	}
 	return $result;
 }
@@ -2166,6 +2175,7 @@ function shuffleMedia($type=false) {
 }
 
 function fetchServerData($server = false) {
+	$host = false;
 	$server = $server ? $server : findDevice(false, false, 'Server');
 	$sections = [];
 	$stations = false;

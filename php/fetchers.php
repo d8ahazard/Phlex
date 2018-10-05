@@ -624,12 +624,16 @@ function downloadWatcher($data) {
 
 
 function fetchList($serviceName) {
+	if ($serviceName === 'device') return false;
     $list = $selected = false;
     $token = $_SESSION[$serviceName . "Token"] ?? "";
     $uri = $_SESSION[$serviceName . "Uri"] ?? "";
     if (trim($token) == "" || trim($uri) == "") {
-        updateUserPreferenceArray([$serviceName."List" => json_encode([]),$serviceName."Profile"=>""]);
-        return "";
+    	$current = fetchUserData();
+    	if (count($current[$serviceName."List"] ?? [])) {
+		    updateUserPreferenceArray([$serviceName."List" => json_encode([]),$serviceName."Profile"=>""]);
+		    return "";
+	    }
     }
     if (!$_SESSION[$serviceName . "Enabled"]) return "";
     switch ($serviceName) {

@@ -16,13 +16,11 @@ $_SESSION['publicAddress'] = $publicAddress;
 function updateUserPreference($key, $value, $section='userdata') {
     $value = scrubBools($value, $key);
     setPreference($section, [$key=>$value],'apiToken',$_SESSION['apiToken']);
-    writeSession($key,$value);
 }
 
 function updateUserPreferenceArray($data, $section='userdata') {
     $data = scrubBools($data);
     setPreference($section,$data,'apiToken',$_SESSION['apiToken']);
-    writeSessionArray($data);
 }
 
 function scrubBools($scrub, $key=false) {
@@ -73,7 +71,7 @@ function scrubBools($scrub, $key=false) {
 }
 
 function initConfig() {
-    $config = isWebApp() ? false : ($_SESSION['configObject'] ?? false);
+    $config = false;
     $configObject = false;
     $error = false;
     $dbFile = dirname(__FILE__) . "/../rw/db.conf.php";
@@ -88,7 +86,6 @@ function initConfig() {
             write_log("An exception occurred creating the configuration. '$e'", "ERROR",false,false,true);
             $error = true;
         }
-        $_SESSION['configObject'] = $config;
     }
     if (!$error) {
         $configObject = $config->ConfigObject;
@@ -100,6 +97,8 @@ function initConfig() {
 function setPreference($section, $data, $selector=null, $search=null, $new=false) {
     $config = initConfig();
     $config->set($section, $data, $selector, $search, $new);
+    if ($section === 'userdata') writeSessionArray(fetchUserData());
+    if ($section === 'general') writeSessionArray(fetchGeneralData());
 }
 
 function getPreference($section, $keys=false, $default=false, $selector=null, $search=null,$single=true) {
@@ -204,8 +203,8 @@ function checkDefaults() {
             }
         }
         $defaults = array_combine($keys,$values);
-
     }
+
     if (!$defaults) {
         write_log("Creating default values!","ALERT");
         $defaults = [
@@ -477,11 +476,10 @@ function fetchUser($userData) {
     $email = $userData['plexEmail'];
     $keys = ['plexUserName', 'plexEmail','apiToken','plexAvatar','plexPassUser','plexToken','apiToken','appLanguage'];
     $data = getPreference('userdata',$keys,false,'plexEmail',$email);
-    write_log("Fetched, data: ".json_encode($data),"ALERT");
     return $data;
 }
 
-function fetchUserData() {
+function fetchUserData($rescan=false) {
     $temp = getPreference('userdata',false,false,'apiToken',$_SESSION['apiToken']);
     $data = [];
     foreach($temp as $key => $value) {
@@ -489,11 +487,34 @@ function fetchUserData() {
         $value = scrubBools($value,$key);
         $data[$key] = $value;
     }
-    write_log("Fetched, data: ".json_encode($data),"ALERT");
+	$dlist = $data['dlist'] ?? false;
+	$devices = json_decode(base64_decode($dlist), true);
+	if ($rescan || !$devices) $devices = scanDevices(true);
+	if (isset($data['dlist'])) unset($data['dlist']);
+	$data['deviceList'] = $devices;
     return $data;
-
 }
 
+function fetchGeneralData() {
+	$data = getPreference('general',false,false);
+	if ($data) {
+		$keys = $values = [];
+		foreach($data as $value){
+			foreach($value as $id => $data) {
+				if ($id == 'name') {
+					array_push($keys,$data);
+				}
+				if ($id == 'value') {
+					if ($data === "true") $data = true;
+					if ($data === "false") $data = false;
+					array_push($values,$data);
+				}
+			}
+		}
+		$data = array_combine($keys,$values);
+	}
+	return $data;
+}
 
 function logCommand($resultObject) {
     if (isset($_GET['noLog'])) {

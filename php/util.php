@@ -612,7 +612,7 @@ function findDevice($key=false, $value=false, $type) {
         $value = $_SESSION["plex". $type ."Id"] ?? false;
     }
     $string = "$type with a $key of $value";
-    $devices = $_SESSION['deviceList'];
+    $devices = $_SESSION['deviceList'] ?? [];
     $section = $devices["$type"] ?? false;
     if ($section) {
         if (!$key || !$value) {
