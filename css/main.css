@@ -190,6 +190,9 @@ a:hover:not(#executeButton) {
 	.col-sm-0 {
 		display: none;
 	}
+	#refresh {
+		display: none !important;
+	}
 }
 
 @media (max-width: 576px) {
@@ -313,7 +316,7 @@ a:hover:not(#executeButton) {
 
 .navIcon > span {
 	color: var(--theme-accent);
-	margin-top: 10px;
+	margin-top: 12px;
 	margin-left: -6px;
 }
 
