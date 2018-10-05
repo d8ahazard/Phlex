@@ -118,15 +118,16 @@ function makeBody($defaults) {
             	</div>
             	
             	<div class="drawer-separator"></div>
-            	            	
-            	<div class="drawer-item nav-item nav-link btn dd-menu">
-	                <div class="btn btn-sm dropdown-toggle barBtn side" data-position="left" id="client">
-	                	<span class="barBtn"><i class="material-icons colorItem barIcon">cast</i></span>
-	                    <div class="ddLabel"></div>
-	                </div>
-                </div>
-                <div class="drawer-item btn active" data-link="homeTab" data-label="Home">
+            	<div class="drawer-item btn active" data-link="homeTab" data-label="Home">
                 	<span class="barBtn"><i class="material-icons colorItem barIcon">home</i></span>Home
+                </div>
+                <div class="drawer-item btn" data-link="expandDrawer" data-target="Client" id="clientBtn">
+                	<span class="barBtn"><i class="material-icons colorItem barIcon">cast</i></span>Clients
+                </div>
+                <div class="drawer-list collapsed" id="ClientDrawer">
+	                <div class="drawer-item btn" data-link="rescan">
+	                    <span class="barBtn"><i class="material-icons colorItem barIcon">refresh</i></span>Rescan Devices
+	                </div>
                 </div>
                 <div class="drawer-item btn" data-link="voiceTab" data-label="Voice">
                 	<span class="barBtn"><i class="material-icons colorItem barIcon">list</i></span>Commands
@@ -203,10 +204,11 @@ function makeBody($defaults) {
 						                        <label id="actionLabel" for="commandTest" class="control-label">'. $lang['uiGreetingDefault'] . '
 						                        </label>
 						                        <input type="text" class="form-control" id="commandTest"/>
-						                        <div class="load-bar">
-													<div class="bar"></div>
-													<div class="bar"></div>
-													<div class="bar"></div>
+						                        <div class="load-barz colorItem" id="loadbar">
+													<div class="barz"></div>
+													<div class="barz colorItem"></div>
+													<div class="barz"></div>
+													<div class="barz"></div>
 												</div>
 						                        <a class="material-icons colorItem sendBtn" id="sendBtn">message</a>
 					                        </div>
@@ -219,8 +221,8 @@ function makeBody($defaults) {
 					<div class="col-2 col-sm-1 col-md-1 col-lg-2" id="rightGrp">
 						<div class="row testGrp">
 							<div class="col-md-0 col-lg-8 col-xl-8">
-								<div id="sectionLabel">
-									<h3>Home</h3>
+								<div id="sectionLabel" class="colorItem">
+									Home
 								</div>
 							</div>
 							<div class="col-sm-12 col-md-12 col-lg-4 col-xl-4 center-block">
@@ -228,7 +230,7 @@ function makeBody($defaults) {
 	            					<span class="material-icons colorItem">cast</span>
 	            					<div class="ddLabel"></div>
             					</div>
-            					<div class="btn btn-sm navIcon center-block" id="smallSendBtn">
+            					<div class="btn btn-sm navIcon sendBtn" id="smallSendBtn">
             						<span class="material-icons colorItem">message</span>
 								</div>	
 							</div>

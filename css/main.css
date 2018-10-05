@@ -235,6 +235,17 @@ a:hover:not(#executeButton) {
 	text-align: center;
 	overflow: hidden;
 	text-overflow: ellipsis;
+	line-height: 36px;
+	font-size: 23px;
+	color: var(--theme-accent);
+}
+
+#clientBtn, #ClientDrawer {
+	display: none;
+}
+
+.dd-selected i {
+	color: var(--theme-primary-inverse) !important;
 }
 
 #sectionLabel h3 {
@@ -571,17 +582,15 @@ html {
 	word-wrap: break-word;
 	width: 100%;
 }
-
-.load-bar {
-	position: relative;
-	width: 100%;
-	height: 1px;
-	margin-top: -9px;
+.load-barz {
 	display: none;
-	background-color: var(--theme-primary);
+	position: absolute;
+	margin-top: -9px;
+	width: 100%;
+	height: 2px;
+	background-color: #0000ff;
 }
-
-.bar {
+.barz {
 	content: "";
 	display: inline;
 	position: absolute;
@@ -590,37 +599,26 @@ html {
 	left: 50%;
 	text-align: center;
 }
-
-.bar:nth-child(1) {
-	background-color: var(--theme-primary-shade2);
-	animation: loading 3s linear infinite;
+.barz:nth-child(1) {
+	background-color: #696969;
+	animation: loadingz 3s linear infinite;
 }
-
-.bar:nth-child(2) {
-	background-color: var(--theme-accent);
-	animation: loading 3s linear 1s infinite;
+.barz:nth-child(2) {
+	background-color: #3b78e7;
+	animation: loadingz 3s linear 1s infinite;
 }
-
-.bar:nth-child(3) {
-	background-color: var(--theme-primary);
-	animation: loading 3s linear 2s infinite;
+.barz:nth-child(3) {
+	background-color: #fdfbfb;
+	animation: loadingz 3s linear 2s infinite;
 }
-
-@keyframes loading {
-	from {
-		left: 50%;
-		width: 0;
-		z-index: 11;
-	}
-	33.3333% {
-		left: 0;
-		width: 100%;
-		z-index: 2;
-	}
-	to {
-		left: 0;
-		width: 100%;
-	}
+.barz:nth-child(4) {
+	background-color: #000000;
+	animation: loadingz 3s linear 2s infinite;
+}
+@keyframes loadingz {
+	from {left: 50%; width: 0;z-index:100;}
+	33.3333% {left: 0; width: 100%;z-index: 10;}
+	to {left: 0; width: 100%;}
 }
 
 .custom-select {
@@ -928,7 +926,7 @@ p.card-subtitle {
 
 
 
-.sendBtn {
+#sendBtn {
 	color: var(--theme-accent);
 	height: 34px;
 	width: 34px;

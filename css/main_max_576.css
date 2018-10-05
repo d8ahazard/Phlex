@@ -1,0 +1,19 @@
+.card-title {
+	display: none;
+}
+
+#card-description {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 1;
+	line-height: 23px;
+	max-height: 23px;
+}
+
+
+.wrapper {
+	max-width: 60% !important;
+}
+

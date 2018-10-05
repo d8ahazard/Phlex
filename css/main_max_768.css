@@ -1,0 +1,71 @@
+
+select:focus,
+textarea:focus,
+input:focus {
+	font-size: 16px !important;
+
+}
+
+
+select,
+textarea,
+input {
+	font-size: 16px !important;
+}
+
+.query {
+	width: 100%;
+	min-width: 0 !important;
+}
+
+.card-description {
+	display: none;
+}
+
+.card-subtitle {
+	display: none;
+}
+
+.wrapper {
+	max-width: 70%;
+}
+
+.gridBox {
+	display: grid;
+	grid-template-columns: repeat(1, 1fr);
+	grid-gap: 10px;
+	grid-auto-flow: dense;
+}
+
+#client.main {
+	display: none;
+}
+
+#client.side {
+	display: block;
+}
+
+#sendBtn {
+	display: none;
+}
+
+#smallSendBtn {
+	display: block;
+}
+
+#sideMenu {
+	max-width: 80%;
+}
+
+
+#clientBtn {
+	display: flex;
+}
+
+#ClientDrawer {
+	display: block;
+}
+
+#clientWrapper {
+	display: none;
+}

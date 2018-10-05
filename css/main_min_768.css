@@ -1,0 +1,28 @@
+#snackbar-container {
+	left: 50%;
+	width: auto;
+	-webkit-transform: translateX(-50%);
+	-moz-transform: translateX(-50%);
+	-ms-transform: translateX(-50%);
+	-o-transform: translateX(-50%);
+	transform: translateX(-50%);
+}
+
+.btn-toolbar {
+	margin-left: 0;
+}
+
+.dd-full {
+	display: block;
+}
+
+.dd-menu {
+	display: none;
+}
+
+#actionLabel {
+	position: absolute;
+	left: 50px;
+	top: -13px;
+
+}

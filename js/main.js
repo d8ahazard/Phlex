@@ -332,58 +332,72 @@ function drawerClick(element) {
         console.log("Active item, nothing to do.");
     } else {
         // Handle switching content
-        if (linkVal !== "expandDrawer") {
-            var label = "<h3>" + element.data("label") + "</h3>";
-            var activeItem = $('.drawer-item.active');
-            if (typeof element.data('src') !== 'undefined') {
-                var frameSrc = element.data('src');
-                console.log("We have a source URL for the frame: ",frameSrc);
-                var frameTarget = $('#' + element.data('frame'));
-                if (frameTarget.attr('src') !== frameSrc) {
-                    frameTarget.attr('src', frameSrc);
+        switch (linkVal) {
+            case 'expandDrawer':
+                var drawerTarget = element.data("target");
+                expandDrawer = $('#' + drawerTarget + "Drawer");
+                // If clicking the main settings header
+                toggleDrawer(expandDrawer);
+                break;
+            case 'client':
+                console.log("Selecting client.");
+                var clientId = element.data('id');
+                updateDevice('Client', clientId);
+                break;
+            default:
+                var label = element.data("label");
+                var activeItem = $('.drawer-item.active');
+                if (typeof element.data('src') !== 'undefined') {
+                    var frameSrc = element.data('src');
+                    console.log("We have a source URL for the frame: ",frameSrc);
+                    var frameTarget = $('#' + element.data('frame'));
+                    if (frameTarget.attr('src') !== frameSrc) {
+                        frameTarget.attr('src', frameSrc);
+                    }
+                    $('#refresh').show();
+                } else {
+                    $('#refresh').hide();
                 }
-                $('#refresh').show();
-            } else {
-                $('#refresh').hide();
-            }
-            var color = "var(--theme-accent)";
-            if (typeof element.data('color') !== 'undefined') {
-                color = element.data('color');
-            }
-            appColor = color;
-            colorItems(color, element);
-            activeItem.removeClass('active');
-            element.addClass("active");
-            var currentTab = $('.view-tab.active');
-            var newTab = $("#" + linkVal);
-            console.log("Enabling " + linkVal + " tab.");
-            currentTab.addClass('fade');
-            currentTab.removeClass('active');
-            newTab.removeClass('fade');
-            newTab.addClass('active');
-            // Change label if it's a setting group
-            if (!linkVal.includes("SettingsTab")) {
-                secLabel.css("margin-top","15px");
-                secLabel.html(label);
-            } else {
-                label = label + "(Settings)";
-                secLabel.html(label);
-                secLabel.css("margin-top", "4px");
-            }
-            var frame = $('#logFrame');
+                var color = "var(--theme-accent)";
+                if (typeof element.data('color') !== 'undefined') {
+                    color = element.data('color');
+                }
+                appColor = color;
+                colorItems(color, element);
+                activeItem.removeClass('active');
+                element.addClass("active");
+                var currentTab = $('.view-tab.active');
+                var newTab = $("#" + linkVal);
+                console.log("Enabling " + linkVal + " tab.");
+                currentTab.addClass('fade');
+                currentTab.removeClass('active');
+                newTab.removeClass('fade');
+                newTab.addClass('active');
+                // Change label if it's a setting group
+                if (!linkVal.includes("SettingsTab")) {
+                    secLabel.css("margin-top","15px");
+                    secLabel.html(label);
+                } else {
+                    label = label + "(Settings)";
+                    secLabel.html(label);
+                    secLabel.css("margin-top", "4px");
+                }
+                var frame = $('#logFrame');
 
-            if (linkVal === 'logTab') {
-                apiToken = $('#apiTokenData').data('token');
-                frame.attr('src',"log.php?noHeader=true&apiToken=" + apiToken);
-            } else {
-                frame.attr('src',"");
-            }
-            console.log("Collapse");
+                if (linkVal === 'logTab') {
+                    apiToken = $('#apiTokenData').data('token');
+                    $('.load-barz').show();
+                    frame.attr('src',"log.php?noHeader=true&apiToken=" + apiToken);
+                } else {
+                    $('.load-barz').hide();
+                    frame.attr('src',"");
+                }
+                console.log("Collapse");
+        }
+        if (linkVal !== "expandDrawer") {
+
         } else {
-            var drawerTarget = element.data("target");
-            expandDrawer = $('#' + drawerTarget + "Drawer");
-            // If clicking the main settings header
-            toggleDrawer(expandDrawer);
+
         }
     }
     // Close the drawer if not toggling settings group
@@ -404,10 +418,21 @@ function deviceHtml(type, deviceData) {
             if (type === 'Broadcast') {
             	if (id === broadcastDevice) device["Selected"] = true;
 			}
-            var selected = ((device["Selected"]) ? ((type === 'Client') ? " dd-selected" : " selected") : "");
+            var selected = ((device["Selected"]) ? ((type === 'Client' || type === 'ClientDrawer') ? " dd-selected" : " selected") : "");
 
             if (type === 'Client') {
                 string = "<a class='dropdown-item client-item" + selected + "' data-type='Client' data-id='" + id + "'>" + friendlyName + "</a>";
+            } else if (type ==='ClientDrawer') {
+                var iconType = "label_important";
+                console.log("Device product is " + device['Product']);
+                if (device['Product'] === "Cast") iconType = "cast";
+                var clientSpan = "<span class='barBtn'><i class='material-icons colorItem barIcon'>" + iconType + "</i></span>" + friendlyName;
+                if (device["Selected"]) {
+                    $('#clientBtn').html(clientSpan);
+                } else {
+                    string = "<div class='drawer-item btn"+selected+"' data-link='client' data-id='" + id + "'>" +
+                        clientSpan + "</div>";
+                }
             } else {
                 string = "<option data-type='" + type + "' value='" + id + "'" + selected + ">" + name + "</option>";
             }
@@ -427,6 +452,7 @@ function deviceHtml(type, deviceData) {
         output += tmp;
     } else {
         if (type === 'Client') output += '<a class="dropdown-item client-item" data-id="rescan"><b>rescan devices</b></a>';
+        if (type === 'ClientDrawer') output += '<div class="drawer-item btn" data-link="client" data-id="rescan"><b>rescan devices</b></div>';
     }
 	return output;
 }
@@ -438,6 +464,7 @@ function updateDevices(newDevices) {
 		console.log("Device array changed, updating: ", newDevices);
 		if (newDevices.hasOwnProperty("Client")) {
 			$('#clientWrapper').html(deviceHtml('Client', newDevices["Client"]));
+            $('#ClientDrawer').html(deviceHtml('ClientDrawer', newDevices["Client"]));
             $('#broadcastList').html(deviceHtml('Broadcast', newDevices["Client"]));
         }
         if (newDevices.hasOwnProperty("Server")) $('#serverList').html(deviceHtml('Server', newDevices["Server"]));
@@ -463,6 +490,16 @@ function updateDevice(type, id) {
 		}, function (data) {
 			updateDevices(data);
 		});
+		if (type === 'Client') {
+            if (id !== "rescan") {
+                console.log("Switching graphics, id is " + id);
+                $('.client-item.dd-selected').removeClass('.dd-selected');
+                $('.drawer-item.dd-selected').removeClass('.dd-selected');
+                var clientDiv = $("div").find("[data-id='" + id + "']");
+                clientDiv.addClass('dd-selected');
+                $('.ddLabel').html($('.dd-selected').text());
+            }
+        }
 	} else {
 		// var data = {
 		// 	action: 'device',
@@ -1445,15 +1482,6 @@ function setListeners() {
 
 	$(document).on('click', '.client-item', function () {
 		var clientId = $(this).data('id');
-		if ($(this).data('id') !== "rescan") {
-			$(this).siblings().removeClass('dd-selected');
-			$(this).addClass('dd-selected');
-			$('.ddLabel').html($('.dd-selected').text());
-
-		} else {
-			console.log("Rescanning devices.");
-		}
-		//$("#plexClient").slideToggle();
 		updateDevice('Client', clientId);
 	});
 
@@ -1466,7 +1494,11 @@ function setListeners() {
             clickCount = 0;
             console.log("Reloading frame source.");
             var frame = "#" + $(this).data('frame');
+            $('.load-barz').show();
             $(frame,window.parent.document).attr('src',$(frame,window.parent.document).attr('src'));
+            $(frame).load(function() {
+                $('#loadbar').hide();
+            });
         }
 	});
 
@@ -1503,6 +1535,7 @@ function setListeners() {
 	$(document).on('click', '#refresh', function () {
 	    console.log("Refreshing tab.");
 	    var frame = $('.framediv.active').find('iframe');
+        $('.load-barz').show();
         $(frame,window.parent.document).attr('src',$(frame,window.parent.document).attr('src'));
         // #TODO: Add an animation to rotate the icon here.
     });
@@ -1529,7 +1562,7 @@ function setListeners() {
 	// This handles sending and parsing our result for the web UI.
 	$(".sendBtn").click(function () {
 		console.log("Execute clicked!");
-		$('.load-bar').show();
+		$('.load-barz').show();
 		var command = $('#commandTest').val();
 		if (command !== '') {
 			command = command.replace(/ /g, "+");
@@ -1540,7 +1573,7 @@ function setListeners() {
 				clearLoadBar();
 			},10000);
 			$.get(url, function () {
-				$('.load-bar').hide();
+				$('.load-barz').hide();
 				waiting = false;
 			});
 		}
@@ -1579,7 +1612,6 @@ function setListeners() {
 
 		$.get('api.php?sendlog&apiToken=' + apiToken);
 	});
-
 
 	$('#commandTest').keypress(function (event) {
 		if (event.keyCode === 13) {
@@ -2029,7 +2061,7 @@ function buildSettingsPages(userData) {
 
 function clearLoadBar() {
 	if (waiting) {
-		$('.load-bar').hide();
+		$('.load-barz').hide();
 	}
 }
 
