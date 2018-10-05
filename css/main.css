@@ -301,10 +301,14 @@ a:hover:not(#executeButton) {
 
 #hamburger {
 	font-size: 28px;
+	position: absolute;
+	left: 5px;
 }
 
 #client, #smallSendBtn {
 	font-size: 26px;
+	position: absolute;
+	right: 5px;
 }
 
 .navIcon > span {
@@ -919,12 +923,7 @@ p.card-subtitle {
 	display: inline-block;
 }
 
-#actionLabel {
-	position: absolute;
-	left: 50px;
-	top: -13px;
 
-}
 
 .sendBtn {
 	color: var(--theme-accent);

@@ -53,10 +53,6 @@ input {
 	display: block;
 }
 
-#actionLabel {
-	left: 0;
-}
-
 #sideMenu {
 	max-width: 80%;
 }

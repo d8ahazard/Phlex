@@ -178,7 +178,7 @@ function makeBody($defaults) {
         	
 			<div id="body" class="container">
 				<div id="topBar" class="row testGrp justify-content-between">
-					<div class="col-1 col-md-1 col-lg-2" id="leftGrp">
+					<div class="col-2 col-sm-1 col-md-1 col-lg-2" id="leftGrp">
 						<div class="row testGrp">
 							<div class="col-12 col-md-6 col-lg-4 col-xl-3 center-block">
 								<div class="btn btn-sm navIcon center-block" id="hamburger">
@@ -193,7 +193,7 @@ function makeBody($defaults) {
 							<div class="col-md-0 col-lg-4 col-xl-6"></div>
 						</div>
 					</div>
-					<div class="col-10 col-md-9 col-lg-8 wrapper">
+					<div class="col-8 col-sm-10 col-md-9 col-lg-8 wrapper">
 						<div class="searchWrap" id="queryCard">
 				            <div class="query">
 					            <div class="queryBg">
@@ -216,7 +216,7 @@ function makeBody($defaults) {
 				            </div>
 				        </div>
 					</div>
-					<div class="col-1 col-md-1 col-lg-2" id="rightGrp">
+					<div class="col-2 col-sm-1 col-md-1 col-lg-2" id="rightGrp">
 						<div class="row testGrp">
 							<div class="col-md-0 col-lg-8 col-xl-8">
 								<div id="sectionLabel">

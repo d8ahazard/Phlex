@@ -19,3 +19,10 @@
 .dd-menu {
 	display: none;
 }
+
+#actionLabel {
+	position: absolute;
+	left: 50px;
+	top: -13px;
+
+}
