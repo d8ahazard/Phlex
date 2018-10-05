@@ -296,7 +296,7 @@ a:hover:not(#executeButton) {
 	align-items: center;
 	display: flex;
 	font-size: 113.08%;
-	height: 56px;
+	height: 48px;
 	outline: none;
 	color: var(--theme-primary-inverse) !important;
 	text-transform: none !important;
@@ -590,6 +590,7 @@ html {
 	height: 2px;
 	background-color: #0000ff;
 }
+
 .barz {
 	content: "";
 	display: inline;
@@ -824,8 +825,13 @@ p.card-subtitle {
 }
 
 .userHeader {
-	padding-top: 20px;
-	margin-bottom: 0 !important;
+	margin-bottom: 0;
+	margin-top: 10px;
+}
+
+.userEmail {
+	padding: 0;
+	margin: 0;
 }
 
 .login-box label {
@@ -1039,7 +1045,6 @@ select {
 
 .userWrap {
 	width: 100%;
-	padding: 10px 0;
 }
 
 #userLabel, #passLabel {
@@ -1081,6 +1086,9 @@ h4.card-header {
 }
 
 .avatar {
+	margin-top: 5px;
+	width:50px;
+	height: 50px;
 	border-radius: 36px;
 }
 
