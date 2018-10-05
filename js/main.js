@@ -587,6 +587,7 @@ function parseServerData(data) {
     }
 
     if (data.hasOwnProperty('userData')) {
+        setUiVariables(data['userData']);
         delete data['userData'];
     }
 
