@@ -13,11 +13,9 @@ use digitalhigh\multiCurl;
 use Kryptonit3\SickRage\SickRage;
 use Kryptonit3\Sonarr\Sonarr;
 
-if ((empty($_GET) && empty($_POST)) || defined('INCLUDED')) {
 
-} else {
 	analyzeRequest();
-}
+
 /**
  * Takes an incoming request and makes sure it's authorized and valid
  */
@@ -27,6 +25,7 @@ function analyzeRequest() {
 	$sessionId = json_decode($json, true)['originalRequest']['data']['conversation']['conversationId'] ?? $_GET['sessionId'] ?? false;
 
 	if (!session_started()) {
+		$sessionId = str_replace("_","", $sessionId);
 		if ($sessionId) session_id($sessionId);
 		session_start();
 	}
