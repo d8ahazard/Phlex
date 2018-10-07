@@ -385,7 +385,11 @@ function getUiData($force = false) {
 			'plexDvrNewAirings',
 			'plexDvrReplaceLower',
 			'plexPassUser',
-			'shortAnswers'
+			'shortAnswers',
+			'masterUser',
+			'notifyUpdate',
+			'alertPlugin',
+			'autoUpdate'
 		];
 		if (preg_match("/Enabled/", $key) || preg_match("/Newtab/", $key) || preg_match("/Search/", $key) || in_array($key, $staticBools)) {
 			$value = boolval($value);
