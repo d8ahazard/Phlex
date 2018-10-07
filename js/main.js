@@ -1940,8 +1940,7 @@ function addAppGroup(key) {
                 id:  frameString,
 				class: 'appFrame',
                 frameborder: 0,
-                scrolling: 'yes',
-                sandbox: 'allow-forms allow-same-origin allow-pointer-lock allow-scripts allow-popups allow-modals allow-top-navigation'
+                scrolling: 'yes'
             }).appendTo(newDiv);
         }
     }
