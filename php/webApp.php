@@ -510,9 +510,10 @@ function upgradeDbTable($config) {
 			foreach ($addLong as $item) {
 				$items[] = "ADD COLUMN $item longtext NOT NULL";
 			}
-			$itemString = join(", ", $items);
+			$itemString = join(", ".PHP_EOL, $items);
 			$query .= $itemString . ";";
 			write_log("Final query is '$query'");
+			$mysqli->query($query);
 		}
 	}
 }
