@@ -410,7 +410,8 @@ function upgradeDbTable($config) {
 	$db = $config['dbname'];
 	$mysqli = new mysqli('localhost', $config['username'], $config['password']);
 	if ($mysqli->select_db($db)) {
-		$checkQuery = "DESCRIBE userdata";
+		write_log("DB Selected.");
+		$checkQuery = "DESCRIBE userdata;";
 		$columns = [];
 		$results = $mysqli->query($checkQuery);
 		if ($results) {
