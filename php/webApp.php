@@ -187,6 +187,7 @@ function checkDefaults() {
     $useDb = file_exists($config);
     if ($useDb) {
         checkDefaultsDb($config);
+        upgradeDbTable($config);
     }
     // Loading from General
     $defaults = getPreference('general',false,false);
@@ -363,6 +364,7 @@ function checkDefaultsDb($config) {
  `plexDvrNewAirings` tinyint(1) NOT NULL DEFAULT '0',
  `plexDvrComskipEnabled` tinyint(1) NOT NULL DEFAULT '0',
  `plexClientId` text NOT NULL,
+ 'plexClientName' text NOT NULL,
  `hookEnabled` tinyint(1) NOT NULL DEFAULT '0',
  `hookPausedEnabled` int(1) NOT NULL DEFAULT '0',
  `hookPlayEnabled` int(1) NOT NULL DEFAULT '0',
@@ -401,6 +403,97 @@ function checkDefaultsDb($config) {
         echo $tail;
         die();
     }
+}
+
+function upgradeDbTable($config) {
+	$config = parse_ini_file($config);
+	$db = $config['dbname'];
+	$mysqli = new mysqli('localhost',$config['username'],$config['password']);
+	$checkQuery = "DESCRIBE userdata";
+	$columns = [];
+	$results = $mysqli->query($checkQuery);
+	while ($row = $results -> fetch_assoc()) {
+		$columns[] = $row;
+	}
+	write_log("Columns: ".json_encode($columns));
+
+	$addStrings = [];
+	$dbStrings = [
+		'plexClientName',
+		'ombiLabel',
+		'couchLabel',
+		'sickLabel',
+		'radarrLabel',
+		'sonarrLabel',
+		'lidarrLabel',
+		'headphonesLabel',
+		'watcherLabel',
+		'delugeLabel',
+		'downloadstationLabel',
+		'nzbhydraLabel',
+		'sabnzbdLabel',
+		'transmissionLabel',
+		'utorrentLabel',
+		'delugeUri',
+		'downloadstationUri',
+		'nzbhydraUri',
+		'sabnzbdUri',
+		'transmissionUri',
+		'utorrentUri'
+	];
+	foreach($dbStrings as $string) {
+		if (!isset($columns[$string])) {
+			write_log("String $string is missing.");
+			array_push($addStrings, $string);
+		}
+	}
+
+	$addBools = [];
+	$dbBools = [
+		'delugeEnabled',
+		'downloadstationEnabled',
+		'nzbhydraEnabled',
+		'sabnzbdEnabled',
+		'transmissionEnabled',
+		'utorrentEnabled',
+		'ombiNewtab',
+		'couchNewtab',
+		'sickNewtab',
+		'radarrNewtab',
+		'sonarrNewtab',
+		'lidarrNewtab',
+		'headphonesNewtab',
+		'watcherNewtab',
+		'delugeNewtab',
+		'downloadstationNewtab',
+		'nzbhydraNewtab',
+		'sabnzbdNewtab',
+		'transmissionNewtab',
+		'utorrentNewtab',
+		'ombiSearch',
+		'couchSearch',
+		'sickSearch',
+		'radarrSearch',
+		'sonarrSearch',
+		'lidarrSearch',
+		'headphonesSearch',
+		'watcherSearch'
+	];
+	foreach($dbBools as $bool) {
+		if (!isset($columns[$bool])) {
+			write_log("Bool $bool is missing.");
+			array_push($addBools, $bool);
+		}
+	}
+
+	$addLong = [];
+	$dbLong = ['customCards'];
+	foreach ($dbLong as $long) {
+		if (!isset($columns[$long])) {
+			write_log("Adding long $long");
+			array_push($addLong, $long);
+		}
+	}
 }
 
 function checkSetDeviceID() {
