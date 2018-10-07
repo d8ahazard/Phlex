@@ -273,7 +273,13 @@ a:hover:not(#executeButton) {
 	font-size: 90%;
 	min-height: 56px;
 	outline: none;
+	padding-bottom: 10px;
 	color: var(--theme-primary-inverse);
+}
+
+.drawer-item.opened {
+	border-bottom: #80808082 1px solid;
+	background-color: rgba(153, 153, 153, 0.12);
 }
 
 .settings-item {
@@ -283,7 +289,15 @@ a:hover:not(#executeButton) {
 
 .drawer-list {
 	margin-left: 25px;
+	margin-top: 0;
+	margin-bottom: 0;
+	width: 100%;
+	box-sizing:content-box;
+	padding: 3px 0;
+}
 
+.drawer-list .drawer-item {
+	padding: 0;
 }
 
 .settings-item.expanded {
@@ -292,6 +306,8 @@ a:hover:not(#executeButton) {
 }
 
 .drawer-item {
+	margin-top: 0;
+	margin-bottom: 0;
 	align-items: center;
 	display: flex;
 	font-size: 113.08%;

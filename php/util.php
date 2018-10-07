@@ -76,8 +76,8 @@ function bye($msg = false, $title = false, $url = false, $log = false, $clear = 
     if ($log) write_log("Ending session now with message '$msg'.", "INFO");
     if ($clear) clearSession();
     // TODO: Make sure this is only done when webflag is set
-
-    write_log("-------TOTAL RUN TIME: $executionTime-------","ALERT");
+	$post = $_POST['postData'] ?? false;
+    if (!$post) write_log("-------TOTAL RUN TIME: $executionTime-------","ALERT");
 	if (function_exists('fastcgi_finish_request')) {
 		fastcgi_finish_request();
 	}

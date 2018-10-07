@@ -388,7 +388,7 @@ function parseUpdates(data) {
 // Build the UI elements after document load
 function buildUiDeferred() {
 	$.material.init();
-	$(".drawer-list").slideUp(700,"easeOutBounce");
+	$(".drawer-list").slideUp(500);
 	var messages = $('#messages').data('array');
 	var IPString = $('#publicAddress').val() + "/api.php?";
 	if (IPString.substring(0, 4) !== 'http') {
@@ -459,7 +459,7 @@ function drawerClick(element) {
                 var drawerTarget = element.data("target");
                 expandDrawer = $('#' + drawerTarget + "Drawer");
                 // If clicking the main settings header
-                toggleDrawer(expandDrawer);
+                toggleDrawer(expandDrawer, element);
                 break;
             case 'client':
                 console.log("Selecting client.");
@@ -783,14 +783,15 @@ function updateUi(data) {
     }
 }
 
-function toggleDrawer(expandDrawer) {
+function toggleDrawer(expandDrawer, element) {
     if (expandDrawer.hasClass("collapsed")) {
+        element.addClass("opened");
         expandDrawer.removeClass("collapsed");
-        expandDrawer.slideDown(700,"easeOutBounce");
+        expandDrawer.slideDown(500);
     } else {
-        console.log("Collapse");
+        element.removeClass('opened');
         expandDrawer.addClass("collapsed");
-        expandDrawer.slideUp(700,"easeOutBounce");
+        expandDrawer.slideUp(500);
     }
 }
 

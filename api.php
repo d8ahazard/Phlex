@@ -23,7 +23,8 @@ function analyzeRequest() {
 
 	$json = file_get_contents('php://input');
 	if (!session_started()) session_start();
-	write_log("-------NEW REQUEST RECEIVED-------", "ALERT");
+	$post = $_POST['postData'] ?? false;
+	if (!$post) write_log("-------NEW REQUEST RECEIVED-------", "ALERT");
 	scriptDefaults();
 	checkDefaults();
 
@@ -99,7 +100,6 @@ function initialize() {
 		$force = ($_GET['force'] === 'true');
 		$result = getUiData($force);
 		header('Content-Type: application/json');
-		write_log("Echoing: ".json_encode($result));
 		echo json_encode($result);
 		bye();
 	}
@@ -1135,12 +1135,10 @@ function selectDevices($results) {
 		$clientName = false;
 		if ($class === 'client') $clientName = $_SESSION['plexClientName'] ?? false;
 		$i = 0;
-		if ($sessionId) write_log("We've got a $class ID to match.","INFO",false,true);
 		$selected = false;
 		foreach ($devices as $device) {
 			if ($sessionId) {
 				if ($device['Id'] == $sessionId) {
-					write_log("Selecting $class device ". $device["Name"], "INFO", false, true);
 					$device['Selected'] = true;
 					$selected = true;
 				} else {
@@ -1148,7 +1146,7 @@ function selectDevices($results) {
 				}
 			} else {
 				if ($i === 0) {
-					write_log("No selected $class currently, picking one.", "WARN");
+					write_log("No selected $class currently, picking one.", "WARN",false,true);
 					setSelectedDevice($class, $device['Id']);
 				}
 				$device['Selected'] = (($i === 0) ? true : false);
@@ -1157,11 +1155,10 @@ function selectDevices($results) {
 			$i++;
 		}
 		if ($clientName && !$selected) {
-			write_log("No selected device, trying to select by client name.");
+			write_log("No selected device, trying to select by client name.","INFO",false, true);
 			foreach($classOutput as &$device) {
 				if ($device['Name'] === $clientName) {
 					$id = $device['Id'];
-					write_log("Selecting client $clientName with id of ".$id);
 					$device['Selected'] = true;
 					setSelectedDevice($class, $id);
 				}
