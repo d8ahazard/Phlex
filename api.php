@@ -319,7 +319,7 @@ function plexApi() {
 	$headers = headerRequestArray(plexHeaders($server));
 	array_push($headers, "Accept: application/json");
 	$url = $plexUrl . $post;
-	$resultstr = curlGet($url, $headers, 4, false);
+	$resultstr = curlGet($url, $headers, 4, false,false);
 	echo $resultstr;
 
 }
@@ -374,6 +374,23 @@ function getUiData($force = false) {
 	foreach ($settingData as $key => &$value) {
 		if (preg_match("/List/", $key) && $key !== 'deviceList') {
 			$value = fetchList(str_replace("List", "", $key));
+		}
+		if (preg_match("/Enabled/", $key) || preg_match("Newtab", $key) || preg_match("Search", $key)) {
+			$value = boolval($value);
+		}
+		$staticBools = [
+			'darkTheme',
+			'forceSSL',
+			'hasPlugin',
+			'isWebApp',
+			'noNewUsers',
+			'plexDvrNewAirings',
+			'plexDvrReplaceLower',
+			'plexPassUser',
+			'shortAnswers'
+		];
+		if (isset($staticBools[$key])) {
+			$value = boolval($value);
 		}
 	}
 	$commands = fetchCommands();
@@ -1112,11 +1129,11 @@ function selectDevices($results) {
 		$classOutput = [];
 		$sessionId = $_SESSION["plex" . $class . "Id"] ?? false;
 		$i = 0;
-		//if ($sessionId) write_log("We've got a $class ID to match.","INFO",false,true);
+		if ($sessionId) write_log("We've got a $class ID to match.","INFO",false,true);
 		foreach ($devices as $device) {
 			if ($sessionId) {
 				if ($device['Id'] == $sessionId) {
-					//write_log("Found a matching $class device named " . $device["Name"], "INFO",false,true);
+					write_log("Selecting $class device ". $device["Name"], "INFO", false, true);
 					$device['Selected'] = true;
 				} else {
 					$device['Selected'] = false;
