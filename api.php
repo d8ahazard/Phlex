@@ -1132,13 +1132,17 @@ function selectDevices($results) {
 	foreach ($results as $class => $devices) {
 		$classOutput = [];
 		$sessionId = $_SESSION["plex" . $class . "Id"] ?? false;
+		$clientName = false;
+		if ($class === 'client') $clientName = $_SESSION['plexClientName'] ?? false;
 		$i = 0;
 		if ($sessionId) write_log("We've got a $class ID to match.","INFO",false,true);
+		$selected = false;
 		foreach ($devices as $device) {
 			if ($sessionId) {
 				if ($device['Id'] == $sessionId) {
 					write_log("Selecting $class device ". $device["Name"], "INFO", false, true);
 					$device['Selected'] = true;
+					$selected = true;
 				} else {
 					$device['Selected'] = false;
 				}
@@ -1151,6 +1155,17 @@ function selectDevices($results) {
 			}
 			array_push($classOutput, $device);
 			$i++;
+		}
+		if ($clientName && !$selected) {
+			write_log("No selected device, trying to select by client name.");
+			foreach($classOutput as &$device) {
+				if ($device['Name'] === $clientName) {
+					$id = $device['Id'];
+					write_log("Selecting client $clientName with id of ".$id);
+					$device['Selected'] = true;
+					setSelectedDevice($class, $id);
+				}
+			}
 		}
 		$output[$class] = $classOutput;
 	}
