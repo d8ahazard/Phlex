@@ -375,7 +375,19 @@ function getUiData($force = false) {
 		if (preg_match("/List/", $key) && $key !== 'deviceList') {
 			$value = fetchList(str_replace("List", "", $key));
 		}
-		if (preg_match("/Enabled/", $key) || preg_match("Newtab", $key) || preg_match("Search", $key) || isset($staticBools[$key])) {
+
+		$staticBools = [
+			'darkTheme',
+			'forceSSL',
+			'hasPlugin',
+			'isWebApp',
+			'noNewUsers',
+			'plexDvrNewAirings',
+			'plexDvrReplaceLower',
+			'plexPassUser',
+			'shortAnswers'
+		];
+		if (preg_match("/Enabled/", $key) || preg_match("/Newtab/", $key) || preg_match("/Search/", $key) || in_array($key, $staticBools)) {
 			$value = boolval($value);
 			if ($value == "0") $value = false;
 			if ($value == "1") $value = true;
