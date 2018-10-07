@@ -172,12 +172,14 @@ function installUpdate() {
 }
 
 function scriptDefaults() {
-    ini_set("log_errors", 1);
-    ini_set('max_execution_time', 300);
-    error_reporting(E_ERROR);
     $errorLogPath = file_build_path(dirname(__FILE__),'..', 'logs', 'Phlex_error.log.php');
-    ini_set("error_log", $errorLogPath);
-    date_default_timezone_set((date_default_timezone_get() ? date_default_timezone_get() : "America/Chicago"));
+	ini_set("log_errors", 1);
+	ini_set("display_errors", 0);
+	ini_set("display_startup_errors", 0);
+	ini_set('max_execution_time', 300);
+	ini_set("error_log", $errorLogPath);
+	error_reporting(E_ERROR);
+	date_default_timezone_set((date_default_timezone_get() ? date_default_timezone_get() : "America/Chicago"));
 }
 
 function checkDefaults() {
@@ -222,8 +224,6 @@ function checkDefaults() {
             $data = ['name'=>$key, 'value'=>$value];
             setPreference('general',$data,"name",$key);
         }
-    } else {
-    	write_log("Fetched defaults: ".json_encode($defaults));
     }
     return $defaults;
 }

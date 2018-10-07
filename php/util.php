@@ -2516,9 +2516,9 @@ function translateControl($string, $searchArray) {
 function write_log($text, $level = false, $caller = false, $force=false, $skip=false) {
     $log = file_build_path(dirname(__FILE__), '..', 'logs', "Phlex.log.php");
     $pp = false;
-    if ($force && isset($_GET['pollPlayer'])) {
+    if ($force && isset($_GET['fetchData'])) {
         $pp = true;
-        unset($_GET['pollPlayer']);
+        unset($_GET['fetchData']);
     }
     if (!file_exists($log)) {
         touch($log);
@@ -2546,11 +2546,11 @@ function write_log($text, $level = false, $caller = false, $force=false, $skip=f
     $caller = $caller ? getCaller($caller) : getCaller();
     if (!$skip) $text = protectMessage(($text));
 
-    if ((isset($_GET['pollPlayer']) || isset($_GET['passive'])) || ($text === "") || !file_exists($log)) return;
+    if ((isset($_GET['fetchData']) || isset($_GET['passive'])) || ($text === "") || !file_exists($log)) return;
 
     $line = "[$date] [$level] ".$user."[$caller] - $text".PHP_EOL;
 
-    if ($pp) $_SESSION['pollPlayer'] = true;
+    if ($pp) $_SESSION['fetchData'] = true;
     if (!is_writable($log)) return;
     if (!$handle = fopen($log, 'a+')) return;
     if (fwrite($handle, $line) === FALSE) return;
@@ -2562,6 +2562,7 @@ function writeSession($key, $value, $unset = false) {
 	if ($unset) {
 		unset($_SESSION[$key]);
 	} else {
+		write_log("Writing session value $key to $value");
 	    $_SESSION[$key] = $value;
     }
 }

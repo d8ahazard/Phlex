@@ -1,4 +1,5 @@
 'use strict';
+apiToken = $('#apiTokenData').data('token');
 
 /**
  * Checks Plex directly to see if it's online
@@ -303,13 +304,14 @@ function getTopContentRatings (includeLibraryTypes = ['movie', 'show'], excludeL
   let listItem = '<li class="list-group-item">&nbsp;</li>';
     
   $('#contentRatingTabContent .list-group').append(loadingListItem.repeat(stats_count));
-  
+
+  apiToken = $('#apiTokenData').data('token');
   function getContentRatingBySection (id, array) {
     return $.ajax({
       type: 'POST',
-      url: './php/homeBase/plex-api.php',
+      url: 'api.php',
       cache: false,
-      data: {'postData': '/library/sections/' + id + '/contentRating'},
+      data: {postData: '/library/sections/' + id + '/contentRating', apiToken: apiToken},
       dataType: 'json',
       success: function (result) {
         array.push(result);
@@ -320,9 +322,9 @@ function getTopContentRatings (includeLibraryTypes = ['movie', 'show'], excludeL
   function getContentRatingCount (fastKey, title, array) {
     return $.ajax({
       type: 'POST',
-      url: './php/homeBase/plex-api.php',
+      url: 'api.php',
       cache: false,
-      data: {'postData': fastKey},
+      data: {'postData': fastKey, apiToken: apiToken},
       dataType: 'json',
       success: function (result) {
         array.push({
@@ -528,9 +530,9 @@ function getTopGenres (includeLibraryTypes = ['movie', 'show'], excludeLibraryId
   function getGenreBySection (id, array) {
     return $.ajax({
       type: 'POST',
-      url: './php/homeBase/plex-api.php',
+      url: 'api.php',
       cache: false,
-      data: {'postData': '/library/sections/' + id + '/genre'},
+      data: {'postData': '/library/sections/' + id + '/genre', apiToken: apiToken},
       dataType: 'json',
       success: function (result) {
         array.push(result);
@@ -541,9 +543,9 @@ function getTopGenres (includeLibraryTypes = ['movie', 'show'], excludeLibraryId
   function getGenreCount (fastKey, title, array) {
     return $.ajax({
       type: 'POST',
-      url: './php/homeBase/plex-api.php',
+      url: 'api.php',
       cache: false,
-      data: {'postData': fastKey},
+      data: {'postData': fastKey, apiToken: apiToken},
       dataType: 'json',
       success: function (result) {
         array.push({
@@ -938,9 +940,9 @@ function getTopTag (tagType, statCount = 5, includeLibraryTypes = ['movie', 'sho
   function getTagBySection (id, array) {
     return $.ajax({
       type: 'POST',
-      url: './php/homeBase/plex-api.php',
+      url: 'api.php',
       cache: false,
-      data: {'postData': '/library/sections/' + id + '/' + tagType},
+      data: {'postData': '/library/sections/' + id + '/' + tagType, apiToken: apiToken},
       dataType: 'json',
       success: function (result) {
         array.push(result);
@@ -951,9 +953,9 @@ function getTopTag (tagType, statCount = 5, includeLibraryTypes = ['movie', 'sho
   function getTagCount (fastKey, title, array) {
     return $.ajax({
       type: 'POST',
-      url: './php/homeBase/plex-api.php',
+      url: 'api.php',
       cache: false,
-      data: {'postData': fastKey},
+      data: {'postData': fastKey, apiToken: apiToken},
       dataType: 'json',
       success: function (result) {
         array.push({

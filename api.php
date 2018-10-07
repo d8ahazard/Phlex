@@ -22,13 +22,7 @@ use Kryptonit3\Sonarr\Sonarr;
 function analyzeRequest() {
 
 	$json = file_get_contents('php://input');
-	$sessionId = json_decode($json, true)['originalRequest']['data']['conversation']['conversationId'] ?? $_GET['sessionId'] ?? false;
-
-	if (!session_started()) {
-		$sessionId = str_replace("_","", $sessionId);
-		if ($sessionId) session_id($sessionId);
-		session_start();
-	}
+	if (!session_started()) session_start();
 	write_log("-------NEW REQUEST RECEIVED-------", "ALERT");
 	scriptDefaults();
 	checkDefaults();
@@ -42,6 +36,10 @@ function analyzeRequest() {
 	$token = false;
 	if (isset($_SERVER['HTTP_APITOKEN'])) {
 		$token = $_SERVER['HTTP_APITOKEN'];
+	}
+
+	if (isset($_POST['apiToken'])) {
+		$token = $_POST['apiToken'];
 	}
 
 	if (isset($_GET['apiToken'])) {
@@ -91,12 +89,18 @@ function analyzeRequest() {
  * Loads/ends session, figures out what to do
  */
 function initialize() {
-	if (isset($_GET['pollPlayer'])) {
-		if (substr_count($_SERVER["HTTP_ACCEPT_ENCODING"], "gzip")) ob_start("ob_gzhandler"); else ob_start();
+	$post = $_POST['postData'] ?? false;
+	if ($post) {
+		header('Content-Type: application/xml');
+		plexApi();
+		bye();
+	}
+	if (isset($_GET['fetchData'])) {
 		$force = ($_GET['force'] === 'true');
 		$result = getUiData($force);
 		header('Content-Type: application/json');
-		echo JSON_ENCODE($result);
+		write_log("Echoing: ".json_encode($result));
+		echo json_encode($result);
 		bye();
 	}
 	if (isset($_GET['testclient'])) {
@@ -104,6 +108,7 @@ function initialize() {
 		echo 'success';
 		bye();
 	}
+
 	if (isset($_GET['test'])) {
 		$result = [];
 		$status = testConnection($_GET['test']);
@@ -183,10 +188,16 @@ function initialize() {
 				}
 			} else {
 				updateUserPreference($id, $value);
+				writeSession($id, $value);
 			}
 			if ((trim($id) === 'useCast') || (trim($id) === 'noLoop')) scanDevices(true);
 			if ($id == "appLanguage") checkSetLanguage($value);
 			if ($id === 'publicAddress') setStartUrl();
+			if (preg_match("/Token/", $id) || preg_match("/Uri/", $id)) {
+				$id = str_replace(["Token", "Uri"], "", $id);
+				write_log("Reloading profile list for $id");
+				testConnection($id);
+			}
 		}
 
 		echo($valid ? "valid" : "invalid");
@@ -300,6 +311,19 @@ function initialize() {
 	}
 }
 
+function plexApi() {
+	$serverId = $_SESSION['plexServerId'] ?? false;
+	$server = findDevice('Id', $serverId, 'Server');
+	$plexUrl = $server['Uri'];
+	$post = $_POST['postData'];
+	$headers = headerRequestArray(plexHeaders($server));
+	array_push($headers, "Accept: application/json");
+	$url = $plexUrl . $post;
+	$resultstr = curlGet($url, $headers, 4, false);
+	echo $resultstr;
+
+}
+
 function setSessionData($rescan = true) {
 	$data = fetchUserData($rescan);
 	if ($data) {
@@ -347,9 +371,9 @@ function getUiData($force = false) {
 	$devices = selectDevices(scanDevices(false));
 	$deviceText = json_encode($devices);
 	$settingData = array_merge(fetchUserData(), fetchGeneralData());
-	foreach ($settingData as $key => $value) {
+	foreach ($settingData as $key => &$value) {
 		if (preg_match("/List/", $key) && $key !== 'deviceList') {
-			$settingData[$key] = fetchList(str_replace("List", "", $key));
+			$value = fetchList(str_replace("List", "", $key));
 		}
 	}
 	$commands = fetchCommands();
@@ -361,8 +385,10 @@ function getUiData($force = false) {
 		$result['devices'] = $devices;
 		$result['userData'] = $settingData;
 		$result['commands'] = $commands;
+		$lang = checkSetLanguage();
+		$result['strings'] = $lang['javaStrings'] ?? [];
 		writeSessionArray([
-			'commands' => $commands,
+			'commandArray' => $commands,
 			'devices' => $deviceText
 		]);
 	} else {
@@ -390,6 +416,7 @@ function getUiData($force = false) {
 		}
 		$sessionCommands = $_SESSION['commandArray'] ?? [];
 		$commandData = [];
+
 		foreach ($commands as $command) {
 			$exists = false;
 			foreach ($sessionCommands as $session) {
@@ -398,13 +425,14 @@ function getUiData($force = false) {
 				}
 			}
 			if (!$exists) {
-				$commandData[] = $command;
+				array_push($commandData, $command);
 			}
 		}
 		if (count($commandData)) {
 			write_log("Sending " . count($commandData) . " new command cards...", "ALERT", false, true);
 			$result['commands'] = $commandData;
-			writeSession('commandArray', $commands);
+			foreach($commandData as $command) array_push($sessionCommands, $command);
+			writeSession('commandArray', $sessionCommands);
 		}
 	}
 
@@ -420,14 +448,16 @@ function getUiData($force = false) {
 		writeSession('messages', false);
 	}
 	$userData = $result['userData'] ?? [];
-	$result['userData'] = [];
+	$ud2 = [];
 	foreach ($userData as $key => $value) {
 		if (preg_match("/List/", $key)) {
 			$target = str_replace("List", "", $key);
 			$value = fetchList($target);
 		}
-		$result['userData'][$key] = $value;
+		$ud2[$key] = $value;
 	}
+	unset($result['userData']);
+	$result['userData'] = $ud2;
 	return $result;
 }
 
@@ -1165,7 +1195,11 @@ function sortDevices($input) {
 			$devId = $device['Id'];
 			$devProduct = $device['Product'];
 			$devType = $device['Type'] ?? false;
-			$devIp = parse_url($device['Uri'])['host'] ?? true;
+			$devUri = $device['Uri'] ?? false;
+			$devIp = true;
+			if ($devUri) {
+				$devIp = parse_url($devUri)['host'] ?? true;
+			}
 			foreach ($output as $existing) {
 				$exIp = parse_url($existing['Uri'])['host'] ?? false;
 				$exId = $existing['Id'];
@@ -1769,7 +1803,6 @@ function fetchPlayerStatus() {
 	//write_log("Function fired.","INFO",false,true);
 	$client = findDevice(false, false, 'Client');
 	$addresses = parse_url($client['Uri']);
-	$client = findDevice(false, false, 'Client');
 	$server = findDevice(false, false, 'Server');
 	$host = $client['Parent'] ?? $server['Id'];
 	$clientIp = $addresses['host'] ?? true;

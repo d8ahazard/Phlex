@@ -161,8 +161,7 @@ a:hover:not(#executeButton) {
 	color: var(--theme-accent-dark) !important;
 }
 
-.nowPlayingFooter, .snackbar, modal-backdrop {
-	background-color: var(--theme-primary-inverse);
+.nowPlayingFooter, .snackbar, .modal-backdrop {
 	background: var(--theme-primary-inverse);
 }
 
@@ -1071,6 +1070,12 @@ select {
 
 h4.card-header {
 	background-color: var(--theme-accent);
+}
+
+.settingLabel {
+	font-size: 12px;
+	position: relative;
+	top: -20px;
 }
 
 .loginLogo {

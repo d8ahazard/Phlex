@@ -1,11 +1,12 @@
 'use strict';
+var apiToken = $('#apiTokenData').data('token');
 
 function queryPlex (query) {
   return $.ajax({
     type: 'POST',
-    url: './php/homeBase/plex-api.php',
+    url: 'api.php',
     cache: false,
-    data: {'postData': query},
+    data: {'postData': query, apiToken: apiToken},
     dataType: 'json'
   });
 }

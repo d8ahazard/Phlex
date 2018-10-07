@@ -174,7 +174,7 @@ class JsonConfig extends ArrayObject {
         }
 
         if (!$data) {
-        	write_log("Dude, what are you even doing with your life? Get it together.","ERROR");
+        	write_log("Dude, what are you even doing with your life? Get it together.","ERROR", false, false, true);
         	die();
         }
         return $data;
@@ -185,13 +185,13 @@ class JsonConfig extends ArrayObject {
     	$result = false;
 	    $data = str_replace($this->header, "", $data);
 	    if (trim($data) === "") {
-		    write_log("Blank file, creating array.","WARN");
+		    write_log("Blank file, creating array.","WARN", false, false, true);
 		    $data = [];
 	    } else {
 		    $ogD = $data;
 		    $data = json_decode($data,true);
 		    if (!$data) {
-			    write_log("JSON Decode failed: $ogD","ALERT");
+			    write_log("JSON Decode failed: $ogD","ALERT", false, false, true);
 		    } else {
 		    	$result = $data;
 		    }
@@ -204,7 +204,7 @@ class JsonConfig extends ArrayObject {
 	    try {
 		    $data = $this->read();
 	    } catch (ConfigException $e) {
-	    	write_log("A config exception occurred.","ERROR");
+	    	write_log("A config exception occurred.","ERROR", false, false, true);
 	    }
 	    if (is_array($data)) {
 	    	$this->data = $data;
@@ -224,7 +224,7 @@ class JsonConfig extends ArrayObject {
         } while (!$result && $i >=5);
 
         if (!$result) {
-            write_log("Can't save file!","ERROR");
+            write_log("Can't save file!","ERROR", false, false, true);
         }
         return $result;
     }

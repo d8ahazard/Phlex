@@ -203,9 +203,9 @@ function makeBody($defaults) {
 						                        <label id="actionLabel" for="commandTest" class="control-label">'. $lang['uiGreetingDefault'] . '
 						                        </label>
 						                        <input type="text" class="form-control" id="commandTest"/>
-						                        <div class="load-barz colorItem" id="loadbar">
+						                        <div class="load-barz colorBg" id="loadbar">
 													<div class="barz"></div>
-													<div class="barz colorItem"></div>
+													<div class="barz colorBg"></div>
 													<div class="barz"></div>
 													<div class="barz"></div>
 												</div>
@@ -575,50 +575,15 @@ function makeBody($defaults) {
 						<div id="stopBtnDiv">
 							<button class="controlBtn btn btn-default" id="stopBtn"><span class="material-icons colorItem">close</span></button>
 							<div id="volumeWrap">
-								<input id="volumeSlider" type="text" data-slider-min="0" data-slider-max="100" data-slider-id="volume" data-slider-orientation="vertical" data-slider-tooltip="hide"></input>
+								<input id="volumeSlider" type="text" data-slider-min="0" data-slider-max="100" data-slider-id="volume" data-slider-orientation="vertical" data-slider-tooltip="hide"/>
 							</div>
 						</div>
 					</div>
 				        <div id="metaTags">
 					    <meta id="apiTokenData" data-token="' . $_SESSION["apiToken"] . '"/>
-					    <meta id="strings" data-array="' . urlencode(json_encode($lang['javaStrings'])) . '"/>
-					    '. makeMetaTags() . '
 					</div>
 					';
 
 
     return [$bodyText,$_SESSION['darkTheme']];
 }
-
-
-
-
-function makeMetaTags() {
-	$server = findDevice(false,false,"Server");
-	$client = findDevice(false,false,"Client");
-    $tags = '';
-    $uiData = json_encode(getUiData(true));
-    $uiData = str_replace("'","`",$uiData);
-    $dvr = ($_SESSION['plexDvrId'] ? "true" : "");
-    $tags .= '<meta id="usernameData" data="' . $_SESSION['plexUserName'] . '"/>' . PHP_EOL .
-        '<meta id="updateAvailable" data="' . $_SESSION['updateAvailable'] . '"/>' . PHP_EOL .
-        '<meta id="deviceID" data="' . $_SESSION['deviceID'] . '"/>' . PHP_EOL .
-        '<meta id="serverURI" data="' . $server['Uri'] . '"/>' . PHP_EOL .
-        '<meta id="publicMeta" value="' . serverAddress() . '"/>' . PHP_EOL .
-        '<meta id="clientURI" data="' . $client['Uri'] . '"/>' . PHP_EOL .
-        '<meta id="clientName" data="' . $client['Name'] . '"/>' . PHP_EOL .
-        '<meta id="plexDvr" data-enable="' . $dvr . '"/>' . PHP_EOL .
-        '<div id="uiData" data-default=\''.$uiData.'\' class="hidden"></div>' . PHP_EOL .
-        '<meta id="rez" value="' . $_SESSION['plexDvrResolution'] . '"/>' . PHP_EOL;
-
-    return $tags;
-}
-
-function makeSettingsBody($defaults) {
-
-
-	return $string;
-}
-
-
-?>

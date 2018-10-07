@@ -41,5 +41,5 @@ self.addEventListener('fetch', function (event) {
 
 
 function reload() {
-	updateStatus(true);
+	fetchData(true);
 }

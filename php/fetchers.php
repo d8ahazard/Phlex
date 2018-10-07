@@ -690,19 +690,8 @@ function fetchList($serviceName) {
             $selected = $_SESSION['watcherProfile'];
             break;
     }
-    $html = buildList($list,$selected);
-    return $html;
-}
 
-function buildList($list,$selected = false) {
-    $html = PHP_EOL;
-    $i = 0;
-    foreach ($list as $id => $name) {
-        $selString = ((!$selected && $i==0) || ($selected && $selected == $id)) ? ' selected' : "";
-        $html .= "<option data-index='$id' id='$name'"."$selString>$name</option>".PHP_EOL;
-        $i++;
-    }
-    return $html;
+    return $list;
 }
 
 function listFetchers() {
@@ -1039,6 +1028,7 @@ function scanWatcher() {
 
 // Test the specified service for connectivity
 function testConnection($serviceName,$returnList=false) {
+	$serviceName = ucfirst($serviceName);
 	write_log("Testing connection for " . $serviceName,"INFO");
     $msg = "ERROR: Connection to $serviceName failed.";
     $data = $profileList = [];
@@ -1059,9 +1049,11 @@ function testConnection($serviceName,$returnList=false) {
 			break;
 
 		case "Couch":
-			$couchURL = $_SESSION['couchUri'];
-			$couchToken = $_SESSION['couchToken'];
-			if (($couchURL) && ($couchToken)) {
+			$couchURL = $_SESSION['couchUri'] ?? false;
+			$couchToken = $_SESSION['couchToken'] ?? false;
+
+			if ($couchURL && $couchToken) {
+				write_log("Got both values.");
 				$url = "$couchURL/api/$couchToken/profile.list";
 				$result = checkUrl($url,true);
 				if ($result[0]) {
@@ -1069,23 +1061,26 @@ function testConnection($serviceName,$returnList=false) {
 					$list = $resultJSON['list'] ?? false;
 					if ($list) {
                         write_log("Hey, we've got some profiles: " . json_encode($resultJSON));
-                        $array = [];
                         foreach ($resultJSON['list'] as $profile) {
                             $id = $profile['_id'];
                             $name = $profile['label'];
                             $profileList["$id"] = $name;
                             if (!$selected) $selected = $id;
                         }
-                        $data = ['couchProfile' => $selected, 'couchList' => $array];
                         $msg = "Connection to $serviceName successful!";
                     }
 				} else {
 				    $msg = "ERROR: " . $result[1];
+				    $selected = $profileList = false;
                 }
 
 			} else {
 			    $msg = "ERROR: Missing ". ($couchURL ? "Token." : "URL.");
+
             }
+			$data = ['couchProfile' => $selected, 'couchList' => $profileList];
+			write_log("Pushing userdata, what the fuck: ".json_encode($data));
+			updateUserPreferenceArray($data);
 			break;
 
 		case "Headphones":
@@ -1209,7 +1204,6 @@ function testConnection($serviceName,$returnList=false) {
 
 	if (count($profileList) && $selected !== false) {
         write_log("$serviceName Profile List Found!: " . json_encode($profileList),"INFO");
-        $profileList = buildList($profileList,$selected);
     } else {
 	    write_log("Unable to fetch profile list...","WARN");
     }
