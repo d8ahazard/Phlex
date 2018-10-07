@@ -264,6 +264,8 @@ a:hover:not(#executeButton) {
 	left: -352px;
 	word-break: break-word;
 	overflow-y: scroll;
+	-webkit-box-shadow: 0 8px 17px 0 rgba(0,0,0,.2), 0 6px 20px 0 rgba(0,0,0,.19);
+	box-shadow: 0 8px 17px 0 rgba(0,0,0,.2), 0 6px 20px 0 rgba(0,0,0,.19);
 }
 
 .drawer-header {
