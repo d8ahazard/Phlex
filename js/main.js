@@ -1204,9 +1204,9 @@ function notify() {
 
 function fetchWeather() {
 	var condition = "";
-	$.getJSON('https://geoip.tools/v1/json', function (data) {
+	$.getJSON('https://extreme-ip-lookup.com/json/', function (data) {
 		city = data["city"];
-		state = data["region_name"];
+		state = data["region"];
 		console.log("City and state are " + city + " and " + state);
 		$.simpleWeather({
 			location: city + ',' + state,
