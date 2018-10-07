@@ -364,7 +364,6 @@ function checkDefaultsDb($config) {
  `plexDvrNewAirings` tinyint(1) NOT NULL DEFAULT '0',
  `plexDvrComskipEnabled` tinyint(1) NOT NULL DEFAULT '0',
  `plexClientId` text NOT NULL,
- 'plexClientName' text NOT NULL,
  `hookEnabled` tinyint(1) NOT NULL DEFAULT '0',
  `hookPausedEnabled` int(1) NOT NULL DEFAULT '0',
  `hookPlayEnabled` int(1) NOT NULL DEFAULT '0',
@@ -494,9 +493,26 @@ function upgradeDbTable($config) {
 		$dbLong = ['customCards'];
 		foreach ($dbLong as $long) {
 			if (!isset($columns[$long])) {
-				write_log("Adding long $long");
+				write_log("Long $long is missing.");
 				array_push($addLong, $long);
 			}
+		}
+		if (count($addStrings) || count($addBools) || count($addLong)) {
+			write_log("We've gotta add some stuff here.");
+			$query = "ALTER TABLE userdata".PHP_EOL;
+			$items = [];
+			foreach ($addStrings as $item) {
+				$items[] = "ADD COLUMN $item text NOT NULL";
+			}
+			foreach ($addBools as $item) {
+				$items[] = "ADD COLUMN $item tinyint(1) NOT NULL";
+			}
+			foreach ($addLong as $item) {
+				$items[] = "ADD COLUMN $item longtext NOT NULL";
+			}
+			$itemString = join(", ", $items);
+			$query .= $itemString . ";";
+			write_log("Final query is '$query'");
 		}
 	}
 }
