@@ -220,6 +220,18 @@ $(window).on('resize', function () {
     scaleElements();
 });
 
+$('#ghostDiv').click(function() {
+    closeDrawer();
+    var pc = $("#plexClient");
+    if (pc.hasClass('open')) {
+        pc.slideToggle();
+        setTimeout(function () {
+            pc.removeClass('open');
+        }, 200);
+    }
+});
+
+
 $(window).on('scroll', function () {
     userScrolled = true;
 });
@@ -1371,13 +1383,7 @@ function setListeners() {
     	openDrawer();
     });
 
-    $('html').on('click', function(e) {
-    	if(!$(e.target).hasClass('drawer-item')) {
-			closeDrawer();
-		}
-    });
-
-	var checkbox = $(':checkbox');
+    var checkbox = $(':checkbox');
 	checkbox.change(function () {
 		var label = $("label[for='" + $(this).attr('id') + "']");
 		var checked = ($(this).is(':checked'));
@@ -1684,11 +1690,16 @@ function setListeners() {
                 console.log("Going right");
             }
             pc.slideToggle();
+            $('#ghostDiv').show();
             setTimeout(function () {
                 pc.addClass('open');
             }, 200);
-
-
+        } else {
+		    pc.slideToggle();
+            setTimeout(function () {
+                pc.removeClass('open');
+            }, 200);
+            $('#ghostDiv').hide();
         }
 	});
 
@@ -2154,6 +2165,7 @@ function clearLoadBar() {
 
 function closeDrawer() {
 	var drawer = $('#sideMenu');
+	$('#ghostDiv').hide();
 	if (drawer.css("left") === '0px') {
 		console.log("Drawer");
         drawer.animate({
@@ -2172,6 +2184,7 @@ function closeDrawer() {
 
 function openDrawer() {
     var drawer = $('#sideMenu');
+    $('#ghostDiv').show();
     if (drawer.css("left") === '-352px') {
         drawer.animate({
             left: '0'

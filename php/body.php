@@ -175,7 +175,7 @@ function makeBody($defaults) {
                     <span class="barBtn"><i class="material-icons colorItem barIcon">exit_to_app</i></span>Log Out
                 </div>   
 			</div>
-        	
+        	<div id="ghostDiv"></div>
 			<div id="body" class="container">
 				<div id="topBar" class="row testGrp justify-content-between">
 					<div class="col-2 col-sm-1 col-md-1 col-lg-2" id="leftGrp">
