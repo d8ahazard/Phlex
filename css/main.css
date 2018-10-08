@@ -717,8 +717,9 @@ p.card-subtitle {
 
 #plexClient {
 	position: fixed;
+	z-index: 9;
 	top: 75px;
-	right:0;
+	right: 5px;
 	max-width: 250px;
 	display: none;
 	background: var(--theme-primary);
@@ -736,13 +737,14 @@ p.card-subtitle {
 }
 
 #plexClient, .dropdown-header, #clientWrapper {
-	z-index: 8;
+	z-index: 9;
 	text-transform: uppercase;
 }
 
 .dropdown-item {
 	text-align: center;
 	color: var(--theme-primary-shade2);
+	cursor: pointer;
 }
 
 #stopBtn {

@@ -214,21 +214,14 @@ $(window).on("load", function() {
 
 // Scale the dang diddly-ang slider to the correct width, as it doesn't like to be responsive by itself
 $(window).on('resize', function () {
-    // TODO: Make sure this isn't needed anymore
     scaleSlider();
     setBackground();
     scaleElements();
 });
 
-$('#ghostDiv').click(function() {
+$('#ghostDiv').on('click', function() {
     closeDrawer();
-    var pc = $("#plexClient");
-    if (pc.hasClass('open')) {
-        pc.slideToggle();
-        setTimeout(function () {
-            pc.removeClass('open');
-        }, 200);
-    }
+    closeClientList();
 });
 
 
@@ -594,6 +587,7 @@ function deviceHtml(type, deviceData) {
 function updateDevices(newDevices) {
 	$(".remove").remove();
 	var newString = JSON.stringify(newDevices);
+	var selected = $('.dd-selected');
 	if (newString !== devices) {
 		console.log("Device array changed, updating: ", newDevices);
 		if (newDevices.hasOwnProperty("Client")) {
@@ -613,25 +607,17 @@ function updateDevices(newDevices) {
                 dvrGroup.hide();
             }
             $('#dvrList').html(deviceHtml('Dvr', newDevices.Dvr));
-            $('.ddLabel').html($('.dd-selected').text());
+            $('.ddLabel').html(selected.text());
         }
 		devices = JSON.stringify(newDevices);
 	}
-    colorItems(appColor,$('.dd-selected'));
+    colorItems(appColor, selected);
 
 }
 
 function updateDevice(type, id) {
 	var noSocket = true;
 	if (noSocket) {
-		apiToken = $('#apiTokenData').data('token');
-
-		$.get('api.php?apiToken=' + apiToken, {
-			device: type,
-			id: id
-		}, function (data) {
-			updateDevices(data);
-		});
 		if (type === 'Client') {
             if (id !== "rescan") {
                 console.log("Switching graphics, id is " + id);
@@ -640,8 +626,24 @@ function updateDevice(type, id) {
                 var clientDiv = $("div").find("[data-id='" + id + "']");
                 clientDiv.addClass('dd-selected');
                 $('.ddLabel').html($('.dd-selected').text());
+            } else {
+                $('#loadbar').show();
             }
         }
+
+        apiToken = $('#apiTokenData').data('token');
+        $.get('api.php?apiToken=' + apiToken, {
+			device: type,
+			id: id
+		}, function (data) {
+			updateDevices(data);
+			if (id === 'rescan') {                
+                $.snackbar({content: "Device rescan completed."});
+                $('#loadbar').hide();
+            }
+
+		});
+
 	} else {
 		// var data = {
 		// 	action: 'device',
@@ -760,17 +762,13 @@ function updateUi(data) {
                             if (data.hasOwnProperty(propertyName.replace("List","Profile"))) {
                                 var profile = data[propertyName.replace("List","Profile")];
                                 if (element.find(":selected").val() !== value) {
-                                    $('#' + propertyName).val(profile);
-                                    //$("#" + propertyName +" option[value='" + profile + "']").attr("selected", true);
-                                    //element.val(value).prop('selected', value);
+                                    element.val(profile);
+                                    element.val(value).prop('selected', value);
                                     updated = true;
                                 }
                             }
                             break;
                         default:
-                            if (!propertyName.indexOf('List') == -1) {
-                                console.log("Please set a definition for the setting value " + propertyName);
-                            }
                     }
                     var announce = false;
                     if (window.hasOwnProperty(propertyName)) {
@@ -805,6 +803,31 @@ function toggleDrawer(expandDrawer, element) {
         expandDrawer.addClass("collapsed");
         expandDrawer.slideUp(500);
     }
+}
+
+function toggleClientList() {
+    var pc = $("#plexClient");
+    if (!pc.hasClass('open')) {
+        $('#ghostDiv').show();
+        setTimeout(function () {
+            pc.addClass('open');
+        }, 200);
+    } else {
+        setTimeout(function () {
+            pc.removeClass('open');
+        }, 200);
+        $('#ghostDiv').hide();
+    }
+    pc.slideToggle();
+}
+
+function closeClientList() {
+    var pc = $("#plexClient");
+    if (pc.hasClass('open')) {
+        pc.removeClass('open');
+    }
+    pc.slideUp();
+    $('#ghostDiv').hide();
 }
 
 function toggleGroups() {
@@ -998,7 +1021,7 @@ function updateCommands(data, prepend) {
 			} catch (e) {
 				console.error(e, e.stack);
 			}
-			$('#JSON' + i).click(function () {
+			$('#JSON' + i).on('click', function () {
 				var jsonData = decodeURIComponent($(this).attr('data'));
 				jsonData = JSON.parse(jsonData);
 				jsonData = recurseJSON(jsonData);
@@ -1007,7 +1030,7 @@ function updateCommands(data, prepend) {
 				$('#jsonModal').modal('show');
 			});
 
-			$('#CARDCLOSE' + i).click(function () {
+			$('#CARDCLOSE' + i).on('click', function () {
 				var stamp = $(this).parent().attr("id");
 				$(this).parent().slideUp(750, function () {
 					$(this).remove();
@@ -1022,7 +1045,7 @@ function updateCommands(data, prepend) {
 				query: '.resultDiv',
 				left: 1000,
 				onOpen: function () {
-					$('#CARDCLOSE' + i).click();
+					$('#CARDCLOSE' + i).trigger('click');
 				}
 			});
 		});
@@ -1076,18 +1099,11 @@ function chk_scroll(e) {
     }
 }
 
-function capitalize(str) {
-    strVal = '';
-    str = str.split(' ');
-    for (var chr = 0; chr < str.length; chr++) {
-        strVal += str[chr].substring(0, 1).toUpperCase() + str[chr].substring(1, str[chr].length) + ' '
-    }
-    return strVal
-}
 
 function recurseJSON(json) {
 	return '<pre class="prettyprint">' + JSON.stringify(json, undefined, 2) + '</pre>';
 }
+
 
 function buildCards(value, i) {
 	var cardBg = false;
@@ -1097,7 +1113,7 @@ function buildCards(value, i) {
 	var description = '';
 	var initialCommand = ucFirst(value["initialCommand"]);
 	var speech = (value["speech"] ? value["speech"] : "");
-    var JSONdiv = '<a href="javascript:void(0)" id="JSON' + i + '" class="JSONPop" data="' + encodeURIComponent(JSON.stringify(value, null, 2)) + '" title="Result JSON">{JSON}</a>';
+    var JSONdiv = '<a href="javascript:void(0)" id="JSON' + i + '" class="JSONPop" data-json="' + encodeURIComponent(JSON.stringify(value, null, 2)) + '" title="Result JSON">{JSON}</a>';
 	if ($(window).width() < 700) speech = speech.substring(0, 100);
 
 	if (value.hasOwnProperty('cards')) {
@@ -1127,9 +1143,7 @@ function buildCards(value, i) {
 		}
 	}
 
-
 	var htmlResult = '' +
-		//<div class="card-img-overlay card-inverse">' +
 		'<ul class="card-list">' +
 		'<li class="card-timestamp">' + timeStamp + '</li>' +
 		'<li class="card-title">' + title + '</li>' +
@@ -1140,7 +1154,6 @@ function buildCards(value, i) {
 		'<li class="card-json">' + JSONdiv + '</li>' +
 		'</ul>' +
 		'<br>';
-	//'</div>';
 	return [htmlResult, cardBg];
 }
 
@@ -1202,14 +1215,13 @@ function hasContent(obj) {
 	return false;
 }
 
-function ucFirst(string) {
-	if (string !== undefined && string !== null) {
-		if (string.length !== 0) {
-			var char1 = string.split("")[0];
-			return char1.toUpperCase() + string.slice(1);
-		}
-	}
-	return '';
+function ucFirst(str) {
+    var strVal = '';
+    str = str.split(' ');
+    for (var chr = 0; chr < str.length; chr++) {
+        strVal += str[chr].substring(0, 1).toUpperCase() + str[chr].substring(1, str[chr].length) + ' '
+    }
+    return strVal
 }
 
 function notify() {
@@ -1379,12 +1391,12 @@ function setListeners() {
     	$('#cardModal').modal('hide');
 	});
 
-	$("#hamburger").click(function () {
+	$("#hamburger").on('click', function () {
     	openDrawer();
     });
 
     var checkbox = $(':checkbox');
-	checkbox.change(function () {
+	checkbox.on('change', function () {
 		var label = $("label[for='" + $(this).attr('id') + "']");
 		var checked = ($(this).is(':checked'));
 		if ($(this).data('app') === 'autoUpdate') {
@@ -1409,7 +1421,7 @@ function setListeners() {
 		}
 	});
 
-	$('.avatar').click(function() {
+	$('.avatar').on('click', function() {
 		staticCount++;
 		if (staticCount >= 14 && cv==="") {
 			cv="&cage=true";
@@ -1427,7 +1439,7 @@ function setListeners() {
 		}
 	});
 
-	$('#logout').click(function () {
+	$('#logout').on('click', function () {
 		var bgs = $('.bg');
 		$('#results').css({"top": "-2000px", "max-height": 0, "overflow": "hidden"});
 		$.snackbar({content: "Logging out."});
@@ -1453,8 +1465,6 @@ function setListeners() {
 	});
 
 	$(".btn").on('click', function () {
-        apiToken = $('#apiTokenData').data('token');
-
         var serverAddress = $("#publicAddress").attr('value');
 		var value, regUrl;
 		if ($(this).hasClass("copyInput")) {
@@ -1521,7 +1531,6 @@ function setListeners() {
 		}
 
 		if ($(this).hasClass("linkBtn")) {
-			serverAddress = $("#publicAddress").val();
 			regUrl = false;
 			action = $(this).data('action');
 			serverAddress = encodeURIComponent(serverAddress);
@@ -1559,6 +1568,8 @@ function setListeners() {
 	$(document).on('click', '.client-item', function () {
 		var clientId = $(this).data('id');
 		updateDevice('Client', clientId);
+		closeClientList();
+
 	});
 
 	$(document).on('click', '.drawer-item', function () {
@@ -1625,7 +1636,7 @@ function setListeners() {
 		$.get('api.php?apiToken=' + apiToken, {id: service, value: index});
 	});
 
-	$("#appLanguage").change(function () {
+	$("#appLanguage").on('change', function () {
 		var lang = $(this).find('option:selected').data('value');
 		apiToken = $('#apiTokenData').data('token');
 
@@ -1637,7 +1648,7 @@ function setListeners() {
 	});
 
 	// This handles sending and parsing our result for the web UI.
-	$("#sendBtn").click(function () {
+	$("#sendBtn").on('click', function () {
 		console.log("Execute clicked!");
 		$('.load-barz').show();
 		var command = $('#commandTest').val();
@@ -1650,13 +1661,13 @@ function setListeners() {
 				clearLoadBar();
 			},10000);
 			$.get(url, function () {
-				$('.load-barz').hide();
+				$('#loadBar').hide();
 				waiting = false;
 			});
 		}
 	});
 
-    $("#smallSendBtn").click(function () {
+    $("#smallSendBtn").on('click', function () {
         console.log("Execute clicked!");
         $('.load-barz').show();
         var command = $('#commandTest').val();
@@ -1669,42 +1680,19 @@ function setListeners() {
                 clearLoadBar();
             },10000);
             $.get(url, function () {
-                $('.load-barz').hide();
+                $('#loadbar').hide();
                 waiting = false;
             });
         }
     });
 
-	var client = $('.clientBtn');
-
-	client.click(function () {
-		var side = $(this).data("position");
-		//show the menu directly over the placeholder
-		var pc = $("#plexClient");
-		if (!pc.hasClass('open')) {
-            if (side === "left") {
-                console.log("Going left");
-                pc.css("left", '0px');
-            } else {
-                pc.css("right", '5px');
-                console.log("Going right");
-            }
-            pc.slideToggle();
-            $('#ghostDiv').show();
-            setTimeout(function () {
-                pc.addClass('open');
-            }, 200);
-        } else {
-		    pc.slideToggle();
-            setTimeout(function () {
-                pc.removeClass('open');
-            }, 200);
-            $('#ghostDiv').hide();
-        }
+	
+    $('.clientBtn').on('click', function () {
+		toggleClientList();
 	});
 
 
-	$(".expandWrap").click(function () {
+	$(".expandWrap").on('click', function () {
 		$(this).children('.expand').slideToggle();
 	});
 
@@ -1714,34 +1702,34 @@ function setListeners() {
 		$.get('api.php?sendlog&apiToken=' + apiToken);
 	});
 
-	$('#commandTest').keypress(function (event) {
+	$('#commandTest').on('keypress', function (event) {
 		if (event.keyCode === 13) {
 			$('.sendBtn').each(function(){
-			    if ($(this).is(":visible")) $(this).click();
+			    if ($(this).is(":visible")) $(this).trigger('click');
             });
 		}
 	});
-	$('#plexServerEnabled').change(function () {
+	$('#plexServerEnabled').on('change', function () {
 		$('#plexGroup').toggle();
 	});
 
-	$('#apiEnabled').change(function () {
+	$('#apiEnabled').on('change', function () {
 		$('.apiGroup').toggle();
 	});
 
 
-	$('#resolution').change(function () {
+	$('#resolution').on('change', function () {
 		apiToken = $('#apiTokenData').data('token');
 
 		var res = $(this).find('option:selected').data('value');
 		$.get('api.php?apiToken=' + apiToken, {id: 'plexDvrResolution', value: res});
 	});
 
-	$('#checkUpdates').click(function () {
+	$('#checkUpdates').on('click', function () {
 		checkUpdate();
 	});
 
-	$('#installUpdates').click(function () {
+	$('#installUpdates').on('click', function () {
 		console.log("Trying to install...");
 		installUpdate();
 	});
@@ -1758,7 +1746,7 @@ function setListeners() {
 
 	// Update our status every 10 seconds?  Should this be longer?  Shorter?  IDK...
 
-	$('.controlBtn').click(function () {
+	$('.controlBtn').on('click', function () {
 		var myId = $(this).attr("id");
 		myId = myId.replace("Btn", "");
 		if (myId === "play") {
@@ -1869,7 +1857,8 @@ function setListeners() {
 function addAppGroup(key) {
     var container = $("#results");
     var appDrawer = $("#AppzDrawer");
-    if($("#" + key + "Btn").length) {
+    var btDiv = $("#" + key + "Btn");
+    if(btDiv.length) {
         return false;
     }
     if (APP_TITLES.indexOf(key) > -1) {
@@ -1888,7 +1877,7 @@ function addAppGroup(key) {
         } else {
         	url = "http://localhost";
 		}
-		var label = capitalize(key);
+		var label = ucFirst(key);
         if (APP_DEFAULTS.hasOwnProperty(key)) label = APP_DEFAULTS[key]["Label"];
         if (window.hasOwnProperty(key + "Label")) {
         	if (window[key + "Label"] !== "") {
@@ -1972,7 +1961,7 @@ function buildSettingsPages(userData) {
             id: key + "SettingBtn"
         });
         btnDiv.data('link', key + "SettingsTab");
-        btnDiv.data('label', capitalize(key));
+        btnDiv.data('label', ucFirst(key));
 
         var btnSpan = $('<span>', {
             class: 'barBtn',
@@ -1985,7 +1974,7 @@ function buildSettingsPages(userData) {
         });
         btnSpan.append(btnIcon);
         btnDiv.append(btnSpan);
-        btnDiv.append(capitalize(key));
+        btnDiv.append(ucFirst(key));
         console.log("Appending: ",btnDiv);
         drawer.append(btnDiv);
 
@@ -2007,7 +1996,7 @@ function buildSettingsPages(userData) {
         for (var itemKey in items) {
             if (items.hasOwnProperty(itemKey)) {
                 itemKey = items[itemKey];
-                var label = capitalize(itemKey);
+                var label = ucFirst(itemKey);
                 var auth = false;
                 var list = false;
                 var search = false;
@@ -2172,14 +2161,6 @@ function closeDrawer() {
             left: '-352px'
         }, 200);
 	}
-    console.log("Clients");
-    var clientWrap = $('#plexClient');
-    if (clientWrap.hasClass('open')) {
-    	clientWrap.slideToggle();
-    	clientWrap.removeClass('open');
-    }
-    //if (clientWrap.is(':visible')) clientWrap.slideToggle();
-
 }
 
 function openDrawer() {
