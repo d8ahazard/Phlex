@@ -2156,6 +2156,7 @@ function plexSignIn($token) {
 
 function protectMessage($string) {
 	//return $string;
+	if ($_SESSION['cleanLogs'] == "false") $_SESSION['cleanLogs'] = false;
     if (($_SESSION['cleanLogs'] ?? true) && !isWebApp()) {
     	$str = $string;
 	    preg_match_all('#\bhttps?://[^,\s()<>]+(?:\([\w\d]+\)|([^,[:punct:]\s]|/))#', $string, $urls);// Remove tokens and host from URL's
