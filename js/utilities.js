@@ -11,16 +11,6 @@ function queryPlex (query) {
   });
 }
 
-function queryTautulli (query) {
-  return $.ajax({
-    type: 'POST',
-    url: './php/homeBase/tautulli-api.php',
-    cache: false,
-    data: {'postData': query},
-    dataType: 'json'
-  });
-}
-
 function resetStatCard (divId, tooltipClass) {
   $(divId).empty();
   if (tooltipClass) { $(tooltipClass).tooltip('dispose'); }

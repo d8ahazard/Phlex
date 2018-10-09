@@ -5,13 +5,13 @@ apiToken = $('#apiTokenData').data('token');
  * Checks Plex directly to see if it's online
  */
 function getServerStatus () {
-  
+
   const serverStatusDiv = $('#serverStatus');
-  
+
   serverStatusDiv.html('Server Status: Loading...');
-  
+
   const getServerStatus = queryPlex('/');
-  
+
   getServerStatus.done(function (data) {
     if (data) {
       serverStatusDiv.removeClass('list-group-item-info');
@@ -25,7 +25,7 @@ function getServerStatus () {
         '<span class="d-flex align-items-center"><i class="fas fa-fw fa-exclamation-circle" data-fa-transform="grow-4"></i></span>');
     }
   });
-  
+
   getServerStatus.fail(function () {
     serverStatusDiv.removeClass('list-group-item-info');
     serverStatusDiv.addClass('list-group-item-danger');
@@ -43,156 +43,83 @@ function getServerStatus () {
  * This is most certainly an unneeded API call but I like it, so it's here
  */
 function getCurrentActivityViaPlex () {
-
+  $('#loadbar').show();
   $('#currentActivityStreamCount').html('Loading...');
   $('#currentActivity').toggleClass('list-group-item-danger', false).toggleClass('bg-dark', true);
   $('#getCurrentActivity').children('svg').toggleClass('fa-spin', true);
-  
+
   const getPlexPrefs = queryPlex('/:/prefs');
   const getCurrentActivity = queryPlex('/status/sessions');
-  
+
   $.when(getPlexPrefs, getCurrentActivity).done(function (prefs, data) {
-    
+
     let wan_total_max_upload_rate = null;
-    
+
     $.each(prefs[0].MediaContainer.Setting, function (i, setting) {
-      
+
       // "Internet Upload Speed" set under Settings->Server->Remote Access
       if (setting.id === 'WanTotalMaxUploadRate') {
         if (setting.value > 0) {
           wan_total_max_upload_rate = setting.value;
         }
       }
-      
+
     });
-    
+
     setTimeout(function () { // setTimeout used to make it seem like it's actually refreshing
-      
+
       if (data[0]) {
-        
+
         let streams = data[0].MediaContainer.Metadata;
         let stream_count = data[0].MediaContainer.size;
         let wan_bandwidth = 0;
-        
+
         $.each(streams, function (i, item) {
           if (item.Session.location === 'wan') {
             wan_bandwidth += item.Session.bandwidth;
           }
         });
-        
+
         let bandwidth = wan_bandwidth > 1000 ? precisionRound((wan_bandwidth / 1000), 1) + ' Mbps' : wan_bandwidth + ' kbps';
         let max_bandwidth = null;
         if (wan_total_max_upload_rate) { max_bandwidth = precisionRound((wan_total_max_upload_rate / 1000), 1) + ' Mbps'; }
-        
+
         if (stream_count === 0) {
           $('#currentActivityStreamCount').html('No streams');
           $('#getCurrentActivity').children('svg').toggleClass('fa-spin', false);
         } else {
           $('#currentActivityStreamCount').html(
-            stream_count + (stream_count === 1 ? ' Stream' : ' Streams') + 
-            ' <span id="currentActivityBandwidth" title="' + bandwidth + (max_bandwidth ? ' / ' + max_bandwidth : '') + 
+            stream_count + (stream_count === 1 ? ' Stream' : ' Streams') +
+            ' <span id="currentActivityBandwidth" title="' + bandwidth + (max_bandwidth ? ' / ' + max_bandwidth : '') +
             '" data-toggle="tooltip"><i class="fas fa-fw fa-info-circle"></i></span>'
           );
           $('#currentActivityBandwidth').tooltip();
           $('#getCurrentActivity').children('svg').toggleClass('fa-spin', false);
         }
-        
+
       } else {
-        
+
         $('#currentActivity').toggleClass('list-group-item-danger', true).toggleClass('bg-dark', false);
         $('#currentActivityStreamCount').html('Error');
         $('#getCurrentActivity').children('svg').toggleClass('fa-spin', false);
-        
+
       }
-      
+
+        $('#loadbar').hide();
+
     }, 1000);
-    
+
   });
-  
+
   $.when(getPlexPrefs, getCurrentActivity).fail(function () {
-    
+
     setTimeout(function () { // setTimeout used to make it seem like it's actually refreshing
+        $('#loadbar').hide();
       $('#currentActivity').toggleClass('list-group-item-danger', true).toggleClass('bg-dark', false);
       $('#currentActivityStreamCount').html('Error!');
       $('#getCurrentActivity').children('svg').toggleClass('fa-spin', false);
     }, 1000);
-    
-  });
-}
 
-/**
- * Uses Tautulli to grab current sessions
- *
- * It should be noted that I've decided to query Plex's preferences to grab the maximum upload rate (Internet upload speed)
- * This is most certainly an unneeded API call but I like it, so it's here
- */
-function getCurrentActivityViaTautulli () {
-
-  $('#currentActivityStreamCount').html('Loading...');
-  $('#currentActivity').toggleClass('list-group-item-danger', false).toggleClass('bg-dark', true);
-  $('#getCurrentActivity').children('svg').toggleClass('fa-spin', true);
-  
-  const getPlexPrefs = queryPlex('/:/prefs'); // This is to grab the maximum upload speed from Plex preferences. It's probably not really a thing we need but I like it...
-  const getCurrentActivity = queryTautulli({'cmd': 'get_activity'});
-  
-  $.when(getPlexPrefs, getCurrentActivity).done(function (prefs, data) {
-    
-    let wan_total_max_upload_rate = null;
-    
-    $.each(prefs[0].MediaContainer.Setting, function (i, setting) {
-      
-      // "Internet Upload Speed" set under Settings->Server->Remote Access
-      if (setting.id === 'WanTotalMaxUploadRate') {
-        if (setting.value > 0) {
-          wan_total_max_upload_rate = setting.value;
-        }
-      }
-      
-    });
-    
-    setTimeout(function () { // setTimeout used to make it seem like it's actually refreshing
-      
-      if(!$.isEmptyObject(data[0].response.data)) {
-        
-        let stream_count = data[0].response.data.stream_count;
-        let wan_bandwidth = data[0].response.data.wan_bandwidth;
-        let bandwidth = wan_bandwidth > 1000 ? precisionRound((wan_bandwidth / 1000), 1) + ' Mbps' : wan_bandwidth + ' kbps';
-        let max_bandwidth = null;
-        if (wan_total_max_upload_rate) { max_bandwidth = precisionRound((wan_total_max_upload_rate / 1000), 1) + ' Mbps'; }
-          
-        if (stream_count === 0) {
-          $('#currentActivityStreamCount').html('No streams');
-          $('#getCurrentActivity').children('svg').toggleClass('fa-spin', false);
-        } else {
-          $('#currentActivityStreamCount').html(
-            stream_count + (stream_count === 1 ? ' Stream' : ' Streams') + 
-            ' <span id="currentActivityBandwidth" title="' + bandwidth + (max_bandwidth ? ' / ' + max_bandwidth : '') + 
-            '" data-toggle="tooltip"><i class="fas fa-fw fa-info-circle"></i></span>'
-          );
-          $('#currentActivityBandwidth').tooltip();
-          $('#getCurrentActivity').children('svg').toggleClass('fa-spin', false);
-        }
-        
-      } else {
-        
-        $('#currentActivity').toggleClass('list-group-item-danger', true).toggleClass('bg-dark', false);
-        $('#currentActivityStreamCount').html('Error');
-        $('#getCurrentActivity').children('svg').toggleClass('fa-spin', false);
-        
-      }
-      
-    }, 1000);
-    
-  });
-  
-  $.when(getPlexPrefs, getCurrentActivity).fail(function () {
-    
-    setTimeout(function () { // setTimeout used to make it seem like it's actually refreshing
-      $('#currentActivity').toggleClass('list-group-item-danger', true).toggleClass('bg-dark', false);
-      $('#currentActivityStreamCount').html('Error!');
-      $('#getCurrentActivity').children('svg').toggleClass('fa-spin', false);
-    }, 1000);
-    
   });
 }
 
@@ -204,24 +131,24 @@ function getCurrentActivityViaTautulli () {
  * @param boolean  includeSeasonAlbumCounts   Show or hide TV Show Season counts and Artist Album counts
  */
 function getLibraryStats (includeLibraryTypes = ['movie', 'show'], excludeLibraryIds = [], includeSeasonAlbumCounts = false) {
-  
+
   let item_count = 1;
-  
+
   if ((includeLibraryTypes.indexOf('movie')) > -1) item_count += 1;
   if (((includeLibraryTypes.indexOf('show')) > -1) && !includeSeasonAlbumCounts) item_count += 2;
   if (((includeLibraryTypes.indexOf('show')) > -1) && includeSeasonAlbumCounts) item_count += 3;
   if (((includeLibraryTypes.indexOf('artist')) > -1) && !includeSeasonAlbumCounts) item_count += 2;
   if (((includeLibraryTypes.indexOf('artist')) > -1) && includeSeasonAlbumCounts) item_count += 3;
-  
+
   let loadingListItem = '<li class="list-group-item bg-dark loading"><span>&nbsp;</span></li>';
-  
+
   $('#serverInformation').append(loadingListItem.repeat(item_count));
-  
+
   const getLibraries = queryTautulli({'cmd': 'get_libraries'});
   const getUsers = queryTautulli({'cmd': 'get_users_table', 'length': '50'});
-  
-  $.when(getLibraries, getUsers).done(function (allLibraries, allUsers) { 
-  
+
+  $.when(getLibraries, getUsers).done(function (allLibraries, allUsers) {
+
     let statObj = {
       'Movies': {'count': null},
       'TV Shows': {'count': null},
@@ -231,31 +158,31 @@ function getLibraryStats (includeLibraryTypes = ['movie', 'show'], excludeLibrar
       'Albums': {'count': null},
       'Tracks': {'count': null}
     };
-    
+
     $.each(allLibraries[0].response.data, function (i, library) {
-        
+
       if (library.section_type === 'movie' && ((includeLibraryTypes.indexOf('movie')) > -1) && (excludeLibraryIds.indexOf(library.section_id) === -1)) {
-      
+
         statObj['Movies'].count += Number(library.count);
-      
+
       } else if (library.section_type === 'show' && ((includeLibraryTypes.indexOf('show')) > -1) && (excludeLibraryIds.indexOf(library.section_id) === -1)) {
-      
+
         statObj['TV Shows'].count += Number(library.count);
         if (includeSeasonAlbumCounts) statObj['TV Seasons'].count += Number(library.parent_count);
         statObj['TV Episodes'].count += Number(library.child_count);
-      
+
       } else if (library.section_type === 'artist' && ((includeLibraryTypes.indexOf('artist')) > -1) && (excludeLibraryIds.indexOf(library.section_id) === -1)) {
-      
+
         statObj['Artists'].count += Number(library.count);
         if (includeSeasonAlbumCounts) statObj['Albums'].count += Number(library.parent_count);
         statObj['Tracks'].count += Number(library.child_count);
-      
+
       }
-      
+
     });
-    
+
     $('#serverInformation .loading').remove();
-    
+
     $.each(statObj, function (key, val) {
       if (val.count) {
         $('#serverInformation').append(
@@ -266,28 +193,28 @@ function getLibraryStats (includeLibraryTypes = ['movie', 'show'], excludeLibrar
         );
       }
     });
-    
+
     let users_active = 0;
     let users_total = allUsers[0].response.data.recordsFiltered;
     let users = allUsers[0].response.data.data;
     let today = Math.round((new Date()).getTime() / 1000);
-    
+
     $.each(users, function (i, item) {
       let last_seen = item.last_seen;
       if (today - last_seen <= 2592000) {
         users_active++;
       }
     });
-    
+
     $('#serverInformation').append(
       '<li class="list-group-item d-flex justify-content-between bg-dark">' +
         '<span>Monthly Active Users</span>' +
-        '<span id="montlyActiveUsers" class="text-right">' + 
+        '<span id="montlyActiveUsers" class="text-right">' +
           users_active + '<span class="text-muted"> / ' + users_total + '</span>' +
         '</span>' +
       '</li>'
     );
-  
+
   });
 }
 
@@ -299,10 +226,10 @@ function getLibraryStats (includeLibraryTypes = ['movie', 'show'], excludeLibrar
  * @param string    stats_count            The number of items to list
  */
 function getTopContentRatings (includeLibraryTypes = ['movie', 'show'], excludeLibraryIds = [], stats_count = 5) {
-  
+
   let loadingListItem = '<li class="list-group-item loading"><span>&nbsp;</span></li>';
   let listItem = '<li class="list-group-item">&nbsp;</li>';
-    
+
   $('#contentRatingTabContent .list-group').append(loadingListItem.repeat(stats_count));
 
   apiToken = $('#apiTokenData').data('token');
@@ -318,7 +245,7 @@ function getTopContentRatings (includeLibraryTypes = ['movie', 'show'], excludeL
       }
     });
   }
-  
+
   function getContentRatingCount (fastKey, title, array) {
     return $.ajax({
       type: 'POST',
@@ -334,7 +261,7 @@ function getTopContentRatings (includeLibraryTypes = ['movie', 'show'], excludeL
       }
     });
   }
-  
+
   function buildContentRatingArray (libraryContentRatings) {
     let contentRatingArray = [];
     $.each(libraryContentRatings, function (i, library) {
@@ -347,7 +274,7 @@ function getTopContentRatings (includeLibraryTypes = ['movie', 'show'], excludeL
     });
     return contentRatingArray;
   }
-  
+
   function assembleAndSortContentRatings (contentRatingArray) {
     let mergedContentRatingCounts = {};
     let sortedContentRatingCounts = [];
@@ -365,17 +292,17 @@ function getTopContentRatings (includeLibraryTypes = ['movie', 'show'], excludeL
       return nvp2.count - nvp1.count;
     });
   }
-  
+
   const plexLibraries = queryPlex('/library/sections');
-  
+
   let buildIdArrays = plexLibraries.then(function (data) {
-    
+
     let libraryIds = {
       movieLibraryIds: [],
       showLibraryIds: []
     };
     let libraries = data.MediaContainer.Directory;
-    
+
     $.each(libraries, function (i, library) {
       if (library.type === 'movie' && ((includeLibraryTypes.indexOf('movie')) > -1) && (excludeLibraryIds.indexOf(library.key) === -1)) {
         libraryIds.movieLibraryIds.push(library.key);
@@ -383,33 +310,33 @@ function getTopContentRatings (includeLibraryTypes = ['movie', 'show'], excludeL
         libraryIds.showLibraryIds.push(library.key);
       }
     });
-    
+
     return libraryIds;
-    
+
   });
-  
+
   buildIdArrays.then(function (ids) {
-    
+
     let promiseArray = [];
     let allLibraries = {
       movieLibraries: [],
       showLibraries: []
     };
-    
+
     if (ids.movieLibraryIds.length) {
       $.each(ids.movieLibraryIds, function (i, id) {
         promiseArray.push(getContentRatingBySection(id, allLibraries.movieLibraries));
       });
     }
-    
+
     if (ids.showLibraryIds.length) {
       $.each(ids.showLibraryIds, function (i, id) {
         promiseArray.push(getContentRatingBySection(id, allLibraries.showLibraries));
       });
     }
-    
+
     $.when.apply($, promiseArray).done(function () {
-      
+
       let contentRatingArray = {
         movies: buildContentRatingArray(allLibraries.movieLibraries),
         shows: buildContentRatingArray(allLibraries.showLibraries)
@@ -419,27 +346,27 @@ function getTopContentRatings (includeLibraryTypes = ['movie', 'show'], excludeL
         movies: [],
         shows: []
       };
-      
+
       if (contentRatingArray.movies.length) {
         $.each(contentRatingArray.movies, function (i, rating) {
           newPromiseArray.push(getContentRatingCount(rating.fastKey, rating.title, contentRatingObj.movies));
         });
       }
-      
+
       if (contentRatingArray.shows.length) {
         $.each(contentRatingArray.shows, function (i, rating) {
           newPromiseArray.push(getContentRatingCount(rating.fastKey, rating.title, contentRatingObj.shows));
         });
       }
-       
+
       $.when.apply($, newPromiseArray).done(function () {
-        
+
         $('#contentRatingTabs, #contentRatingTabContent').empty();
-        
+
         if (contentRatingObj.movies.length && ((includeLibraryTypes.indexOf('movie')) > -1)) {
-          
+
           let sortedMovieContentRatings = assembleAndSortContentRatings(contentRatingObj.movies);
-          
+
           $('#contentRatingTabs').append(
             '<li class="nav-item">' +
               '<a class="nav-link active" id="movieRatingTab" data-toggle="tab" href="#movieRatings" role="tab" aria-controls="movieRatings" aria-selected="true">' +
@@ -447,33 +374,33 @@ function getTopContentRatings (includeLibraryTypes = ['movie', 'show'], excludeL
               '</a>' +
             '</li>'
           );
-          
+
           $('#contentRatingTabContent').append(
             '<div id="movieRatings" class="tab-pane show active" role="tabpanel" aria-labelledby="movieRatingTab">' +
               '<ul class="list-group list-group-flush"></ul>' +
             '</div>'
           );
-          
+
           $.each(sortedMovieContentRatings, function (i, item) {
             $('#movieRatings ul').append(
               '<li class="list-group-item d-flex justify-content-between">' +
                 item.rating + '<span>' + item.count.toLocaleString() + '</span>' +
               '</li>'
             );
-            return i < (stats_count - 1);         
+            return i < (stats_count - 1);
           });
-          
+
           if (sortedMovieContentRatings.length < stats_count) {
             let emptyListItemCount = stats_count - sortedMovieContentRatings.length;
             $('#movieRatings ul').append(listItem.repeat(emptyListItemCount));
           }
-          
+
         }
-        
+
         if (contentRatingObj.shows.length && ((includeLibraryTypes.indexOf('show')) > -1)) {
-          
+
           let sortedTvShowContentRatings = assembleAndSortContentRatings(contentRatingObj.shows);
-          
+
           $('#contentRatingTabs').append(
             '<li class="nav-item">' +
               '<a class="nav-link" id="tvShowRatingTab" data-toggle="tab" href="#tvShowRatings" role="tab" aria-controls="tvShowRatings" aria-selected="false">' +
@@ -481,13 +408,13 @@ function getTopContentRatings (includeLibraryTypes = ['movie', 'show'], excludeL
               '</a>' +
             '</li>'
           );
-          
+
           $('#contentRatingTabContent').append(
             '<div id="tvShowRatings" class="tab-pane" role="tabpanel" aria-labelledby="tvShowRatingTab">' +
               '<ul class="list-group list-group-flush"></ul>' +
             '</div>'
-          ); 
-          
+          );
+
           $.each(sortedTvShowContentRatings, function (i, item) {
             $('#tvShowRatings ul').append(
               '<li class="list-group-item d-flex justify-content-between">' +
@@ -496,20 +423,20 @@ function getTopContentRatings (includeLibraryTypes = ['movie', 'show'], excludeL
             );
             return i < (stats_count - 1);
           });
-          
+
           if (sortedTvShowContentRatings.length < stats_count) {
             let emptyListItemCount = stats_count - sortedTvShowContentRatings.length;
             $('#tvShowRatings ul').append(listItem.repeat(emptyListItemCount));
           }
-          
+
           if (!contentRatingObj.movies.length) {
             $('#tvShowRatingTab, #tvShowRatings').addClass('active');
             $('#tvShowRatings').addClass('show');
           }
         }
-        
+
       });
-      
+
     });
   });
 }
@@ -522,11 +449,11 @@ function getTopContentRatings (includeLibraryTypes = ['movie', 'show'], excludeL
  * @param string    stats_count            The number of items to list
  */
 function getTopGenres (includeLibraryTypes = ['movie', 'show'], excludeLibraryIds = [], stats_count = 5) {
-  
+
   let loadingListItem = '<li class="list-group-item loading"><span>&nbsp;</span></li>';
-  
+
   $('#genreTabContent .list-group').append(loadingListItem.repeat(stats_count));
-  
+
   function getGenreBySection (id, array) {
     return $.ajax({
       type: 'POST',
@@ -539,7 +466,7 @@ function getTopGenres (includeLibraryTypes = ['movie', 'show'], excludeLibraryId
       }
     });
   }
-  
+
   function getGenreCount (fastKey, title, array) {
     return $.ajax({
       type: 'POST',
@@ -555,7 +482,7 @@ function getTopGenres (includeLibraryTypes = ['movie', 'show'], excludeLibraryId
       }
     });
   }
-  
+
   function buildGenreArray (libraryGenres) {
     let genreArray = [];
     $.each(libraryGenres, function (i, library) {
@@ -568,7 +495,7 @@ function getTopGenres (includeLibraryTypes = ['movie', 'show'], excludeLibraryId
     });
     return genreArray;
   }
-  
+
   function assembleAndSortGenres (genreArray) {
     let mergedGenreCounts = {};
     let sortedGenreCounts = [];
@@ -586,17 +513,17 @@ function getTopGenres (includeLibraryTypes = ['movie', 'show'], excludeLibraryId
       return nvp2.count - nvp1.count;
     });
   }
-  
+
   const plexLibraries = queryPlex('/library/sections');
-  
+
   let buildIdArrays = plexLibraries.then(function (data) {
-    
+
     let libraryIds = {
       movieLibraryIds: [],
       showLibraryIds: []
     };
     let libraries = data.MediaContainer.Directory;
-    
+
     $.each(libraries, function (i, library) {
       if (library.type === 'movie' && ((includeLibraryTypes.indexOf('movie')) > -1) && (excludeLibraryIds.indexOf(library.key) === -1)) {
         libraryIds.movieLibraryIds.push(library.key);
@@ -604,33 +531,33 @@ function getTopGenres (includeLibraryTypes = ['movie', 'show'], excludeLibraryId
         libraryIds.showLibraryIds.push(library.key);
       }
     });
-    
+
     return libraryIds;
-    
+
   });
-  
+
   buildIdArrays.then(function (ids) {
-    
+
     let promiseArray = [];
     let allLibraries = {
       movieLibraries: [],
       showLibraries: []
     };
-    
+
     if (ids.movieLibraryIds.length) {
       $.each(ids.movieLibraryIds, function (i, id) {
         promiseArray.push(getGenreBySection(id, allLibraries.movieLibraries));
       });
     }
-    
+
     if (ids.showLibraryIds.length) {
       $.each(ids.showLibraryIds, function (i, id) {
         promiseArray.push(getGenreBySection(id, allLibraries.showLibraries));
       });
     }
-    
+
     $.when.apply($, promiseArray).done(function () {
-            
+
       let genreArray = {
         movies: buildGenreArray(allLibraries.movieLibraries),
         shows: buildGenreArray(allLibraries.showLibraries)
@@ -640,23 +567,23 @@ function getTopGenres (includeLibraryTypes = ['movie', 'show'], excludeLibraryId
         movies: [],
         shows: []
       };
-      
+
       if (genreArray.movies.length) {
         $.each(genreArray.movies, function (i, genre) {
           newPromiseArray.push(getGenreCount(genre.fastKey, genre.title, genreObj.movies));
         });
       }
-      
+
       if (genreArray.shows.length) {
         $.each(genreArray.shows, function (i, genre) {
           newPromiseArray.push(getGenreCount(genre.fastKey, genre.title, genreObj.shows));
         });
       }
-       
+
       $.when.apply($, newPromiseArray).done(function () {
-        
+
         $('#genreTabs, #genreTabContent').empty();
-        
+
         if (genreObj.movies.length && ((includeLibraryTypes.indexOf('movie')) > -1)) {
           $('#genreTabs').append(
             '<li class="nav-item">' +
@@ -671,7 +598,7 @@ function getTopGenres (includeLibraryTypes = ['movie', 'show'], excludeLibraryId
             '</div>'
           );
           $.each(assembleAndSortGenres(genreObj.movies), function (i, item) {
-            if (item.count > 0) {  
+            if (item.count > 0) {
               $('#movieGenres ul').append(
                 '<li class="list-group-item d-flex justify-content-between">' +
                   item.genre + '<span>' + item.count.toLocaleString() + '</span>' +
@@ -681,7 +608,7 @@ function getTopGenres (includeLibraryTypes = ['movie', 'show'], excludeLibraryId
             return i < (stats_count - 1);
           });
         }
-        
+
         if (genreObj.shows.length && ((includeLibraryTypes.indexOf('show')) > -1)) {
           $('#genreTabs').append(
             '<li class="nav-item">' +
@@ -689,14 +616,14 @@ function getTopGenres (includeLibraryTypes = ['movie', 'show'], excludeLibraryId
                 'TV Shows' +
               '</a>' +
             '</li>'
-          ); 
+          );
           $('#genreTabContent').append(
             '<div id="tvShowGenres" class="tab-pane" role="tabpanel" aria-labelledby="tvShowGenreTab">' +
               '<ul class="list-group list-group-flush"></ul>' +
             '</div>'
-          ); 
+          );
           $.each(assembleAndSortGenres(genreObj.shows), function (i, item) {
-            if (item.count > 0) {  
+            if (item.count > 0) {
               $('#tvShowGenres ul').append(
                 '<li class="list-group-item d-flex justify-content-between">' +
                   item.genre + '<span>' + item.count.toLocaleString() + '</span>' +
@@ -710,9 +637,9 @@ function getTopGenres (includeLibraryTypes = ['movie', 'show'], excludeLibraryId
             $('#tvShowGenres').addClass('show');
           }
         }
-        
+
       });
-      
+
     });
   });
 }
@@ -724,22 +651,22 @@ function getTopGenres (includeLibraryTypes = ['movie', 'show'], excludeLibraryId
  * @param string    stats_count   The number of items to list
  */
 function getPopularMovies (time_range = '30', stats_count = '5') {
-  
+
   let loadingListItem = '<li class="list-group-item bg-dark loading"><span>&nbsp;</span></li>';
-    
+
   $('#popMovies').empty().append(loadingListItem.repeat(stats_count));
-  
+
   const getPopularMovies = queryTautulli({'cmd': 'get_home_stats', 'stats_count': stats_count, 'time_range': time_range});
   let pop_movie_range_value = $('#setPopMovieRange').val();
-  
+
   getPopularMovies.done(function(data) {
-    
+
     if (!$.isEmptyObject(data.response.data)) {
-      
+
       let home_stats = data.response.data;
-      
+
       $('#popMovies').empty();
-            
+
       $.each(home_stats, function(i, item) {
         if (item.stat_id === 'popular_movies') {
           $.each(item.rows, function(i, item) {
@@ -753,17 +680,17 @@ function getPopularMovies (time_range = '30', stats_count = '5') {
                   '<span class="movietooltip" title="' + item.total_plays + ' Plays" data-toggle="tooltip">' +
                     '<i class="fas fa-fw fa-info-circle"></i>' +
                   '</span>' +
-                '</span>' + 
+                '</span>' +
               '</li>'
             );
           });
         }
       });
-      
+
       $('.movietooltip').tooltip();
-      
+
     } else {
-      
+
       $('#popMovies').empty().html(
         '<li class="list-group-item d-flex h-100 justify-content-center list-group-item-danger align-items-center">' +
           '<button type="button" class="btn btn-outline-dark btn-sm" onclick="getMovieStats(' + pop_movie_range_value + ')">' +
@@ -771,12 +698,12 @@ function getPopularMovies (time_range = '30', stats_count = '5') {
           '</button>' +
         '</li>'
       );
-    
+
     }
   });
-  
+
   getPopularMovies.fail(function () {
-    
+
     $('#popMovies').empty().html(
       '<li class="list-group-item d-flex h-100 justify-content-center list-group-item-danger align-items-center">' +
         '<button type="button" class="btn btn-outline-dark btn-sm" onclick="getMovieStats(' + pop_movie_range_value + ')">' +
@@ -784,7 +711,7 @@ function getPopularMovies (time_range = '30', stats_count = '5') {
         '</button>' +
       '</li>'
     );
-    
+
   });
 }
 
@@ -795,22 +722,22 @@ function getPopularMovies (time_range = '30', stats_count = '5') {
  * @param string    stats_count   The number of items to list
  */
 function getPopularTvShows (time_range = '30', stats_count = '5') {
-  
+
   let loadingListItem = '<li class="list-group-item bg-dark loading"><span>&nbsp;</span></li>';
-    
+
   $('#popTvShows').empty().append(loadingListItem.repeat(stats_count));
-  
+
   const getPopularTvShows = queryTautulli({'cmd': 'get_home_stats', 'stats_count': stats_count, 'time_range': time_range});
   let popTvRangeValue = $('#setPopTvRange').val();
-  
+
   getPopularTvShows.done(function (data) {
-    
+
     if (!$.isEmptyObject(data.response.data)) {
-      
+
       let home_stats = data.response.data;
-      
+
       $('#popTvShows').empty();
-            
+
       $.each(home_stats, function(i, item) {
         if (item.stat_id == 'popular_tv') {
           $.each(item.rows, function(i, item) {
@@ -824,17 +751,17 @@ function getPopularTvShows (time_range = '30', stats_count = '5') {
                   '<span class="showtooltip" title="' + item.total_plays + ' Plays" data-toggle="tooltip">' +
                     '<i class="fas fa-fw fa-info-circle"></i>' +
                   '</span>' +
-                '</span>' + 
+                '</span>' +
               '</li>'
             );
           });
         }
       });
-      
+
       $('.showtooltip').tooltip();
-      
+
     } else {
-      
+
       $('#popTvShows').empty().html(
         '<li class="list-group-item d-flex h-100 justify-content-center list-group-item-danger align-items-center">' +
           '<button type="button" class="btn btn-outline-dark btn-sm" onclick="getTvStats(' + popTvRangeValue + ')">' +
@@ -842,12 +769,12 @@ function getPopularTvShows (time_range = '30', stats_count = '5') {
           '</button>' +
         '</li>'
       );
-    
+
     }
   });
-  
+
   getPopularTvShows.fail(function () {
-    
+
     $('#popTvShows').empty().html(
       '<li class="list-group-item d-flex h-100 justify-content-center list-group-item-danger align-items-center">' +
         '<button type="button" class="btn btn-outline-dark btn-sm" onclick="getTvStats(' + popTvRangeValue + ')">' +
@@ -855,7 +782,7 @@ function getPopularTvShows (time_range = '30', stats_count = '5') {
         '</button>' +
       '</li>'
     );
-  
+
   });
 }
 
@@ -866,22 +793,22 @@ function getPopularTvShows (time_range = '30', stats_count = '5') {
  * @param string    stats_count   The number of items to list
  */
 function getTopPlatforms (time_range = '30', stats_count = '5') {
-  
+
   let loadingListItem = '<li class="list-group-item bg-dark loading"><span>&nbsp;</span></li>';
-    
+
   $('#topPlatforms').empty().append(loadingListItem.repeat(stats_count));
-  
+
   const getTopPlatforms = queryTautulli({'cmd': 'get_home_stats', 'stats_count': stats_count, 'time_range': time_range});
   let platformRangeValue = $('#setPlatformRange').val();
-  
+
   getTopPlatforms.done(function (data) {
-    
+
     if (!$.isEmptyObject(data.response.data)) {
-      
+
       let platform_stats = data.response.data;
-      
+
       $('#topPlatforms').empty();
-            
+
       $.each(platform_stats, function(i, item) {
         if (item.stat_id == 'top_platforms') {
           $.each(item.rows, function(i, item) {
@@ -898,9 +825,9 @@ function getTopPlatforms (time_range = '30', stats_count = '5') {
           });
         }
       });
-      
+
     } else {
-      
+
       $('#topPlatforms').empty().html(
         '<li class="list-group-item d-flex h-100 justify-content-center list-group-item-danger align-items-center">' +
           '<button type="button" class="btn btn-outline-dark btn-sm" onclick="getPlatformStats(' + platformRangeValue + ')">' +
@@ -908,10 +835,10 @@ function getTopPlatforms (time_range = '30', stats_count = '5') {
           '</button>' +
         '</li>'
       );
-      
+
     }
   });
-  
+
   getTopPlatforms.fail(function () {
 
     $('#topPlatforms').empty().html(
@@ -936,7 +863,7 @@ function getTopPlatforms (time_range = '30', stats_count = '5') {
  * @param array     excludeLibraryIds     An array of section IDs to exclude from the stats list
  */
 function getTopTag (tagType, statCount = 5, includeLibraryTypes = ['movie', 'show'], excludeLibraryIds = []) {
-  
+
   function getTagBySection (id, array) {
     return $.ajax({
       type: 'POST',
@@ -949,7 +876,7 @@ function getTopTag (tagType, statCount = 5, includeLibraryTypes = ['movie', 'sho
       }
     });
   }
-  
+
   function getTagCount (fastKey, title, array) {
     return $.ajax({
       type: 'POST',
@@ -965,7 +892,7 @@ function getTopTag (tagType, statCount = 5, includeLibraryTypes = ['movie', 'sho
       }
     });
   }
-  
+
   function buildTagArray (libraryTags) {
     let tagArray = [];
     $.each(libraryTags, function (i, library) {
@@ -978,7 +905,7 @@ function getTopTag (tagType, statCount = 5, includeLibraryTypes = ['movie', 'sho
     });
     return tagArray;
   }
-  
+
   function assembleAndSortTags (tagArray) {
     let mergedTagCounts = {};
     let sortedTagCounts = [];
@@ -996,17 +923,17 @@ function getTopTag (tagType, statCount = 5, includeLibraryTypes = ['movie', 'sho
       return nvp2.count - nvp1.count;
     });
   }
-  
+
   const plexLibraries = queryPlex('/library/sections');
-  
+
   let buildIdArrays = plexLibraries.then(function (data) {
-    
+
     let libraryIds = {
       movieLibraryIds: [],
       showLibraryIds: []
     };
     let libraries = data.MediaContainer.Directory;
-    
+
     $.each(libraries, function (i, library) {
       if (library.type === 'movie' && ((includeLibraryTypes.indexOf('movie')) > -1) && (excludeLibraryIds.indexOf(library.key) === -1)) {
         libraryIds.movieLibraryIds.push(library.key);
@@ -1014,35 +941,35 @@ function getTopTag (tagType, statCount = 5, includeLibraryTypes = ['movie', 'sho
         libraryIds.showLibraryIds.push(library.key);
       }
     });
-    
+
     return libraryIds;
-    
+
   });
-  
+
   if (tagType === 'contentRating' || tagType === 'genre' || tagType === 'year') {
-    
+
     buildIdArrays.then(function (ids) {
-      
+
       let promiseArray = [];
       let allLibraries = {
         movieLibraries: [],
         showLibraries: []
       };
-      
+
       if (ids.movieLibraryIds.length) {
         $.each(ids.movieLibraryIds, function (i, id) {
           promiseArray.push(getTagBySection(id, allLibraries.movieLibraries));
         });
       }
-      
+
       if (ids.showLibraryIds.length) {
         $.each(ids.showLibraryIds, function (i, id) {
           promiseArray.push(getTagBySection(id, allLibraries.showLibraries));
         });
       }
-      
+
       $.when.apply($, promiseArray).done(function () {
-              
+
         let tagArray = {
           movies: buildTagArray(allLibraries.movieLibraries),
           shows: buildTagArray(allLibraries.showLibraries)
@@ -1052,30 +979,30 @@ function getTopTag (tagType, statCount = 5, includeLibraryTypes = ['movie', 'sho
           movies: [],
           shows: []
         };
-        
+
         if (tagArray.movies.length) {
           $.each(tagArray.movies, function (i, tag) {
             newPromiseArray.push(getTagCount(tag.fastKey, tag.title, tagObj.movies));
           });
         }
-        
+
         if (tagArray.shows.length) {
           $.each(tagArray.shows, function (i, tag) {
             newPromiseArray.push(getTagCount(tag.fastKey, tag.title, tagObj.shows));
           });
         }
-         
+
         $.when.apply($, newPromiseArray).done(function () {
-          
+
           console.log('Movies: Top ' + tagType, assembleAndSortTags(tagObj.movies));
-          
+
           console.log('Shows: Top ' + tagType, assembleAndSortTags(tagObj.shows));
-          
+
         });
-        
+
       });
     });
-    
+
   } else {
     console.log('Incorrect tagType for getTopTag(). Please use "contentRating", "genre" or "year" only.');
   }

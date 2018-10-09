@@ -190,21 +190,14 @@ $(window).on("load", function() {
     console.log("Running window onLoad");
     fetchData();
 
-    // Homebase Init stuff
-    // INITIALIZE OFFCANVAS MENU TOGGLES
-    $('[data-toggle="offcanvas"]').on('click', function () {
-        $('.offcanvas-collapse').toggleClass('open');
-        $('.modal-backdrop').toggleClass('fade');
-    });
-
     getServerStatus();
     getCurrentActivityViaPlex();
-    getLibraryStats();
-    getPopularMovies('30', '5');
-    getPopularTvShows('30', '5');
-    getTopPlatforms('30', '5');
-    getTopContentRatings(['movie', 'show'], [], 6);
-    getTopGenres(['movie', 'show'], [], 6);
+    // getLibraryStats();
+    // getPopularMovies('30', '5');
+    // getPopularTvShows('30', '5');
+    // getTopPlatforms('30', '5');
+    // getTopContentRatings(['movie', 'show'], [], 6);
+    // getTopGenres(['movie', 'show'], [], 6);
 
     // getTopTag() is definitely a work in progress
     //getTopTag('contentRating');
