@@ -95,6 +95,9 @@ function initConfig() {
 
 function setPreference($section, $data, $selector=null, $search=null, $new=false) {
     $config = initConfig();
+    $selectors = false;
+    if (is_string($selector) && is_string($search)) $selectors = [$selector=>$search];
+    if (is_array($selector) && is_array($search)) $selectors = array_combine($selector,$search);
     $config->set($section, $data, $selector, $search, $new);
     if ($section === 'userdata') writeSessionArray(fetchUserData());
     if ($section === 'general') writeSessionArray(fetchGeneralData());
@@ -119,15 +122,14 @@ function getPreference($table, $rows=false, $default=false, $selector=false, $se
     }
 
     if ($single) {
-    	if (is_array($data)) {
+    	if (is_array($data) && count($data) === 1) {
 		    foreach ($data as $record) {
 			    $data = $record;
-			    write_log("Jesus fucking fuck: ".json_encode($record),"ALERT",false,false,true);
 			    break;
 		    }
 	    }
     }
-    write_log("Filtered output: ".json_encode($data),"INFO",false,false,true);
+    //write_log("Filtered output: ".json_encode($data),"INFO",false,false,true);
     return $data;
 }
 
@@ -209,8 +211,10 @@ function checkDefaults() {
     		return ['migrated'=>true];
 	    }
     }
+
     // Loading from General
     $defaults = getPreference('general',false,false);
+    //write_log("Returned: ".json_encode($defaults),"INFO",false,true,true);
     if ($defaults) {
         $keys = $values = [];
         foreach($defaults as $value){
@@ -278,13 +282,6 @@ write_log("Migrating settings.", "ALERT", false, false, true);
 						break;
 					case 'general':
 						$rec = $table->get($record['name']);
-						$names = [];
-						$values = [];
-						foreach($record as $key => $value) {
-							if ($key === 'name') $names[] = $value;
-							if ($key === 'value') $values[] = $value;
-							$record = array_combine($names, $values);
-						}
 						break;
 					default:
 						$rec = $table->get(uniqid());

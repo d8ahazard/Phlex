@@ -2527,7 +2527,7 @@ function write_log($text, $level = false, $caller = false, $force=false, $skip=f
         $authString = "; <?php die('Access denied'); ?>".PHP_EOL;
         file_put_contents($log,$authString);
     }
-    if (filesize($log) > 10485760) {
+    if (filesize($log) > 1048576) {
         $oldLog = file_build_path(dirname(__FILE__),"..",'logs',"Phlex.log.php.old");
         if (file_exists($oldLog)) unlink($oldLog);
         rename($log, $oldLog);

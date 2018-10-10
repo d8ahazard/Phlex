@@ -9,7 +9,7 @@ $defaults = checkDefaults();
 if ($defaults['migrated'] ?? false) header("Refresh:0");
 $forceSSL = $defaults['forceSSL'] ?? false;
 if ($forceSSL === "false") $forceSSL = false;
-write_log("ForceSSL is set to $forceSSL");
+write_log("ForceSSL is ".($forceSSL ? "Enabled" : "Disabled"));
 if ((empty($_SERVER['HTTPS']) || $_SERVER['HTTPS'] == "off") && $forceSSL) {
 	$redirect = 'https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
 	write_log("Force is on, redirecting to: $redirect","ERROR");
@@ -215,7 +215,7 @@ echo '                            <div class="card-block">
 	<link rel="stylesheet" media="(min-width: 768px)" href="css/main_min_768.css">
     <link rel="stylesheet" media="(min-width: 992px)" href="css/main_min_992.css">
 	<link rel="stylesheet" media="(min-width: 1200px)" href="css/main_min_1200.css">
-    <link rel="stylesheet" href="./php/homeBase/assets/styles/custom.min.css">
+    <link rel="stylesheet" href="./php/homeBase/assets/styles/custom.css">
     <script defer src="https://use.fontawesome.com/releases/v5.1.0/js/all.js" integrity="sha384-3LK/3kTpDE/Pkp8gTNp2gR/2gOiwQ6QaO7Td0zV76UFJVhqLl4Vl3KL1We6q6wR9" crossorigin="anonymous"></script>
 
 

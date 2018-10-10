@@ -68,7 +68,7 @@ class FileConfig extends Database {
     public function get($tableName, $columns=false, $selectors=false) {
 	    $path = $this->path;
 		$results = [];
-	    write_log("GET CALLED for $tableName: ".json_encode(['rows'=>$columns, 'sel'=>$selectors]),"INFO",false,false,true);
+	    //write_log("GET CALLED for $tableName: ".json_encode(['rows'=>$columns, 'sel'=>$selectors]),"INFO",false,false,true);
 		if (is_string($columns)) $columns = [$columns];
 	    $table = (new Database($path))->table($tableName);
 	    $builder = new Builder($table);
@@ -79,10 +79,10 @@ class FileConfig extends Database {
 		    case 'userdata':
 		    	    if ($selectors) {
 			            foreach ($selectors as $key => $value) {
-					        write_log("Selecting by key $key and value $value", "INFO", false, false, true);
+					        //write_log("Selecting by key $key and value $value", "INFO", false, false, true);
 					        if ($key !== 'apiToken') {
 						        $results = $builder->where($key, '==', $value)->get()->results();
-						        write_log("Raw query data: ".json_encode($results),"INFO",false,false,true);
+						        //write_log("Raw query data: ".json_encode($results),"INFO",false,false,true);
 						        $temp = [];
 						        foreach($results as $record) {
 							        $data = $record->toArray();
@@ -97,7 +97,7 @@ class FileConfig extends Database {
 
 			        } else {
 				        $results = $table->getAll();
-				        write_log("Raw results: ".json_encode($results),"INFO",false,false,true);
+				        //write_log("Raw results: ".json_encode($results),"INFO",false,false,true);
 				        $temp = [];
 				        foreach($results as $record) {
 					        $data = $record->toArray();
@@ -106,10 +106,10 @@ class FileConfig extends Database {
 				        $userData = $temp;
 			        }
 			        $results = $userData;
-			        write_log("Here are some results: ".json_encode($results),"INFO",false,false,true);
+			        //write_log("Here are some results: ".json_encode($results),"INFO",false,false,true);
 		    		if (is_array($columns)) {
 						foreach($results as &$row) {
-							write_log("Trying to find keys from the intersection of: ".json_encode($row, $columns), "INFO",false,false,true);
+							//write_log("Trying to find keys from the intersection of: ".json_encode($row, $columns), "INFO",false,false,true);
 							$row = array_intersect_key($row,array_flip($columns));
 							//write_log("")
 						}
@@ -124,25 +124,21 @@ class FileConfig extends Database {
 		    		if (is_string($columns)) $columns = [$columns];
 		    		foreach($columns as $row) {
 		    			$data = $table->get($row)->toArray();
-		    			foreach($data as $key=>$value) {
-		    				$results[$key] = $value;
-		    			}
-
-		    			//write_log("Value for $row is $value","INFO",false,false,true);
-
+		    			$results[$row] = $data;
 				    }
+				    $results = [$results];
 			    } else {
 		    		// If no selector - return everything
-				    $results = $table->getAll();
-		    		write_log("Raw results: ".json_encode($results),"INFO",false,false,true);
-		    		$temp = [];
-		    		foreach($results as $record) {
-		    			$data = $record->toArray();
-		    			foreach($data as $key=>$value) {
-		    				$temp[$key] = $value;
-					    }
+				    $data = $table->getAll();
+				    foreach($data as $record) {
+				    	$record = $record->toArray();
+					    $key = $record['name'];
+					    $value = $record['value'];
+					    array_push($results,$record);
 				    }
-				    $results = $temp;
+				    $results = [$results];
+				    //write_log("Raw results: ".json_encode($results),"INFO",false,false,true);
+
 			    }
 			    break;
 	        // Search through array of command history. Always looked up by timestamp + user apiToken
@@ -155,7 +151,7 @@ class FileConfig extends Database {
 				    break;
 			    }
 			    $results = $builder->where($selKey, '==', $selValue)->get()->results();
-			    write_log("Raw query data: ".json_encode($results),"INFO",false,false,true);
+			    //write_log("Raw query data: ".json_encode($results),"INFO",false,false,true);
 			    $temp = [];
 
 			    foreach($results as $record) {
@@ -165,7 +161,7 @@ class FileConfig extends Database {
 			    $results = $temp;
 	    }
 
-        write_log("Returning: ".json_encode($results),"INFO",false,false,true);
+        //write_log("Returning: ".json_encode($results),"INFO",false,false,true);
         return $results;
     }
 

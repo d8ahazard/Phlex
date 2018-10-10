@@ -23,7 +23,14 @@ if ( basename(__FILE__) == basename($_SERVER["SCRIPT_FILENAME"]) )	analyzeReques
 function analyzeRequest() {
 
 	$json = file_get_contents('php://input');
-	if (!session_started()) session_start();
+	if (!session_started()) {
+		$ok = @session_start();
+		if(!$ok){
+			write_log("REGENERATING SESSION ID.","WARN");
+			session_regenerate_id(true);
+			session_start();
+		}
+	}
 	$post = $_POST['postData'] ?? false;
 	if (!$post) write_log("-------NEW REQUEST RECEIVED-------", "ALERT");
 	scriptDefaults();
