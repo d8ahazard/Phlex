@@ -1,13 +1,18 @@
 <?php
 namespace digitalhigh;
-use Filebase\Database;
 
 require_once dirname(__FILE__) . "/ConfigException.php";
 require_once dirname(__FILE__) . '/../vendor/autoload.php';
 
-class FileConfig {
+use Filebase\Database;
+use Filebase\Table;
+use Filebase\Query\Builder;
+use Base\Support\Filesystem;
 
-    protected $connection;
+
+class FileConfig extends Database {
+
+    protected $path;
 
 	/**
 	 * Filebase DB constructor.
@@ -15,10 +20,7 @@ class FileConfig {
 	 */
     public function __construct($dbPath)
 	{
-		$db = new Database([
-			'path' => $dbPath
-		]);
-		$this->connection = $db;
+		$this->path = ['path'=>$dbPath];
 	}
 
 
@@ -27,7 +29,7 @@ class FileConfig {
      */
     public function isValid()
     {
-        return ($this->connection ? true : false);
+        return ($this->path ? true : false);
     }
 
 
@@ -50,53 +52,56 @@ class FileConfig {
 		    }
 	    }
 
-	    $doc = false;
-        $db = $this->connection;
-	    if ($db) {
-		    $table = $db->table($section);
-		    if (count($selectors)) {
-			    $doc = $table->where($selectors)->get()->first();
-		    } else {
-			    $doc = $table->getAll()->toArray();
-		    }
-		    foreach($data as $key => $value) {
-			    $doc->$key = $value;
-		    }
-		    $doc->save();
-	    }
+	    $path = $this->path;
+        $db = new Database($path);
+        $table = $db->table($section);
+
 
     }
 
-    /**
-     * @param string $section
-     * @param bool | array $keys
-     * @param bool | string $selector
-     * @param bool | string $search
-     * @return array|bool
-     */
-    public function get($section, $keys=false, $selector=false, $search=false) {
-        $db = $this->connection;
-	    if ($section !== 'general') write_log("GET CALLED: ".json_encode(['sec'=>$section,'keys'=>$keys, 'sel'=>$selector, 'ser'=>$search]),"INFO",false,false,true);
-	    $return = $selectors = [];
+	/**
+	 * @param $tableName
+	 * @param bool | array $columns - The rows to select
+	 * @param array|bool $selectors - Optional array of key, value pairs to be used as WHERE selectors
+	 * @return array|bool
+	 */
+    public function get($tableName, $columns=false, $selectors=false) {
+	    $path = $this->path;
+		$results = [];
+	    if ($tableName !== 'general') write_log("GET CALLED: ".json_encode(['table'=>$tableName,'rows'=>$columns, 'sel'=>$selectors]),"INFO",false,false,true);
 
-        if ($selector && $search) {
-		    if (is_array($selector) && is_array($search)) {
-			    $selectors = array_combine($selector, $search);
-		    } else if (is_string($selector) && is_string($search)) {
-			    $selectors = [$selector=>$search];
-		    }
+	    $db = new Database($path);
+	    $table = $db->table($tableName);
+	    switch($tableName) {
+	    	// Userdata rows are named using apiToken as suggested
+		    case 'userdata':
+		    		if ($columns) {
+		    			$results = $table->where($selectors)->select($columns)->results();
+				    } else {
+					    $results = $table->where($selectors)->results();
+				    }
+		    		// I also need to re-append the apiToken value to the returned data
+			    break;
+		    // General rows are named after the setting value...I think I've got this one
+		    case 'general':
+		    	if ($columns) {
+		    		if (is_string($columns)) $columns = [$columns];
+		    		foreach($columns as $row) {
+		    			$results[] = $table->get($row);
+				    }
+			    } else {
+		    		// If no selector - return everything
+				    $results = [];
+		    		$results = $table->getAll(false);
+			    }
+			    break;
+	        // Search through array of command history. Always looked up by timestamp + user apiToken
+		    default:
+		    	$results = $table->where($selectors)->results();
+
 	    }
-
-        if ($db) {
-        	$table = $db->table($section);
-        	if ($selectors) {
-        		$rows = $table->where($selectors)->get()->first()->toArray();
-	        } else {
-        		$rows = $table->getAll();
-	        }
-        }
-        if ($section !== 'general') write_log("Returning: ".json_encode($rows),"INFO",false,false,true);
-        return $rows;
+        write_log("Returning: ".json_encode($results),"INFO",false,false,true);
+        return $results;
     }
 
     /**

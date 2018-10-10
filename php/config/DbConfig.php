@@ -106,15 +106,14 @@ class DbConfig {
     /**
      * @param $section
      * @param bool $keys
-     * @param null $selector
-     * @param null $search
+     * @param bool | array $selector
      * @return array|bool
      */
-    public function get($section, $keys=false, $selector=null, $search=null) {
+    public function get($section, $keys=false, $selector=false) {
         if (is_string($keys)) $keys = [$keys];
         $keys = $keys ? join(", ",$keys) : "*";
         $query = "SELECT $keys FROM $section";
-        if ($selector && $search) $query .= " WHERE $selector LIKE ".$this->quote($search);
+        if ($selector) $query .= " WHERE $selector[0] LIKE ".$this->quote($selector[1]);
         $data = $this->select($query);
         return $data;
     }

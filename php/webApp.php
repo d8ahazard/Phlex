@@ -100,9 +100,15 @@ function setPreference($section, $data, $selector=null, $search=null, $new=false
     if ($section === 'general') writeSessionArray(fetchGeneralData());
 }
 
-function getPreference($section, $keys=false, $default=false, $selector=null, $search=null,$single=true) {
+function getPreference($table, $rows=false, $default=false, $selector=false, $search=false, $single=true) {
     $config = initConfig();
-    $data = $config->get($section, $keys, $selector, $search);
+    if (is_string($selector) && is_string($search)) {
+    	$selector = [$selector=>$search];
+    }
+    if (is_array($selector) && is_array($search)) {
+    	$selector = array_combine($selector, $search);
+    }
+    $data = $config->get($table, $rows, $selector);
     $ignore = false;
     if ($keys) {
         if (is_string($keys)) {
@@ -258,12 +264,29 @@ write_log("Migrating settings.", "ALERT", false, false, true);
 			$table = $database->table($section);
 			write_log("Creating $section table.", "ALERT", false, false, true);
 			foreach($sectionData as $record) {
-				$rec = $table->get(uniqid());
+				switch($section) {
+					case 'userdata':
+						$rec = $table->get($record['apiToken']);
+						break;
+					case 'general':
+						$rec = $table->get($record['name']);
+						$names = [];
+						$values = [];
+						foreach($record as $key => $value) {
+							if ($key === 'name') $names[] = $value;
+							if ($key === 'value') $values[] = $value;
+							$record = array_combine($names, $values);
+						}
+						break;
+					default:
+						$rec = $table->get(uniqid());
+				}
 				foreach($record as $key=>$value) {
 					$rec->$key = $value;
 				}
 				$rec->save();
 			}
+			file_put_contents(__DIR__ . "/../rw/db/$section/index.html","SUCK IT.");
 		}
 		write_log("Conversion complete!","INFO",false,false,true);
 		rename($jsonFile, "$jsonFile.bak");
@@ -615,7 +638,6 @@ function fetchCommands() {
     return $out;
 }
 
-#TODO: Should we be writing session here?
 function fetchDeviceCache() {
     $list = [];
     $keys = ['dlist','plexServerId','plexDvrId','plexClientId'];
