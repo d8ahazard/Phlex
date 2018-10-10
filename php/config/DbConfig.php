@@ -64,18 +64,21 @@ class DbConfig {
     /**
      * @param $section
      * @param $data
-     * @param null $selector
-     * @param null $search
+     * @param bool | array $selectors
      * @param bool $new
      */
-    public function set($section, $data, $selector=null, $search=null, $new=false) {
+    public function set($section, $data, $selectors=false) {
         $keys = $strings = $values = [];
         $addSelector = true;
 
         foreach ($data as $key => $value) {
             if ($value === true) $value = "true";
             if ($value === false) $value = "false";
-            if ($key == $selector) $addSelector = false;
+            if (is_array($selectors)) {
+            	foreach($selectors as $selector=>$search) {
+		            if ($key == $selector) $addSelector = false;
+	            }
+            }
             if (is_array($value)) $value = json_encode($value);
             $quoted = $this->quote($value);
             if ($value === "true" || $value === "false") $quoted = $value;
@@ -84,18 +87,19 @@ class DbConfig {
             array_push($strings, "$key=$quoted");
         }
 
-        if ($selector && $search && $addSelector) {
-            $search = $this->quote($search);
-            array_push($keys, $selector);
-            array_push($values, $search);
-            array_push($string, "$selector=$search");
+        if (is_array($selectors) && $addSelector) {
+        	foreach($selectors as $selector=>$search) {
+		        $search = $this->quote($search);
+		        array_push($keys, $selector);
+		        array_push($values, $search);
+		        array_push($string, "$selector=$search");
+	        }
         }
 
         $strings = join(", ",$strings);
         $keys = join(", ",$keys);
         $values = join(", ",$values);
-        $update = $new ? "" : " ON DUPLICATE KEY UPDATE $strings";
-        $query = "INSERT INTO $section ($keys) VALUES ($values)".$update;
+        $query = "INSERT INTO $section ($keys) VALUES ($values) ON DUPLICATE KEY UPDATE $strings";
         $result = $this->query($query);
         if ($result) {
         } else{

@@ -16,12 +16,12 @@ $_SESSION['publicAddress'] = $publicAddress;
 
 function updateUserPreference($key, $value, $section='userdata') {
     $value = scrubBools($value, $key);
-    setPreference($section, [$key=>$value],'apiToken',$_SESSION['apiToken']);
+    setPreference($section, [$key=>$value],['apiToken'=>$_SESSION['apiToken']]);
 }
 
 function updateUserPreferenceArray($data, $section='userdata') {
     $data = scrubBools($data);
-    setPreference($section,$data,'apiToken',$_SESSION['apiToken']);
+    setPreference($section,$data,['apiToken'=>$_SESSION['apiToken']]);
 }
 
 function scrubBools($scrub, $key=false) {
@@ -93,27 +93,24 @@ function initConfig() {
     return $configObject;
 }
 
-function setPreference($section, $data, $selector=null, $search=null, $new=false) {
+function setPreference($section, $data, $selector=false) {
     $config = initConfig();
-    $selectors = false;
-    if (is_string($selector) && is_string($search)) $selectors = [$selector=>$search];
-    if (is_array($selector) && is_array($search)) $selectors = array_combine($selector,$search);
-    $config->set($section, $data, $selector, $search, $new);
+    $config->set($section, $data, $selector);
     if ($section === 'userdata') writeSessionArray(fetchUserData());
     if ($section === 'general') writeSessionArray(fetchGeneralData());
 }
 
-function getPreference($table, $rows=false, $default=false, $selector=false, $search=false, $single=true) {
+/**
+ * @param $table
+ * @param bool | array $rows - An array of row names to select. Not setting returns all data
+ * @param bool | mixed $default - The default value to return if none exists
+ * @param bool | array $selector - An array of key/value pairs to match in a WHERE statement
+ * @param bool $single | Return the first row of data, or all rows (when selecting commands)
+ * @return array|bool|mixed
+ */
+function getPreference($table, $rows=false, $default=false, $selector=false, $single=true) {
     $config = initConfig();
-    if (is_string($selector) && is_string($search)) {
-    	$selector = [$selector=>$search];
-    }
 
-    if (is_array($selector) && is_array($search)) {
-    	$selector = array_combine($selector, $search);
-    }
-
-	if (is_string($rows)) $rows = [$rows];
     $data = $config->get($table, $rows, $selector);
     $ignore = false;
 
@@ -213,7 +210,7 @@ function checkDefaults() {
     }
 
     // Loading from General
-    $defaults = getPreference('general',false,false);
+    $defaults = getPreference('general');
     //write_log("Returned: ".json_encode($defaults),"INFO",false,true,true);
     if ($defaults) {
         $keys = $values = [];
@@ -247,7 +244,7 @@ function checkDefaults() {
         ];
         foreach($defaults as $key=>$value) {
             $data = ['name'=>$key, 'value'=>$value];
-            setPreference('general',$data,"name",$key);
+            setPreference('general',$data,["name"=>$key]);
         }
     }
     return $defaults;
@@ -588,12 +585,12 @@ function upgradeDbTable($config) {
 }
 
 function checkSetDeviceID() {
-    $deviceId = getPreference('general','value','foo','name','deviceId');
+    $deviceId = getPreference('general',['value'],'foo',['name'=>'deviceId']);
     return $deviceId;
 }
 
 function checkSSL() {
-    $forceSSL = getPreference('general', 'value',false,'name','forceSSL');
+    $forceSSL = getPreference('general', ['value'],false,['name'=>'forceSSL']);
     return $forceSSL;
 }
 
@@ -619,13 +616,13 @@ function serverAddress() {
     $selector = ($loggedIn) ? 'apiToken' : 'name';
     $search = ($loggedIn) ? $_SESSION['apiToken'] : 'publicAddress';
     //write_log("Getting sec $section key $key sel $selector sear $search");
-    $serverAddress = getPreference($section, $key, 'http://localhost', $selector, $search);
+    $serverAddress = getPreference($section, [$key], 'http://localhost', [$selector=>$search]);
     //write_log("Response: ".json_encode($serverAddress));
     return $serverAddress;
 }
 
 function fetchCommands() {
-    $commands = getPreference('commands',['data','stamp'],[],'apiToken',$_SESSION['apiToken'],false);
+    $commands = getPreference('commands',['data','stamp'],[],['apiToken'=>$_SESSION['apiToken']],false);
     $out = [];
     foreach($commands as $command) {
         if (isset($command['data'])) {
@@ -646,7 +643,7 @@ function fetchCommands() {
 function fetchDeviceCache() {
     $list = [];
     $keys = ['dlist','plexServerId','plexDvrId','plexClientId'];
-    $cache = getPreference('userdata',$keys,false,'apiToken', $_SESSION['apiToken']);
+    $cache = getPreference('userdata',$keys,false,['apiToken' => $_SESSION['apiToken']]);
     if (is_array($cache) && count($cache)) {
         $list = json_decode(base64_decode($cache['dlist']),true);
         unset($cache['dlist']);
@@ -658,12 +655,12 @@ function fetchDeviceCache() {
 function fetchUser($userData) {
     $email = $userData['plexEmail'];
     $keys = ['plexUserName', 'plexEmail','apiToken','plexAvatar','plexPassUser','plexToken','apiToken','appLanguage'];
-    $data = getPreference('userdata',$keys,false,'plexEmail',$email);
+    $data = getPreference('userdata',$keys,false,['plexEmail'=>$email]);
     return $data;
 }
 
 function fetchUserData($rescan=false) {
-    $temp = getPreference('userdata',false,false,'apiToken', $_SESSION['apiToken']);
+    $temp = getPreference('userdata',false,false,['apiToken'=>$_SESSION['apiToken']]);
     $data = [];
     foreach($temp as $key => $value) {
         if (isJSON($value)) $value = json_decode($value,true);
@@ -679,7 +676,7 @@ function fetchUserData($rescan=false) {
 }
 
 function fetchGeneralData() {
-	$data = getPreference('general',false,false);
+	$data = getPreference('general');
 	if ($data) {
 		$keys = $values = [];
 		foreach($data as $value){
@@ -720,7 +717,7 @@ function logCommand($resultObject) {
     $data = json_encode($resultObject);
     if (trim($apiToken) && trim($data)) {
         #TODO: Verify that the commands are in the right order here
-        $rows = getPreference('commands',['data','stamp'],[],'apiToken',$_SESSION['apiToken'],false);
+        $rows = getPreference('commands',['data','stamp'],[],['apiToken',$_SESSION['apiToken']],false);
         if (is_array($rows)) $rows = array_reverse($rows);
         $i = 1;
         $stamps = [];
@@ -736,7 +733,7 @@ function logCommand($resultObject) {
             }
         }
         $now = date("Y-m-d h:m:s");
-        setPreference('commands',['stamp'=>$now,'apiToken'=>$apiToken, 'data'=>$data],null,null, true);
+        setPreference('commands',['stamp'=>$now,'apiToken'=>$apiToken, 'data'=>$data]);
     } else {
         write_log("No token or data, skipping log.","WARNING");
     }
@@ -779,12 +776,12 @@ function newUser($user) {
     ];
     $user = array_merge($user,$defaults);
     write_log("Creating and saving $userName as a new user: ".json_encode($defaults),"ALERT");
-    setPreference('userdata',$user,'apiToken',$apiToken);
+    setPreference('userdata',$user,['apiToken'=>$apiToken]);
     return $user;
 }
 
 function popCommand($id) {
-    $commands = getPreference('commands','stamp',[],'apiToken',$_SESSION['apiToken']);
+    $commands = getPreference('commands',['stamp'],[],['apiToken'=>$_SESSION['apiToken']]);
     if (is_array($commands) && count($commands)) foreach ($commands as $command) {
         $stamp = $command['stamp'];
         if ($id == $stamp) deleteData('commands','apiToken',$_SESSION['apiToken']);
@@ -795,7 +792,7 @@ function verifyApiToken($apiToken) {
     $data = false;
     if (trim($apiToken)) {
         $keys = ['plexUserName', 'plexEmail','apiToken','plexAvatar','plexPassUser','plexToken','apiToken','appLanguage'];
-        $data = getPreference('userdata',$keys,false,'apiToken',$apiToken);
+        $data = getPreference('userdata',$keys,false,['apiToken'=>$apiToken]);
     }
     if (!$data) {
         write_log("ERROR, api token $apiToken not recognized, called by ".getCaller(), "ERROR");

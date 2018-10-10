@@ -37,26 +37,34 @@ class FileConfig extends Database {
     /**
      * @param $section
      * @param array $data
-     * @param null $selector
-     * @param null $search
-     * @param bool $new
+     * @param array | bool $selectors
      */
-    public function set($section, $data, $selector=null, $search=null, $new=false) {
-	    $selectors = [];
-	    if ($section !== 'general') write_log("SET CALLED: ".json_encode(['sec'=>$section,'data'=>$data, 'sel'=>$selector, 'ser'=>$search]),"INFO",false,false,true);
-	    if ($search && $selector) {
-		    if (is_array($search) && is_array($selector)) {
-			    $selectors = array_combine($selector, $search);
-		    } else if (is_string($search) && is_string($selector)) {
-			    $selectors = [$selector => $search];
-		    }
-	    }
-
+    public function set($section, $data, $selectors=false) {
+	    write_log("SET CALLED for $section: ".json_encode(['data'=>$data, 'sel'=>$selectors]),"INFO",false,false,true);
 	    $path = $this->path;
         $db = new Database($path);
         $table = $db->table($section);
+        $apiToken = $selectors['apiToken'] ?? false;
+        $name = $selectors['name'] ?? false;
+        $record = false;
+        if ($section === 'userdata') {
+			$record = $table->get($apiToken);
+        }
 
+        if ($section === 'general') {
+			$record = $table->get($name);
+        }
 
+        if ($section === 'commands') {
+			$record = $table->get(uniqid());
+        }
+        if ($record) {
+        	write_log("We have a valid record, appending data.","INFO",false,false,true);
+	        foreach ($data as $key => $value) {
+		        $record->$key = $value;
+	        }
+	        $record->save();
+        }
     }
 
 	/**
@@ -67,102 +75,61 @@ class FileConfig extends Database {
 	 */
     public function get($tableName, $columns=false, $selectors=false) {
 	    $path = $this->path;
-		$results = [];
+		$results = false;
 	    //write_log("GET CALLED for $tableName: ".json_encode(['rows'=>$columns, 'sel'=>$selectors]),"INFO",false,false,true);
 		if (is_string($columns)) $columns = [$columns];
 	    $table = (new Database($path))->table($tableName);
 	    $builder = new Builder($table);
+	    $apiToken = $selectors['apiToken'] ?? false;
+	    $email = $selectors['plexEmail'] ?? false;
+	    $prefName = $selectors['name'] ?? false;
 
-
-	    switch($tableName) {
-	    	// Userdata rows are named using apiToken as suggested
-		    case 'userdata':
-		    	    if ($selectors) {
-			            foreach ($selectors as $key => $value) {
-					        //write_log("Selecting by key $key and value $value", "INFO", false, false, true);
-					        if ($key !== 'apiToken') {
-						        $results = $builder->where($key, '==', $value)->get()->results();
-						        //write_log("Raw query data: ".json_encode($results),"INFO",false,false,true);
-						        $temp = [];
-						        foreach($results as $record) {
-							        $data = $record->toArray();
-							        $temp[] = $data;
-						        }
-						        $userData = $temp;
-					        } else {
-						        $userData = [$table->get($value)->toArray()];
-					        }
-					        break;
-				        }
-
-			        } else {
-				        $results = $table->getAll();
-				        //write_log("Raw results: ".json_encode($results),"INFO",false,false,true);
-				        $temp = [];
-				        foreach($results as $record) {
-					        $data = $record->toArray();
-					        $temp[] = $data;
-				        }
-				        $userData = $temp;
-			        }
-			        $results = $userData;
-			        //write_log("Here are some results: ".json_encode($results),"INFO",false,false,true);
-		    		if (is_array($columns)) {
-						foreach($results as &$row) {
-							//write_log("Trying to find keys from the intersection of: ".json_encode($row, $columns), "INFO",false,false,true);
-							$row = array_intersect_key($row,array_flip($columns));
-							//write_log("")
-						}
-				    }
-			    break;
-		    // General rows are named after the setting value...I think I've got this one
-		    case 'general':
-		    	if (($selectors['name'] ?? false) && $columns) {
-		    		$columns = [$selectors['name']];
-			    }
-		    	if ($columns) {
-		    		if (is_string($columns)) $columns = [$columns];
-		    		foreach($columns as $row) {
-		    			$data = $table->get($row)->toArray();
-		    			$results[$row] = $data;
-				    }
-				    $results = [$results];
-			    } else {
-		    		// If no selector - return everything
-				    $data = $table->getAll();
-				    foreach($data as $record) {
-				    	$record = $record->toArray();
-					    $key = $record['name'];
-					    $value = $record['value'];
-					    array_push($results,$record);
-				    }
-				    $results = [$results];
-				    //write_log("Raw results: ".json_encode($results),"INFO",false,false,true);
-
-			    }
-			    break;
-	        // Search through array of command history. Always looked up by timestamp + user apiToken
-		    default:
-			    $selKey = "";
-			    $selValue = "";
-			    foreach ($selectors as $key => $value) {
-				    $selKey = $key;
-				    $selValue = $value;
-				    break;
-			    }
-			    $results = $builder->where($selKey, '==', $selValue)->get()->results();
-			    //write_log("Raw query data: ".json_encode($results),"INFO",false,false,true);
-			    $temp = [];
-
-			    foreach($results as $record) {
-				    $data = $record->toArray();
-				    $temp[] = $data;
-			    }
-			    $results = $temp;
+	    if ($tableName === 'userdata') {
+	    	if ($apiToken) {
+	    		$results = [$table->get($apiToken)->toArray()];
+		    } else if ($email) {
+			    $results = $builder->where('plexEmail', "==", $email)->get()->results();
+			    $results = $this->resultsToArray($results);
+		    } else {
+			    $results = $table->getAll();
+			    $results = $this->resultsToArray($results);
+		    }
 	    }
 
-        //write_log("Returning: ".json_encode($results),"INFO",false,false,true);
-        return $results;
+	    if ($tableName === 'general') {
+	    	if ($prefName) {
+			    if ($prefName && $columns) {
+				    $columns = [$prefName];
+			    }
+			    if ($columns) {
+				    if (is_string($columns)) $columns = [$columns];
+				    foreach ($columns as $row) {
+					    $data = $table->get($row)->toArray();
+					    $results = $data['value'];
+				    }
+				    $results = [$results];
+			    }
+		    } else {
+			    $results = $table->getAll();
+			    $results = $this->resultsToArray($results);
+		    }
+	    }
+
+	    if ($tableName === 'commands') {
+			$results = $builder->where('apiToken', '==', $apiToken)->get()->results();
+		    $results = $this->resultsToArray($results);
+	    }
+
+	    if (is_array($columns) && $tableName !== 'general') {
+		    foreach($results as &$row) {
+			    if (is_array($row)) {
+			    	$row = array_intersect_key($row,array_flip($columns));
+			    } else {
+			    	write_log("THIS IS NOT AN ARRAY, DUDE.","ERROR",false,false,true);
+			    }
+		    }
+	    }
+		return $results;
     }
 
     /**
@@ -186,5 +153,17 @@ class FileConfig extends Database {
 
 	    }
 	    return true;
+    }
+
+    private function resultsToArray($results) {
+    	$temp = [];
+    	foreach($results as $record) {
+        	$class = get_class($record);
+        	if ($class === "Filebase\Document") {
+		        $data = $record->toArray();
+		        $temp[] = $data;
+	        }
+        }
+	    return count($temp) ? $temp : $results;
     }
 }

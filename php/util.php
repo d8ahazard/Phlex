@@ -103,7 +103,6 @@ function cacheImage($url) {
 	}
 	$good = ($filtered);
 	if ($good) {
-		write_log("No need to cache, this should be a valid public address.","INFO");
 		return $url;
 	}
     $path = $url;
@@ -2183,11 +2182,13 @@ function protectMessage($string) {
 
 	    // Remove any API Tokens
 	    if (session_started()) {
-		    $prefs = getPreference('userdata', false, []);
+		    $prefs = getPreference('userdata');
 		    $tokens = [];
-		    foreach ($prefs as $user) {
-			    $token = $user['apiToken'] ?? false;
-			    if ($token) array_push($tokens, $token);
+		    if (is_array($prefs)) {
+			    foreach ($prefs as $user) {
+				    $token = $user['apiToken'] ?? false;
+				    if ($token) array_push($tokens, $token);
+			    }
 		    }
 		    $str = str_replace($tokens, '[REDACTED]', $str);
 	    }
@@ -2493,7 +2494,6 @@ function toBool($var) {
 
 function transcodeImage($path, $server, $full=false) {
     if (preg_match("/library/", $path) || preg_match("/resources/", $path)) {
-        write_log("Tick");
         $token = $server['Token'];
         $size = $full ? 'width=1920&height=1920' : 'width=600&height=600';
         $serverAddress = $server['Uri'];

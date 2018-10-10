@@ -192,7 +192,7 @@ function initialize() {
 				$data = ['name'=>$id, 'value'=>$value];
 				if ($_SESSION['masterUser']) {
 					write_log("Setting general perference: " . json_encode($data));
-					setPreference('general', $data, "name", $id);
+					setPreference('general', $data, ["name"=>$id]);
 					writeSession($id,$value);
 				} else {
 					$user = $_SESSION['plexUserName'] ?? "no user";
@@ -4277,7 +4277,7 @@ function checkDeviceChange($params) {
 }
 
 function downloadCastLogs() {
-	$hasPlugin = getPreference('userdata', ['hasPlugin'], false, 'apiToken', $_SESSION['apiToken'], true);
+	$hasPlugin = getPreference('userdata', ['hasPlugin'], false, ['apiToken'=>$_SESSION['apiToken']]);
 	$urls = [];
 	$servers = $_SESSION['deviceList']['Server'];
 
