@@ -105,21 +105,29 @@ function getPreference($table, $rows=false, $default=false, $selector=false, $se
     if (is_string($selector) && is_string($search)) {
     	$selector = [$selector=>$search];
     }
+
     if (is_array($selector) && is_array($search)) {
     	$selector = array_combine($selector, $search);
     }
+
+	if (is_string($rows)) $rows = [$rows];
     $data = $config->get($table, $rows, $selector);
     $ignore = false;
-    if ($keys) {
-        if (is_string($keys)) {
-            $data = $data[0][$keys] ?? $default;
-            $ignore = true;
-        }
-    }
+
     if (empty($data) && !$ignore) {
         $data = $default;
     }
-    if ($single && !is_string($data))  $data = (count($data) == 1) ? $data[0] : $data;
+
+    if ($single) {
+    	if (is_array($data)) {
+		    foreach ($data as $record) {
+			    $data = $record;
+			    write_log("Jesus fucking fuck: ".json_encode($record),"ALERT",false,false,true);
+			    break;
+		    }
+	    }
+    }
+    write_log("Filtered output: ".json_encode($data),"INFO",false,false,true);
     return $data;
 }
 

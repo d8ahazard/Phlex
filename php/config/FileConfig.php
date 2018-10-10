@@ -68,38 +68,103 @@ class FileConfig extends Database {
     public function get($tableName, $columns=false, $selectors=false) {
 	    $path = $this->path;
 		$results = [];
-	    if ($tableName !== 'general') write_log("GET CALLED: ".json_encode(['table'=>$tableName,'rows'=>$columns, 'sel'=>$selectors]),"INFO",false,false,true);
+	    write_log("GET CALLED for $tableName: ".json_encode(['rows'=>$columns, 'sel'=>$selectors]),"INFO",false,false,true);
+		if (is_string($columns)) $columns = [$columns];
+	    $table = (new Database($path))->table($tableName);
+	    $builder = new Builder($table);
 
-	    $db = new Database($path);
-	    $table = $db->table($tableName);
+
 	    switch($tableName) {
 	    	// Userdata rows are named using apiToken as suggested
 		    case 'userdata':
-		    		if ($columns) {
-		    			$results = $table->where($selectors)->select($columns)->results();
-				    } else {
-					    $results = $table->where($selectors)->results();
+		    	    if ($selectors) {
+			            foreach ($selectors as $key => $value) {
+					        write_log("Selecting by key $key and value $value", "INFO", false, false, true);
+					        if ($key !== 'apiToken') {
+						        $results = $builder->where($key, '==', $value)->get()->results();
+						        write_log("Raw query data: ".json_encode($results),"INFO",false,false,true);
+						        $temp = [];
+						        foreach($results as $record) {
+							        $data = $record->toArray();
+							        $temp[] = $data;
+						        }
+						        $userData = $temp;
+					        } else {
+						        $userData = [$table->get($value)->toArray()];
+					        }
+					        break;
+				        }
+
+			        } else {
+				        $results = $table->getAll();
+				        write_log("Raw results: ".json_encode($results),"INFO",false,false,true);
+				        $temp = [];
+				        foreach($results as $record) {
+					        $data = $record->toArray();
+					        $temp[] = $data;
+				        }
+				        $userData = $temp;
+			        }
+			        $results = $userData;
+			        write_log("Here are some results: ".json_encode($results),"INFO",false,false,true);
+		    		if (is_array($columns)) {
+						foreach($results as &$row) {
+							write_log("Trying to find keys from the intersection of: ".json_encode($row, $columns), "INFO",false,false,true);
+							$row = array_intersect_key($row,array_flip($columns));
+							//write_log("")
+						}
 				    }
-		    		// I also need to re-append the apiToken value to the returned data
 			    break;
 		    // General rows are named after the setting value...I think I've got this one
 		    case 'general':
+		    	if (($selectors['name'] ?? false) && $columns) {
+		    		$columns = [$selectors['name']];
+			    }
 		    	if ($columns) {
 		    		if (is_string($columns)) $columns = [$columns];
 		    		foreach($columns as $row) {
-		    			$results[] = $table->get($row);
+		    			$data = $table->get($row)->toArray();
+		    			foreach($data as $key=>$value) {
+		    				$results[$key] = $value;
+		    			}
+
+		    			//write_log("Value for $row is $value","INFO",false,false,true);
+
 				    }
 			    } else {
 		    		// If no selector - return everything
-				    $results = [];
-		    		$results = $table->getAll(false);
+				    $results = $table->getAll();
+		    		write_log("Raw results: ".json_encode($results),"INFO",false,false,true);
+		    		$temp = [];
+		    		foreach($results as $record) {
+		    			$data = $record->toArray();
+		    			foreach($data as $key=>$value) {
+		    				$temp[$key] = $value;
+					    }
+				    }
+				    $results = $temp;
 			    }
 			    break;
 	        // Search through array of command history. Always looked up by timestamp + user apiToken
 		    default:
-		    	$results = $table->where($selectors)->results();
+			    $selKey = "";
+			    $selValue = "";
+			    foreach ($selectors as $key => $value) {
+				    $selKey = $key;
+				    $selValue = $value;
+				    break;
+			    }
+			    $results = $builder->where($selKey, '==', $selValue)->get()->results();
+			    write_log("Raw query data: ".json_encode($results),"INFO",false,false,true);
+			    $temp = [];
 
+			    foreach($results as $record) {
+				    $data = $record->toArray();
+				    $temp[] = $data;
+			    }
+			    $results = $temp;
 	    }
+
         write_log("Returning: ".json_encode($results),"INFO",false,false,true);
         return $results;
     }

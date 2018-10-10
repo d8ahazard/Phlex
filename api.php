@@ -14,7 +14,8 @@ use Kryptonit3\SickRage\SickRage;
 use Kryptonit3\Sonarr\Sonarr;
 
 
-	analyzeRequest();
+
+if ( basename(__FILE__) == basename($_SERVER["SCRIPT_FILENAME"]) )	analyzeRequest();
 
 /**
  * Takes an incoming request and makes sure it's authorized and valid
@@ -328,34 +329,7 @@ function plexApi() {
 
 }
 
-function plexApiTest() {
-	// Get the currently selected session server ID(Settings->Plex in UI)
-	$serverId = $_SESSION['plexServerId'] ?? false;
-	// Grab the array of data for the server
-	$server = findDevice('Id', $serverId, 'Server');
 
-	$serverUrl = $server['Uri'];
-	$header = ['Accept: application/json'];
-	// You could define these separately too if you want them to be different, or define
-	// endpoints as a key/value pair with the endpoint name as val0 and the params as an array in val0...
-	$params = [
-		'X-Plex-Token'=>$server['plexToken'],
-		'X-Plex-Container-Size'=>1000
-	];
-	// Fill this in as needed
-	$endpoints = ['/stats/library', '/stats/user', '/stats/tag/actor'];
-	$urls = [];
-	// LOOP AND BUILD
-	foreach($endpoints as $endpoint) {
-		$epName = str_replace("/","",$endpoint);
-		// Sets our key to a truncated version of the endpoint name, [0] of the URL value to the URL, and [1] to the headers (ACCEPT)
-		$urls[$epName] = [$serverUrl . $endpoint . "?" . http_build_query($params),$header];
-	}
-	//Build
-	$results = new (multiCurl($urls))->process();
-	write_log("Here are your results, sir: ".json_encode($results));
-
-}
 
 
 function setSessionData($rescan = true) {
