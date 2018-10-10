@@ -5,6 +5,7 @@
 		"kryptonit3/sonarr": "^1.0",
 		"guzzlehttp/guzzle": "^6.2",
 		"symfony/polyfill-mbstring": "^1.2",
-		"kryptonit3/couchpotato": "1.0.0"
+		"kryptonit3/couchpotato": "1.0.0",
+		"filebase/filebase": "2.0.x-dev"
 	}
 }

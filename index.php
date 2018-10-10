@@ -5,6 +5,7 @@ require_once dirname(__FILE__) . '/php/util.php';
 write_log("-------NEW REQUEST RECEIVED-------", "ALERT");
 scriptDefaults();
 $defaults = checkDefaults();
+if ($defaults['migrated'] ?? false) header("Refresh:0");
 $forceSSL = $defaults['forceSSL'] ?? false;
 if ($forceSSL === "false") $forceSSL = false;
 write_log("ForceSSL is set to $forceSSL");

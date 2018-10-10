@@ -10,9 +10,10 @@
 /logs/*.log.old.php
 /rw/config.ini.php
 /rw/db.conf.php
-/rw/config.php
+/rw/config.php*
 /rw/commands.php
 /rw/cacert.pem
+/rw/db/*
 *.old
 *.log.php
 *.db.conf.php

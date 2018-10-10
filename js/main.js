@@ -1010,6 +1010,7 @@ function updateCommands(data, prepend) {
 				} else {
 					$('#resultsInner').append(outLine);
 				}
+                $('#loadbar').hide();
 				setTimeout(function(){
 					var nh = $('.noHeight');
 					nh.slideDown();

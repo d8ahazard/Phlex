@@ -1,0 +1,5 @@
+{
+    "stamp": "2018-10-06 07:10:02",
+    "apiToken": "3960fbec95dfa66742f4c5a1b76ba9cda10f74db55",
+    "data": "{\"speech\":\"Hmmm. Your server doesn't seem to have anything listed for upcoming shows.\",\"cards\":[],\"playback\":false,\"suggestions\":false,\"wait\":false,\"contextName\":\"end\",\"mediaArray\":false,\"initialCommand\":\"What's on TV tonight?\",\"timeStamp\":\"Sat, 06 Oct 2018 19:43:02 -0500\",\"timecode\":1538872982}"
+}

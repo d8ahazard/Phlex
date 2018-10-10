@@ -5,6 +5,7 @@ require_once dirname(__FILE__) . '/git/GitUpdate.php';
 require_once dirname(__FILE__) . '/config/appConfig.php';
 checkFiles();
 use digitalhigh\GitUpdate;
+use Filebase\Database;
 $isWebapp = isWebApp();
 $_SESSION['webApp'] = $isWebapp;
 $GLOBALS['webApp'] = $isWebapp;
@@ -71,21 +72,19 @@ function scrubBools($scrub, $key=false) {
 }
 
 function initConfig() {
-    $config = false;
     $configObject = false;
     $error = false;
-    $dbFile = dirname(__FILE__) . "/../rw/db.conf.php";
-    $jsonFile = dirname(__FILE__). "/../rw/config.php";
-    $configFile = file_exists($dbFile) ? $dbFile : $jsonFile;
-    if (!$config) {
-        //write_log("Creating session config object.");
-        if (file_exists($dbFile)) checkDefaultsDb($dbFile);
-        try {
-            $config = new digitalhigh\appConfig($configFile);
-        } catch (\digitalhigh\ConfigException $e) {
-            write_log("An exception occurred creating the configuration. '$e'", "ERROR",false,false,true);
-            $error = true;
-        }
+    $dbConfig = dirname(__FILE__) . "/../rw/db.conf.php";
+    $dbDir = __DIR__ . "/../rw/db";
+    $type = file_exists($dbConfig) ? 'db' : 'file';
+    $config = file_exists($dbConfig) ? $dbConfig : $dbDir;
+    //write_log("Creating session config object.");
+    if ($type === 'db') checkDefaultsDb($config);
+    try {
+        $config = new digitalhigh\appConfig($config, $type);
+    } catch (\digitalhigh\ConfigException $e) {
+        write_log("An exception occurred creating the configuration. '$e'", "ERROR",false,false,true);
+        $error = true;
     }
     if (!$error) {
         $configObject = $config->ConfigObject;
@@ -185,9 +184,16 @@ function scriptDefaults() {
 function checkDefaults() {
     $config = dirname(__FILE__) . "/../rw/db.conf.php";
     $useDb = file_exists($config);
+    $migrated = false;
     if ($useDb) {
         checkDefaultsDb($config);
         upgradeDbTable($config);
+    } else {
+    	$jsonFile = dirname(__FILE__) . "/../rw/config.php";
+    	if (file_exists($jsonFile)) {
+    		migrateSettings($jsonFile);
+    		return ['migrated'=>true];
+	    }
     }
     // Loading from General
     $defaults = getPreference('general',false,false);
@@ -227,6 +233,41 @@ function checkDefaults() {
         }
     }
     return $defaults;
+}
+
+function migrateSettings($jsonFile) {
+write_log("Migrating settings.", "ALERT", false, false, true);
+	$db = [
+		'path' => __DIR__ . "/../rw/db"
+	];
+	$database = $jsonArray = false;
+	$jsonData = file_get_contents($jsonFile);
+	if ($jsonData) {
+		$jsonData = str_replace("'; <?php die('Access denied'); ?>", "",$jsonData);
+		$jsonArray = json_decode($jsonData,true);
+	}
+	try {
+		$database = new Database($db);
+	} catch (Exception $e) {
+		write_log("Exception occurred loading database.","INFO",false,false,true);
+	}
+
+	if ($jsonArray && $database) {
+		write_log("Converting configs...","ALERT", false, false, true);
+		foreach($jsonArray as $section => $sectionData) {
+			$table = $database->table($section);
+			write_log("Creating $section table.", "ALERT", false, false, true);
+			foreach($sectionData as $record) {
+				$rec = $table->get(uniqid());
+				foreach($record as $key=>$value) {
+					$rec->$key = $value;
+				}
+				$rec->save();
+			}
+		}
+		write_log("Conversion complete!","INFO",false,false,true);
+		rename($jsonFile, "$jsonFile.bak");
+	}
 }
 
 function checkDefaultsDb($config) {
@@ -595,7 +636,7 @@ function fetchUser($userData) {
 }
 
 function fetchUserData($rescan=false) {
-    $temp = getPreference('userdata',false,false,'apiToken',$_SESSION['apiToken']);
+    $temp = getPreference('userdata',false,false,'apiToken', $_SESSION['apiToken']);
     $data = [];
     foreach($temp as $key => $value) {
         if (isJSON($value)) $value = json_decode($value,true);
@@ -760,13 +801,11 @@ function checkFiles() {
     $rwDir = file_build_path(dirname(__FILE__), "..", "rw");
     $errorLogPath = file_build_path($logDir, "Phlex_error.log.php");
     $updateLogPath = file_build_path($logDir, "Phlex_update.log.php");
-    $configFile = file_build_path($rwDir, "config.php");
 
     $files = [
         $logPath,
         $errorLogPath,
-        $updateLogPath,
-        $configFile
+        $updateLogPath
     ];
 
     $secureString = "'; <?php die('Access denied'); ?>";
