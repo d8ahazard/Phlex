@@ -5,9 +5,7 @@ require_once dirname(__FILE__) . "/ConfigException.php";
 require_once dirname(__FILE__) . '/../vendor/autoload.php';
 
 use Filebase\Database;
-use Filebase\Table;
 use Filebase\Query\Builder;
-use Base\Support\Filesystem;
 
 
 class FileConfig extends Database {
@@ -105,7 +103,7 @@ class FileConfig extends Database {
 				    if (is_string($columns)) $columns = [$columns];
 				    foreach ($columns as $row) {
 					    $data = $table->get($row)->toArray();
-					    $results = $data['value'];
+					    $results = $data['value'] ?? null;
 				    }
 				    $results = [$results];
 			    }
@@ -132,28 +130,19 @@ class FileConfig extends Database {
 		return $results;
     }
 
-    /**
-     * @param $section
-     * @param null $selector
-     * @param null $value
-     * @return mixed
-     */
-    public function delete($section, $selector=null, $value=null) {
-	    $db = $this->connection;
-	    if ($db) {
-		    $sectionData = $db->table($section)->getAll();
-		    $newData = $selectors = [];
-		    if ($selector && $value)
-		    	if (is_string($selector)) {
-		    		$selectors = [$selector=>$value];
-			    } else {
-		    		$selectors = array_combine($selector,$value);
-			    }
-
-
+	/**
+	 * @param $table
+	 * @param array $selectors
+	 * @return mixed
+	 */
+    public function delete($table, $selectors) {
+	    $records = (new Database($this->path))->table($table)->where($selectors)->get->results();
+	    foreach($records as $record) {
+	    	write_log("Deleting record: ".json_encode($record),"INFO",false,false,true);
+	    	$record->delete();
 	    }
-	    return true;
     }
+
 
     private function resultsToArray($results) {
     	$temp = [];
