@@ -13,7 +13,7 @@
 /rw/config.php*
 /rw/commands.php
 /rw/cacert.pem
-/rw/db/*
+/rw/db/*db
 *.old
 *.log.php
 *.db.conf.php
