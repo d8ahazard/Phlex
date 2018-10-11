@@ -819,10 +819,16 @@ function checkFiles() {
     ];
 
     $logDir = file_build_path(dirname(__FILE__), "..", "logs");
-    $logPath = file_build_path($logDir, "Phlex.log.php");
-    $rwDir = file_build_path(dirname(__FILE__), "..", "rw");
+	$rwDir = file_build_path(dirname(__FILE__), "..", "rw");
+	$dbDir = file_build_path($rwDir, "db");
+	$genDir = file_build_path($dbDir,"general");
+	$userDir = file_build_path($dbDir,"userdata");
+	$cmdDir = file_build_path($dbDir,"commands");
+	$logPath = file_build_path($logDir, "Phlex.log.php");
     $errorLogPath = file_build_path($logDir, "Phlex_error.log.php");
     $updateLogPath = file_build_path($logDir, "Phlex_update.log.php");
+
+    $dirs = [$rwDir, $dbDir, $logDir, $genDir, $userDir, $cmdDir];
 
     $files = [
         $logPath,
@@ -831,28 +837,21 @@ function checkFiles() {
     ];
 
     $secureString = "'; <?php die('Access denied'); ?>";
-    if (!file_exists($logDir)) {
-        if (!mkdir($logDir, 0777, true)) {
-            $message = "Unable to create log folder directory, please check permissions and try again.";
-            $error = [
-                'title' => 'Permission error.',
-                'message' => $message,
-                'url' => false
-            ];
-            array_push($messages, $error);
-        }
+    foreach($dirs as $dir) {
+	    if (!file_exists($dir)) {
+		    if (!mkdir($dir, 0777, true)) {
+		    	$message = "Unable to create directory at '$dir', please check permissions and try again.";
+			    $error = [
+				    'title' => 'Permission error.',
+				    'message' => $message,
+				    'url' => false
+			    ];
+			    array_push($messages, $error);
+		    }
+	    }
+	    if (!file_exists("${dir}/index.html")) file_put_contents("${dir}/index.html","ACCESS DENIED");
     }
-    if (!file_exists($rwDir)) {
-        if (!mkdir($rwDir, 0777, true)) {
-            $message = "Unable to create secure storage directory, please check permissions and try again.";
-            $error = [
-                'title' => 'Permission error.',
-                'message' => $message,
-                'url' => false
-            ];
-            array_push($messages, $error);
-        }
-    }
+
     foreach ($files as $file) {
         if (!file_exists($file)) {
         	$name = basename($file);
