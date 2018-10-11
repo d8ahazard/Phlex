@@ -35,7 +35,8 @@ var SETTING_KEYTYPES = {
     List: 'select',
     Newtab: 'checkbox',
     Search: 'checkbox',
-    Enabled: 'checkbox'
+    Enabled: 'checkbox',
+    Profile: 'profile'
 };
 
 // Settings sections for auto-generation
@@ -163,10 +164,18 @@ var APP_ICONS = {
     "transmission": "muximux-transmission"
 };
 
+var PROFILE_APPS = [
+    "sonarr",
+    "radarr",
+    "lidarr",
+    "watcher",
+    "couch",
+    "headphones"
+];
+
 // Initialize global variables, special classes
 $(function () {
-    console.log("Running for jquery Ready.");
-	$(".select").dropdown({"optionClass": "withripple"});
+    $(".select").dropdown({"optionClass": "withripple"});
 	$("#mainWrap").css({"top": 0});
 
 	// We do need to embed this in the page, just for the first query back to the server
@@ -181,13 +190,11 @@ $(function () {
 	$('#play').addClass('clicked');
     // Hides the loading animation
     $('body').addClass('loaded');
-    console.log("All done processing Jquery ready.");
 
 });
 
 // This fires after the page is completely ready
 $(window).on("load", function() {
-    console.log("Running window onLoad");
     fetchData();
 
     getServerStatus();
@@ -228,10 +235,40 @@ function fetchData() {
         polling = true;
         pollcount = 1;
         var uri = 'api.php?fetchData&force=' + firstPoll + '&apiToken=' + apiToken;
-        console.log("Getting data from " + uri);
         $.get(uri, function (data) {
             if (data !== null) {
                 parseData(data);
+                for (var app in PROFILE_APPS) {
+                    app = PROFILE_APPS[app];
+                    var list = app + "List";
+                    var profile = app + "Profile";
+                    var element = $('#' + list);
+
+                    if (window.hasOwnProperty(list) && window.hasOwnProperty(profile)) {
+                        console.log("Window has props for " + list + " and " + profile);
+                        list = window[list];
+                        profile = window[profile];
+                        if (list && profile) {
+                            var index = 0;
+                            if (list.hasOwnProperty(profile)){
+                                for(var i = 0; i < list.length; i++) {
+                                    for(var key in list[i] ) {
+                                        if (key === 'profile') index = i;
+                                    }
+                                }
+                                var value = list[profile];
+                                if (element.length) {
+                                    var oldVal = element.val();
+                                    if (oldVal !== value) {
+                                        element.val(value);
+                                        console.log("Setting profile for " + app + " to " + value);
+                                        console.log("Old value is " + oldVal);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
             polling = false;
             firstPoll = false;
@@ -250,12 +287,13 @@ function fetchData() {
 function parseData(data) {
     var force = (firstPoll !== false);
     if (force) {
-        console.log("DATA: ",data);
+        console.log("Parsing data from server: ",data);
         if (data.hasOwnProperty('strings')) javaStrings = data['strings'];
-        console.log("Java strings: ",javaStrings);
         buildUiDeferred();
         buildSettingsPages(data);
     }
+
+
 
     if (data.hasOwnProperty('userData')) {
         updateUi(data['userData']);
@@ -298,6 +336,7 @@ function parseData(data) {
                 case "playerStatus":
                     updatePlayerStatus(val);
                     break;
+                case 'strings':
                 case "ui":
                 case "userdata":
                     break;
@@ -309,8 +348,7 @@ function parseData(data) {
 }
 
 function checkUpdate() {
-	console.log("Function fired!!");
-    apiToken = $('#apiTokenData').data('token');
+	apiToken = $('#apiTokenData').data('token');
     $.get('api.php?apiToken=' + apiToken, {checkUpdates: true}, function (data) {
     	if (data.hasOwnProperty('commits')) {
     		var count = data['commits'].length;
@@ -444,13 +482,10 @@ function buildUiDeferred() {
 
 function drawerClick(element) {
     clickCount = 0;
-    console.log("Drawer item is clicked.");
     var expandDrawer = $(".drawer-list");
     var linkVal = element.data("link");
     var secLabel = $("#sectionLabel");
-    if (element.hasClass("active")) {
-        console.log("Active item, nothing to do.");
-    } else {
+    if (!element.hasClass("active")) {
         // Handle switching content
         switch (linkVal) {
             case 'expandDrawer':
@@ -460,7 +495,6 @@ function drawerClick(element) {
                 toggleDrawer(expandDrawer, element);
                 break;
             case 'client':
-                console.log("Selecting client.");
                 var clientId = element.data('id');
                 updateDevice('Client', clientId);
                 break;
@@ -469,7 +503,6 @@ function drawerClick(element) {
                 var activeItem = $('.drawer-item.active');
                 if (typeof element.data('src') !== 'undefined') {
                     var frameSrc = element.data('src');
-                    console.log("We have a source URL for the frame: ",frameSrc);
                     var frameTarget = $('#' + element.data('frame'));
                     if (frameTarget.attr('src') !== frameSrc) {
                         frameTarget.attr('src', frameSrc);
@@ -488,7 +521,6 @@ function drawerClick(element) {
                 element.addClass("active");
                 var currentTab = $('.view-tab.active');
                 var newTab = $("#" + linkVal);
-                console.log("Enabling " + linkVal + " tab.");
                 currentTab.addClass('fade');
                 currentTab.removeClass('active');
                 newTab.removeClass('fade');
@@ -512,7 +544,6 @@ function drawerClick(element) {
                     $('.load-barz').hide();
                     frame.attr('src',"");
                 }
-                console.log("Collapse");
         }
         if (linkVal !== "expandDrawer") {
 
@@ -544,7 +575,6 @@ function deviceHtml(type, deviceData) {
                 string = "<a class='dropdown-item client-item" + selected + "' data-type='Client' data-id='" + id + "'>" + friendlyName + "</a>";
             } else if (type ==='ClientDrawer') {
                 var iconType = "label_important";
-                console.log("Device product is " + device['Product']);
                 if (device['Product'] === "Cast") iconType = "cast";
                 var clientSpan = "<span class='barBtn'><i class='material-icons colorItem barIcon'>" + iconType + "</i></span>" + friendlyName;
                 if (device["Selected"]) {
@@ -565,7 +595,6 @@ function deviceHtml(type, deviceData) {
         }
 	});
     if (type === 'Broadcast') {
-    	console.log("Generating broadcast device list here...");
     	var tmp = output;
     	var selected = (broadcastDevice === 'all') ? " selected" : "";
     	output = "<option data-type='Broadcast' value='all'" + selected + ">ALL DEVICES</option>";
@@ -580,40 +609,36 @@ function deviceHtml(type, deviceData) {
 function updateDevices(newDevices) {
 	$(".remove").remove();
 	var newString = JSON.stringify(newDevices);
-	var selected = $('.dd-selected');
 	if (newString !== devices) {
 		console.log("Device array changed, updating: ", newDevices);
 		if (newDevices.hasOwnProperty("Client")) {
 			$('#clientWrapper').html(deviceHtml('Client', newDevices["Client"]));
             $('#ClientDrawer').html(deviceHtml('ClientDrawer', newDevices["Client"]));
             $('#broadcastList').html(deviceHtml('Broadcast', newDevices["Client"]));
+            var selected = $('.dd-selected');
+            $('.ddLabel').html(selected.text());
+            colorItems(appColor, selected);
         }
         if (newDevices.hasOwnProperty("Server")) $('#serverList').html(deviceHtml('Server', newDevices["Server"]));
         if (newDevices.hasOwnProperty("Dvr")) {
             var dvrGroup = $('#dvrGroup');
-            console.log("DVR List length is " + newDevices["Dvr"].length);
             if (newDevices["Dvr"].length > 0) {
-                console.log("Showing group");
                 dvrGroup.show();
             } else {
-                console.log("Hiding group");
                 dvrGroup.hide();
             }
             $('#dvrList').html(deviceHtml('Dvr', newDevices.Dvr));
-            $('.ddLabel').html(selected.text());
         }
 		devices = JSON.stringify(newDevices);
 	}
-    colorItems(appColor, selected);
-
 }
 
 function updateDevice(type, id) {
+    console.log("Setting " + type + " to device with ID " + id);
 	var noSocket = true;
 	if (noSocket) {
 		if (type === 'Client') {
             if (id !== "rescan") {
-                console.log("Switching graphics, id is " + id);
                 $('.client-item.dd-selected').removeClass('.dd-selected');
                 $('.drawer-item.dd-selected').removeClass('.dd-selected');
                 var clientDiv = $("div").find("[data-id='" + id + "']");
@@ -748,16 +773,19 @@ function updateUi(data) {
                             break;
                         case 'ignore':
                             break;
+                        case 'profile':
+                            break;
                         case 'select':
-                            console.log("Need to populate a profile list, ", value);
-                            buildList(value, element);
-                            profile = false;
-                            if (data.hasOwnProperty(propertyName.replace("List","Profile"))) {
-                                var profile = data[propertyName.replace("List","Profile")];
-                                if (element.find(":selected").val() !== value) {
-                                    element.val(profile);
-                                    element.val(value).prop('selected', value);
-                                    updated = true;
+                            if (value) {
+                                buildList(value, element);
+                                profile = false;
+                                if (data.hasOwnProperty(propertyName.replace("List","Profile"))) {
+                                    var profile = data[propertyName.replace("List","Profile")];
+                                    if (element.find(":selected").val() !== value) {
+                                        element.val(profile);
+                                        element.val(value).prop('selected', value);
+                                        updated = true;
+                                    }
                                 }
                             }
                             break;
@@ -1062,9 +1090,7 @@ function scaleSlider() {
 
 function displayCardModal(card) {
 	if ($('#voiceTab').hasClass('active')) {
-		console.log("No need to show a modal, we're on teh voice tab.");
 	} else {
-		console.log("Displaying card modal.");
 		var cardModal = $('#cardModal');
 		var cardModalBody = $('#cardWrap');
 		cardModalBody.html("");
@@ -1081,10 +1107,8 @@ function chk_scroll(e) {
     	var sh = el[0].scrollHeight;
     	var st = $el.scrollTop();
     	var oh = $el.outerHeight();
-    	console.log("Checking", sh, $el.scrollTop(), $el.outerHeight());
 
         if (sh - st - oh < 1) {
-			console.log("bottom");
 			npFooter.slideUp();
 			npFooter.addClass('reHide');
 		} else {
@@ -1153,6 +1177,19 @@ function buildCards(value, i) {
 }
 
 function buildList(list, element) {
+    if (element === undefined) {
+        console.log("YOU NEED TO DEFINE AN ELEMENT FOR ",list);
+        return false;
+    }
+    var id = element.attr('id');
+    var key = id.replace("List","Profile");
+    var selected = false;
+    var selVal = false;
+    if (window.hasOwnProperty(key)) {
+        selected = window[key];
+    }
+
+    var i = 0;
     for (var item in list) {
         if (list.hasOwnProperty(item)) {
             var opt = $('<option>',{
@@ -1160,9 +1197,16 @@ function buildList(list, element) {
                 id: list[item]
             });
             opt.attr('data-index',item);
-            console.log("Here's an item: ", item, list[item]);
+
+                if (!selected && i === 0) selVal = list[item];
+                if (selected && item === selected) selVal = list[item];
             element.append(opt);
         }
+        i++;
+    }
+    if (selected) {
+        $('#' + id).val(selVal);
+
     }
 }
 
@@ -1227,17 +1271,15 @@ function fetchWeather() {
 	$.getJSON('https://extreme-ip-lookup.com/json/', function (data) {
 		city = data["city"];
 		state = data["region"];
-		console.log("City and state are " + city + " and " + state);
 		$.simpleWeather({
 			location: city + ',' + state,
 			woeid: '',
 			unit: 'f',
 			success: function (weather) {
-				console.log("SUCCESS!",weather);
 				setWeather(weather);
 			},
 			error: function (error) {
-				console.log("Error: ", error);
+				console.log("Error updating weather: ", error);
 				setWeather("");
 			}
 		});
@@ -1255,9 +1297,7 @@ function setWeather(weather) {
     } else {
 		condition = "";
 	}
-	console.log("Condition? " + condition);
-	console.log("Condition is '" + condition + "'. Weather html is '" + weatherHtml + "'.");
-    switch (condition) {
+	switch (condition) {
 		case "0":
 		case "1":
 		case "2":
@@ -1382,7 +1422,6 @@ function setListeners() {
 	});
 
     $('#cardModalBody').on('click', function() {
-    	console.log("You clicked me...");
     	$('#cardModal').modal('hide');
 	});
 
@@ -1406,7 +1445,6 @@ function setListeners() {
 			var appName = $(this).attr('id');
 			var group = $(document.getElementById(appName + 'Group'));
 			//var group = $('#'+appName+'Group');
-			console.log("Toggling ",appName, group);
 			if (checked) {
 				group.show();
 			} else {
@@ -1481,18 +1519,8 @@ function setListeners() {
 				if (data.hasOwnProperty('status')) {
 					console.log("We have a msg.",data['status']);
 					var msg = data['status'].replace(/"/g,"");
-					console.log("Cleaned: ",msg);
 					$.snackbar({content: msg});
 				}
-				if (data.hasOwnProperty('list')) {
-					var list = data['list'];
-					if (list !== false) {
-						var appName = "#" + value.toLowerCase() + "Profile";
-                        console.log("We have a list, appending to " + appName,list);
-                        $(appName).html(list);
-					}
-				}
-
 			},"json");
 		}
 
@@ -1510,8 +1538,7 @@ function setListeners() {
 		}
 
         if ($(this).hasClass("logBtn")) {
-			console.log("Cast logs should be fetching...");
-            location.href = 'api.php?castLogs&apiToken=' + apiToken;
+			location.href = 'api.php?castLogs&apiToken=' + apiToken;
 
 
         }
@@ -1543,13 +1570,11 @@ function setListeners() {
 					regUrl = 'https://phlexchat.com/api.php?apiToken=' + apiToken + "&serverAddress=" + serverAddress + "&test=true";
 					$.get(regUrl, function (dataReg) {
 						var msg = false;
-						console.log("Message: ", dataReg);
-                        if (dataReg.hasOwnProperty('success')) {
+						 if (dataReg.hasOwnProperty('success')) {
 							if (dataReg['success'] === true) {
 								msg = "Connection successful!";
 							} else {
 								msg = dataReg['msg'];
-								console.log("Message received: " + msg);
 							}
 						}
 						$.snackbar({content: msg});
@@ -1644,7 +1669,6 @@ function setListeners() {
 
 	// This handles sending and parsing our result for the web UI.
 	$("#sendBtn").on('click', function () {
-		console.log("Execute clicked!");
 		$('.load-barz').show();
 		var command = $('#commandTest').val();
 		if (command !== '') {
@@ -1663,7 +1687,6 @@ function setListeners() {
 	});
 
     $("#smallSendBtn").on('click', function () {
-        console.log("Execute clicked!");
         $('.load-barz').show();
         var command = $('#commandTest').val();
         if (command !== '') {
@@ -1861,13 +1884,11 @@ function addAppGroup(key) {
     	if (APP_COLORS.hasOwnProperty(key)) {
     		color = APP_COLORS[key];
 		}
-        console.log("Trying to add group for " + key);
         var urlString = key + "Uri";
         var frameString = key + "Frame";
         var divString = "#" + key + "Div";
         var url = false;
         if (window.hasOwnProperty(urlString)) {
-            console.log("We have urlstring");
             url = window[urlString];
         } else {
         	url = "http://localhost";
@@ -1881,7 +1902,6 @@ function addAppGroup(key) {
         }
 
         if (url) {
-            console.log("We've got the goods for " + key);
             var btnDiv = $('<div>', {
                 class: 'drawer-item btn',
                 id: key + "Btn"
@@ -1941,15 +1961,11 @@ function buildSettingsPages(userData) {
 	if (userData.hasOwnProperty('userData')) {
 		userData = userData['userData'];
 	}
-	console.log("BUILDING PAGES.");
-
-
 
 	var drawer = $('#SettingsDrawer');
 	var container = $('#results');
 
 	$.each(SETTINGS_SECTIONS, function (key, data) {
-		console.log("Creating item for " + key);
 		// Create drawer items
         var btnDiv = $('<div>', {
             class: 'drawer-item btn',
@@ -1970,7 +1986,6 @@ function buildSettingsPages(userData) {
         btnSpan.append(btnIcon);
         btnDiv.append(btnSpan);
         btnDiv.append(ucFirst(key));
-        console.log("Appending: ",btnDiv);
         drawer.append(btnDiv);
 
         // Create settings items (Wheeee!)
@@ -2151,8 +2166,7 @@ function closeDrawer() {
 	var drawer = $('#sideMenu');
 	$('#ghostDiv').hide();
 	if (drawer.css("left") === '0px') {
-		console.log("Drawer");
-        drawer.animate({
+		drawer.animate({
             left: '-352px'
         }, 200);
 	}
