@@ -130,12 +130,11 @@ function getPreference($table, $rows=false, $default=false, $selector=false, $si
     return $data;
 }
 
-function deleteData($section, $selector=null, $value=null) {
+function deletePrefrence($table, $selector) {
     $config = initConfig();
-    $selString = (is_array($selector)) ? json_encode($selector) : $selector;
-	$valString = (is_array($value)) ? json_encode($value) : $value;
-    write_log("Got a command to delete $section - $selString - $valString");
-    $config->delete($section, $selector, $value);
+    write_log("Got a command to delete from $table using: " . json_encode($selector));
+    $result = $config->delete($table, $selector);
+    return $result;
 }
 
 function checkUpdate() {
@@ -729,7 +728,8 @@ function logCommand($resultObject) {
         }
         if (count($stamps)) {
             foreach ($stamps as $stamp) {
-                deleteData('commands',['apiToken','stamp'],[$apiToken,$stamp]);
+                $result = deletePrefrence('commands',['apiToken'=>$apiToken,'stamp'=>$stamp]);
+                write_log("Delete result is $result");
             }
         }
         $now = date("Y-m-d h:m:s");
@@ -781,11 +781,9 @@ function newUser($user) {
 }
 
 function popCommand($id) {
-    $commands = getPreference('commands',['stamp'],[],['apiToken'=>$_SESSION['apiToken']]);
-    if (is_array($commands) && count($commands)) foreach ($commands as $command) {
-        $stamp = $command['stamp'];
-        if ($id == $stamp) deleteData('commands','apiToken',$_SESSION['apiToken']);
-    }
+	write_log("Popping it like it's hot.");
+    $result = deletePrefrence('commands',['apiToken'=>$_SESSION['apiToken'], 'stamp'=>$id]);
+    write_log("Result of popping it like it's hot is $result");
 }
 
 function verifyApiToken($apiToken) {

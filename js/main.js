@@ -1030,6 +1030,7 @@ function updateCommands(data, prepend) {
 					$(this).remove();
 				});
 				apiToken = $('#apiTokenData').data('token');
+				console.log("Removing card: ",stamp);
 				$.get('api.php?apiToken=' + apiToken + '&card=' + stamp, function (data) {
 					lastUpdate = data;
 				});

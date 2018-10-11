@@ -133,14 +133,12 @@ class FileConfig extends Database {
 	/**
 	 * @param $table
 	 * @param array $selectors
-	 * @return mixed
+	 * @return bool
 	 */
     public function delete($table, $selectors) {
-	    $records = (new Database($this->path))->table($table)->where($selectors)->get->results();
-	    foreach($records as $record) {
-	    	write_log("Deleting record: ".json_encode($record),"INFO",false,false,true);
-	    	$record->delete();
-	    }
+    	$db = new Database(($this->path));
+	    $deleted = $db->table($table)->where($selectors)->get->first()->delete();
+	    return $deleted;
     }
 
 
