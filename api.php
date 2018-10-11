@@ -385,7 +385,7 @@ function getUiData($force = false) {
 	$playerStatus = fetchPlayerStatus();
 	$devices = selectDevices(scanDevices(false));
 	$deviceText = json_encode($devices);
-	$settingData = array_merge(fetchUserData(), fetchGeneralData());
+	$settingData = array_merge(fetchGeneralData(),fetchUserData());
 	foreach ($settingData as $key => &$value) {
 		if (preg_match("/List/", $key) && $key !== 'deviceList') {
 			$value = fetchList(str_replace("List", "", $key));
