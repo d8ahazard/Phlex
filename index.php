@@ -2,12 +2,14 @@
 require_once dirname(__FILE__) . '/php/vendor/autoload.php';
 require_once dirname(__FILE__) . "/php/webApp.php";
 require_once dirname(__FILE__) . '/php/util.php';
+require_once dirname(__FILE__) . "/api.php";
 write_log("-------NEW REQUEST RECEIVED-------", "ALERT");
 scriptDefaults();
 $defaults = checkDefaults();
+if ($defaults['migrated'] ?? false) header("Refresh:0");
 $forceSSL = $defaults['forceSSL'] ?? false;
 if ($forceSSL === "false") $forceSSL = false;
-write_log("ForceSSL is set to $forceSSL");
+write_log("ForceSSL is ".($forceSSL ? "Enabled" : "Disabled"));
 if ((empty($_SERVER['HTTPS']) || $_SERVER['HTTPS'] == "off") && $forceSSL) {
 	$redirect = 'https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
 	write_log("Force is on, redirecting to: $redirect","ERROR");

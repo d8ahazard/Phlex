@@ -61,21 +61,18 @@ class DbConfig {
 		}
 	}
 
-    /**
-     * @param $section
-     * @param $data
-     * @param null $selector
-     * @param null $search
-     * @param bool $new
-     */
-    public function set($section, $data, $selector=null, $search=null, $new=false) {
-        $keys = $strings = $values = [];
-        $addSelector = true;
+	/**
+	 * @param string $table
+	 * @param array $data
+	 * @param bool | array $selectors
+	 */
+    public function set($table, $data, $selectors=false) {
+	    $keys = $strings = $values = [];
 
+	    if ($selectors) $data = array_merge($data,$selectors);
         foreach ($data as $key => $value) {
             if ($value === true) $value = "true";
             if ($value === false) $value = "false";
-            if ($key == $selector) $addSelector = false;
             if (is_array($value)) $value = json_encode($value);
             $quoted = $this->quote($value);
             if ($value === "true" || $value === "false") $quoted = $value;
@@ -84,21 +81,12 @@ class DbConfig {
             array_push($strings, "$key=$quoted");
         }
 
-        if ($selector && $search && $addSelector) {
-            $search = $this->quote($search);
-            array_push($keys, $selector);
-            array_push($values, $search);
-            array_push($string, "$selector=$search");
-        }
-
         $strings = join(", ",$strings);
         $keys = join(", ",$keys);
         $values = join(", ",$values);
-        $update = $new ? "" : " ON DUPLICATE KEY UPDATE $strings";
-        $query = "INSERT INTO $section ($keys) VALUES ($values)".$update;
+        $query = "INSERT INTO $table ($keys) VALUES ($values) ON DUPLICATE KEY UPDATE $strings";
         $result = $this->query($query);
-        if ($result) {
-        } else{
+        if (!$result) {
             trigger_error("Error saving record: ".$this->error(),E_USER_ERROR);
         }
     }
@@ -106,40 +94,32 @@ class DbConfig {
     /**
      * @param $section
      * @param bool $keys
-     * @param null $selector
-     * @param null $search
+     * @param bool | array $selector
      * @return array|bool
      */
-    public function get($section, $keys=false, $selector=null, $search=null) {
+    public function get($section, $keys=false, $selector=false) {
         if (is_string($keys)) $keys = [$keys];
         $keys = $keys ? join(", ",$keys) : "*";
         $query = "SELECT $keys FROM $section";
-        if ($selector && $search) $query .= " WHERE $selector LIKE ".$this->quote($search);
+	    $value = reset($selector);
+	    $key = key($selector);
+	    if ($selector) $query .= " WHERE $key LIKE ".$this->quote($value);
         $data = $this->select($query);
         return $data;
     }
 
     /**
      * @param $section
-     * @param null $selector
-     * @param null $value
+     * @param array $selectors
      * @return mixed
      */
-    public function delete($section, $selector=null, $value=null) {
-	    $query = "DELETE from $section";
-        if ($selector && $value) {
-            if (is_string($selector)) {
-                $query .= " WHERE $selector LIKE " . $this->quote($value);
-            } else {
-                $i = 0;
-                $strings = [];
-                foreach ($selector as $sel) {
-                    array_push($strings,"$sel LIKE ".$this->quote($value[$i]));
-                    $i++;
-                }
-                $query .= " WHERE " . join(" AND ",$strings);
-            }
+    public function delete($section, $selectors) {
+        $strings = [];
+        if (empty($selectors)) return false;
+        foreach ($selectors as $key => $value) {
+            array_push($strings, "$key LIKE " . $this->quote($value));
         }
+        $query = "DELETE from $section WHERE " . join(" AND ",$strings);
         $result = $this->query($query);
         return $result;
     }

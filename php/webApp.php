@@ -5,6 +5,7 @@ require_once dirname(__FILE__) . '/git/GitUpdate.php';
 require_once dirname(__FILE__) . '/config/appConfig.php';
 checkFiles();
 use digitalhigh\GitUpdate;
+use Filebase\Database;
 $isWebapp = isWebApp();
 $_SESSION['webApp'] = $isWebapp;
 $GLOBALS['webApp'] = $isWebapp;
@@ -15,12 +16,12 @@ $_SESSION['publicAddress'] = $publicAddress;
 
 function updateUserPreference($key, $value, $section='userdata') {
     $value = scrubBools($value, $key);
-    setPreference($section, [$key=>$value],'apiToken',$_SESSION['apiToken']);
+    setPreference($section, [$key=>$value],['apiToken'=>$_SESSION['apiToken']]);
 }
 
 function updateUserPreferenceArray($data, $section='userdata') {
     $data = scrubBools($data);
-    setPreference($section,$data,'apiToken',$_SESSION['apiToken']);
+    setPreference($section,$data,['apiToken'=>$_SESSION['apiToken']]);
 }
 
 function scrubBools($scrub, $key=false) {
@@ -71,21 +72,19 @@ function scrubBools($scrub, $key=false) {
 }
 
 function initConfig() {
-    $config = false;
     $configObject = false;
     $error = false;
-    $dbFile = dirname(__FILE__) . "/../rw/db.conf.php";
-    $jsonFile = dirname(__FILE__). "/../rw/config.php";
-    $configFile = file_exists($dbFile) ? $dbFile : $jsonFile;
-    if (!$config) {
-        //write_log("Creating session config object.");
-        if (file_exists($dbFile)) checkDefaultsDb($dbFile);
-        try {
-            $config = new digitalhigh\appConfig($configFile);
-        } catch (\digitalhigh\ConfigException $e) {
-            write_log("An exception occurred creating the configuration. '$e'", "ERROR",false,false,true);
-            $error = true;
-        }
+    $dbConfig = dirname(__FILE__) . "/../rw/db.conf.php";
+    $dbDir = __DIR__ . "/../rw/db";
+    $type = file_exists($dbConfig) ? 'db' : 'file';
+    $config = file_exists($dbConfig) ? $dbConfig : $dbDir;
+    //write_log("Creating session config object.");
+    if ($type === 'db') checkDefaultsDb($config);
+    try {
+        $config = new digitalhigh\appConfig($config, $type);
+    } catch (\digitalhigh\ConfigException $e) {
+        write_log("An exception occurred creating the configuration. '$e'", "ERROR",false,false,true);
+        $error = true;
     }
     if (!$error) {
         $configObject = $config->ConfigObject;
@@ -94,36 +93,48 @@ function initConfig() {
     return $configObject;
 }
 
-function setPreference($section, $data, $selector=null, $search=null, $new=false) {
+function setPreference($section, $data, $selector=false) {
     $config = initConfig();
-    $config->set($section, $data, $selector, $search, $new);
+    $config->set($section, $data, $selector);
     if ($section === 'userdata') writeSessionArray(fetchUserData());
     if ($section === 'general') writeSessionArray(fetchGeneralData());
 }
 
-function getPreference($section, $keys=false, $default=false, $selector=null, $search=null,$single=true) {
+/**
+ * @param $table
+ * @param bool | array $rows - An array of row names to select. Not setting returns all data
+ * @param bool | mixed $default - The default value to return if none exists
+ * @param bool | array $selector - An array of key/value pairs to match in a WHERE statement
+ * @param bool $single | Return the first row of data, or all rows (when selecting commands)
+ * @return array|bool|mixed
+ */
+function getPreference($table, $rows=false, $default=false, $selector=false, $single=true) {
     $config = initConfig();
-    $data = $config->get($section, $keys, $selector, $search);
+
+    $data = $config->get($table, $rows, $selector);
     $ignore = false;
-    if ($keys) {
-        if (is_string($keys)) {
-            $data = $data[0][$keys] ?? $default;
-            $ignore = true;
-        }
-    }
+
     if (empty($data) && !$ignore) {
         $data = $default;
     }
-    if ($single && !is_string($data))  $data = (count($data) == 1) ? $data[0] : $data;
+
+    if ($single) {
+    	if (is_array($data) && count($data) === 1) {
+		    foreach ($data as $record) {
+			    $data = $record;
+			    break;
+		    }
+	    }
+    }
+    //write_log("Filtered output: ".json_encode($data),"INFO",false,false,true);
     return $data;
 }
 
-function deleteData($section, $selector=null, $value=null) {
+function deletePrefrence($table, $selector) {
     $config = initConfig();
-    $selString = (is_array($selector)) ? json_encode($selector) : $selector;
-	$valString = (is_array($value)) ? json_encode($value) : $value;
-    write_log("Got a command to delete $section - $selString - $valString");
-    $config->delete($section, $selector, $value);
+    write_log("Got a command to delete from $table using: " . json_encode($selector));
+    $result = $config->delete($table, $selector);
+    return $result;
 }
 
 function checkUpdate() {
@@ -185,12 +196,21 @@ function scriptDefaults() {
 function checkDefaults() {
     $config = dirname(__FILE__) . "/../rw/db.conf.php";
     $useDb = file_exists($config);
+    $migrated = false;
     if ($useDb) {
         checkDefaultsDb($config);
         upgradeDbTable($config);
+    } else {
+    	$jsonFile = dirname(__FILE__) . "/../rw/config.php";
+    	if (file_exists($jsonFile)) {
+    		migrateSettings($jsonFile);
+    		return ['migrated'=>true];
+	    }
     }
+
     // Loading from General
-    $defaults = getPreference('general',false,false);
+    $defaults = getPreference('general');
+    //write_log("Returned: ".json_encode($defaults),"INFO",false,true,true);
     if ($defaults) {
         $keys = $values = [];
         foreach($defaults as $value){
@@ -223,10 +243,55 @@ function checkDefaults() {
         ];
         foreach($defaults as $key=>$value) {
             $data = ['name'=>$key, 'value'=>$value];
-            setPreference('general',$data,"name",$key);
+            setPreference('general',$data,["name"=>$key]);
         }
     }
     return $defaults;
+}
+
+function migrateSettings($jsonFile) {
+write_log("Migrating settings.", "ALERT", false, false, true);
+	$db = [
+		'path' => __DIR__ . "/../rw/db"
+	];
+	$database = $jsonArray = false;
+	$jsonData = file_get_contents($jsonFile);
+	if ($jsonData) {
+		$jsonData = str_replace("'; <?php die('Access denied'); ?>", "",$jsonData);
+		$jsonArray = json_decode($jsonData,true);
+	}
+	try {
+		$database = new Database($db);
+	} catch (Exception $e) {
+		write_log("Exception occurred loading database.","INFO",false,false,true);
+	}
+
+	if ($jsonArray && $database) {
+		write_log("Converting configs...","ALERT", false, false, true);
+		foreach($jsonArray as $section => $sectionData) {
+			$table = $database->table($section);
+			write_log("Creating $section table.", "ALERT", false, false, true);
+			foreach($sectionData as $record) {
+				switch($section) {
+					case 'userdata':
+						$rec = $table->get($record['apiToken']);
+						break;
+					case 'general':
+						$rec = $table->get($record['name']);
+						break;
+					default:
+						$rec = $table->get(uniqid());
+				}
+				foreach($record as $key=>$value) {
+					$rec->$key = $value;
+				}
+				$rec->save();
+			}
+			file_put_contents(__DIR__ . "/../rw/db/$section/index.html","SUCK IT.");
+		}
+		write_log("Conversion complete!","INFO",false,false,true);
+		rename($jsonFile, "$jsonFile.bak");
+	}
 }
 
 function checkDefaultsDb($config) {
@@ -519,12 +584,12 @@ function upgradeDbTable($config) {
 }
 
 function checkSetDeviceID() {
-    $deviceId = getPreference('general','value','foo','name','deviceId');
+    $deviceId = getPreference('general',['value'],'foo',['name'=>'deviceId']);
     return $deviceId;
 }
 
 function checkSSL() {
-    $forceSSL = getPreference('general', 'value',false,'name','forceSSL');
+    $forceSSL = getPreference('general', ['value'],false,['name'=>'forceSSL']);
     return $forceSSL;
 }
 
@@ -550,13 +615,13 @@ function serverAddress() {
     $selector = ($loggedIn) ? 'apiToken' : 'name';
     $search = ($loggedIn) ? $_SESSION['apiToken'] : 'publicAddress';
     //write_log("Getting sec $section key $key sel $selector sear $search");
-    $serverAddress = getPreference($section, $key, 'http://localhost', $selector, $search);
+    $serverAddress = getPreference($section, [$key], 'http://localhost', [$selector=>$search]);
     //write_log("Response: ".json_encode($serverAddress));
     return $serverAddress;
 }
 
 function fetchCommands() {
-    $commands = getPreference('commands',['data','stamp'],[],'apiToken',$_SESSION['apiToken'],false);
+    $commands = getPreference('commands',['data','stamp'],[],['apiToken'=>$_SESSION['apiToken']],false);
     $out = [];
     foreach($commands as $command) {
         if (isset($command['data'])) {
@@ -574,11 +639,10 @@ function fetchCommands() {
     return $out;
 }
 
-#TODO: Should we be writing session here?
 function fetchDeviceCache() {
     $list = [];
     $keys = ['dlist','plexServerId','plexDvrId','plexClientId'];
-    $cache = getPreference('userdata',$keys,false,'apiToken', $_SESSION['apiToken']);
+    $cache = getPreference('userdata',$keys,false,['apiToken' => $_SESSION['apiToken']]);
     if (is_array($cache) && count($cache)) {
         $list = json_decode(base64_decode($cache['dlist']),true);
         unset($cache['dlist']);
@@ -590,12 +654,12 @@ function fetchDeviceCache() {
 function fetchUser($userData) {
     $email = $userData['plexEmail'];
     $keys = ['plexUserName', 'plexEmail','apiToken','plexAvatar','plexPassUser','plexToken','apiToken','appLanguage'];
-    $data = getPreference('userdata',$keys,false,'plexEmail',$email);
+    $data = getPreference('userdata',$keys,false,['plexEmail'=>$email]);
     return $data;
 }
 
 function fetchUserData($rescan=false) {
-    $temp = getPreference('userdata',false,false,'apiToken',$_SESSION['apiToken']);
+    $temp = getPreference('userdata',false,false,['apiToken'=>$_SESSION['apiToken']]);
     $data = [];
     foreach($temp as $key => $value) {
         if (isJSON($value)) $value = json_decode($value,true);
@@ -611,7 +675,7 @@ function fetchUserData($rescan=false) {
 }
 
 function fetchGeneralData() {
-	$data = getPreference('general',false,false);
+	$data = getPreference('general');
 	if ($data) {
 		$keys = $values = [];
 		foreach($data as $value){
@@ -652,7 +716,7 @@ function logCommand($resultObject) {
     $data = json_encode($resultObject);
     if (trim($apiToken) && trim($data)) {
         #TODO: Verify that the commands are in the right order here
-        $rows = getPreference('commands',['data','stamp'],[],'apiToken',$_SESSION['apiToken'],false);
+        $rows = getPreference('commands',['data','stamp'],[],['apiToken',$_SESSION['apiToken']],false);
         if (is_array($rows)) $rows = array_reverse($rows);
         $i = 1;
         $stamps = [];
@@ -664,11 +728,12 @@ function logCommand($resultObject) {
         }
         if (count($stamps)) {
             foreach ($stamps as $stamp) {
-                deleteData('commands',['apiToken','stamp'],[$apiToken,$stamp]);
+                $result = deletePrefrence('commands',['apiToken'=>$apiToken,'stamp'=>$stamp]);
+                write_log("Delete result is $result");
             }
         }
         $now = date("Y-m-d h:m:s");
-        setPreference('commands',['stamp'=>$now,'apiToken'=>$apiToken, 'data'=>$data],null,null, true);
+        setPreference('commands',['stamp'=>$now,'apiToken'=>$apiToken, 'data'=>$data]);
     } else {
         write_log("No token or data, skipping log.","WARNING");
     }
@@ -711,23 +776,21 @@ function newUser($user) {
     ];
     $user = array_merge($user,$defaults);
     write_log("Creating and saving $userName as a new user: ".json_encode($defaults),"ALERT");
-    setPreference('userdata',$user,'apiToken',$apiToken);
+    setPreference('userdata',$user,['apiToken'=>$apiToken]);
     return $user;
 }
 
 function popCommand($id) {
-    $commands = getPreference('commands','stamp',[],'apiToken',$_SESSION['apiToken']);
-    if (is_array($commands) && count($commands)) foreach ($commands as $command) {
-        $stamp = $command['stamp'];
-        if ($id == $stamp) deleteData('commands','apiToken',$_SESSION['apiToken']);
-    }
+	write_log("Popping it like it's hot.");
+    $result = deletePrefrence('commands',['apiToken'=>$_SESSION['apiToken'], 'stamp'=>$id]);
+    write_log("Result of popping it like it's hot is $result");
 }
 
 function verifyApiToken($apiToken) {
     $data = false;
     if (trim($apiToken)) {
         $keys = ['plexUserName', 'plexEmail','apiToken','plexAvatar','plexPassUser','plexToken','apiToken','appLanguage'];
-        $data = getPreference('userdata',$keys,false,'apiToken',$apiToken);
+        $data = getPreference('userdata',$keys,false,['apiToken'=>$apiToken]);
     }
     if (!$data) {
         write_log("ERROR, api token $apiToken not recognized, called by ".getCaller(), "ERROR");
@@ -760,13 +823,11 @@ function checkFiles() {
     $rwDir = file_build_path(dirname(__FILE__), "..", "rw");
     $errorLogPath = file_build_path($logDir, "Phlex_error.log.php");
     $updateLogPath = file_build_path($logDir, "Phlex_update.log.php");
-    $configFile = file_build_path($rwDir, "config.php");
 
     $files = [
         $logPath,
         $errorLogPath,
-        $updateLogPath,
-        $configFile
+        $updateLogPath
     ];
 
     $secureString = "'; <?php die('Access denied'); ?>";

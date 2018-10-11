@@ -1,0 +1,5 @@
+{
+    "stamp": "2018-10-08 06:10:26",
+    "apiToken": "3960fbec95dfa66742f4c5a1b76ba9cda10f74db55",
+    "data": "{\"speech\":\"Tell dude to build me a speech string!\",\"cards\":[],\"playback\":false,\"suggestions\":false,\"wait\":false,\"contextName\":\"end\",\"mediaArray\":false,\"initialCommand\":\"download the show manifest\",\"timeStamp\":\"Mon, 08 Oct 2018 18:52:26 -0500\",\"timecode\":1539042746}"
+}

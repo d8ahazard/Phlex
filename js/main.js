@@ -1003,6 +1003,7 @@ function updateCommands(data, prepend) {
 				} else {
 					$('#resultsInner').append(outLine);
 				}
+                $('#loadbar').hide();
 				setTimeout(function(){
 					var nh = $('.noHeight');
 					nh.slideDown();
@@ -1029,6 +1030,7 @@ function updateCommands(data, prepend) {
 					$(this).remove();
 				});
 				apiToken = $('#apiTokenData').data('token');
+				console.log("Removing card: ",stamp);
 				$.get('api.php?apiToken=' + apiToken + '&card=' + stamp, function (data) {
 					lastUpdate = data;
 				});

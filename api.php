@@ -14,7 +14,8 @@ use Kryptonit3\SickRage\SickRage;
 use Kryptonit3\Sonarr\Sonarr;
 
 
-	analyzeRequest();
+
+if ( basename(__FILE__) == basename($_SERVER["SCRIPT_FILENAME"]) )	analyzeRequest();
 
 /**
  * Takes an incoming request and makes sure it's authorized and valid
@@ -22,7 +23,14 @@ use Kryptonit3\Sonarr\Sonarr;
 function analyzeRequest() {
 
 	$json = file_get_contents('php://input');
-	if (!session_started()) session_start();
+	if (!session_started()) {
+		$ok = @session_start();
+		if(!$ok){
+			write_log("REGENERATING SESSION ID.","WARN");
+			session_regenerate_id(true);
+			session_start();
+		}
+	}
 	$post = $_POST['postData'] ?? false;
 	if (!$post) write_log("-------NEW REQUEST RECEIVED-------", "ALERT");
 	scriptDefaults();
@@ -109,6 +117,10 @@ function initialize() {
 		bye();
 	}
 
+	if (isset($_GET['testMC'])) {
+		plexApiTest();
+	}
+
 	if (isset($_GET['test'])) {
 		$result = [];
 		$status = testConnection($_GET['test']);
@@ -180,7 +192,7 @@ function initialize() {
 				$data = ['name'=>$id, 'value'=>$value];
 				if ($_SESSION['masterUser']) {
 					write_log("Setting general perference: " . json_encode($data));
-					setPreference('general', $data, "name", $id);
+					setPreference('general', $data, ["name"=>$id]);
 					writeSession($id,$value);
 				} else {
 					$user = $_SESSION['plexUserName'] ?? "no user";
@@ -323,6 +335,9 @@ function plexApi() {
 	echo $resultstr;
 
 }
+
+
+
 
 function setSessionData($rescan = true) {
 	$data = fetchUserData($rescan);
@@ -4262,7 +4277,7 @@ function checkDeviceChange($params) {
 }
 
 function downloadCastLogs() {
-	$hasPlugin = getPreference('userdata', ['hasPlugin'], false, 'apiToken', $_SESSION['apiToken'], true);
+	$hasPlugin = getPreference('userdata', ['hasPlugin'], false, ['apiToken'=>$_SESSION['apiToken']]);
 	$urls = [];
 	$servers = $_SESSION['deviceList']['Server'];
 
