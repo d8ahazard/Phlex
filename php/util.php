@@ -65,7 +65,7 @@ function bye($msg = false, $title = false, $url = false, $log = false, $clear = 
     }
     $actual_link = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
     $url = parse_url($actual_link);
-    $url = $url['scheme']."://".$url['host'].$url['path'];
+    $url = $url['scheme']."://".$url['host'].":".$url['port'].$url['path'];
     $url = "$url?device=Client&id=rescan&passive=true&apiToken=".$_SESSION['apiToken'];
     $rescan = $_GET['pollPlayer'] ?? $_GET['passive'] ?? null;
     $executionTime = round(microtime(true) - $_SERVER["REQUEST_TIME_FLOAT"],2)."s";
