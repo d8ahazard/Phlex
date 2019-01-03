@@ -56,7 +56,7 @@ class DialogFlow {
 			);
 
 		} catch ( \Exception $e ) {
-			//throw new \Exception($e->getMessage());
+			write_log($e->getMessage(), "ERROR");
 			return [];
 		}
 
