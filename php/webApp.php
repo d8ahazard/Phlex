@@ -81,7 +81,7 @@ function initConfig() {
 	$type = file_exists($dbConfig) ? 'db' : 'file';
     $configFile = file_exists($dbConfig) ? $dbConfig : $jsonFile;
 	if ($type === 'db') {
-		$configData = str_replace("'; <?php die('Access denied'); ?>", "", file_get_contents($config));
+		$configData = str_replace("'; <?php die('Access denied'); ?>", "", file_get_contents($configFile));
 		$configData = json_decode($configData, true);
 		checkDefaultsDb($configData);
 	}
