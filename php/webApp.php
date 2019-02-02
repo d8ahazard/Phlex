@@ -76,20 +76,25 @@ function initConfig() {
     $config = isWebApp() ? false : ($_SESSION['configObject'] ?? false);
     $configObject = false;
     $error = false;
-    $dbFile = dirname(__FILE__) . "/../rw/db.conf.php";
+	$dbConfig = dirname(__FILE__) . "/../rw/db.json.php";
     $jsonFile = dirname(__FILE__). "/../rw/config.php";
-    $configFile = file_exists($dbFile) ? $dbFile : $jsonFile;
-    if (!$config) {
-        //write_log("Creating session config object.");
-        if (file_exists($dbFile)) checkDefaultsDb($dbFile);
-        try {
-            $config = new digitalhigh\appConfig($configFile);
-        } catch (\digitalhigh\ConfigException $e) {
-            write_log("An exception occurred creating the configuration. '$e'", "ERROR",false,false,true);
-            $error = true;
-        }
-        $_SESSION['configObject'] = $config;
+	$type = file_exists($dbConfig) ? 'db' : 'file';
+    $configFile = file_exists($dbConfig) ? $dbConfig : $jsonFile;
+	if ($type === 'db') {
+		$configData = str_replace("'; <?php die('Access denied'); ?>", "", file_get_contents($config));
+		$configData = json_decode($configData, true);
+		checkDefaultsDb($configData);
+	}
+
+    try {
+        $config = new digitalhigh\appConfig($configFile, $type);
+    } catch (\digitalhigh\ConfigException $e) {
+        write_log("An exception occurred creating the configuration. '$e'", "ERROR",false,false,true);
+        $error = true;
     }
+
+    $_SESSION['configObject'] = $config;
+
     if (!$error) {
         $configObject = $config->ConfigObject;
     }
@@ -182,9 +187,11 @@ function scriptDefaults() {
 }
 
 function checkDefaults() {
-    $config = dirname(__FILE__) . "/../rw/db.conf.php";
-    $useDb = file_exists($config);
+	$configFile = "/../rw/db.json.php";
+	$useDb = file_exists($configFile);
     if ($useDb) {
+		$config = str_replace("'; <?php die('Access denied'); ?>", "", file_get_contents($configFile));
+		$config = json_decode($config, true);
         checkDefaultsDb($config);
     }
     // Loading from General
@@ -230,8 +237,7 @@ function checkDefaults() {
 }
 
 function checkDefaultsDb($config) {
-    $config = parse_ini_file($config);
-    $db = $config['dbname'];
+
     $head = '<!DOCTYPE html>
         <html lang="en">
         <head>
@@ -245,7 +251,11 @@ function checkDefaultsDb($config) {
                 </body>
                 </html>';
 
-    $mysqli = new mysqli('localhost',$config['username'],$config['password']);
+	$db = $config['database'];
+	$host = $config['host'] ?? "localhost";
+	$username = $config['username'];
+	$pass = $config['password'];
+	$mysqli = new mysqli($host, $username, $pass);
     $noDb = false;
     if (! $mysqli->select_db($db)) {
         $noDb = true;
