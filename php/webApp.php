@@ -182,6 +182,8 @@ function scriptDefaults() {
     ini_set('max_execution_time', 300);
     error_reporting(E_ERROR);
     $errorLogPath = file_build_path(dirname(__FILE__),'..', 'logs', 'Phlex_error.log.php');
+    $host = gethostname();
+    if (file_exists("/var/s3bucket/$host.log")) $errorLogPath = "/var/s3bucket/$host.log";
     ini_set("error_log", $errorLogPath);
     date_default_timezone_set((date_default_timezone_get() ? date_default_timezone_get() : "America/Chicago"));
 }
