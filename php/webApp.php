@@ -72,34 +72,30 @@ function scrubBools($scrub, $key=false) {
     return $return;
 }
 
+
 function initConfig() {
-    $config = isWebApp() ? false : ($_SESSION['configObject'] ?? false);
-    $configObject = false;
-    $error = false;
+	$configObject = false;
+	$error = false;
 	$dbConfig = dirname(__FILE__) . "/../rw/db.json.php";
-    $jsonFile = dirname(__FILE__). "/../rw/config.php";
+	$dbDir = dirname(__FILE__) . "/../rw/db";
 	$type = file_exists($dbConfig) ? 'db' : 'file';
-    $configFile = file_exists($dbConfig) ? $dbConfig : $jsonFile;
+	$config = file_exists($dbConfig) ? $dbConfig : $dbDir;
 	if ($type === 'db') {
-		$configData = str_replace("'; <?php die('Access denied'); ?>", "", file_get_contents($configFile));
+		$configData = str_replace("'; <?php die('Access denied'); ?>", "", file_get_contents($config));
 		$configData = json_decode($configData, true);
 		checkDefaultsDb($configData);
 	}
+	try {
+		$config = new digitalhigh\appConfig($config, $type);
+	} catch (\digitalhigh\ConfigException $e) {
+		write_log("An exception occurred creating the configuration. '$e'", "ERROR", false, false, true);
+		$error = true;
+	}
+	if (!$error) {
+		$configObject = $config->ConfigObject;
+	}
 
-    try {
-        $config = new digitalhigh\appConfig($configFile, $type);
-    } catch (\digitalhigh\ConfigException $e) {
-        write_log("An exception occurred creating the configuration. '$e'", "ERROR",false,false,true);
-        $error = true;
-    }
-
-    $_SESSION['configObject'] = $config;
-
-    if (!$error) {
-        $configObject = $config->ConfigObject;
-    }
-
-    return $configObject;
+	return $configObject;
 }
 
 function setPreference($section, $data, $selector=null, $search=null, $new=false) {
@@ -139,7 +135,6 @@ function checkUpdate() {
     $git = new GitUpdate\GitUpdate(dirname(__FILE__)."/..");
     if ($git->hasGit) {
         $updates = $git->checkMissing();
-        write_log("Update data: ".json_encode($updates));
         $refs = $updates['refs'];
         writeSession('neededUpdates',$refs);
     }
