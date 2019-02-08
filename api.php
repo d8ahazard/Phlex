@@ -1035,7 +1035,7 @@ function scrapeServers($serverArray) {
 		}
 	}
 
-	if ($hasPlugin && $version !== "1.1.105") {
+	if ($hasPlugin && ((explode(".", $version)[2] ?? 0) <= 104)) {
 		write_log("No version number detected!");
 		$message = "Your cast plugin is out of date. Please install the latest version for proper functionality.";
 		$alert = [

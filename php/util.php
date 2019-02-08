@@ -853,7 +853,7 @@ function getSessionData($filter=false,$stripFilter=false)
     }
     $dvr = $_SESSION['plexDvrId'] ?? false;
     $data['dvrEnabled'] = boolval($dvr) ? true : false;
-    write_log("Session data: " . json_encode($data), "INFO");
+
     return $data;
 }
 
