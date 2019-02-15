@@ -77,9 +77,9 @@ function initConfig() {
 	$configObject = false;
 	$error = false;
 	$dbConfig = dirname(__FILE__) . "/../rw/db.json.php";
-	$dbDir = dirname(__FILE__) . "/../rw/db";
+	$jsonFile = dirname(__FILE__). "/../rw/config.php";
 	$type = file_exists($dbConfig) ? 'db' : 'file';
-	$config = file_exists($dbConfig) ? $dbConfig : $dbDir;
+	$config = file_exists($dbConfig) ? $dbConfig : $jsonFile;
 	if ($type === 'db') {
 		$configData = str_replace("'; <?php die('Access denied'); ?>", "", file_get_contents($config));
 		$configData = json_decode($configData, true);
